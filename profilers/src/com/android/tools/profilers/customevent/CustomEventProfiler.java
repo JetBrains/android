@@ -16,12 +16,9 @@
 package com.android.tools.profilers.customevent;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.network.NetworkMonitor;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomEventProfiler extends StudioProfiler {

@@ -59,7 +59,7 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     model.addListener(listener)
 
     model.selected = setValue
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(model.property.value).isEqualTo(expected)
   }

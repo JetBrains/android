@@ -25,8 +25,8 @@ import com.intellij.ide.IdeEventQueue
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 
@@ -53,7 +53,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testDefaultState() {
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 
@@ -61,7 +61,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testLoadingState() {
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture())
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.IN_PROGRESS, myStateManager.getState(project, emptyActionData))
   }
 
@@ -71,7 +71,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     devices.add(UsbDevice("test", "test", "test"))
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(devices))
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(CustomSuccessState, myStateManager.getState(project, emptyActionData))
   }
 
@@ -81,7 +81,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     exceptionFuture.completeExceptionally(IOException())
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(exceptionFuture)
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 }

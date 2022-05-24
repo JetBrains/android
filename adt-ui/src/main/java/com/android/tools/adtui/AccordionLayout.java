@@ -18,12 +18,17 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
-import org.jetbrains.annotations.NotNull;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.LayoutManager2;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Custom LayoutManager that simulates an animated Accordion UI. Each component within the layout

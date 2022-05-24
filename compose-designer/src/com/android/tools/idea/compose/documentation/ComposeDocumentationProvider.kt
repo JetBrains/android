@@ -53,6 +53,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.popup.AbstractPopup
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
@@ -142,7 +143,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   }
 
   @WorkerThread
-  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): @Nls String? {
     val future = generateDocAsync(element, originalElement)
 
     if (future.isDone) {

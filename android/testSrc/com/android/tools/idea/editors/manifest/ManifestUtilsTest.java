@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.SdkConstants;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestModel;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.TestMergedManifestSnapshotBuilder;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
@@ -32,20 +36,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static org.mockito.Mockito.*;
 
 public class ManifestUtilsTest extends AndroidTestCase {
 

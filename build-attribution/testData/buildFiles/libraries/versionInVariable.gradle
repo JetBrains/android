@@ -1,0 +1,4 @@
+ext.kotlin_version = '1.5.31'
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.navigation
 
-import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MODULE_DEPENDENCIES_PLACE_NAME
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsModulePath
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
 import com.intellij.ui.navigation.Place
 

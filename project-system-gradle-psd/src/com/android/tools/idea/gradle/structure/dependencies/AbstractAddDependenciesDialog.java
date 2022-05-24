@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.OnePixelDivider;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.SideBorder;
-import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
-
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ui.SideBorder.BOTTOM;
 import static com.intellij.util.ui.UIUtil.getButtonFont;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createCompoundBorder;
 import static javax.swing.BorderFactory.createEmptyBorder;
+
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   @NotNull private final PsModule myModule;

@@ -29,12 +29,12 @@ import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 /**
  * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project
@@ -89,13 +89,13 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
   fun testAllocationTrackingIsNoneForStartupNativeMemory() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
 
-    state.STARTUP_PROFILING_ENABLED = true;
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
+    state.STARTUP_PROFILING_ENABLED = true
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
@@ -104,19 +104,19 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
   fun testNoRunConfigSetsAttachTypeInstant() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, null)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT)
   }
 
   fun testMemoryRunConfigSetsAttachTypeAndCommand() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE)
   }
 
   fun testCpuRunConfigSetsAttachTypeAndCommand() {
@@ -125,13 +125,13 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     // require a project + project service to test.
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_CPU_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_CPU_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE)
   }
 
   fun testCustomizeProxyService() {

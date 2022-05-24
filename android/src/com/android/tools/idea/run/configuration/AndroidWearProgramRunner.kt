@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.run.configuration.execution.AndroidWearConfigurationExecutorBase
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
 import com.android.tools.idea.stats.RunStatsService
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
@@ -35,7 +35,7 @@ import org.jetbrains.concurrency.Promise
 /**
  * Class required by platform to determine which execution buttons are available for given configuration. See [canRun] method.
  *
- * Actual execution for configuration, after build, happens in [AndroidWearConfigurationExecutorBase]
+ * Actual execution for configuration, after build, happens in [AndroidConfigurationExecutorBase]
  */
 class AndroidWearProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   override fun getRunnerId(): String = "AndroidWearProgramRunner"
@@ -46,14 +46,14 @@ class AndroidWearProgramRunner : AsyncProgramRunner<RunnerSettings>() {
 
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
     val promise = AsyncPromise<RunContentDescriptor?>()
-    assert(state is AndroidWearConfigurationExecutorBase)
+    assert(state is AndroidConfigurationExecutorBase)
 
     FileDocumentManager.getInstance().saveAllDocuments()
     val stats = RunStatsService.get(environment.project).create()
 
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${environment.runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
-        promise.setResult((state as AndroidWearConfigurationExecutorBase).execute(stats))
+        promise.setResult((state as AndroidConfigurationExecutorBase).execute(stats))
       }
 
       override fun onThrowable(error: Throwable) {

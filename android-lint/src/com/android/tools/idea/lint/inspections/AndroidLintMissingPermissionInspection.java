@@ -23,11 +23,11 @@ import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
 import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionDetector;
 import com.android.tools.lint.checks.PermissionRequirement;

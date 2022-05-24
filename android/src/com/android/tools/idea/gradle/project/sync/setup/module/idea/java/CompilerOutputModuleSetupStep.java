@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.intellij.openapi.util.io.FileUtil.join;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import java.io.File;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-
-import java.io.File;
-
-import static com.intellij.openapi.util.io.FileUtil.join;
 
 public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";

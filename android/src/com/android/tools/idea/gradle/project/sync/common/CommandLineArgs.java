@@ -26,7 +26,6 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWi
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -39,6 +38,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.ArrayUtilRt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -113,7 +113,7 @@ public class CommandLineArgs {
     boolean isTestingMode = isInTestingMode();
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtilRt.toStringArray(args));
     }
 
     if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isTestingMode) {

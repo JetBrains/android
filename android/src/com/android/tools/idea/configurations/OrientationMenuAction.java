@@ -18,51 +18,32 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Toggleable;
-import org.jetbrains.android.intentions.OverrideResourceAction;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 public class OrientationMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
   private final EditorDesignSurface mySurface;
 
   /**
-   * Create a Menu to switch the orientation of the preview.
-   * If an {@link EditorDesignSurface} is provided, actions to create layout for
-   * different variation of the layout will be created
+   * Create a Menu to switch the orientation and UI mode of the preview.
    *
    * @param renderContext The render context to get the configuration
    * @param surface       The current {@link EditorDesignSurface} where this action is display
    *                      used to create the variation.
-   * @see #createVariationsActions(Configuration, EditorDesignSurface)
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
   public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
@@ -111,75 +92,8 @@ public class OrientationMenuAction extends DropDownAction {
         uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
       }
       add(uiModeGroup);
-
-      if (mySurface != null) {
-        addSeparator();
-        createVariationsActions(configuration, mySurface);
-      }
     }
     return true;
-  }
-
-  private void createVariationsActions(@NotNull Configuration configuration, @NotNull EditorDesignSurface surface) {
-    VirtualFile virtualFile = configuration.getFile();
-    if (virtualFile != null) {
-      Module module = configuration.getModule();
-      if (module == null) {
-        return;
-      }
-      Project project = module.getProject();
-
-      List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(virtualFile, true);
-      if (variations.size() > 1) {
-        for (VirtualFile file : variations) {
-          String title = String.format("Switch to %1$s", file.getParent().getName());
-          add(new SwitchToVariationAction(title, project, file, virtualFile.equals(file)));
-        }
-        addSeparator();
-      }
-
-      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(configuration.getFile());
-      if (folderType == ResourceFolderType.LAYOUT) {
-        boolean haveLandscape = false;
-        boolean haveTablet = false;
-        for (VirtualFile file : variations) {
-          String name = file.getParent().getName();
-          if (name.startsWith(FD_RES_LAYOUT)) {
-            FolderConfiguration config = FolderConfiguration.getConfigForFolder(name);
-            if (config != null) {
-              ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
-              if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
-                haveLandscape = true;
-                if (haveTablet) {
-                  break;
-                }
-              }
-              SmallestScreenWidthQualifier size = config.getSmallestScreenWidthQualifier();
-              if (size != null && size.getValue() >= 600) {
-                haveTablet = true;
-                if (haveLandscape) {
-                  break;
-                }
-              }
-            }
-          }
-        }
-
-        // Create actions for creating "common" versions of a layout (that don't exist),
-        // e.g. Create Landscape Version, Create RTL Version, Create tablet version
-        // Do statistics on what is needed!
-        if (!haveLandscape) {
-          add(new CreateVariationAction(surface, "Create Landscape Variation", "layout-land"));
-        }
-        if (!haveTablet) {
-          add(new CreateVariationAction(surface, "Create Tablet Variation", "layout-sw600dp"));
-        }
-        add(new CreateVariationAction(surface, "Create Other...", null));
-      }
-      else {
-        add(new CreateVariationAction(surface, "Create Alternative...", null));
-      }
-    }
   }
 
   @NotNull
@@ -233,46 +147,6 @@ public class OrientationMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setUiMode(myUiMode);
-    }
-  }
-
-  @VisibleForTesting
-  static class SwitchToVariationAction extends AnAction implements Toggleable {
-    private final Project myProject;
-    private final VirtualFile myFile;
-
-    public SwitchToVariationAction(@NotNull String title, @NotNull Project project, @NotNull VirtualFile file, boolean select) {
-      super(title, null, null);
-      myFile = file;
-      myProject = project;
-      if (select) {
-        Presentation templatePresentation = getTemplatePresentation();
-        templatePresentation.putClientProperty(SELECTED_PROPERTY, true);
-        templatePresentation.setEnabled(false);
-      }
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myFile, -1);
-      FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-    }
-  }
-
-  @VisibleForTesting
-  static class CreateVariationAction extends AnAction {
-    @NotNull private EditorDesignSurface mySurface;
-    @Nullable private String myNewFolder;
-
-    public CreateVariationAction(@NotNull EditorDesignSurface surface, @NotNull String title, @Nullable String newFolder) {
-      super(title, null, null);
-      mySurface = surface;
-      myNewFolder = newFolder;
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true);
     }
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
-import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema

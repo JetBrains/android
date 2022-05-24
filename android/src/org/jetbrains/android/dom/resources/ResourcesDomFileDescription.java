@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.dom.resources;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
-import com.intellij.util.xml.DomFileDescription;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.openapi.module.Module;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Computable;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,7 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
   }
 
   public static boolean isResourcesFile(@NotNull final XmlFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       public Boolean compute() {
         return IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, "values");

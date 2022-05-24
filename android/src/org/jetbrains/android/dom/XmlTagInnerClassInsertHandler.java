@@ -33,11 +33,10 @@ import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.util.XmlUtil;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link InsertHandler} for Xml tags of inner classes.

@@ -17,10 +17,9 @@ package com.android.tools.idea.transport;
 
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.PathManager;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.function.Supplier;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,13 +122,17 @@ public final class DeployableFile {
     @NotNull private final String myFileName;
     @NotNull private String myReleaseDir = Constants.PERFA_RELEASE_DIR;
     // TODO b/122597221 refactor general agent code to be outside of profiler-specific directory.
-    @NotNull private String myDevDir = Constants.PERFA_DEV_DIR;
+    @NotNull private String myDevDir = Constants.PERFA_RELEASE_DIR; // This does not work in IDEA: Constants.PERFA_DEV_DIR;
+                                                                    // Any attempt to access a file relative to WORKSPACE_ROOT does not work in IDEA.
     @Nullable private String myOnDeviceAbiFileNameFormat;
 
     @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = StudioPathManager::isRunningFromSources;
-    @NotNull private Supplier<String> myHomePathSupplier = PathManager::getHomePath;
-    @NotNull private Supplier<String> mySourcesRootSupplier = StudioPathManager::getSourcesRoot;
-
+    @NotNull private Supplier<String> myHomePathSupplier = () -> {
+        AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+        return AndroidProfilerDownloader.getInstance().getPluginDir().getAbsolutePath();
+    };
+    @NotNull private Supplier<String> mySourcesRootSupplier = myHomePathSupplier; // This does not work in IDEA: StudioPathManager::getSourcesRoot;
+                                                                                  // Any attempt to access a file relative to WORKSPACE_ROOT does not work in IDEA.
     private boolean myExecutable = false;
 
     public Builder(@NotNull String fileName) {

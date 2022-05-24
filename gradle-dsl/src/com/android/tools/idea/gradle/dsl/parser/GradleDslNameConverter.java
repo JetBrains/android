@@ -52,7 +52,7 @@ public interface GradleDslNameConverter {
 
   /**
    * Converts text of an external language into a string suitable as input to GradleNameElement (with dotted notation indicating
-   * hierarchy).  Implementors should perform conversion of the {@code element} as appropriate to the external language.
+   * hierarchy).  Implementors should perform conversion of the {@code referenceText} as appropriate to the external language.
    *
    * @param context the Dsl element in the context of which we are examining this reference
    * @param referenceText the external text denoting a reference
@@ -60,6 +60,20 @@ public interface GradleDslNameConverter {
    */
   @NotNull
   default String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) {
+    return "";
+  }
+
+  /**
+   * Converts Psi of an external language into a string suitable as input to GradleNameElement (with dotted notation indicating
+   * hierarchy, suitably escaped).  Implementors should perform conversion of the {@code element} as appropriate to the external language.
+   *
+   * @param context the Dsl element in the context of which we are examining this reference
+   * @param element the PsiElement denoting a reference
+   * @return a string containing a dotted-name representation of the external-named element
+   *
+   */
+  @NotNull
+  default String convertReferencePsi(@NotNull GradleDslElement context, @NotNull PsiElement element) {
     return "";
   }
 

@@ -25,15 +25,19 @@ import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.JBFont;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.GroupLayout.Group;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.*;
+import java.awt.Font;
 import java.time.Instant;
 import java.time.ZoneId;
+import javax.swing.AbstractButton;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 final class ConfigureLogcatHeaderDialog extends DialogWrapper {
   private static final LogCatMessage SAMPLE = new LogCatMessage(

@@ -21,6 +21,7 @@ import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataBuilder
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getIconFileNameWithoutExtension
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
@@ -165,20 +166,4 @@ private fun renameDownloadedFiles(downloadedFiles: List<File>): List<File> {
     val destFile = iconDir.resolve(newIconFileName)
     return@map Files.move(downloadedFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile()
   }
-}
-
-/**
- * Returns the expected file name for material icons given the [iconName] and the [styleDirName].
- *
- * E.g. For 'android' of 'materialiconsrounded' returns 'rounded_android_24.xml'
- */
-private fun getIconFileNameWithoutExtension(iconName: String, styleDirName: String): String {
-  // TODO(141628234): Use a consistent logic with VdIcon.getDisplayName()
-  val family = styleDirName.substringAfter("materialicons")
-  val familyPrefix = when (family) {
-    "" -> "baseline_"
-    "outlined" -> "outline_"
-    else -> family + "_"
-  }
-  return familyPrefix + iconName + "_24"
 }

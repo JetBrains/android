@@ -283,13 +283,14 @@ public class DebuggerRedefiner implements ClassRedefiner {
       }
     }
 
+    breakpointManager.reloadBreakpoints();
+
     final Semaphore waitSemaphore = new Semaphore();
     waitSemaphore.down();
     //noinspection SSBasedInspection
     ApplicationManager.getApplication().invokeLater(() -> {
       try {
         if (!project.isDisposed()) {
-          breakpointManager.reloadBreakpoints();
           debugProcess.getRequestsManager().clearWarnings();
           debuggerSession.refresh(false);
 

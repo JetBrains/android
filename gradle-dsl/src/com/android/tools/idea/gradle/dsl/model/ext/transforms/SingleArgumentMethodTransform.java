@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
+
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>This transform used for single argument method calls which have a preceding property name.</p>

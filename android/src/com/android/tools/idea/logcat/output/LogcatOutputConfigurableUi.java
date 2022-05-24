@@ -18,9 +18,10 @@ package com.android.tools.idea.logcat.output;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class LogcatOutputConfigurableUi implements ConfigurableUi<LogcatOutputSettings> {
   private JPanel myPanel;

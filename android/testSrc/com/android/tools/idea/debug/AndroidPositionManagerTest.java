@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.debug;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.when;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.DebugProcess;
@@ -43,6 +42,7 @@ import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.request.ClassPrepareRequest;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.intellij.lang.annotations.Language;
@@ -279,7 +279,7 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
   }
 
   private static Map<String, ReferenceType> mockReferenceTypes(VirtualMachineProxyImpl mockVmProxy, String... typeNames) {
-    Map<String, ReferenceType> map = Maps.newHashMap();
+    Map<String, ReferenceType> map = new HashMap<>();
     for (String typeName : typeNames) {
       ReferenceType type = mock(ReferenceType.class, typeName);
       when(type.name()).thenReturn(typeName);

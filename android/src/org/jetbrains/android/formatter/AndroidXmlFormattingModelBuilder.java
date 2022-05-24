@@ -3,7 +3,14 @@ package org.jetbrains.android.formatter;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.formatting.*;
+import com.intellij.formatting.Alignment;
+import com.intellij.formatting.Block;
+import com.intellij.formatting.CustomFormattingModelBuilder;
+import com.intellij.formatting.DelegatingFormattingModel;
+import com.intellij.formatting.FormattingContext;
+import com.intellij.formatting.FormattingModel;
+import com.intellij.formatting.Indent;
+import com.intellij.formatting.Wrap;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
 import com.intellij.openapi.util.TextRange;
@@ -17,6 +24,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings.MySettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,9 +34,10 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Override
   public boolean isEngagedToFormat(@NotNull PsiElement context) {
-    Object psiFile = context.getContainingFile();
+    PsiFile psiFile = context.getContainingFile();
 
-    if (!(psiFile instanceof XmlFile)) {
+    if (!(psiFile instanceof XmlFile) ||
+        AndroidFacet.getInstance(psiFile) == null) {
       return false;
     }
 
@@ -87,9 +96,10 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Nullable
   private static MySettings getContextSpecificSettings(@NotNull PsiElement context, @NotNull AndroidXmlCodeStyleSettings settings) {
-    Object psiFile = context.getContainingFile();
+    PsiFile psiFile = context.getContainingFile();
 
-    if (!(psiFile instanceof XmlFile)) {
+    if (!(psiFile instanceof XmlFile) ||
+        AndroidFacet.getInstance(psiFile) == null) {
       return null;
     }
 

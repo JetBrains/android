@@ -124,7 +124,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler
-import com.android.tools.idea.uibuilder.handlers.compose.ComposeViewAdapterHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutBarrierHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutChainHandler

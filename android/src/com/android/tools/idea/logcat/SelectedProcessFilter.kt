@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.logcat.LogCatMessage
 
 /**
  * A [AndroidLogcatFilter] that filters on the selected app.
- *
- * @param pid the process id of the selected app
- * @param packageName the package name of the selected app as defined in the manifest. Null means we could not obtain the package name and
- * will only match on pid. Note that since [com.android.ddmlib.logcat.LogCatMessage#appName] is not nullable, there is no need for special
- * handling of the null case, a simple == will suffice.
  */
-data class SelectedProcessFilter(private val pid: Int, private val packageName: String?) : AndroidLogcatFilter {
+data class SelectedProcessFilter(private var client: ClientData?) : AndroidLogcatFilter {
+  // getPackageName name is not just a trivial getter so cache it
+  private var packageName = client?.packageName
+
   override fun getName(): String = AndroidLogcatView.getSelectedAppFilter()
 
   override fun isApplicable(logCatMessage: LogCatMessage): Boolean =
-    pid == logCatMessage.header.pid || packageName == logCatMessage.header.appName
+    client?.let {
+      it.pid == logCatMessage.header.pid || it.packageName == logCatMessage.header.appName
+    } ?: true
+
+
+  override fun setClient(client: ClientData?) {
+    this.client = client
+    packageName = client?.packageName
+  }
 }

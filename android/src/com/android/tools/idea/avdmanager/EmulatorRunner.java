@@ -37,12 +37,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class EmulatorRunner {
   private final GeneralCommandLine myCommandLine;
+  private final AvdInfo myAvdInfo;
 
   private ProcessHandler myProcessHandler;
   private final List<ProcessListener> myExtraListeners = new ArrayList<>();
 
   public EmulatorRunner(@NotNull GeneralCommandLine commandLine, @Nullable AvdInfo avdInfo) {
     myCommandLine = commandLine;
+    myAvdInfo = avdInfo;
 
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
@@ -62,8 +64,8 @@ public class EmulatorRunner {
   }
 
   public ProcessHandler start() throws ExecutionException {
-    final Process process = myCommandLine.createProcess();
-    myProcessHandler = new EmulatorProcessHandler(process, myCommandLine);
+    Process process = myCommandLine.createProcess();
+    myProcessHandler = new EmulatorProcessHandler(process, myCommandLine.getCommandLineString(), myAvdInfo);
     myExtraListeners.forEach(myProcessHandler::addProcessListener);
     myProcessHandler.startNotify();
     return myProcessHandler;

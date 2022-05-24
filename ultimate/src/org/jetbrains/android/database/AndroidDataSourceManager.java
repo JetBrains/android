@@ -2,17 +2,19 @@
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
+import com.intellij.database.actions.DatabaseViewActions;
 import com.intellij.database.dialects.DatabaseDialectEx;
+import com.intellij.database.model.DasDataSource;
 import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.util.DbSqlUtilCore;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.sql.dialects.SqlLanguageDialect;
 import com.intellij.util.Consumer;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,7 +39,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
 
   @Nullable
   @Override
-  public SqlLanguageDialect getSqlDialect(@NotNull AndroidDataSource element) {
+  public Language getQueryLanguage(@NotNull AndroidDataSource element) {
     return DbSqlUtilCore.findSqlDialect(Dbms.SQLITE);
   }
 
@@ -45,6 +47,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   public void renameDataSource(@NotNull AndroidDataSource element, @NotNull String name) {
     element.setName(name);
     updateDataSource(element);
+  }
+
+  @Override
+  public boolean isMyDataSource(@NotNull Class<? extends DasDataSource> clazz) {
+    return AndroidDataSource.class.isAssignableFrom(clazz);
   }
 
   @Override
@@ -70,6 +77,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
       @Override
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabledAndVisible(DatabaseViewActions.isDataSourceActionsEnabled(e));
+      }
+
+      @Override
       public void actionPerformed(AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();
         result.setName(getTemplatePresentation().getText());
@@ -77,6 +89,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
         consumer.consume(result);
       }
     };
+  }
+
+  @Override
+  public @NotNull AndroidDataSource createEmpty() {
+    return new AndroidDataSource();
   }
 
   @NotNull

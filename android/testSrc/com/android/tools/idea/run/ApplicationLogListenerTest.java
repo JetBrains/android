@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
@@ -24,13 +26,10 @@ import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.LogcatHeaderFormat;
 import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.time.Instant;
 import java.time.ZoneId;
-
-import static org.junit.Assert.assertEquals;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public final class ApplicationLogListenerTest {
   @Test

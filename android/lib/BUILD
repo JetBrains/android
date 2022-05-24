@@ -48,10 +48,3 @@ java_import(
     jars = ["instantapps-api-1.8.jar"],
     visibility = ["//visibility:public"],
 )
-
-# managed by go/iml_to_build
-java_import(
-    name = "pepk",
-    jars = ["pepk.jar"],
-    visibility = ["//visibility:public"],
-)

@@ -19,13 +19,14 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
+import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -64,7 +65,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -422,8 +423,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         return
       }
       val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
-      val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
-      if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
+      val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)
+      if (emulatorBinary == null || !CancellableFileIo.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
           val state = EMULATOR_EXEC_NOT_FOUND
           cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
@@ -440,7 +441,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           .launchParametersList
           .toMutableList()
           .apply {
-            this[0] = emulatorBinary.path
+            this[0] = emulatorBinary.toString()
             add("-check-snapshot-loadable")
             add(snapshotFile.absolutePath)
           }
@@ -554,7 +555,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
 private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(this))
 
-private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
+private fun String.escapeHtml() = StringEscapeUtils.escapeHtml3(this)
 
 private sealed class RetentionViewState(val isValidating: Boolean,
                                         val loadable: Boolean,

@@ -34,7 +34,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test

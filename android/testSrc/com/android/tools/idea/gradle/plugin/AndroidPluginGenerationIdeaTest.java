@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.intellij.openapi.util.io.FileUtilRt.createDirectory;
+import static org.mockito.Mockito.when;
+
 import com.android.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-
-import static com.intellij.openapi.util.io.FileUtilRt.createDirectory;
-import static org.mockito.Mockito.when;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidPluginGenerationIdea}.
@@ -41,7 +40,7 @@ public class AndroidPluginGenerationIdeaTest extends PlatformTestCase {
     myEmbeddedDistributionPaths = new IdeComponents(myProject).mockApplicationService(EmbeddedDistributionPaths.class);
   }
 
-  public void testGetLatestKnownVersion() throws IOException {
+  public void AndroidtestGetLatestKnownVersion() throws IOException {
     File rootFolderPath = createTempDirectory();
 
     File repo1Path = new File(rootFolderPath, "repo1");

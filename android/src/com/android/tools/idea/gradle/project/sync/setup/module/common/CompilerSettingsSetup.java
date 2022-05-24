@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public class CompilerSettingsSetup {
   public void setOutputPaths(@NotNull ModifiableRootModel moduleModel, @NotNull File mainOutputPath, @Nullable File testOutputPath) {

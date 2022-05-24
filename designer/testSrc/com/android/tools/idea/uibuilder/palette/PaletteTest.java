@@ -15,8 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.idea.common.model.NlComponent;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.common.LayoutTestUtilities;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -26,22 +38,14 @@ import com.android.tools.idea.uibuilder.palette.Palette.Group;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;
+import java.io.StringReader;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.StringReader;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
-import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 
 public class PaletteTest extends AndroidTestCase {
   private static final ViewHandler STANDARD_VIEW = new ViewHandler();

@@ -42,7 +42,7 @@ import java.time.Duration
  *
  * This class is an alternative implementation of [com.intellij.execution.testframework.export.ExportTestResultsAction].
  * This class exports XML file which is compatible with the original ExportTestResultsAction
- * with additional information for Anroid Test Matrix view.
+ * with additional information for Android Test Matrix view.
  */
 class ExportAndroidTestResultsAction :
   DumbAwareAction(ActionsBundle.message("action.ExportTestResults.text"),
@@ -98,7 +98,7 @@ class ExportAndroidTestResultsAction :
           project,
           ExecutionBundle.message("export.test.results.file.exists.message", file.name),
           ExecutionBundle.message("export.test.results.file.exists.title"),
-          TestRunnerBundle.message("inspections.settings.overwrite.action.text"),
+          TestRunnerBundle.message("export.test.results.overwrite.button.text"),
           CommonBundle.getCancelButtonText(), Messages.getQuestionIcon()
         ) == Messages.OK) {
         return file

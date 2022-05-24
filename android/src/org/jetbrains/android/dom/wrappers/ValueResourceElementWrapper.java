@@ -35,7 +35,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.io.File;
-import javax.swing.*;
+import javax.swing.Icon;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.annotations.NonNls;

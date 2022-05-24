@@ -19,11 +19,11 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.JBUI

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static org.fest.swing.timing.Pause.pause;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -24,15 +27,11 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertTrue;
 
 public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurfaceFixture, NlDesignSurface> {
 
@@ -76,7 +75,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     waitForRenderToFinish();
 
     final NlModel model = target().getModel();
-    final java.util.List<NlComponent> components = Lists.newArrayList();
+    final List<NlComponent> components = new ArrayList<>();
 
     model.getComponents().forEach(component -> addComponents(tag, component, components));
     // Sort by visual order

@@ -16,13 +16,17 @@
 package com.android.tools.swingp.instrumenter;
 
 import com.android.tools.swingp.PaintImmediatelyMethodStat;
-import org.jetbrains.org.objectweb.asm.*;
-import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
-import org.jetbrains.org.objectweb.asm.commons.Method;
-
-import javax.swing.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import javax.swing.RepaintManager;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
+import org.jetbrains.org.objectweb.asm.commons.Method;
 
 public class RepaintManagerClassTransformer implements ClassFileTransformer {
   private static final String REPAINT_MANAGER_NAME = RepaintManager.class.getCanonicalName().replace('.', '/');

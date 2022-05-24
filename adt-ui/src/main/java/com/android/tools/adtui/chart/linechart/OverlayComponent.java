@@ -16,13 +16,15 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A custom component that handles drawing and mouse interaction with DurationData

@@ -23,27 +23,25 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
-import com.android.repository.io.FileOp
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.gradle.util.ImportUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.android.util.firstNotNullResult
 import java.io.File
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
@@ -66,7 +64,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
   fun getArtifactStringCoordinate(artifactId: GoogleMavenArtifactId, filter: Predicate<GradleVersion>?, preview: Boolean): String? {
     val revision = getLibraryRevision(
-      artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileOpUtils.create()
+      artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()
     ) ?: return null
     return artifactId.getCoordinate(revision).toString()
   }
@@ -75,8 +73,10 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    * A helper function which wraps [findVersion]?.toString().
    */
   fun getLibraryRevision(
-    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean, fileOp: FileOp
-  ): String? = findVersion(groupId, artifactId, filter, includePreviews, fileOp)?.toString()
+    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean,
+    // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
+    fileSystem: FileSystem
+  ): String? = findVersion(groupId, artifactId, filter, includePreviews, fileSystem)?.toString()
 
   /**
    * Returns the string for the specific version number of the most recent version of the given library
@@ -88,7 +88,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    * @param includePreviews whether to include preview versions of libraries
    */
   fun findVersion(
-    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean, fileOp: FileOp
+    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean, fileSystem: FileSystem
   ): GradleVersion? {
     val version: GradleVersion?
     // First check the Google maven repository, which has most versions.
@@ -108,7 +108,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
         .filter { it?.isDirectory == true }
         .firstNotNullResult {
-          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileOp.toPath(it), filter, includePreviews)
+          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileSystem.getPath(it.path), filter, includePreviews)
         }?.version
     }
     return null
@@ -134,13 +134,17 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    *
    * @param gradleCoordinate the coordinate to retrieve an archive file for
    * @param sdkLocation      SDK to use
-   * @param fileOp           [FileOp] used for file operations
+   * @param fileSystem       the [FileSystem] to work in
    * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
-  fun getArchiveForCoordinate(gradleCoordinate: GradleCoordinate, sdkLocation: File, fileOp: FileOp): File? {
+  fun getArchiveForCoordinate(
+    gradleCoordinate: GradleCoordinate, sdkLocation: File,
+    // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
+    fileSystem: FileSystem
+  ): File? {
     val groupId = gradleCoordinate.groupId
     val artifactId = gradleCoordinate.artifactId
-    val sdkPath = fileOp.toPath(sdkLocation)
+    val sdkPath = fileSystem.getPath(sdkLocation.path)
     val repository = SdkMavenRepository.find(sdkPath, groupId, artifactId) ?: return null
     val repositoryLocation = repository.getRepositoryLocation(sdkPath, true) ?: return null
     val artifactDirectory: Path? = MavenRepositories.getArtifactDirectory(repositoryLocation, gradleCoordinate)
@@ -150,7 +154,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     for (artifactType in ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
       val archive = artifactDirectory.resolve("$artifactId-${gradleCoordinate.revision}.$artifactType")
       if (CancellableFileIo.isRegularFile(archive)) {
-        return fileOp.toFile(archive)
+        return archive.toFile()
       }
     }
     return null
@@ -220,14 +224,15 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      var libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false, sdkHandler.fileOp)
+      var libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false,
+                                                 sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
       }
 
       // If that didn't yield any matches, try again, this time allowing preview platforms.
       // This is necessary if the artifact prefix includes enough of a version where there are only preview matches.
-      libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, true, sdkHandler.fileOp)
+      libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, true, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
       }
@@ -259,71 +264,6 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     return null
   }
 
-  /**
-   * Resolves multiple dynamic dependencies on artifacts distributed in the SDK.
-   *
-   * Doesn't check any remote repositories, just the already downloaded SDK "extras" repositories.
-   */
-  fun resolveDynamicSdkDependencies(
-    dependencies: Multimap<String, GradleCoordinate>, supportLibVersionFilter: String?, fileOp: FileOp
-  ): List<GradleCoordinate> {
-    val result = mutableListOf<GradleCoordinate>()
-    val supportFilter = findExistingExplicitVersion(dependencies.values())
-                        ?: supportLibVersionFilter
-    for (key in dependencies.keySet()) {
-      var highest: GradleCoordinate = dependencies.get(key).maxWith(COMPARE_PLUS_LOWER)!!
-
-      // For test consistency, don't depend on installed SDK state while testing
-      if (!forceRepositoryChecksInTests && ApplicationManager.getApplication().isUnitTestMode) {
-        result.add(highest)
-        continue
-      }
-      // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
-      // that we can add instead of a plus revision.
-
-      var revision: String? = highest.revision
-      if (revision!!.endsWith(REVISION_ANY)) {
-        revision = if (revision.length > 1)
-          revision.dropLast(1)
-        else
-          supportFilter.takeIf {
-            ImportUtil.SUPPORT_GROUP_ID == highest.groupId || ImportUtil.CORE_KTX_GROUP_ID == highest.groupId
-          }
-        val filter = if (revision != null)
-          Predicate { version: GradleVersion -> version.toString().startsWith(revision) }
-        else
-          null
-        var version: String? = null
-        // 1 - Latest specific (ie support lib version filter level) stable version
-        if (filter != null) {
-          version = getLibraryRevision(highest.groupId, highest.artifactId, filter, false, fileOp)
-        }
-        // 2 - Latest specific (ie support lib version filter level) preview version
-        if (version == null && filter != null) {
-          version = getLibraryRevision(highest.groupId, highest.artifactId, filter, true, fileOp)
-        }
-        // 3 - Latest stable version
-        if (version == null) {
-          version = getLibraryRevision(highest.groupId, highest.artifactId, null, false, fileOp)
-        }
-        // 4 - Latest preview version
-        if (version == null) {
-          version = getLibraryRevision(highest.groupId, highest.artifactId, null, true, fileOp)
-        }
-        // 5 - No version found
-        if (version != null) {
-          val libraryCoordinate = highest.id + ":" + version
-          val available = GradleCoordinate.parseCoordinateString(libraryCoordinate)
-          if (available != null && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
-            highest = available
-          }
-        }
-      }
-      result.add(highest)
-    }
-    return result
-  }
-
   private fun refreshCacheInBackground(groupId: String, artifactId: String) {
     val searchKey = ("$groupId:$artifactId")
     if (pendingNetworkRequests.add(searchKey)) {
@@ -342,8 +282,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun get(): RepositoryUrlManager = ServiceManager.getService(
-      RepositoryUrlManager::class.java)
+    fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(RepositoryUrlManager::class.java)
   }
 }
 
@@ -355,7 +294,7 @@ const val REVISION_ANY = "+"
 private fun findExistingExplicitVersion(dependencies: Collection<GradleCoordinate>): String? {
   val highest = dependencies
                   .filter { coordinate: GradleCoordinate -> ImportUtil.SUPPORT_GROUP_ID == coordinate.groupId }
-                  .maxWith(COMPARE_PLUS_LOWER) ?: return null
+                  .maxWithOrNull(COMPARE_PLUS_LOWER) ?: return null
   val version = highest.revision
   return if (version.endsWith(REVISION_ANY))
     if (version.length > 1) version.dropLast(1) else null

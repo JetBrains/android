@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;

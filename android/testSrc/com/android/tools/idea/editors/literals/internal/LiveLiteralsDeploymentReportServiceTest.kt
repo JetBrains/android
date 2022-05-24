@@ -28,7 +28,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
-import kotlin.random.Random
 
 internal class LiveLiteralsDeploymentReportServiceTest {
   @get:Rule

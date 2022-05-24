@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.EnumComboBoxModel
@@ -35,7 +36,8 @@ import javax.swing.LayoutFocusTraversalPolicy
  */
 class BuildAnalyzerComboBoxView(
   private val model: BuildAnalyzerViewModel,
-  private val actionHandlers: ViewActionHandlers
+  private val actionHandlers: ViewActionHandlers,
+  private val disposable: Disposable
 ) {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
@@ -54,7 +56,7 @@ class BuildAnalyzerComboBoxView(
 
   private val overviewPage = BuildOverviewPageView(model, actionHandlers)
   private val tasksPage = TasksPageView(model.tasksPageModel, actionHandlers)
-  private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers)
+  private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers, disposable)
 
   private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView = when (dataSet) {
     BuildAnalyzerViewModel.DataSet.OVERVIEW -> overviewPage

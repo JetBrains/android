@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
+import com.android.tools.idea.gradle.model.IdeClassField
 import com.google.common.collect.ImmutableMap
 
 fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>): Map<String, DynamicResourceValue> {

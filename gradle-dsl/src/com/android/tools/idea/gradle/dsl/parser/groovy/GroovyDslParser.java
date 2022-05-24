@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
@@ -30,7 +29,6 @@ import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
@@ -39,7 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -57,21 +54,22 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.IncorrectOperationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
@@ -105,11 +103,13 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 public class GroovyDslParser extends GroovyDslNameConverter implements GradleDslParser {
   @NotNull private final GroovyFile myPsiFile;
   @NotNull private final GradleDslFile myDslFile;
+  @NotNull private final Set<Pair<GradleDslSimpleExpression, PsiElement>> myExtractValueSet;
 
   public GroovyDslParser(@NotNull GroovyFile file, @NotNull BuildModelContext context, @NotNull GradleDslFile dslFile) {
     super(context);
     myPsiFile = file;
     myDslFile = dslFile;
+    myExtractValueSet = new HashSet<>();
   }
 
   @Override
@@ -178,10 +178,20 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     if (literal instanceof GrReferenceExpression || literal instanceof GrIndexProperty) {
       if (resolve) {
-        GradleDslElement e = context.resolveExternalSyntaxReference(literal.getText(), true);
+        GradleDslElement e = context.resolveExternalSyntaxReference(literal, true);
         // Only attempt to get the value if it is a simple expression.
         if (e instanceof GradleDslSimpleExpression) {
-          return ((GradleDslSimpleExpression)e).getValue();
+          synchronized (myExtractValueSet) {
+            Pair<GradleDslSimpleExpression, PsiElement> key = new Pair<>(context, literal);
+            if (myExtractValueSet.contains(key)) return literal.getText();
+            myExtractValueSet.add(key);
+            try {
+              return ((GradleDslSimpleExpression)e).getValue();
+            }
+            finally {
+              myExtractValueSet.remove(key);
+            }
+          }
         }
       }
       return literal.getText();
@@ -355,7 +365,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (closureArguments.length > 0) {
       closableBlock = closureArguments[0];
     }
-    List<GradlePropertiesDslElement> blockElements = Lists.newArrayList(); // The block elements this closure needs to be applied.
+    List<GradlePropertiesDslElement> blockElements = new ArrayList<>(); // The block elements this closure needs to be applied.
 
     if (dslElement instanceof GradleDslFile && name.name().equals("allprojects")) {
       // The "allprojects" closure needs to be applied to this project and all its sub projects.

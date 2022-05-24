@@ -15,21 +15,12 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 public class ToolbarActionGroups implements Disposable {

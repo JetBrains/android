@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.parsers.DomPullParser;
@@ -26,6 +29,9 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.StringReader;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -33,13 +39,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.StringReader;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import static com.android.SdkConstants.VALUE_FILL_PARENT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 
 /**
  * Tests the parser by constructing a DOM from an XML file, and then it runs an XmlPullParser

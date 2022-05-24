@@ -30,10 +30,10 @@ import com.intellij.testFramework.TestDataProvider
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
@@ -66,7 +66,7 @@ class UpgradeGradleVersionsQuickFixTest {
     val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     val ideComponents = IdeComponents(project)
-    val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java);
+    val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java)
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
     `when`(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
     val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()

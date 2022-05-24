@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
 class TestResourcesTest : AndroidGradleTestCase() {
@@ -24,10 +25,11 @@ class TestResourcesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.TEST_RESOURCES)
     myFixture.enableInspections(AndroidDomInspection())
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
+    val projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project)
+    myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
     myFixture.checkHighlighting()
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
     myFixture.checkHighlighting()
   }
 }

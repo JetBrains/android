@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPanelFixture;
@@ -27,6 +29,14 @@ import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.fields.ExtendableTextField;
+import java.util.Collection;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JRadioButton;
+import javax.swing.JRootPane;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JButtonFixture;
@@ -35,11 +45,6 @@ import org.fest.swing.fixture.JSliderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.Collection;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioWizardFixture> {
   private final IdeFrameFixture myIdeFrame;

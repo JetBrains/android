@@ -17,15 +17,19 @@ package com.android.tools.idea.uibuilder.scene.decorator
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground
-import com.android.tools.idea.common.scene.decorator.SceneDecorator
-import java.awt.*
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
+import java.awt.Color
+import java.awt.GradientPaint
+import java.awt.Graphics2D
+import java.awt.Paint
+import java.awt.Rectangle
 
 class LinearLayoutDecorator : SceneDecorator() {
 
@@ -105,6 +109,6 @@ class LinearLayoutDecorator : SceneDecorator() {
   }
 
   companion object {
-    val GRADIENT_SIZE: Float = 12f
+    const val GRADIENT_SIZE: Float = 12f
   }
 }

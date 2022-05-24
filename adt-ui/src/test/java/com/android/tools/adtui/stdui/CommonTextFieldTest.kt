@@ -23,8 +23,8 @@ import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.KeyboardFocusManager
 import javax.swing.JPanel

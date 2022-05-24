@@ -43,11 +43,12 @@ public class TreeUtil {
     Enumeration e = node.children();
     return StreamSupport.stream(
       Spliterators.spliterator(
-        new Iterator<TreeNode>() {
+        new Iterator<>() {
           @Override
           public TreeNode next() {
             return (TreeNode)e.nextElement();
           }
+
           @Override
           public boolean hasNext() {
             return e.hasMoreElements();

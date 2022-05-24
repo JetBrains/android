@@ -17,12 +17,11 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.RestartUtilsKt;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 class LogStartAndStop extends TestWatcher {
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");

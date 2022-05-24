@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.literals
 
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.highlighting.HighlightManager
@@ -36,12 +35,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.concurrency.await
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.util.end
-import org.jetbrains.kotlin.idea.core.util.start
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -170,7 +168,7 @@ interface ConstantEvaluator {
   /**
    * Returns the current [TextRange] for the given [PsiElement].
    */
-  fun range(expression: PsiElement): TextRange = expression.textRange
+  fun range(expression: PsiElement): TextRange = expression.textRange ?: TextRange.EMPTY_RANGE
 }
 
 /**
@@ -226,8 +224,8 @@ private object KotlinLiteralTemplateConstantEvaluator : ConstantEvaluator {
     }
     else {
       TextRange(
-        element.entries.map { it.textRange.start }.min() ?: 0,
-        element.entries.map { it.textRange.end }.max() ?: 0
+        element.entries.map { it.textRange.startOffset }.minOrNull() ?: 0,
+        element.entries.map { it.textRange.endOffset }.maxOrNull() ?: 0
       )
     }
   }
@@ -265,17 +263,18 @@ private fun findUsages(constantElement: PsiElement,
 /**
  * [LiteralReference] implementation that keeps track of modifications.
  */
-private open class LiteralReferenceImpl(originalElement: PsiElement,
-                                        uniqueIdProvider: PsiElementUniqueIdProvider,
-                                        usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
-                                        final override val initialConstantValue: Any,
-                                        private val constantEvaluator: ConstantEvaluator,
-                                        onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
+private class LiteralReferenceImpl(originalElement: PsiElement,
+                                   uniqueIdProvider: PsiElementUniqueIdProvider,
+                                   usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
+                                   override val initialConstantValue: Any,
+                                   private val constantEvaluator: ConstantEvaluator,
+                                   onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
   init {
     onElementAttached(originalElement, this)
   }
 
   private val elementPointer = ReattachableSmartPsiElementPointer(originalElement) { onElementAttached(it, this) }
+
   // The originalElement.containingFile not being nullable is enforced during the visit the PsiElements
   override val containingFile = originalElement.containingFile!!
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
@@ -379,7 +378,9 @@ class LiteralsManager(
   private val literalUsageReferenceProvider: PsiElementLiteralUsageReferenceProvider = DefaultPsiElementLiteralUsageReferenceProvider) {
   /** Types that can be considered "literals". */
   private val literalsTypes = setOf(KtConstantExpression::class.java, KtUnaryExpression::class.java)
-
+  private val literalReadingExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+    "LiteralsManager executor", (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+  )
   private val LOG = Logger.getInstance(LiteralsManager::class.java)
 
   private suspend fun findLiterals(root: PsiElement,
@@ -438,7 +439,7 @@ class LiteralsManager(
           super.visitElement(element)
         }
       })
-    }.submit(AndroidExecutors.getInstance().ioThreadExecutor).await()
+    }.submit(literalReadingExecutor).await()
 
     return LiteralReferenceSnapshotImpl(savedLiterals)
   }

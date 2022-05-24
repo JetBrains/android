@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
+import javax.swing.event.HyperlinkEvent;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.event.HyperlinkEvent;
-
-import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link NotificationHyperlink}.

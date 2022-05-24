@@ -38,6 +38,7 @@ import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.FileResourceReader;
@@ -45,7 +46,6 @@ import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.detector.api.DefaultPosition;
@@ -366,6 +366,22 @@ public class AndroidLintIdeClient extends LintIdeClient {
     }
 
     return model.getDesugaring();
+  }
+
+  @NonNull
+  @Override
+  public Iterable<File> findRuleJars(@NotNull com.android.tools.lint.detector.api.Project project) {
+    Module module = getModule(project);
+    if (module != null) {
+      AndroidModel model = AndroidModel.get(module);
+      if (model != null) {
+        Iterable<File> lintRuleJars = model.getLintRuleJarsOverride();
+        if (lintRuleJars != null) {
+          return lintRuleJars;
+        }
+      }
+    }
+    return super.findRuleJars(project);
   }
 
   @NonNull

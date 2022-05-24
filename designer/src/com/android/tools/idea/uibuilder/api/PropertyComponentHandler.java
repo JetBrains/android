@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_SUPPORT_DESIGN_PKG;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.PREFIX_APP;
+import static com.android.SdkConstants.TOOLS_NS_NAME;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Methods for handling of a component's properties.

@@ -15,12 +15,12 @@
  */
 
 package com.android.tools.idea.observable.constraints;
-import org.junit.Test;
-
-import com.android.resources.*;
-import com.android.tools.idea.avdmanager.AvdScreenData;
 
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.resources.Density;
+import com.android.tools.idea.avdmanager.AvdScreenData;
+import org.junit.Test;
 
 /**
  * Tests for {@link com.android.tools.idea.avdmanager.AvdScreenData}

@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -53,15 +54,18 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
-import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
+import org.jetbrains.kotlin.lexer.KtTokens.LPAR
+import org.jetbrains.kotlin.lexer.KtTokens.WHITESPACES
+import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -82,13 +86,12 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getContentRange
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
@@ -97,7 +100,7 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 
 internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
+  val argumentsList = valueArgumentList?.arguments
   val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
@@ -107,7 +110,7 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
-internal fun GradleDslFile.transitivelyApplies(file: GradleDslFile, seen: MutableSet<GradleDslFile> = mutableSetOf()): Boolean {
+internal fun GradleScriptFile.transitivelyApplies(file: GradleScriptFile, seen: MutableSet<GradleScriptFile> = mutableSetOf()): Boolean {
   return when {
     file == this -> true
     seen.contains(this) -> false
@@ -149,7 +152,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
 
   // Now we Reached the dslFile level.
   // We only need to add a prefix if we are applying the reference from a parent dslFile context.
-  if (currentParent is GradleDslFile && !context.dslFile.transitivelyApplies(currentParent)) {
+  if (currentParent is GradleScriptFile && ((context.dslFile) as? GradleScriptFile)?.transitivelyApplies(currentParent) != true) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
     if (currentParent.name == ":") {
       externalName.append("rootProject.")
@@ -295,7 +298,7 @@ internal fun isValidBlockName(blockName : String?) =
 internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   var psiElement = psiElement
   while (psiElement != this) {
-    psiElement = psiElement?.parent ?: return false
+    psiElement = psiElement.parent ?: return false
   }
   return true
 }
@@ -411,7 +414,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       else {
         valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(valueText)
     }
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
@@ -448,10 +451,7 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
   //  buildTypes.getByName("$foo") { ... }
   //  buildTypes.getByName(foo) { ... }
   val argument = arguments[0].getArgumentExpression()
-  return when (argument) {
-    is KtStringTemplateExpression -> argument.literalContents()
-    else -> null
-  }
+  return if (argument is KtStringTemplateExpression) argument.literalContents() else null
 }
 
 // TODO(xof): I would have liked to mark this with @VisibleForTesting, but the visibility that it would otherwise need
@@ -561,16 +561,16 @@ internal fun findInjections(
   when (psiElement) {
     // foo, KotlinCompilerVersion, android.compileSdkVersion
     is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
-      val text = psiElement.text
-      val element = context.resolveExternalSyntaxReference(text, true)
-      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
+      val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+      val element = context.resolveInternalSyntaxReference(name, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
     }
     // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0], rootProject.extra["kotlin_version"]
     is KtArrayAccessExpression -> {
       if (psiElement.arrayExpression == null) return noInjections
-      val text = psiElement.text
-      val element = context.resolveExternalSyntaxReference(text, true)
-      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
+      val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+      val element = context.resolveInternalSyntaxReference(name, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
     }
     // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"
     is KtStringTemplateExpression -> {
@@ -632,7 +632,7 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
   var psiParent = psiElement?.parent ?: return
   val dslParent = getNextValidParent(containingDslElement)
 
-  if (!psiElement.isValid()) {
+  if (!psiElement.isValid) {
     // SKip deletion.
   }
   else {

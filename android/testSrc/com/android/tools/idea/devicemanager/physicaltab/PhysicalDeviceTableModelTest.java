@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +35,18 @@ import org.mockito.Mockito;
 public final class PhysicalDeviceTableModelTest {
   @Test
   public void newPhysicalDeviceTableModel() {
+    // Act
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
+
+    // Assert
+    assertEquals(Collections.emptyList(), model.getCombinedDevices());
+  }
+
+  @Test
+  public void newPhysicalDeviceTableModelDevicesIsntEmpty() {
     // Arrange
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("0A071FDD4003ZG"))
-      .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
       .setName("Google Pixel 5")
       .setTarget("Android 11.0")
       .setApi("30")
@@ -52,7 +59,27 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
+  }
+
+  @Test
+  public void setDevices() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
+    model.addTableModelListener(listener);
+
+    List<PhysicalDevice> devices = Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3);
+
+    // Act
+    model.setDevices(devices);
+
+    // Assert
+    assertEquals(devices, model.getDevices());
+    assertEquals(devices, model.getCombinedDevices());
+
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
@@ -75,7 +102,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -100,7 +127,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -113,7 +140,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(domainName)
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     TableModelListener listener = Mockito.mock(TableModelListener.class);
@@ -135,7 +162,7 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     Object expectedDevice2 = new PhysicalDevice.Builder()
@@ -143,11 +170,31 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
     assertEquals(Arrays.asList(expectedDevice1, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getCombinedDevices());
+
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+  }
+
+  @Test
+  public void remove() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    model.addTableModelListener(listener);
+
+    // Act
+    model.remove(TestPhysicalDevices.GOOGLE_PIXEL_3_KEY);
+
+    // Assert
+    Object devices = Collections.emptyList();
+
+    assertEquals(devices, model.getDevices());
+    assertEquals(devices, model.getCombinedDevices());
 
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
@@ -223,7 +270,7 @@ public final class PhysicalDeviceTableModelTest {
     Object value = model.getValueAt(0, PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
 
     // Assert
-    assertEquals("S", value);
+    assertEquals("31", value);
   }
 
   @Test
@@ -235,6 +282,6 @@ public final class PhysicalDeviceTableModelTest {
     Object value = model.getValueAt(0, PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
 
     // Assert
-    assertEquals("", value);
+    assertEquals(Collections.EMPTY_SET, value);
   }
 }

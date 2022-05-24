@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serialization.PropertyMapping;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
-
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel;
 
 /**
  * Module-level Gradle information.

@@ -16,9 +16,8 @@
 
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a view into a continuous series, where the data in view is only within given range.
@@ -33,7 +32,7 @@ public class RangedSimpleSeries<T> {
 
   public RangedSimpleSeries(Range range) {
     myRange = range;
-    mSeries = new ArrayList<T>();
+    mSeries = new ArrayList<>();
   }
 
   @NotNull

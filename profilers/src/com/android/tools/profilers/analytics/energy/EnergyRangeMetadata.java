@@ -16,12 +16,11 @@
 package com.android.tools.profilers.analytics.energy;
 
 import com.android.tools.profilers.energy.EnergyDuration;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class with metadata related to a range of energy data.

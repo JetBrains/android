@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.lint.checks.PxUsageDetector;
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix;
+import com.android.tools.lint.checks.PxUsageDetector;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintPxUsageInspection extends AndroidLintInspectionBase {

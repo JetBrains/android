@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.res;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
+import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 
 /**
  * Tests for {@link AssetRepositoryImpl}.
@@ -43,11 +43,12 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     loadProject("aarAsset".equals(getTestName(true)) ?
                 TestProjectPaths.LOCAL_AARS_AS_MODULES :
                 TestProjectPaths.DEPENDENT_MODULES);
-    assertNotNull(myAndroidFacet);
-    myAppRepo = new AssetRepositoryImpl(myAndroidFacet);
+    AndroidFacet facet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("app")));
+    assertNotNull(facet);
+    myAppRepo = new AssetRepositoryImpl(facet);
 
 
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), false);
+    List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), false);
     if (dependentFacets.isEmpty()) {
       myLibRepo = null;
       return;
@@ -73,25 +74,25 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     final String rawContentInLibModule = "I locate in lib module";
 
     // test opening app.asset.txt, should find the asset
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(appContentInAppModule, assetContent);
     }
 
     // test opening lib.asset.txt in app module, should find the asset.
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(libContentInLibModule, assetContent);
     }
 
     // test opening raw.asset.txt, the content should be the same as the one of app module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(rawContentInAppModule, assetContent);
     }
 
     // test opening raw.asset.txt in lib, the content should be the same as in the lib module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(rawContentInLibModule, assetContent);
     }
@@ -108,12 +109,12 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
   }
 
   public void testOpenNonAsset() throws IOException {
-    File imageFileInApp = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/drawable/app.png"));
-    File imageFileInLib = new File(getProjectFolderPath(), toSystemDependentName("lib/src/main/res/drawable/lib.png"));
-    File nonAssetFileInApp = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/assets/app_asset.txt"));
-    File nonAssetFileInLib = new File(getProjectFolderPath(), toSystemDependentName("lib/src/main/res/assets/lib_asset.txt"));
-    File nonExistingFile = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/drawable/non_existing.png"));
-    File sampleDataPng = new File(getProjectFolderPath(), toSystemDependentName("app/sampledata/test/sample.png"));
+    File imageFileInApp = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/drawable/app.png"));
+    File imageFileInLib = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("lib/src/main/res/drawable/lib.png"));
+    File nonAssetFileInApp = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/assets/app_asset.txt"));
+    File nonAssetFileInLib = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("lib/src/main/res/assets/lib_asset.txt"));
+    File nonExistingFile = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/drawable/non_existing.png"));
+    File sampleDataPng = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/sampledata/test/sample.png"));
 
     assertTrue(imageFileInApp.isFile());
     assertTrue(imageFileInLib.isFile());

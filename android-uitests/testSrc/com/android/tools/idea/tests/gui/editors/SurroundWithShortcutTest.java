@@ -26,19 +26,16 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.AbstractPopup;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import javax.swing.JPanel;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.swing.JPanel;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class SurroundWithShortcutTest {

@@ -15,16 +15,17 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.AspectModel;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import javax.swing.*;
+import com.android.tools.adtui.model.AspectModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
+import org.junit.Before;
+import org.junit.Test;
 
 public class JComboBoxViewTest {
   private List<String> myList;

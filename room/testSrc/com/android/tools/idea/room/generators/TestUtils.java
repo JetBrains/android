@@ -18,14 +18,11 @@ package com.android.tools.idea.room.generators;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
-import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
 import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.android.tools.idea.room.migrations.json.FtsOptionsBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

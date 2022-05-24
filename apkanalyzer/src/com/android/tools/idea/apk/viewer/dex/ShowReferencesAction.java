@@ -15,18 +15,25 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.DexReferences;
 import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
 import com.android.tools.apk.analyzer.dex.ProguardMappings;
-import com.android.tools.apk.analyzer.dex.tree.*;
+import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
+import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -36,20 +43,19 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.awt.Dimension;
+import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.TypeReference;
-
-import javax.swing.*;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreePath;
-import java.awt.*;
 
 public class ShowReferencesAction extends AnAction {
   @NotNull private final Tree myTree;
@@ -84,7 +90,7 @@ public class ShowReferencesAction extends AnAction {
     ListenableFuture<DexReferences> references = myDexFileViewer.getDexReferences();
     assert references != null;
 
-    Futures.addCallback(references, new FutureCallback<DexReferences>() {
+    Futures.addCallback(references, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable DexReferences result) {
         showReferenceTree(e, node, project, result);

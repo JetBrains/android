@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_DEBUG
-import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale

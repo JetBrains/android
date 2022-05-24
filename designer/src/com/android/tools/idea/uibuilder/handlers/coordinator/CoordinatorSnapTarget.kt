@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.SceneContext
@@ -71,7 +70,6 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
-    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       val color = if (mIsOver) Color.orange else Color.green
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color)
@@ -82,7 +80,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
   }
 
   override fun isHittable(): Boolean {
-    return !myComponent.isSelected && !myComponent.isDragging;
+    return !myComponent.isSelected && !myComponent.isDragging
   }
 
   fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) =

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -39,7 +38,7 @@ public class PostProjectBuildTasksExecutor {
 
   @NotNull
   public static PostProjectBuildTasksExecutor getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, PostProjectBuildTasksExecutor.class);
+    return project.getService(PostProjectBuildTasksExecutor.class);
   }
 
   public PostProjectBuildTasksExecutor(@NotNull Project project) {

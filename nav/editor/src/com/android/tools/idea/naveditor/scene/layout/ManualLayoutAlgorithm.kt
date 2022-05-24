@@ -142,7 +142,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
               val positions = getPositionsFromPath(path)
               positions.myPosition = oldPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRender()
+              sceneManager.requestRenderAsync()
             }
 
             override fun redo() {
@@ -150,7 +150,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
               val positions = getPositionsFromPath(path)
               positions.myPosition = newPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRender()
+              sceneManager.requestRenderAsync()
             }
           }
           UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)
@@ -297,7 +297,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     }
   }
 
-  @State(name = "navEditor-manualLayoutAlgorithm2", storages = [com.intellij.openapi.components.Storage(file = "navEditor.xml")])
+  @State(name = "navEditor-manualLayoutAlgorithm2", storages = [com.intellij.openapi.components.Storage("navEditor.xml")])
   private class Storage : PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
     @VisibleForTesting
     internal var rootPositions: LayoutPositions? = null

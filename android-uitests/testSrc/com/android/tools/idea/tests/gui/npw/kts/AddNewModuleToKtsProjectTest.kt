@@ -18,10 +18,9 @@ package com.android.tools.idea.tests.gui.npw.kts
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.tools.idea.testing.FileSubject.file
-import com.google.common.truth.Truth.assertAbout
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
@@ -58,7 +57,7 @@ class AddNewModuleToKtsProjectTest {
     assertAbout(file()).that(settingsGroovyFilePath).doesNotExist()
     assertAbout(file()).that(settingsKtsFilePath).isFile()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextPhoneAndTabletModule()
       .enterModuleName("application_module")

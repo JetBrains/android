@@ -61,8 +61,8 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
@@ -117,7 +117,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       JPanel migrationPanel = new JPanel(new BorderLayout());
       migrationPanel.setOpaque(true);
       migrationPanel.setBorder(ProfilerLayout.MONITOR_BORDER);
-      migrationPanel.setMinimumSize(new Dimension(0, JBUI.scale(50)));
+      migrationPanel.setMinimumSize(new Dimension(0, JBUIScale.scale(50)));
       migrationPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
       AppInspectionMigrationKt.addMigrationPanel(
         migrationPanel, "System Events has moved.", "system events", BTI_INSPECTOR,
@@ -139,7 +139,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.setSecondComponent(myEventsPanel);
 
     myDetailsView = new EnergyDetailsView(this);
-    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
+    myDetailsView.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
     myDetailsView.setVisible(false);
     JBSplitter splitter = new JBSplitter(false, 0.6f);
     splitter.setFirstComponent(verticalSplitter);

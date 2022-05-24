@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+
 import com.android.tools.idea.project.messages.AbstractSyncMessages;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 /**
  * Service that collects and displays in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
@@ -29,7 +28,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 public class GradleSyncMessages extends AbstractSyncMessages {
   @NotNull
   public static GradleSyncMessages getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleSyncMessages.class);
+    return project.getService(GradleSyncMessages.class);
   }
 
   public GradleSyncMessages(@NotNull Project project) {

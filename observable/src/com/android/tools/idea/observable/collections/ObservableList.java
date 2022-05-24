@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.observable.collections;
 
-import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.AbstractObservableValue;
+import com.android.tools.idea.observable.SettableValue;
 import com.google.common.collect.ForwardingIterator;
 import com.google.common.collect.ForwardingListIterator;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link List} which notifies any listeners anytime its collection is modified.
@@ -41,7 +41,7 @@ public final class ObservableList<E> extends AbstractObservableValue<List<? exte
   private boolean myInvalidatedWhileUpdating;
 
   public ObservableList() {
-    myInnerList = Lists.newArrayList();
+    myInnerList = new ArrayList<>();
   }
 
   public ObservableList(@NotNull Iterable<? extends E> otherCollection) {

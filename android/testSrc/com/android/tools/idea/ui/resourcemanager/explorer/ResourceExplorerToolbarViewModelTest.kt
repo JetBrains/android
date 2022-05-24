@@ -26,7 +26,7 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.testFramework.runInEdtAndWait
@@ -70,7 +70,7 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Test
   fun getData() {
-    assertThat(viewModel.getData(LangDataKeys.MODULE.name)).isEqualTo(rule.module)
+    assertThat(viewModel.getData(PlatformCoreDataKeys.MODULE.name)).isEqualTo(rule.module)
     assertThat(viewModel.getData(CommonDataKeys.PROJECT.name)).isEqualTo(rule.project)
 
     val resFolder = rule.fixture.copyDirectoryToProject("res/", "res")

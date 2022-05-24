@@ -20,7 +20,7 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.util.EditorUtil
+import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -71,7 +71,7 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
 
   if (!c.dryRun) {
     ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
-    EditorUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
+    ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
 
   return success
@@ -190,8 +190,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" ->
-    if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
@@ -248,7 +247,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
       "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
       "Content Provider" -> TemplateType.CONTENT_PROVIDER
       "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
-      "App Actions XML File" -> TemplateType.APP_ACTIONS_XML_FILE
+      "App Actions XML File (deprecated)" -> TemplateType.APP_ACTIONS_XML_FILE
+      "Shortcuts XML File" -> TemplateType.SHORTCUTS_XML_FILE
       else -> TemplateType.CUSTOM_TEMPLATE
     }
 

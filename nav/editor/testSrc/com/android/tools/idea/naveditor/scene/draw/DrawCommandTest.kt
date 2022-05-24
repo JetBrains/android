@@ -25,10 +25,10 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.BUFFERED_IMAGE
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.mockito.InOrder
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.Mockito.`when`
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Point2D

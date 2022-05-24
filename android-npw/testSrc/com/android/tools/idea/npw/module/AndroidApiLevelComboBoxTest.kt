@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists
-import com.intellij.ide.util.ProjectPropertiesComponentImpl
+import com.intellij.ide.util.AppPropertyService
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
@@ -33,7 +31,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
 
 class AndroidApiLevelComboBoxTest {
   private lateinit var disposable: Disposable
@@ -42,7 +39,7 @@ class AndroidApiLevelComboBoxTest {
   fun setUp() {
     disposable = Disposable { }
     val instance = MockApplication(disposable)
-    instance.registerService(PropertiesComponent::class.java, ProjectPropertiesComponentImpl::class.java)
+    instance.registerService(PropertiesComponent::class.java, AppPropertyService::class.java)
     ApplicationManager.setApplication(instance, disposable)
   }
 
@@ -55,12 +52,12 @@ class AndroidApiLevelComboBoxTest {
   fun testDefaultSelectedItem() {
     val formFactor = FormFactor.MOBILE
     assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
-    val items: MutableList<VersionItem> = Lists.newArrayList(
-      createMockVersionItem(formFactor.defaultApi - 1),
-      createMockVersionItem(formFactor.defaultApi),
+    val items: MutableList<VersionItem> = mutableListOf(
+      VersionItem.fromStableVersion(formFactor.defaultApi - 1),
+      VersionItem.fromStableVersion(formFactor.defaultApi),
       // Default is at position 1
-      createMockVersionItem(formFactor.defaultApi + 1),
-      createMockVersionItem(formFactor.defaultApi + 2)
+      VersionItem.fromStableVersion(formFactor.defaultApi + 1),
+      VersionItem.fromStableVersion(formFactor.defaultApi + 2)
     )
     val apiComboBox = AndroidApiLevelComboBox()
     apiComboBox.init(formFactor, items)
@@ -84,7 +81,7 @@ class AndroidApiLevelComboBoxTest {
     ensureDefaultApiLevelAtLeastRecommended()
     val apiLevelItems = mutableListOf<VersionItem>()
     for (level in LOWEST_ACTIVE_API..HIGHEST_KNOWN_API) {
-      apiLevelItems.add(createMockVersionItem(level))
+      apiLevelItems.add(VersionItem.fromStableVersion(level))
     }
     val comboBox = AndroidApiLevelComboBox()
     comboBox.init(formFactor, apiLevelItems)
@@ -92,7 +89,3 @@ class AndroidApiLevelComboBoxTest {
   }
 }
 
-private fun createMockVersionItem(minApiLevel: Int): VersionItem =
-  Mockito.mock(AndroidVersionsInfo::class.java).apply {
-    Mockito.`when`(highestInstalledVersion).thenReturn(AndroidVersion(100, null))
-  }.VersionItem(AndroidVersion(minApiLevel))

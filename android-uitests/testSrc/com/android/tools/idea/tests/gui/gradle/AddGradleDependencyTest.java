@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
-import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddGradleDependencyTest {

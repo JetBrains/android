@@ -18,9 +18,10 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -58,7 +59,6 @@ import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,8 +75,8 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
                                        @NotNull ResourceFolderType resourceFolderType,
                                        boolean valuesResourceFile,
                                        boolean chooseTagName) {
-    super(AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
-          AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
+    super(AndroidBundle.messagePointer("new.typed.resource.action.title", resourcePresentableName),
+          AndroidBundle.messagePointer("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
     myResourceFolderType = resourceFolderType;
     myResourcePresentableName = resourcePresentableName;
     myDefaultRootTag = getDefaultRootTagByResourceType(resourceFolderType);
@@ -101,7 +101,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
       // If you're in the Android View, we want to ask you not just the filename but also let you
       // create other resource folder configurations
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane instanceof AndroidProjectViewPane) {
+      if (pane.getId().equals(AndroidProjectView.ID)) {
         return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
       }
 
@@ -267,11 +267,6 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     public MyValidator(Project project, PsiDirectory directory) {
       super(project, directory);
       myNameValidator = IdeResourceNameValidator.forFilename(myResourceFolderType, SdkConstants.DOT_XML);
-    }
-
-    @Override
-    public boolean checkInput(String inputString) {
-      return getErrorText(inputString) == null;
     }
 
     @Override

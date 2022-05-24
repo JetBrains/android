@@ -21,7 +21,8 @@ import java.awt.Stroke
 /**
  * Represents a Stroke whose width is measured the [SwingCoordinate] system
  */
-inline class SwingStroke(val value: Stroke) {
+@JvmInline
+value class SwingStroke(val value: Stroke) {
   constructor(width: SwingLength) : this(BasicStroke(width.value))
   constructor(width: SwingLength, cap: Int, join: Int) : this(BasicStroke(width.value, cap, join))
 }

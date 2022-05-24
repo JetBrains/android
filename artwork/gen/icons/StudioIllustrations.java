@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package icons;
 
 import com.intellij.openapi.util.IconLoader;
@@ -12,7 +13,7 @@ public class StudioIllustrations {
   private StudioIllustrations() {}
 
   private static Icon load(String path) {
-    return IconLoader.getIcon(path, StudioIllustrations.class);
+    return IconLoader.getIcon(path, StudioIllustrations.class.getClassLoader());
   }
 
   public static class Common {

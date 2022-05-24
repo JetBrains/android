@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider.Companion.create
-import com.android.tools.property.panel.api.TableUIProvider.Companion.create
+import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.ptable2.PTable
 import com.google.common.truth.Truth.assertThat
@@ -153,7 +153,7 @@ class MotionLayoutAttributesViewTest {
     val enumSupportProvider = NlEnumSupportProvider(motionRule.attributesModel)
     val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
     val editorProvider = create(enumSupportProvider, controlTypeProvider)
-    val tableUIProvider = create(NlPropertyItem::class.java, controlTypeProvider, editorProvider)
+    val tableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
     return MotionLayoutAttributesView.MotionInspectorBuilder(motionRule.attributesModel, tableUIProvider, enumSupportProvider)
   }
 

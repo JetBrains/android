@@ -28,9 +28,8 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GetAdbAction extends AnAction {
@@ -42,7 +41,7 @@ public class GetAdbAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Project project = getEventProject(e);
     File adb = project == null ? null : getAdbFile(project);
-    getTemplatePresentation().setEnabled(adb != null && adb.exists());
+    e.getPresentation().setEnabled(adb != null && adb.exists());
   }
 
   @Override
@@ -55,7 +54,7 @@ public class GetAdbAction extends AnAction {
     }
 
     ListenableFuture<AndroidDebugBridge> bridge = AdbService.getInstance().getDebugBridge(adb);
-    Futures.addCallback(bridge, new FutureCallback<AndroidDebugBridge>() {
+    Futures.addCallback(bridge, new FutureCallback<>() {
       @Override
       public void onSuccess(AndroidDebugBridge result) {
         Notifications.Bus.notify(new Notification("Android", "ADB", "ADB obtained", NotificationType.INFORMATION));

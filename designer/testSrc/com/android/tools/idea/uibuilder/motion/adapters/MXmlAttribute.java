@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.motion.adapters;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
+import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
@@ -85,7 +86,7 @@ class MXmlAttribute implements XmlAttribute {
   @NotNull
   @Override
   public Project getProject() throws PsiInvalidElementAccessException {
-    return new MXProject();
+    return DummyProject.getInstance();
   }
 
   @NotNull

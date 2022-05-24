@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -26,15 +28,12 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class containing an {@link NlComponent} attributes transaction. All the modifications in this transaction are not committed until the

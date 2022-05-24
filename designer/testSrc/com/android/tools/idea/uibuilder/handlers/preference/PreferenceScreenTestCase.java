@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import static com.android.SdkConstants.FQCN_LIST_VIEW;
+import static com.android.SdkConstants.PreferenceTags.CHECK_BOX_PREFERENCE;
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
+
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
@@ -23,13 +28,9 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import java.util.Collections;
-
-import static com.android.SdkConstants.FQCN_LIST_VIEW;
-import static com.android.SdkConstants.PreferenceTags.*;
 
 abstract class PreferenceScreenTestCase extends LayoutTestCase {
 

@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.fonts;
 
-import com.android.ide.common.fonts.FontFamily;
+import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FILENAME;
+import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FOLDER;
+
 import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.idea.downloads.DownloadService;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
-
-import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FILENAME;
-import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FOLDER;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link FontDirectoryDownloadService} is a download service for downloading a font directory

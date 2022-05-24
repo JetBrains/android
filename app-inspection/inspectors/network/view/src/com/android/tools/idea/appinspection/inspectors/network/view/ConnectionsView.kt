@@ -27,7 +27,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
@@ -102,7 +102,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     abstract fun getValueFrom(data: HttpData): Any
   }
 
-  private val tableModel = ConnectionsTableModel(model.httpDataFetcher)
+  private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
   val component: JComponent
     get() = connectionsTable
@@ -149,7 +149,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
         }
       }
     })
-    model.httpDataFetcher.addListener {
+    model.selectionRangeDataFetcher.addOnChangedListener {
       // Although the selected row doesn't change on range moved, we do this here to prevent
       // flickering that otherwise occurs in our table.
       updateTableSelection()
@@ -196,11 +196,11 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     }
   }
 
-  private class ConnectionsTableModel(httpDataFetcher: HttpDataFetcher) : AbstractTableModel() {
+  private class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) : AbstractTableModel() {
     private lateinit var dataList: List<HttpData>
 
     init {
-      httpDataFetcher.addListener { httpDataList ->
+      selectionRangeDataFetcher.addOnChangedListener { httpDataList ->
         dataList = httpDataList
         fireTableDataChanged()
       }

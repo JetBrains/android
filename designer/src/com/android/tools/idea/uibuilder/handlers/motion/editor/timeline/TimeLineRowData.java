@@ -32,6 +32,7 @@ public class TimeLineRowData {
   String mKeyProp;
   String mKeyPropToolTip;
   String mType; // Pos, Trig, Att, TCyc, Cyc
+  int mKeyPropIndex = 0; // used to map a property to a color
 
   private static String[] properties =
     {
@@ -78,6 +79,15 @@ public class TimeLineRowData {
     nameMap.put("KeyAttribute", TYPE_KEY_ATTRIBUTE);
   }
 
+  // map a property to an index that is associated with a specific color
+  private static HashMap<String, Integer> propertyMap = new HashMap<>();
+
+  static {
+    for (int i = 0; i < properties.length; i++) {
+      propertyMap.put(properties[i], i);
+    }
+  }
+
   ArrayList<MTag> mKeyFrames = new ArrayList<>();
   MTag mStartConstraintSet;
   MTag mEndConstraintSet;
@@ -108,12 +118,15 @@ public class TimeLineRowData {
           Debug.log(count + " " + properties[i]);
         }
         mKeyProp = properties[i];
+        mKeyPropIndex = propertyMap.getOrDefault(mKeyProp, properties.length - 1);
       }
     }
     if (count > 1) {
       count = 0;
       mKeyProp = "";
       mKeyPropToolTip = "";
+      // show the a specific color for a composite of propierties
+      mKeyPropIndex = properties.length - 1;
       for (int i = 0; i < properties.length; i++) {
         if ((mask & (1 << i)) != 0) {
           if (count > 0) {

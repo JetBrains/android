@@ -19,10 +19,14 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
@@ -30,6 +34,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.actions.PasteAction
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
@@ -38,11 +43,6 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.android.tools.idea.res.ensureNamespaceImported
-import com.android.tools.idea.util.EditorUtil
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -163,7 +163,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
         setAttribute(SdkConstants.ATTR_LAYOUT, resourceReference)
         collapseIfEmpty()
-        EditorUtil.reformatAndRearrange(parent.project, this)
+        ReformatUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -183,7 +183,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, dimensionValue)
         setSrcAttribute(dependsOnAppCompat, this, resourceReference)
         collapseIfEmpty()
-        EditorUtil.reformatAndRearrange(parent.project, this)
+        ReformatUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -245,7 +245,7 @@ class ResourcePasteProvider : PasteProvider {
     val dependsOnAppCompat = dependsOnAppCompat(xmlTag)
     runWriteAction {
       setSrcAttribute(dependsOnAppCompat, xmlTag, resourceReference)
-      EditorUtil.reformatAndRearrange(xmlTag.project, xmlTag)
+      ReformatUtil.reformatAndRearrange(xmlTag.project, xmlTag)
     }
     return true
   }
@@ -289,7 +289,6 @@ class ResourcePasteProvider : PasteProvider {
  *
  * @param kotlinElement The specific class of the supported Kotlin [PsiElement]
  */
-@Suppress("unused")
 private enum class SupportedKotlinElement(val kotlinElement: Class<out PsiElement>,
                                           val processElement: (PsiElement, Caret, String) -> Unit) {
   /**

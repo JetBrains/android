@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.ui.MockUiData
-import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation

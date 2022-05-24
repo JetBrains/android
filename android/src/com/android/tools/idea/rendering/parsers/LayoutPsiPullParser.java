@@ -81,7 +81,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
@@ -964,8 +963,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       // the databinding code does in the layouts.
       // For all the children of the root tag, it adds a tag that identifies. The tag is "layout/layout_name_<number>"
       final String layoutRootName = tag.getContainingFile().getVirtualFile().getNameWithoutExtension();
-      tagDecorator = tagDecorator.andThen(new Consumer<TagSnapshot>() {
+      tagDecorator = tagDecorator.andThen(new Consumer<>() {
         int counter = 0;
+
         @Override
         public void accept(TagSnapshot snapshot) {
           if (snapshot.tag == null) {
@@ -1050,7 +1050,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     if (layout != null && root.children.isEmpty()) {
       String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
       if (prefix != null) {
-        List<TagSnapshot> children = Lists.newArrayList();
+        List<TagSnapshot> children = new ArrayList<>();
         root.children = children;
         List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
         attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
@@ -1064,7 +1064,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
     String visibleChild = rootTag.getAttributeValue("visibleChildren", TOOLS_URI);
     if (visibleChild != null) {
-      Set<Integer> indices = Sets.newHashSet();
+      Set<Integer> indices = new HashSet<>();
       for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
         try {
           indices.add(Integer.parseInt(s));

@@ -23,7 +23,6 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObjec
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.intellij.util.Base64
 import gnu.trove.TLongHashSet
-import java.util.HashMap
 
 /**
  * Helper class to convert from perfetto memory proto to profiler protos.

@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.testing
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.intellij.diagnostic.PerformanceWatcher
 import com.intellij.ide.plugins.PluginUtil
@@ -102,7 +103,7 @@ open class ApplicationRule : ExternalResource() {
     //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
     application!!.registerService(UISettings::class.java, UISettings(NotRoamableUiSettings()))
     application!!.registerService(PluginUtil::class.java, PluginUtilImpl::class.java)
-    application!!.registerService(PerformanceWatcher::class.java, PerformanceWatcher::class.java)
+    application!!.registerService(PerformanceWatcher::class.java, mock(), rootDisposable!!)
   }
 
   override fun after() {

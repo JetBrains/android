@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.model
 
-import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.Icon
 

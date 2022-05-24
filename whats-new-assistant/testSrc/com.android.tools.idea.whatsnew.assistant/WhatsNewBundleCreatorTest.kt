@@ -23,8 +23,8 @@ import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.stubbing.Answer
 import java.io.File
 import java.io.InputStream

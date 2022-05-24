@@ -26,7 +26,6 @@ import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +39,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,7 +74,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
 
     // Verify that minSdkVersion, and the empty uses-sdk is removed from manifest file.
-    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), StandardCharsets.UTF_8).read();
     assertThat(manifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -83,7 +83,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion in build file is not changed.
-    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
+    String actualBuildFileContent = Files.asCharSource(buildFile, StandardCharsets.UTF_8).read();
     assertThat(actualBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -120,7 +120,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
 
     // Verify that minSdkVersion is removed from manifest file, and other attributes are not changed.
-    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), StandardCharsets.UTF_8).read();
     assertThat(manifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -130,7 +130,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion in build file is not changed.
-    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
+    String actualBuildFileContent = Files.asCharSource(buildFile, StandardCharsets.UTF_8).read();
     assertThat(actualBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -167,7 +167,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     assertThat(myHyperlink.toHtml()).contains("Move targetSdkVersion to build file and sync project");
 
     // Verify that targetSdkVersion is removed from manifest file, and other attributes are not changed.
-    String manifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    String manifestContent = Files.asCharSource(getManifestFile(appModule), StandardCharsets.UTF_8).read();
     assertThat(manifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -177,7 +177,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that targetSdkVersion in build file is not changed.
-    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
+    String actualBuildFileContent = Files.asCharSource(buildFile, StandardCharsets.UTF_8).read();
     assertThat(actualBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -215,7 +215,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     assertThat(myHyperlink.toHtml()).contains("Move minSdkVersion to build file and sync project");
 
     // Verify that minSdkVersion is removed from manifest file.
-    String actualManifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    String actualManifestContent = Files.asCharSource(getManifestFile(appModule), StandardCharsets.UTF_8).read();
     assertThat(actualManifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -224,7 +224,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion is added to build file.
-    String actualBuildFileContent = Files.asCharSource(buildFile, Charsets.UTF_8).read();
+    String actualBuildFileContent = Files.asCharSource(buildFile, StandardCharsets.UTF_8).read();
     assertThat(actualBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -265,7 +265,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
 
     // Verify that minSdkVersion is removed from manifest file, and other attributes are not changed.
-    String appManifestContent = Files.asCharSource(getManifestFile(appModule), Charsets.UTF_8).read();
+    String appManifestContent = Files.asCharSource(getManifestFile(appModule), StandardCharsets.UTF_8).read();
     assertThat(appManifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -274,7 +274,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       "</manifest>\n"
     );
 
-    String libManifestContent = Files.asCharSource(getManifestFile(libModule), Charsets.UTF_8).read();
+    String libManifestContent = Files.asCharSource(getManifestFile(libModule), StandardCharsets.UTF_8).read();
     assertThat(libManifestContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -284,7 +284,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
     );
 
     // Verify that minSdkVersion in build file is not changed.
-    String appBuildFileContent = Files.asCharSource(appBuildFile, Charsets.UTF_8).read();
+    String appBuildFileContent = Files.asCharSource(appBuildFile, StandardCharsets.UTF_8).read();
     assertThat(appBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +
@@ -295,7 +295,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       "}\n"
     );
 
-    String libBuildFileContent = Files.asCharSource(libBuildFile, Charsets.UTF_8).read();
+    String libBuildFileContent = Files.asCharSource(libBuildFile, StandardCharsets.UTF_8).read();
     assertThat(libBuildFileContent.replace(System.lineSeparator(), "\n")).isEqualTo(
       "apply plugin: 'com.android.application'\n" +
       "android {\n" +

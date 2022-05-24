@@ -1,7 +1,16 @@
 package org.jetbrains.android.refactoring;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_HINT;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_ON_CLICK;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TEXT;
+
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -15,22 +24,23 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
 
 public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringAction {
   @NonNls public static final String ACTION_ID = "AndroidExtractStyleAction";
@@ -123,8 +133,8 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
       chosenDirectory = testConfig.getResourceDirectory();
       styleName = testConfig.getStyleName();
-      final Set<String> attrsToExtract = new HashSet<String>(Arrays.asList(testConfig.getAttributesToExtract()));
-      styledAttributes = new ArrayList<XmlAttribute>();
+      final Set<String> attrsToExtract = new HashSet<>(Arrays.asList(testConfig.getAttributesToExtract()));
+      styledAttributes = new ArrayList<>();
 
       for (XmlAttribute attribute : extractableAttributes) {
         if (attrsToExtract.contains(attribute.getName())) {
@@ -141,33 +151,34 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
       .withName("Extract Android Style '" + styleName + "'")
       .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
       .run(() -> {
-        final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
+        final List<XmlAttribute> attributesToDelete = new ArrayList<>();
 
         if (!IdeResourcesUtil
           .createValueResource(project, chosenDirectory, styleName, null, ResourceType.STYLE, fileName, dirNames,
-                               new Processor<ResourceElement>() {
-            @Override
-            public boolean process(ResourceElement element) {
-              assert element instanceof Style;
-              final Style style = (Style)element;
-              createdStyleRef.set(style);
+                               new Processor<>() {
+                                 @Override
+                                 public boolean process(ResourceElement element) {
+                                   assert element instanceof Style;
+                                   final Style style = (Style)element;
+                                   createdStyleRef.set(style);
 
-              for (XmlAttribute attribute : styledAttributes) {
-                if (ANDROID_URI.equals(attribute.getNamespace())) {
-                  final StyleItem item = style.addItem();
-                  item.getName().setStringValue("android:" + attribute.getLocalName());
-                  item.setStringValue(attribute.getValue());
-                  attributesToDelete.add(attribute);
-                }
-              }
+                                   for (XmlAttribute attribute : styledAttributes) {
+                                     if (ANDROID_URI.equals(attribute.getNamespace())) {
+                                       final StyleItem item = style.addItem();
+                                       item.getName().setStringValue("android:" + attribute.getLocalName());
+                                       item.setStringValue(attribute.getValue());
+                                       attributesToDelete.add(attribute);
+                                     }
+                                   }
 
-              if (parentStyleValue != null && (!finalSupportImplicitParent || !styleName.startsWith(parentStyle + "."))) {
-                final String aPackage = parentStyleValue.getPackage();
-                style.getParentStyle().setStringValue((aPackage != null ? aPackage + ":" : "") + parentStyle);
-              }
-              return true;
-            }
-          })) {
+                                   if (parentStyleValue != null &&
+                                       (!finalSupportImplicitParent || !styleName.startsWith(parentStyle + "."))) {
+                                     final String aPackage = parentStyleValue.getPackage();
+                                     style.getParentStyle().setStringValue((aPackage != null ? aPackage + ":" : "") + parentStyle);
+                                   }
+                                   return true;
+                                 }
+                               })) {
           return;
         }
 
@@ -213,7 +224,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
   @NotNull
   static List<XmlAttribute> getExtractableAttributes(@NotNull XmlTag viewTag) {
-    final List<XmlAttribute> extractableAttributes = new ArrayList<XmlAttribute>();
+    final List<XmlAttribute> extractableAttributes = new ArrayList<>();
 
     for (XmlAttribute attribute : viewTag.getAttributes()) {
       if (canBeExtracted(attribute)) {

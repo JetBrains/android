@@ -16,7 +16,12 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
@@ -35,8 +40,8 @@ class MigrateAdbOptionsToInstallationRefactoringProcessorTest: UpgradeGradleFile
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
       ("4.1.0" to "4.2.0") to IRRELEVANT_FUTURE,
-      ("4.2.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
-      ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
+      ("4.2.0" to "7.0.2") to OPTIONAL_CODEPENDENT,
+      ("7.0.2" to "7.1.0") to OPTIONAL_INDEPENDENT,
       ("7.1.0" to "8.0.0") to MANDATORY_INDEPENDENT,
       ("4.2.0" to "8.0.0") to MANDATORY_CODEPENDENT,
       ("8.0.0" to "8.1.0") to IRRELEVANT_PAST

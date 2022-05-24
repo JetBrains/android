@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.frame
 
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 

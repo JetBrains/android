@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.run;
 
+
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +44,11 @@ public class AndroidRunConfigurationModule extends JavaRunConfigurationModule {
   public @NotNull GlobalSearchScope getSearchScope() {
     Module module = getModule();
     if (module != null) {
-      if (myIsTestConfiguration) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if ( myIsTestConfiguration && facet != null && facet.getProperties().PROJECT_TYPE != PROJECT_TYPE_TEST) {
         module = ModuleSystemUtil.getAndroidTestModule(module);
+      } else {
+        module = ModuleSystemUtil.getMainModule(module);
       }
       return GlobalSearchScope.moduleWithDependenciesScope(module);
     }

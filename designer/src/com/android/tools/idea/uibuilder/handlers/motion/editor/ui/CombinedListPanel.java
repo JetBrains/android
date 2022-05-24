@@ -22,8 +22,13 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -34,12 +39,6 @@ import javax.swing.ListModel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.Vector;
 
 /**
  * This displays the combined list fo top level tags you can select
@@ -112,7 +111,7 @@ public class CombinedListPanel extends JPanel {
   JList<Row> mTransitionList = new MEList<>();
   JScrollPane mTransitionPane = new MEScrollPane(mTransitionList);
 
-  ListCellRenderer<Row> rowRenderer = new ListCellRenderer<Row>() {
+  ListCellRenderer<Row> rowRenderer = new ListCellRenderer<>() {
     JLabel label = new JLabel();
     JLabel title = new JLabel();
     JPanel panel = new JPanel(new BorderLayout());
@@ -130,7 +129,11 @@ public class CombinedListPanel extends JPanel {
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends Row> list, Row value, int index, boolean isSelected, boolean cellHasFocus) {
+    public Component getListCellRendererComponent(JList<? extends Row> list,
+                                                  Row value,
+                                                  int index,
+                                                  boolean isSelected,
+                                                  boolean cellHasFocus) {
       label.setFont(list.getFont());
       label.setText(value.myString);
       String titleString = "";
@@ -156,20 +159,23 @@ public class CombinedListPanel extends JPanel {
         panel.remove(title);
         if (value.mCount == 0 && index != 0) {
           label.setBorder(mChangeBorder);
-        } else {
+        }
+        else {
           label.setBorder(mNoBorder);
         }
         mConstraintSetPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
         mConstraintSetPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
         mTransitionPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
         mTransitionPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
-      } else {
+      }
+      else {
         label.setBorder(mNoBorder);
         title.setBorder(mNoBorder);
         if (value.mCount == 0 && index != 0) {
           title.setText(titleString);
           panel.add(title, BorderLayout.NORTH);
-        } else {
+        }
+        else {
           panel.remove(title);
         }
       }

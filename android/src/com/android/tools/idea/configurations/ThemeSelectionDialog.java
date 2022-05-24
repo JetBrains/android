@@ -19,20 +19,20 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ThemeSelectionDialog extends DialogWrapper {
   @NotNull private final ThemeSelectionPanel myPanel;
 
   public ThemeSelectionDialog(@NotNull Configuration configuration) {
-    this(configuration, Collections.<String>emptySet());
+    this(configuration, Collections.emptySet());
   }
 
   public ThemeSelectionDialog(@NotNull Configuration configuration, @NotNull Set<String> excludedThemes) {
@@ -53,7 +53,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
     contentPanel.setPreferredSize(JBUI.size(800, 500));
     myPanel.installDoubleClickListener(new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         close(OK_EXIT_CODE);
         return true;
       }

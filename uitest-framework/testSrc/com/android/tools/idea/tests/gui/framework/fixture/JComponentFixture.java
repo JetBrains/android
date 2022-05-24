@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import javax.swing.JComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.fixture.AbstractJComponentFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class JComponentFixture<S, C extends JComponent> extends AbstractJComponentFixture<S, C, JComponentDriver> {
   public JComponentFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull Class<? extends C> type) {

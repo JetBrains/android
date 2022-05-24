@@ -22,7 +22,6 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
@@ -31,15 +30,15 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.NoErrorsOrWarningsLogger
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.testutils.file.recordExistingFile
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.io.File
-
-private val SDK_LOCATION = "/sdk"
-private val AVD_LOCATION = "/avd"
+import java.nio.file.Paths
 
 class AvdOptionsModelTest : AndroidTestCase() {
 
@@ -53,34 +52,34 @@ class AvdOptionsModelTest : AndroidTestCase() {
   @Throws(Exception::class)
   public override fun setUp() {
     super.setUp()
-    val fileOp = MockFileOp()
     val packages = RepositoryPackages()
+    val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
 
     // Google Play image
     val googlePlayPath = "system-images;android-23;google_apis_playstore;x86"
-    val googlePlayPkg = FakePackage.FakeLocalPackage(googlePlayPath, fileOp)
+    val googlePlayPkg = FakePackage.FakeLocalPackage(googlePlayPath, sdkRoot.resolve("playSysImg"))
     val googlePlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     googlePlayDetails.tags.add(IdDisplay.create("google_apis_playstore", "Google Play"))
     googlePlayDetails.abi = "x86"
     googlePlayDetails.apiLevel = 23
     googlePlayPkg.typeDetails = googlePlayDetails as TypeDetails
-    fileOp.recordExistingFile(googlePlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME))
+    googlePlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()
 
     // Non-Google Play image
     val nonPlayPath = "system-images;android-23;google_apis;x86"
-    val nonPlayPkg = FakePackage.FakeLocalPackage(nonPlayPath, fileOp)
+    val nonPlayPkg = FakePackage.FakeLocalPackage(nonPlayPath, sdkRoot.resolve("gapiSysImg"))
     val nonPlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     nonPlayDetails.tags.add(IdDisplay.create("google_apis", "Google APIs"))
     nonPlayDetails.abi = "x86"
     nonPlayDetails.apiLevel = 23
     nonPlayPkg.typeDetails = nonPlayDetails as TypeDetails
-    fileOp.recordExistingFile(nonPlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME))
+    nonPlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()
 
     val pkgList: MutableList<LocalPackage> = ImmutableList.of(googlePlayPkg, nonPlayPkg)
     packages.setLocalPkgInfos(pkgList)
 
-    val mgr = FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages)
-    val sdkHandler = AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr)
+    val mgr = FakeRepoManager(sdkRoot, packages)
+    val sdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot.root.resolve("avd"), mgr)
 
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)
@@ -88,8 +87,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val googlePlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
     val nonPlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
 
-    myGooglePlayAvdInfo = AvdInfo("name", File("ini"), "folder", googlePlayImage!!, myPropertiesMap)
-    myNonPlayAvdInfo = AvdInfo("name", File("ini"), "folder", nonPlayImage!!, myPropertiesMap)
+    myGooglePlayAvdInfo = AvdInfo("name", Paths.get("ini"), Paths.get("folder"), googlePlayImage!!, myPropertiesMap)
+    myNonPlayAvdInfo = AvdInfo("name", Paths.get("ini"), Paths.get("folder"), nonPlayImage!!, myPropertiesMap)
 
     // Get a phone device that supports Google Play
     val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger())

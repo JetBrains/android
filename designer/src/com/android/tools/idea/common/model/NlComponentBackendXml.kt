@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.model
 
-import com.android.tools.idea.util.EditorUtil
+import com.android.tools.idea.util.ReformatUtil
 import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
@@ -37,7 +37,7 @@ open class NlComponentBackendXml private constructor(
   private lateinit var myTagPointer: SmartPsiElementPointer<XmlTag>
 
   companion object {
-    val DEBUG = false
+    const val DEBUG = false
   }
 
   internal constructor(project: Project, tag: XmlTag) : this(project) {
@@ -174,7 +174,7 @@ open class NlComponentBackendXml private constructor(
       return
     }
 
-    EditorUtil.reformatAndRearrange(myProject, xmlTag)
+    ReformatUtil.reformatAndRearrange(myProject, xmlTag)
   }
 
   override fun isValid(): Boolean {

@@ -15,19 +15,18 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.SeriesData;
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.awt.*;
+import java.awt.Color;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 public class DefaultLineChartReducerTest {
   private static final float EPS = 1e-6f;

@@ -20,8 +20,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,7 +88,7 @@ public class ModelBuilder {
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
   private final Function<DesignSurface, InteractionHandler> myInteractionProviderCreator;
-  @NotNull private final Consumer<NlComponent> myComponentConsumer;
+  @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
   private String myModelDisplayName;
 
@@ -112,7 +112,7 @@ public class ModelBuilder {
     myPath = path;
     mySurfaceClass = surfaceClass;
     myInteractionProviderCreator = interactionProviderCreator;
-    myComponentConsumer = componentRegistrar;
+    myComponentRegistrar = componentRegistrar;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -192,8 +192,9 @@ public class ModelBuilder {
       assertNotNull(document);
 
       DesignSurface surface = createSurface(project, mySurfaceClass, myInteractionProviderCreator);
-      when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, null, myFacet, xmlFile.getVirtualFile());
+      SyncNlModel model =
+        SyncNlModel.create(myFixture.getProject(), myComponentRegistrar, myModelDisplayName, null, myFacet, xmlFile.getVirtualFile());
+      model.setDesignSurface(surface);
       when(surface.getModel()).thenReturn(model);
       when(surface.getModels()).thenReturn(ImmutableList.of(model));
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());

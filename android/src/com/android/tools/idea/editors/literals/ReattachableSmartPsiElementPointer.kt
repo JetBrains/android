@@ -26,8 +26,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parents
 import com.intellij.serviceContainer.AlreadyDisposedException
-import org.jetbrains.kotlin.idea.core.util.range
-import org.jetbrains.kotlin.idea.core.util.start
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtPrefixExpression
 
@@ -54,7 +52,7 @@ private fun getValidReattacheableTypes(originalType: Class<*>): Set<Class<*>> =
  */
 class ReattachableSmartPsiElementPointer(originalElement: PsiElement,
                                          private val onReattach: (PsiElement) -> Unit = {}) : SmartPsiElementPointer<PsiElement> {
-  private var previewValidStartOffset = originalElement.range.start
+  private var previewValidStartOffset = originalElement.textRange.startOffset
 
   /** Types this element can be reattached to. */
   private val validTypesToReattach = getValidReattacheableTypes(originalElement::class.java)

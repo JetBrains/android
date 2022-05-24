@@ -25,7 +25,6 @@ import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +59,6 @@ public class AvdWizardUtilsTest {
     RepositoryPackages packages = new RepositoryPackages();
     packages.setLocalPkgInfos(ImmutableList.of(p));
     RepoManager mgr = new FakeRepoManager(null, packages);
-    return new AndroidSdkHandler(null, null, new MockFileOp(), mgr);
+    return new AndroidSdkHandler(null, null, mgr);
   }
 }

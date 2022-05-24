@@ -27,7 +27,6 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.projectRoots.Sdk
 
 /**
  * MotionLayout model for the Spring widget.

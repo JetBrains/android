@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_PADDING;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.google.common.collect.Sets;
@@ -23,13 +29,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("ConstantConditions")
 public class PaddingLayoutPsiPullParserTest extends AndroidTestCase {

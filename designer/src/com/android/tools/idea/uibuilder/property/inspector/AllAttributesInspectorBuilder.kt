@@ -37,15 +37,14 @@ class AllAttributesInspectorBuilder(
   editorProvider: EditorProvider<NlPropertyItem>
 ) : InspectorBuilder<NlPropertyItem> {
 
-  private val allTableUIProvider = TableUIProvider.create(
-    NlPropertyItem::class.java, controlTypeProvider, editorProvider)
+  private val allTableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.ALL.visible) {
       return
     }
 
-    val allTableModel = FilteredPTableModel.create(
+    val allTableModel = FilteredPTableModel(
       model, itemFilter = { true }, itemComparator = alphabeticalSortOrder, groups = createGroups(properties))
     val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
     inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)

@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Convert;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.MetadataValueConverter;

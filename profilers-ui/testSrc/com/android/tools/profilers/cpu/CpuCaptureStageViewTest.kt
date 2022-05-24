@@ -37,11 +37,15 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
+import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -53,6 +57,8 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import perfetto.protos.PerfettoTrace
 import java.awt.Cursor
 import java.awt.HeadlessException
 import java.awt.Point
@@ -236,7 +242,7 @@ class CpuCaptureStageViewTest {
     captureNode.endGlobal = 10
 
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
-    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
 
@@ -248,6 +254,23 @@ class CpuCaptureStageViewTest {
   }
 
   @Test
+  fun zoomToSelectionButtonForTimelineEvent() {
+    profilersView.studioProfilers.stage = stage
+    val capture = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
+      Mockito.`when`(range).thenReturn(Range(0.0, 50.0))
+      Mockito.`when`(frameRenderSequence).thenReturn { RenderSequence(null, null, null) }
+    }
+    val frame = AndroidFrameTimelineEvent(42, 42, 0, 20, 30, "",
+                                          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                                          PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+                                          false, false, 0)
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
+    stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture)))
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
+    assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 30.0))).isTrue()
+  }
+
+  @Test
   fun deselectAllLabel() {
     profilersView.studioProfilers.stage = stage
     val stageView = profilersView.stageView as CpuCaptureStageView
@@ -255,12 +278,12 @@ class CpuCaptureStageViewTest {
 
     // Label should be visible when selection changes.
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
-    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.
     stageView.deselectAllLabel.doClick()
-    assertThat(stage.multiSelectionModel.isEmpty).isTrue()
+    assertThat(stage.multiSelectionModel.selections).isEmpty()
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
   }
 

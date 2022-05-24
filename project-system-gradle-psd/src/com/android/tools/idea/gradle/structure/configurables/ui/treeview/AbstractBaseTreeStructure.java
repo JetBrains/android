@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
+
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 
 public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
   @NotNull
@@ -37,7 +37,7 @@ public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
   @Nullable
   public Object getParentElement(@NotNull Object element) {
     if (element instanceof NodeDescriptor) {
-      return ((NodeDescriptor)element).getParentDescriptor();
+      return ((NodeDescriptor<?>)element).getParentDescriptor();
     }
     return null;
   }

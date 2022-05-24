@@ -26,10 +26,11 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -52,12 +53,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
@@ -106,8 +107,10 @@ DONE.
    */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
-    return LegacyClient(LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = false, model,
-                        SessionStatistics(model, FakeTreeSettings()), disposableRule.disposable).apply {
+    val process = LEGACY_DEVICE.createProcess()
+    return LegacyClient(process, isInstantlyAutoConnected = false, model,
+                        LayoutInspectorMetrics(model.project, process, SessionStatistics(model, FakeTreeSettings())),
+                        disposableRule.disposable).apply {
       launchMonitor = mock()
     }
   }
@@ -202,7 +205,7 @@ DONE.
 
   @Test
   fun testLoadComponentTree() {
-    val imageBytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readBytes()
+    val imageBytes = TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/image1.png").readBytes()
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
@@ -266,7 +269,7 @@ DONE.
   @Suppress("UndesirableClassUsage")
   @Test
   fun testRefreshImages() {
-    val imageBytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readBytes()
+    val imageBytes = TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/image1.png").readBytes()
     val image1 = ImageIO.read(ByteArrayInputStream(imageBytes))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
@@ -323,7 +326,7 @@ DONE.
       .image, 0.0)
 
     // Update the image returned by the device and verify the draw image is not refreshed yet
-    val image2Bytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image2.png").readBytes()
+    val image2Bytes = TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/image2.png").readBytes()
     val image2 = ImageIO.read(ByteArrayInputStream(image2Bytes))
 
     `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->

@@ -21,8 +21,20 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_4_10_1
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_4_4
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_4_6
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_5_1_1
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_5_4_1
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_5_6_4
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_6_1_1
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_6_5
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_6_7_1
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_7_0_2
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_7_2
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_FOR_DEV
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.VERSION_MIN
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -140,21 +152,17 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_5 -> GradleVersion.parse("1.3.20")
         VERSION_6_7_1 -> GradleVersion.parse("1.3.20")
         VERSION_7_0_2 -> GradleVersion.parse("1.3.40")
+        VERSION_7_2 -> GradleVersion.parse("1.3.40")
         VERSION_FOR_DEV -> GradleVersion.parse("1.3.40")
       }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1 ->
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 ->
           GradleVersion.parse("2.0.0")
-        // For Studio Arctic Fox / AGP 7.0, this is correct: BaseVariant.getApplicationIdTextResource is deprecated
-        // but not removed.
-        VERSION_7_0_2 -> GradleVersion.parse("2.0.0")
-        // TODO(xof): At some point, the BaseVariant.getApplicationIdTextResource method will be removed, at which point we would need to
-        //  upgrade safeargs to 2.4.0, which contains the fix (see b/159542337, b/172824579).  At the time of writing this comment (June
-        //  17, 2021) the fix is in the safeargs 2.4.0-alpha02 release.
-        VERSION_FOR_DEV -> GradleVersion.parse("2.0.0")
+        // AGP 7.1 removed an incubating API used by safeargs.
+        VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("2.4.1")
       }
 
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
@@ -162,14 +170,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> GradleVersion.parse("1.3.1.0")
         VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> GradleVersion.parse("1.4.2.1")
-        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
       }
 
     fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("2.0.0")
-        VERSION_7_0_2, VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
+        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
       }
 
     fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
@@ -177,14 +185,37 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_4_4, VERSION_4_6, VERSION_MIN -> GradleVersion.parse("1.0.0")
         VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> GradleVersion.parse("1.1.0")
         VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.4.0")
-        VERSION_7_0_2, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
+      }
+
+    fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("1.2.1")
+        VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("1.4.1")
       }
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> GradleVersion.parse("0.9.3")
         VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("0.10.1")
-        VERSION_7_0_2, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
+        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
+      }
+
+    fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("4.0.1")
+        VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
+      }
+
+    fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5 -> GradleVersion.parse("2.0")
+        VERSION_6_7_1 -> GradleVersion.parse("2.32")
+        VERSION_7_0_2, VERSION_7_2 -> GradleVersion.parse("2.38")
+        VERSION_FOR_DEV -> GradleVersion.parse("2.40.1")
       }
 
     /**
@@ -203,6 +234,12 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
       "de.mannodermaus.android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
 
+      "com.google.gms:google-services" to ::`com-google-gms-google-services-plugin-compatibility-info`,
+      "com.google.gms.google-services" to ::`com-google-gms-google-services-plugin-compatibility-info`,
+
+      "com.google.firebase:perf-plugin" to ::`com-google-firebase-perf-plugin-compatibility-info`,
+      "com.google.firebase.firebase-perf" to ::`com-google-firebase-perf-plugin-compatibility-info`,
+
       "com.google.firebase:firebase-crashlytics-gradle" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
       "com.google.firebase.crashlytics" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
 
@@ -211,6 +248,9 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
       "com.google.android.gms:oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
       "com.google.android.gms.oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
+
+      "com.google.dagger:hilt-android-gradle-plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
+      "dagger.hilt.android.plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
     )
   }
 }

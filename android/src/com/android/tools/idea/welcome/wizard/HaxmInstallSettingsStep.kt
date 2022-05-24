@@ -150,7 +150,7 @@ private const val MIN_EMULATOR_MEMORY = 512 //Mb
 private fun getMemoryDisplayUnit(memorySizeBytes: Long) =
   Storage.Unit.values()
     .filter { memorySizeBytes / it.numberOfBytes >= 1 }
-    .maxBy { it.numberOfBytes } ?: Storage.Unit.B
+    .maxByOrNull { it.numberOfBytes } ?: Storage.Unit.B
 
 private fun createRecommendedSizeLabel(memorySize: Int, displayUnit: Storage.Unit): JLabel {
   val label = getMemoryLabel(memorySize, displayUnit)

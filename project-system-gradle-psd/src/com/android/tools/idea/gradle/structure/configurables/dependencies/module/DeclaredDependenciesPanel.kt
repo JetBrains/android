@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.google.common.collect.Lists
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
@@ -128,13 +127,9 @@ internal class DeclaredDependenciesPanel(
   public override fun getPlaceName(): String = placeName
 
   override fun getExtraToolbarActions(focusComponent: JComponent): List<AnAction> {
-    val actions = Lists.newArrayList<AnAction>()
-    actions.add(
-        RemoveDependencyAction()
-            .apply {
-              registerCustomShortcutSet(CommonShortcuts.getDelete(), focusComponent)
-            })
-    return actions
+    val action = RemoveDependencyAction()
+    action.registerCustomShortcutSet(CommonShortcuts.getDelete(), focusComponent)
+    return listOf(action)
   }
 
   fun updateTableColumnSizes() {
@@ -152,7 +147,7 @@ internal class DeclaredDependenciesPanel(
   override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle
 
   override fun setSelection(selection: Collection<PsBaseDependency>?): ActionCallback {
-    if (selection == null || selection.isEmpty()) {
+    if (selection.isNullOrEmpty()) {
       dependenciesTable.clearSelection()
     }
     else {

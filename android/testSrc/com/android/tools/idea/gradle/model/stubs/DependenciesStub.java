@@ -21,6 +21,7 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.google.common.collect.Lists;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -33,11 +34,11 @@ public final class DependenciesStub extends BaseStub implements Dependencies {
 
     public DependenciesStub() {
         this(
-                Lists.newArrayList(),
+                new ArrayList<>(),
                 Lists.newArrayList(new JavaLibraryStub()),
                 Lists.newArrayList("project1", "project2"),
-                Lists.newArrayList(),
-                Lists.newArrayList());
+                new ArrayList<>(),
+                new ArrayList<>());
     }
 
     public DependenciesStub(

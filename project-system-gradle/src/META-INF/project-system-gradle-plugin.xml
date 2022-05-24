@@ -14,20 +14,23 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/project-system-gradle-sync.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
+  <depends>org.jetbrains.kotlin</depends>
   <depends optional="true" config-file="project-system-gradle-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.run">
+    <createLaunchTasksProvider implementation="com.android.tools.idea.testartifacts.instrumented.CreateLaunchTasksProvider"/>
+  </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
                         serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
+    <applicationService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"
+                        serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider"/>
-    <androidStudioInitializer id="Startup.DisableKaptProjectResolverExtensionInitializer"
-                              implementation="com.android.tools.idea.projectsystem.gradle.DisableKaptProjectResolverExtensionInitializer"/>
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner"
@@ -35,6 +38,7 @@
                        order="first, before gradle"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.BuildsToPathsMapperImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantUpdater"/>
     <facet.toolWindow id="Build Variants"
@@ -44,23 +48,63 @@
                       icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
+    <notificationGroup id="Android Gradle Sync Issues" displayType="STICKY_BALLOON" />
+    <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
+    <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectCleanupDataService" />
     <externalSystemViewContributor id="android" order="before com.intellij.openapi.externalSystem.view.ExternalSystemViewDefaultContributor"
                                    implementation="com.android.tools.idea.projectsystem.gradle.GradleTaskEmptyContributor"/>
+    <externalSystemExecutionConsoleManager implementation="com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager"
+                                           order="before gradle"/>
     <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
     <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
+    <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" order="last"/>
+    <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
+    <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
+    <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider"/>
+    <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
+    <completion.contributor language="any"
+                            implementationClass="com.android.tools.idea.gradle.completions.GradleDependencyCompletionContributor" />
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <gradleModelFacade implementation="org.jetbrains.kotlin.android.configure.AndroidGradleModelFacade"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
-    <testTasksProvider implementation="com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider"/>
+    <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">
       <action id="Android.FixAndroidRunConfigurations"
-              class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction"
-              text="Fix Android Run Configurations"
-              description="Add &quot;Gradle-aware Make&quot; launch task to Android Run Configuration(s) if it is missing">
+              class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction">
       </action>
       <add-to-group group-id="Internal.Android" anchor="last"/>
     </group>
+    <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
+    </action>
+    <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.BuildApk" anchor="after"/>
+    </action>
+
+    <action internal="true" id="Android.DumpProject"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+    <action internal="true" id="Android.DumpProjectIdeModels"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectIdeModelAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+    <action internal="true" id="Android.DumpProjectData"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+
   </actions>
 </idea-plugin>

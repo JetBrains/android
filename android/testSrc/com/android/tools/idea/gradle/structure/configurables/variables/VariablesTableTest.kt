@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
@@ -33,7 +34,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -83,7 +83,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
   }
 
   override fun tearDown() {
-    TestDialogManager.setTestDialog(defaultTestDialog);
+    TestDialogManager.setTestDialog(defaultTestDialog)
     super.tearDown()
   }
 

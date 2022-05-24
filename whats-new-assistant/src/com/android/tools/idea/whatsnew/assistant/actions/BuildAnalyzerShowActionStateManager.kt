@@ -47,7 +47,7 @@ class BuildAnalyzerShowActionStateManager : AssistActionStateManager() {
   }
 
   private fun connectToNewProject(newProject: Project): MessageBusConnection {
-    val connection = newProject.messageBus.connect(newProject)
+    val connection = newProject.messageBus.connect()
     Disposer.register(connection, Disposable { projectToConnection.remove(newProject) })
     connection.subscribe(BuildAttributionStateReporter.FEATURE_STATE_TOPIC, object : BuildAttributionStateReporter.Notifier {
       override fun stateUpdated(newState: State) {

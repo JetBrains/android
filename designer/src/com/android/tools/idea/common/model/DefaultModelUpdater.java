@@ -22,7 +22,6 @@ import static com.android.SdkConstants.ATTR_ID;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -31,6 +30,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     /**
      * Map from tags in the view render tree to the corresponding snapshots
      */
-    protected final Map<XmlTag, TagSnapshot> myTagToSnapshot = Maps.newHashMap();
+    protected final Map<XmlTag, TagSnapshot> myTagToSnapshot = new HashMap<>();
   }
 
   private void recordComponentMapping(
@@ -154,7 +155,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     }
 
     // Look for any NlComponents no longer present in the new set
-    List<XmlTag> missing = Lists.newArrayList();
+    List<XmlTag> missing = new ArrayList<>();
     Set<XmlTag> remaining = Sets.newIdentityHashSet();
     remaining.addAll(data.myTagToComponentMap.keySet());
     checkMissing(newRootTag, remaining, missing);
@@ -182,7 +183,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     // Note: We can't use XmlTag#getAttribute on the old component hierarchy;
     // those elements may not be valid and PSI will throw exceptions if we
     // attempt to access them.
-    Map<String, NlComponent> oldIds = Maps.newHashMap();
+    Map<String, NlComponent> oldIds = new HashMap<>();
     for (Map.Entry<TagSnapshot, NlComponent> entry : data.mySnapshotToComponent.entrySet()) {
       TagSnapshot snapshot = entry.getKey();
       if (snapshot != null) {
@@ -321,8 +322,8 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
       if (NlModel.CHECK_MODEL_INTEGRITY) {
-        Set<NlComponent> seen = Sets.newHashSet();
-        Set<XmlTag> seenTags = Sets.newHashSet();
+        Set<NlComponent> seen = new HashSet<>();
+        Set<XmlTag> seenTags = new HashSet<>();
         for (XmlTag t : subTags) {
           if (seenTags.contains(t)) {
             assert false : t;

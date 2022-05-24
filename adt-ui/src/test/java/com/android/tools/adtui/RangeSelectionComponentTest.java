@@ -21,9 +21,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
-import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.adtui.model.DefaultConfigurableDurationData;
 import com.android.tools.adtui.model.DefaultDataSeries;

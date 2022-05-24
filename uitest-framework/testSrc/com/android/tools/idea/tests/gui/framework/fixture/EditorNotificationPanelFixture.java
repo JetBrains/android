@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
@@ -22,8 +24,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.base.Preconditions.checkState;
 
 public class EditorNotificationPanelFixture extends JComponentFixture<EditorNotificationPanelFixture, EditorNotificationPanel> {
 
@@ -42,14 +42,15 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
 
   public IdeFrameFixture performActionWithoutWaitingForDisappearance(@Nullable final String label) {
     checkState(target().isShowing(), "cannot click link on hidden notification");
-    HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
+    HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<>(HyperlinkLabel.class) {
       @Override
       protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
         // IntelliJ's HyperLinkLabel class does not expose the getText method (it is package private)
         if (label != null) {
           return hyperlinkLabel.isShowing() &&
                  label.equals(Reflection.method("getText").withReturnType(String.class).in(hyperlinkLabel).invoke());
-        } else {
+        }
+        else {
           return hyperlinkLabel.isShowing() && hyperlinkLabel.isEnabled() && hyperlinkLabel.isVisible();
         }
       }

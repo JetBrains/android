@@ -53,7 +53,6 @@ private fun simulateDeployment(project: Project, problems: Collection<LiveLitera
  * Allows simulating a fake live literals successful deployment. This can be used for testing the UI when no device is available
  * running Live Literals.
  */
-@Suppress("ComponentNotRegistered")
 internal class InternalSimulateSuccessfulLiteralDeployment: AnAction("Simulate Successful Live Literal Deployment") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -66,7 +65,6 @@ internal class InternalSimulateSuccessfulLiteralDeployment: AnAction("Simulate S
  * Allows simulating a fake live literals failed deployment. This can be used for testing the UI when no device is available
  * running Live Literals.
  */
-@Suppress("ComponentNotRegistered")
 internal class InternalSimulateFailedLiteralDeployment: AnAction("Simulate Failed Live Literal Deployment") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -101,7 +99,6 @@ private class ShowReportDialog(content: String) : DialogWrapper(false) {
 /**
  * Action that shows a dialog with the latest collected Live Literals stats.
  */
-@Suppress("ComponentNotRegistered")
 internal class ShowLiteralStats: AnAction("Show Live Literals Stats") {
   private fun DeployRecordStats.toDebugString(title: String) = """
 $title

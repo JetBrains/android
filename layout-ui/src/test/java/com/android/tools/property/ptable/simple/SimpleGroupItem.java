@@ -17,9 +17,8 @@ package com.android.tools.property.ptable.simple;
 
 import com.android.tools.property.ptable.PTableGroupItem;
 import com.android.tools.property.ptable.PTableItem;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class SimpleGroupItem extends PTableGroupItem {
   private String myName;

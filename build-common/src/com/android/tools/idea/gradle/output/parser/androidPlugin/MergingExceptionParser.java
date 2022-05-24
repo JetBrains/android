@@ -8,10 +8,9 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.ide.common.resources.MergingException;
 import com.android.utils.ILogger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A parser for errors that happen during resource merging, usually via

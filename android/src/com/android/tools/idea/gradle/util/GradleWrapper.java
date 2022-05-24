@@ -19,7 +19,7 @@ import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -28,7 +28,6 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.util.PropertiesFiles;
 import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;

@@ -16,10 +16,9 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.tools.idea.common.scene.target.Target;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A mechanism for adding {@link Target}s to {@link SceneComponent}s.

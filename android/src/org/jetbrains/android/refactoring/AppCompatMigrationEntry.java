@@ -24,14 +24,14 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.containers.SmartHashSet;
+import java.util.Arrays;
+import java.util.Set;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlAttrUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlAttrValueUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlTagUsageInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * An entry encapsulating a single migration to AppCompat.

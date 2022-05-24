@@ -25,7 +25,6 @@ import com.android.tools.idea.io.FileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.exists
-import java.io.File
 import java.nio.file.Path
 
 /**

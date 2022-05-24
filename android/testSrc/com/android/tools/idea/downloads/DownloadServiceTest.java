@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.downloads;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
@@ -24,18 +26,15 @@ import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 public class DownloadServiceTest extends AndroidTestCase {
   private static final String DATA_PATH = "downloads";

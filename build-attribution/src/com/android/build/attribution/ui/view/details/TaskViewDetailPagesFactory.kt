@@ -17,7 +17,6 @@ package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor

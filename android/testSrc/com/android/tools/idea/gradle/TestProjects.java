@@ -18,9 +18,8 @@ package com.android.tools.idea.gradle;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory of {@link com.android.builder.model.AndroidProject}s and {@link com.android.builder.model.NativeAndroidProject}s for testing

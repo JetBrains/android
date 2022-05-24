@@ -26,7 +26,7 @@ import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
@@ -168,7 +168,7 @@ class ResourceExplorer private constructor(
 
   override fun getData(dataId: String): Any? =
     when (dataId) {
-      PlatformDataKeys.HELP_ID.name -> AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
+      PlatformCoreDataKeys.HELP_ID.name -> AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
       else -> null
     }
 

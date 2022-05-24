@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -31,7 +31,7 @@ import java.awt.Graphics2D;
 public class DrawResize extends DrawRegion {
   public static final int NORMAL = 0;
   public static final int OVER = 1;
-  public static final int SIZE = JBUI.scale(8);
+  public static final int SIZE = JBUIScale.scale(8);
 
   int myMode;
 

@@ -15,10 +15,8 @@
  */
 package org.jetbrains.android
 
-import com.android.SdkConstants
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
-import org.jetbrains.android.dom.APP_PACKAGE_NAME
 
 class AndroidXmlCompletionContributorTest : AndroidTestCase() {
   fun testNamespaceCodeCompletion() {

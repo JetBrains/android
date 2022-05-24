@@ -15,7 +15,9 @@
  */
 package com.android.tools.datastore.energy
 
-import com.android.tools.datastore.energy.PowerProfile.DefaultPowerProfile.*
+import com.android.tools.datastore.energy.PowerProfile.DefaultPowerProfile.MAX_BIG_CORE_FREQ_KHZ
+import com.android.tools.datastore.energy.PowerProfile.DefaultPowerProfile.MIN_CORE_FREQ_KHZ
+import com.android.tools.datastore.energy.PowerProfile.DefaultPowerProfile.renormalizeFrequency
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

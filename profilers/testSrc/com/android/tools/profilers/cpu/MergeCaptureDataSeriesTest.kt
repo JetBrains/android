@@ -31,7 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 // TODO reinvestigate these tests because the fake service currently returns all added threads regardless of timestamps which is wrong.

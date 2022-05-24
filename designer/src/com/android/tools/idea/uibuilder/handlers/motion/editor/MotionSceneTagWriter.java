@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -237,7 +236,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     deleteRun = new DeleteTag() {
       @Override
       public void delete(String cmd) {
-        WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, cmd, null, () -> {
+        WriteCommandAction.runWriteCommandAction(root.mProject, cmd, null, () -> {
           CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
           CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
           myXmlTag.delete();

@@ -20,16 +20,16 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
-import com.intellij.diagnostic.VMOptions.getCustomVMOptionsFileName
+import com.intellij.diagnostic.VMOptions
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import java.io.File
 import java.io.IOException
 import java.lang.System.currentTimeMillis
 import java.lang.management.ManagementFactory
-import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -48,10 +48,10 @@ object TraceSyncUtil {
                                           "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n" +
                                           "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
                                           "Trace: org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService\n" +
                                           "Trace: org.jetbrains.plugins.gradle.tooling.internal.ExtraModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.gradle.KotlinGradleModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModelBuilder\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder\n" +
                                           "\n" +
                                           "# IDEA\n" +
                                           "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncFailed\n" +
@@ -94,38 +94,19 @@ object TraceSyncUtil {
    *
    * The added/removed jvm arg is in the format of "-javaagent:AGENT_JAR=TRACE_PROFILE".
    */
-  @JvmOverloads
   @JvmStatic
-  fun updateTraceArgsInFile(vmOptionsFile: File = getVMOptionsFile()) {
+  fun updateTraceArgsInFile() {
     val traceArgsPrefix = "-javaagent:${findAgentJar()}="
-    vmOptionsFile.createNewFile()
-
-    // Remove the original trace line.
-    val vmOptions = vmOptionsFile.readLines().filterNot { line ->
-      line.startsWith(traceArgsPrefix)
-    }.toMutableList()
-
-    if (GradleExperimentalSettings.getInstance().TRACE_GRADLE_SYNC) {
-      // Add new line.
-      getTraceMethods()?.let { traceMethods ->
-        vmOptions.add(traceArgsPrefix + createTraceProfileFile(traceMethods))
-      }
+    val traceArgsValue = (if (GradleExperimentalSettings.getInstance().TRACE_GRADLE_SYNC) getTraceMethods() else null)?.let {
+      createTraceProfileFile(it)
     }
-
-    // Write back.
     try {
-      val text = if (vmOptions.isEmpty()) "" else vmOptions.joinToString("\n").plus("\n")
-      Files.write(vmOptionsFile.toPath(), text.toByteArray())
+      VMOptions.setOption(traceArgsPrefix, traceArgsValue)
     }
     catch (e: IOException) {
-      LOG.error("Unable to write to vm options file from ${vmOptionsFile.path}.")
+      LOG.error("Unable to write to VM options file", e)
     }
   }
-
-  /**
-   * Returns the location of default vm options file. The file might not exist.
-   */
-  private fun getVMOptionsFile(): File = File(PathManager.getBinPath(), getCustomVMOptionsFileName())
 
   /**
    * Returns defaultTraceMethods if DEFAULT profile is selected in settings, return file content if
@@ -172,7 +153,7 @@ object TraceSyncUtil {
   fun createTraceProfileFile(traceMethods: String): String {
     // Specify output file, "Output: /path/to/log/dir/sync_profile_report_[timestamp].json".
     val outputFileName = "sync_profile_report_" + SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(currentTimeMillis()) + ".json"
-    val outputFilePath = FileUtil.toSystemDependentName(File(PathManager.getLogPath(), outputFileName).absolutePath)
+    val outputFilePath = FileUtilRt.toSystemDependentName(File(PathManager.getLogPath(), outputFileName).absolutePath)
 
     val profileContent = "Output: ${outputFilePath}\n${traceMethods}"
 

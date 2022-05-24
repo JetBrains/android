@@ -27,11 +27,11 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.sdklib.repository.IdDisplay
+import com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG
 import com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG
-import com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG
 import com.android.sdklib.repository.targets.SystemImage.WEAR_TAG
 import icons.StudioIllustrations.FormFactors

@@ -18,7 +18,9 @@ package com.android.tools.idea.configurations
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.sdklib.devices.Device
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -32,30 +34,48 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIcons
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.Icon
 import kotlin.math.roundToInt
 
 private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
 
+private val NEXUS_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
+  val devices = groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList()) +
+                groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
+  devices.sortedWith(PIXEL_DEVICE_COMPARATOR)
+}
+private val WEAR_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
+  groupedDevices[DeviceGroup.WEAR]?.filter {
+    when (it.id) {
+      "wearos_large_round", "wearos_small_round", "wearos_square", "wearos_rect" -> true
+      else -> false
+    }
+  }?.toList() ?: emptyList()
+}
+private val TV_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
+  groupedDevices[DeviceGroup.TV] ?: emptyList()
+}
+private val AUTOMOTIVE_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
+  groupedDevices[DeviceGroup.AUTOMOTIVE] ?: emptyList()
+}
+private val GENERIC_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
+  groupedDevices[DeviceGroup.GENERIC] ?: emptyList()
+}
+
 internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
-  "_device_class_phone" to "This reference device uses the COMPACT width size class, " +
-    "which represents 99% of Android phones in portrait orientation.",
-  "_device_class_foldable" to "This reference device uses the MEDIUM width size class," +
-    " which represents foldables in unfolded portrait orientation," +
-    " or 94% of all tablets in portrait orientation.",
-  "_device_class_tablet" to "This reference device uses the EXPANDED width size class," +
-    " which represents 97% of Android tablets in landscape orientation.",
-  "_device_class_desktop" to "This reference device uses the EXPANDED width size class," +
-    " which represents 97% of Android desktops in landscape orientation."
+  "_device_class_phone" to DEVICE_CLASS_PHONE_TOOLTIP,
+  "_device_class_foldable" to DEVICE_CLASS_FOLDABLE_TOOLTIP,
+  "_device_class_tablet" to DEVICE_CLASS_TABLET_TOOLTIP,
+  "_device_class_desktop" to DEVICE_CLASS_DESKTOP_TOOLTIP
 )
 
 /**
  * New device menu for layout editor.
  * Because we are going to deprecate [DeviceMenuAction], some of the duplicated codes are not shared between them.
  */
-class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
+class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
+                        private val deviceChangeListener: DeviceMenuAction.DeviceChangeListener)
   : DropDownAction("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES) {
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -104,24 +124,30 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
   private fun createDeviceMenuList() {
     val groupedDevices = getSuitableDevices(renderContext.configuration!!)
 
-    addWindowSizeAndNexusSection(groupedDevices[DeviceGroup.NEXUS_XL]?.plus(groupedDevices[DeviceGroup.NEXUS_TABLET] ?: emptyList()))
-    groupedDevices[DeviceGroup.WEAR]?.let { addWearDeviceSection(it) }
-    groupedDevices[DeviceGroup.TV]?.let { addTvDeviceSection(it) }
-    groupedDevices[DeviceGroup.AUTOMOTIVE]?.let { addAutomotiveDeviceSection(it) }
+    addWindowSizeAndNexusSection(groupedDevices)
+    addWearDeviceSection(groupedDevices)
+    addTvDeviceSection(groupedDevices)
+    addAutomotiveDeviceSection(groupedDevices)
     addCustomDeviceSection()
     addAvdDeviceSection()
-    addGenericDeviceAndNewDefinitionSection()
+    addGenericDeviceAndNewDefinitionSection(groupedDevices)
   }
 
-  private fun addWindowSizeAndNexusSection(nexusDevices:  List<Device>?) {
+  private fun addWindowSizeAndNexusSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
     val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
     for (device in windowDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null, selected))
     }
 
-    if (nexusDevices != null) {
+    val nexusDevices = NEXUS_DEVICE_FILTER(groupedDevices)
+    if (nexusDevices.isNotEmpty()) {
       val group = DefaultActionGroup.createPopupGroup { "Phones and Tablets" }.also { sizeGroup ->
         val template = sizeGroup.templatePresentation
         template.isEnabled = true
@@ -129,7 +155,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
         for (device in sortedDevices) {
           val label = getDeviceLabel(device)
           val selected = device == renderContext.configuration?.device
-          sizeGroup.addAction(DeviceMenuAction.SetDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+          sizeGroup.addAction(DeviceMenuAction.SetDeviceAction(renderContext,
+                                                               label,
+                                                               { updatePresentation(it) },
+                                                               deviceChangeListener,
+                                                               device,
+                                                               null, selected))
         }
       }
       add(group)
@@ -137,37 +168,53 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     addSeparator()
   }
 
-  private fun addWearDeviceSection(wearDevices: List<Device>) {
-    val filteredWearDevices = wearDevices.filter { when(it.id) {
-      "wear_square_320", "wear_round_360", "wear_round_chin_320_290" -> true
-      else -> false
-    } }.toList()
+  private fun addWearDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+    val wearDevices = WEAR_DEVICE_FILTER(groupedDevices)
 
-    if (filteredWearDevices.isNotEmpty()) {
+    if (wearDevices.isNotEmpty()) {
       add(DeviceCategory("Wear", "Wear devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR))
-      for (device in filteredWearDevices) {
+      for (device in wearDevices) {
         val label = getDeviceLabel(device)
         val selected = device == renderContext.configuration?.device
-        add(DeviceMenuAction.SetWearDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+        add(DeviceMenuAction.SetWearDeviceAction(renderContext,
+                                                 label,
+                                                 { updatePresentation(it) },
+                                                 deviceChangeListener,
+                                                 device,
+                                                 null,
+                                                 selected))
       }
       addSeparator()
     }
   }
 
-  private fun addTvDeviceSection(tvDevices: List<Device>) {
+  private fun addTvDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+    val tvDevices = TV_DEVICE_FILTER(groupedDevices)
     add(DeviceCategory("TV", "Android TV devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null, selected))
     }
     addSeparator()
   }
 
-  private fun addAutomotiveDeviceSection(automotiveDevices: List<Device>) {
+  private fun addAutomotiveDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+    val automotiveDevices = AUTOMOTIVE_DEVICE_FILTER(groupedDevices)
     add(DeviceCategory("Auto", "Android Auto devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE))
     for (device in automotiveDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null,
+                                           selected))
     }
     addSeparator()
   }
@@ -191,19 +238,24 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     }
   }
 
-  private fun addGenericDeviceAndNewDefinitionSection() {
-    val groupedDevices = getSuitableDevices(renderContext.configuration!!)
-    val devices = groupedDevices.getOrDefault(DeviceGroup.GENERIC, emptyList())
+  private fun addGenericDeviceAndNewDefinitionSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+    val devices = GENERIC_DEVICE_FILTER(groupedDevices)
     if (devices.isNotEmpty()) {
       val genericGroup = createPopupGroup { "Generic Devices" }
       for (device in devices) {
         val label: String = getDeviceLabel(device)
         val selected = device == renderContext.configuration?.device
-        genericGroup.add(DeviceMenuAction.SetDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+        genericGroup.add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                                          label,
+                                                          { updatePresentation(it) },
+                                                          deviceChangeListener,
+                                                          device,
+                                                          null,
+                                                          selected))
       }
       add(genericGroup)
     }
-    add(AddDeviceDefinitionAction())
+    add(AddDeviceDefinitionAction(renderContext))
   }
 
   private fun getDeviceLabel(device: Device): String {
@@ -216,14 +268,22 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
   }
 
-  private class AddDeviceDefinitionAction: AnAction() {
-    init {
-      templatePresentation.text = "Add Device Definition"
-      templatePresentation.icon = null
-    }
+  companion object {
+    /**
+     * Get the non-generic devices in the dropdown menu.
+     */
+    fun getSortedMajorDevices(config: Configuration): List<Device> {
+      val groupedDevices = getSuitableDevices(config)
 
-    override fun actionPerformed(e: AnActionEvent) {
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID).actionPerformed(e)
+      val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: emptyList()
+      val nexusDevices = NEXUS_DEVICE_FILTER(groupedDevices)
+      val wearDevices = WEAR_DEVICE_FILTER(groupedDevices)
+      val tvDevices = TV_DEVICE_FILTER(groupedDevices)
+      val automotiveDevices = AUTOMOTIVE_DEVICE_FILTER(groupedDevices)
+      val avdDevices = getAvdDevices(config)
+      val genericDevices = GENERIC_DEVICE_FILTER(groupedDevices)
+
+      return windowDevices + nexusDevices + wearDevices + tvDevices + automotiveDevices + avdDevices + genericDevices
     }
   }
 }
@@ -236,6 +296,28 @@ private class DeviceCategory(text: String?, description: String?, private val my
   }
 
   override fun actionPerformed(e: AnActionEvent) = Unit
+}
+
+class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHolder): AnAction() {
+  init {
+    templatePresentation.text = "Add Device Definition"
+    templatePresentation.icon = null
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val config = configurationHolder.configuration ?: return
+    val module = config.module ?: return
+    val project = module.project
+
+    val optionsModel = AvdOptionsModel(null)
+    val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)
+
+    if (dialog.showAndGet()) {
+      // Select the new created AVD device.
+      val avdDevice = config.configurationManager.createDeviceForAvd(optionsModel.createdAvd)
+      config.setDevice(avdDevice, true)
+    }
+  }
 }
 
 private const val NEXUS_NAME = "Nexus"

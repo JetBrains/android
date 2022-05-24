@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
-import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.List;

@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.ide
 
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.UiComponentsProvider
 import com.android.tools.idea.codenavigation.CodeNavigator
-import com.android.tools.idea.codenavigation.IntellijNavSource
+import com.android.tools.idea.codenavigation.IntelliJNavSource
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
@@ -32,8 +32,8 @@ class IntellijUiComponentsProvider(private val project: Project) : UiComponentsP
   init {
     val locator = SymbolFilesLocator(ProjectSymbolSource(project))
     val symbolizer = createNativeSymbolizer(locator)
-    codeNavigator = CodeNavigator(
-        IntellijNavSource(project, symbolizer), CodeNavigator.applicationExecutor)
+    codeNavigator = CodeNavigator(IntelliJNavSource(project, symbolizer),
+                                  CodeNavigator.applicationExecutor)
   }
 
   override fun createStackTraceView(model: StackTraceModel): StackTraceView {

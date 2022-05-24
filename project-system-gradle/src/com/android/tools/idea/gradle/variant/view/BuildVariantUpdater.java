@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC;
-import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.restoreKotlinUserDataFromDataNodes;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 
@@ -34,7 +33,6 @@ import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
@@ -67,7 +65,7 @@ public class BuildVariantUpdater {
 
   @NotNull
   public static BuildVariantUpdater getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantUpdater.class);
+    return project.getService(BuildVariantUpdater.class);
   }
 
   // called by IDEA.
@@ -205,7 +203,6 @@ public class BuildVariantUpdater {
     if (variantsExpectedAfterSwitch != null) {
       DataNode<ProjectData> variantProjectDataNode = VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantsExpectedAfterSwitch);
       if (variantProjectDataNode != null) {
-        restoreKotlinUserDataFromDataNodes(variantProjectDataNode);
         setupCachedVariant(project, variantProjectDataNode, invokeVariantSelectionChangeListeners);
         return true;
       }

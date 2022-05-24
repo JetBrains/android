@@ -20,6 +20,7 @@ import java.awt.Font
 /**
  * Represents a Font whose size is measured the [SwingCoordinate] system
  */
-inline class SwingFont(val value: Font) {
+@JvmInline
+value class SwingFont(val value: Font) {
   constructor(name: String, style: Int, size: SwingLength) : this(Font(name, style, size.toInt()))
 }

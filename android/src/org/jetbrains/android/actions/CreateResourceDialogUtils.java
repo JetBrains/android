@@ -17,13 +17,13 @@ package org.jetbrains.android.actions;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
@@ -125,7 +125,7 @@ public class CreateResourceDialogUtils {
     }
     if (facet != null && AndroidModel.isRequired(facet) && AndroidModel.get(facet) != null) {
       Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders();
-      DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<SourceSetItem>();
+      DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<>();
       for (NamedIdeaSourceProvider sourceProvider : providers) {
         for (String resDirUrl : sourceProvider.getResDirectoryUrls()) {
           // In gradle, each source provider may have multiple res directories, so we create an element for each one of them.
@@ -169,7 +169,7 @@ public class CreateResourceDialogUtils {
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     if (project != null) {
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane instanceof AndroidProjectViewPane) {
+      if (pane.getId().equals(AndroidProjectView.ID)) {
         return null;
       }
     }
@@ -177,7 +177,7 @@ public class CreateResourceDialogUtils {
     VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
     if (file != null) {
       // See if it's inside a res folder (or is equal to a resource folder)
-      Module module = LangDataKeys.MODULE.getData(dataContext);
+      Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
       if (module != null) {
         LocalResourceManager manager = LocalResourceManager.getInstance(module);
         if (manager != null) {

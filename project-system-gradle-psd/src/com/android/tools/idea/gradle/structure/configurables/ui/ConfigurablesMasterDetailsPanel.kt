@@ -37,7 +37,6 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.kotlin.utils.addIfNotNull
-import java.util.ArrayList
 import javax.swing.JComponent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener

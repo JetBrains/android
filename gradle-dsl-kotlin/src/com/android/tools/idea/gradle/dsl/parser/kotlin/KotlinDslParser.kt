@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
@@ -29,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
-import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -57,6 +54,8 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.text.LiteralFormatUtil
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -72,7 +71,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -81,8 +79,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
-import org.jetbrains.kotlin.parsing.parseBoolean
-import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import java.math.BigDecimal
 
 /**
@@ -93,6 +89,8 @@ class KotlinDslParser(
   override val internalContext: BuildModelContext,
   val dslFile: GradleDslFile
 ) : KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
+  private val extractValueSet: MutableSet<Pair<GradleDslSimpleExpression, PsiElement>> = mutableSetOf()
+
   //
   // Methods for GradleDslParser
   //
@@ -127,23 +125,25 @@ class KotlinDslParser(
 
   override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? {
     when (literal) {
-      // Ex: KotlinCompilerVersion, android.compileSdkVersion
-      is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
-        if (resolve) {
-          val gradleDslElement = context.resolveExternalSyntaxReference(literal.text, true)
-          // Only get the value if the element is a GradleDslSimpleExpression.
-          if (gradleDslElement is GradleDslSimpleExpression) {
-            return gradleDslElement.value
-          }
-        }
-        return unquoteString(literal.text)
-      }
-      // prop[0], rootProject.extra["kotlin_version"]
+      // Ex: KotlinCompilerVersion, android.compileSdkVersion ...
+      is KtNameReferenceExpression, is KtDotQualifiedExpression,
+      // ... prop[0], rootProject.extra["kotlin_version"]
       is KtArrayAccessExpression -> {
         if (resolve) {
-          val gradleDslElement = context.resolveExternalSyntaxReference(literal.text, true)
+          val gradleDslElement = context.resolveExternalSyntaxReference(literal, true)
+          // Only get the value if the element is a GradleDslSimpleExpression.
           if (gradleDslElement is GradleDslSimpleExpression) {
-            return gradleDslElement.value
+            synchronized(extractValueSet) {
+              val key = context to literal
+              if (extractValueSet.contains(key)) return unquoteString(literal.text)
+              extractValueSet.add(key)
+              try {
+                return gradleDslElement.value
+              }
+              finally {
+                extractValueSet.remove(key)
+              }
+            }
           }
         }
         return unquoteString(literal.text)
@@ -351,8 +351,7 @@ class KotlinDslParser(
     expression: KtDotQualifiedExpression
   ) : GradleDslExpression? {
     val receiver = expression.receiverExpression
-    val selector = expression.selectorExpression
-    when (selector) {
+    when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()

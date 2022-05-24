@@ -19,7 +19,6 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language
-import org.mockito.Mockito
 
 class LargeFontModelsProviderTest : LayoutTestCase() {
 

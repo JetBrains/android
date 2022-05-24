@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.smali;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.psi.util.PsiTreeUtil.findChildrenOfType;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 import com.android.tools.idea.smali.psi.SmaliClassName;
 import com.android.tools.idea.smali.psi.SmaliClassSpec;
 import com.android.tools.idea.smali.psi.SmaliFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.testFramework.LightPlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.psi.util.PsiTreeUtil.findChildrenOfType;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for smali parsing.

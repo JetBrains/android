@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.converters
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveResourceNamespace
 import com.intellij.openapi.util.TextRange
@@ -34,7 +35,6 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.xml.XmlExtension
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceValue
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.util.module
 
 /**
@@ -92,7 +92,7 @@ class ResourceNamespaceFakePsiElement(
 
   override fun getNavigationElement(): PsiElement {
     val module = parent.module ?: return this
-    val androidDependencies = AndroidUtils.getAllAndroidDependencies(module, true)
+    val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, true)
     val androidFacet =
       androidDependencies.firstOrNull { it.module.getModuleSystem().getPackageName() == resourceNamespace.packageName } ?: return this
     return Manifest.getMainManifest(androidFacet)?.`package`?.xmlAttribute ?: this

@@ -23,10 +23,6 @@ import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.io.Images;
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.TvBannerGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;

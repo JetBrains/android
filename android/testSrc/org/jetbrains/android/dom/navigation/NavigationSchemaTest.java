@@ -46,6 +46,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -237,7 +238,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> {
         try {
-          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes());
+          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes(StandardCharsets.UTF_8));
         }
         catch (Exception e) {
           fail(e.getMessage());
@@ -297,7 +298,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    new UnindexedFilesUpdater(getProject()).queue(getProject());
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());

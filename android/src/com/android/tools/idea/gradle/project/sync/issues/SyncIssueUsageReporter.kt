@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
@@ -43,7 +42,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileH
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSHA256FromGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
@@ -61,7 +59,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHype
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
@@ -95,7 +92,7 @@ interface SyncIssueUsageReporter {
 
   companion object {
     fun getInstance(project: Project): SyncIssueUsageReporter {
-      return ServiceManager.getService(project, SyncIssueUsageReporter::class.java)
+      return project.getService(SyncIssueUsageReporter::class.java)
     }
   }
 }
@@ -110,7 +107,6 @@ fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<Notifi
 fun SyncIssueUsageReporter.collect(quickFixes: Collection<NotificationHyperlink>) =
     collect(quickFixes.mapNotNull { it.toSyncIssueQuickFix() })
 
-@Suppress("DUPLICATE_LABEL_IN_WHEN")
 fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
     when (this) {
       is AddGoogleMavenRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK
@@ -150,8 +146,6 @@ fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQu
       is UseJavaHomeAsJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
-      is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
-      is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
       is RemoveJcenterHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }

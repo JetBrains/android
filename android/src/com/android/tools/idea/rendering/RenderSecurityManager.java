@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.Nullable;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
-import com.android.utils.ILogger;
+import static com.android.SdkConstants.DOT_CLASS;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.VALUE_FALSE;
 
+import com.android.annotations.Nullable;
+import com.android.utils.ILogger;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.net.InetAddress;
 import java.security.Permission;
-import java.util.Arrays;
 import java.util.PropertyPermission;
 import java.util.concurrent.Callable;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A {@link SecurityManager} which is used for layout lib rendering, to
@@ -69,7 +67,7 @@ public class RenderSecurityManager extends SecurityManager {
    * could just create new threads and execute code separate from the security manager
    * there.
    */
-  private static ThreadLocal<Boolean> sIsRenderThread = new InheritableThreadLocal<Boolean>() {
+  private static ThreadLocal<Boolean> sIsRenderThread = new InheritableThreadLocal<>() {
     @Override
     protected synchronized Boolean initialValue() {
       return Boolean.FALSE;
@@ -338,7 +336,7 @@ public class RenderSecurityManager extends SecurityManager {
         return; // Allow loading JRE libraries
       }
       // Allow loading webp library
-      if (lib.equals(new File(WebpNativeLibHelper.getLibLocation(), WebpNativeLibHelper.getLibName()).getAbsolutePath())) {
+      if (RenderPropertiesAccessUtil.isLibraryLinkingAllowed(lib)) {
         return;
       }
       throw RenderSecurityException.create("Link", lib);

@@ -31,7 +31,6 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
-import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -70,13 +69,16 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
@@ -113,7 +115,6 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -233,6 +234,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
     @Override
+    public void modelDerivedDataChanged(@NotNull NlModel model) {
+      updateNotifications();
+    }
+
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      updateNotifications();
+    }
+
+    @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
       repaint();
     }
@@ -247,11 +258,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private LintIssueProvider myLintIssueProvider;
-  /**
-   * Indicate if the content is editable. Note that this only works for editable content (e.g. xml layout file). The non-editable
-   * content (e.g. the image drawable file) can't be edited as well.
-   */
-  private final boolean myIsEditable;
 
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
@@ -288,11 +294,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable,
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
   }
 
@@ -301,7 +306,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
@@ -310,7 +314,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     Disposer.register(parentDisposable, this);
     myProject = project;
-    myIsEditable = isEditable;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
 
@@ -639,7 +642,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
-    return modelSceneManager.requestRender()
+    return modelSceneManager.requestRenderAsync()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
 
@@ -1335,12 +1338,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     activatePreferredEditor(component);
   }
 
-  /**
-   * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
-   */
-  @NotNull
-  public abstract Consumer<NlComponent> getComponentRegistrar();
-
   protected void activatePreferredEditor(@NotNull NlComponent component) {
     for (DesignSurfaceListener listener : getListeners()) {
       if (listener.activatePreferredEditor(this, component)) {
@@ -1543,7 +1540,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
    */
   public boolean isEditable() {
-    return getLayoutType().isEditable() && myIsEditable;
+    return getLayoutType().isEditable();
   }
 
   /**
@@ -1712,7 +1709,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
-    return requestSequentialRender(manager -> manager.requestLayoutAndRender(false));
+    return requestSequentialRender(manager -> manager.requestLayoutAndRenderAsync(false));
   }
 
   /**
@@ -1750,9 +1747,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         myRenderFutures.forEach(future -> future.complete(null));
         myRenderFutures.clear();
       }
+      updateNotifications();
     });
 
     return callback;
+  }
+
+  /**
+   * Returns true if this surface is currently refreshing.
+   */
+  public final boolean isRefreshing() {
+    synchronized (myRenderFutures) {
+      return !myRenderFutures.isEmpty();
+    }
   }
 
   /**
@@ -1785,7 +1792,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
       return this;
     }
-    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+    if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
       return myFileEditorDelegate.get();
     }
     else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
@@ -1809,8 +1816,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
     else if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-      if (getFocusedSceneView() != null) {
-        SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
         NlComponent primary = selectionModel.getPrimary();
         if (primary != null) {
           return primary.getTagDeprecated();
@@ -1818,8 +1826,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      if (getFocusedSceneView() != null) {
-        SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
         List<NlComponent> selection = selectionModel.getSelection();
         List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
         for (NlComponent component : selection) {
@@ -1830,7 +1839,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
     else {
       NlModel model = getModel();
-      if (LangDataKeys.MODULE.is(dataId) && model != null) {
+      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
         return model.getModule();
       }
     }
@@ -1973,5 +1982,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
     mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.mySwingAlignmentXValue);
+  }
+
+  /**
+   * Updates the notifications panel associated to this {@link DesignSurface}.
+   */
+  protected void updateNotifications() {
+    FileEditor fileEditor = myFileEditorDelegate.get();
+    VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
+    if (file == null) return;
+    UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
   }
 }

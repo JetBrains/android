@@ -15,8 +15,8 @@
  */
 package com.android.tools.property.panel.impl.model
 
-import com.android.SdkConstants.VALUE_TRUE
 import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.property.panel.api.PropertyItem
 
 /**

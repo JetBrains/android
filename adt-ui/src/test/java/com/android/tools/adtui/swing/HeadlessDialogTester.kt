@@ -18,7 +18,6 @@ package com.android.tools.adtui.swing
 
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
-import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,6 +44,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.SpeedSearchBase
+import com.intellij.ui.ToolbarUtil
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.Consumer
 import com.intellij.util.ExceptionUtil
@@ -369,7 +369,7 @@ private class HeadlessDialogWrapperPeer(
     UIUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
-      UIUtil.setCustomTitleBar(window, rootPane) { runnable: Runnable ->
+      ToolbarUtil.setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
         Disposer.register(wrapper.disposable, runnable::run)
       }
     }
@@ -436,7 +436,6 @@ private class HeadlessDialogWrapperPeer(
     }
 
     try {
-      val eventQueue = IdeEventQueue.getInstance()
       while (latch.count > 0) {
         if (PlatformTestUtil.dispatchNextEventIfAny() == null) {
           latch.await(10, TimeUnit.MILLISECONDS)

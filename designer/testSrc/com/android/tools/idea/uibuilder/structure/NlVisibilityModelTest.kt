@@ -16,15 +16,10 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponentBackend
-import com.android.tools.idea.common.model.NlComponentModificationDelegate
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
 import org.junit.Test
 import org.mockito.Mockito
 

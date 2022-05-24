@@ -15,34 +15,31 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Starts a background thread that reads logcat messages and sends them back to the caller.
  */
-class LogcatReader(
-  private val device: IDevice,
-  disposableParent: Disposable,
-  appendMessages: suspend (List<LogCatMessage>) -> Unit
-) : Disposable {
+internal class LogcatReader(private val device: IDevice, logcatPresenter: LogcatPresenter) : Disposable {
 
-  // TODO(b/200160304): Until we switch to a coroutine friendly logcat execution function, we use the legacy version which blocks a thread.
-  //  Since we can run arbitrarily many logcat windows, we can't block threads from the standard pools, especially not the seemingly
-  //  appropriate IO pool which has only 4 thread. Once the coroutine version is available, threads will suspend rather than block and we
-  //  can eliminate this thread pool.
-  private val threadFactory = ThreadFactoryBuilder()
-    .setNameFormat("Android Logcat Service Thread %s for Device Serial Number $device")
-    .build()
+  private val executor = Executors.newSingleThreadExecutor(
+    ThreadFactoryBuilder()
+      .setNameFormat("Android Logcat Service Thread %s for Device Serial Number $device")
+      .build())
 
   private val logcatReceiver = LogcatReceiver(
     device,
@@ -53,18 +50,20 @@ class LogcatReader(
         // When the logcat reading code is converted properly to coroutines, we will already be in the
         // proper scope here and will suspend on a full channel or flow.
         runBlocking(workerThread) {
-          appendMessages(messages)
+          logcatPresenter.processMessages(messages)
         }
       }
     })
 
   init {
-    Disposer.register(disposableParent, this)
+    Disposer.register(logcatPresenter, this)
   }
 
+  // Start a Logcat command on the device. This is a blocking call and does not return until the receiver is canceled.
   fun start() {
+    logcatReceiver.resume()
     // The thread is released on dispose() when logcatReceiver.isCanceled() returns true and executeShellCommand() aborts.
-    Executors.newSingleThreadExecutor(threadFactory).execute {
+    executor.execute {
       val filename = System.getProperty("studio.logcat.debug.readFromFile")
       if (filename != null && SystemInfo.isUnix) {
         executeDebugLogcatFromFile(filename)
@@ -73,6 +72,20 @@ class LogcatReader(
         device.executeShellCommand("logcat -v long -v epoch", logcatReceiver)
       }
     }
+  }
+
+  // Stop the logcat command by canceling the receiver. This is a blocking call.
+  // The underlying thread will exit and free up the executor, so it can trigger the
+  fun stop() {
+    val latch = CountDownLatch(1)
+    logcatReceiver.stop()
+    executor.execute(latch::countDown)
+    latch.await(DdmPreferences.getTimeOut().toLong(), TimeUnit.MILLISECONDS)
+  }
+
+  // Clear the Logcat buffer on the device. This is a blocking call.
+  fun clearLogcat() {
+    device.executeShellCommand("logcat -c", LoggingReceiver(thisLogger()))
   }
 
   override fun dispose() {}

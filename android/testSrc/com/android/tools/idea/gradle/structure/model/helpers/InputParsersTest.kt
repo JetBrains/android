@@ -17,15 +17,19 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.pom.java.LanguageLevel
-import junit.framework.Assert.*
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertNull
+import junit.framework.Assert.assertTrue
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
-import java.math.BigDecimal
 
 class InputParsersTest {
 

@@ -16,17 +16,17 @@
 package com.android.tools.idea;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-
-public class Projects {
+public final class Projects {
   @NotNull
   public static File getBaseDirPath(@NotNull Project project) {
-    if (project.isDefault()) return new File("");
-    String basePath = project.getBasePath();
-    return new File(toCanonicalPath(basePath));
+    if (project.isDefault()) {
+      return new File("");
+    }
+    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
   }
 }

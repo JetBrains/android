@@ -18,10 +18,9 @@ package com.android.tools.idea.editors.layoutInspector;
 import com.android.layoutinspector.model.LayoutFileData;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel;
+import java.io.File;
 import org.intellij.images.editor.ImageZoomModel;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.io.File;
 
 public class LayoutInspectorPanelZoomTest extends AndroidTestCase {
   private LayoutInspectorPanel myPanel;

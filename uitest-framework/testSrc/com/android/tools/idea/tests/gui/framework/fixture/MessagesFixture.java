@@ -15,10 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
-import com.intellij.ui.messages.SheetController;
+import java.awt.Container;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
@@ -26,14 +36,6 @@ import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
 
 public class MessagesFixture {
   @NotNull private final ContainerFixture<? extends Container> myDelegate;
@@ -97,38 +99,19 @@ public class MessagesFixture {
 
   @NotNull
   static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull String title) {
-    JPanel sheetPanel = waitUntilShowing(robot, new GenericTypeMatcher<JPanel>(JPanel.class) {
+    JPanel sheetPanel = waitUntilShowing(robot, new GenericTypeMatcher<>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel panel) {
-        if (panel.getClass().getName().startsWith(SheetController.class.getName())) {
-          SheetController controller = findSheetController(panel);
-          JPanel sheetPanel = field("mySheetPanel").ofType(JPanel.class).in(controller).get();
-          if (sheetPanel == panel) {
-            return true;
-          }
-        }
+        // FIXME: 0cd838a3446179badf9a0161d0a8bd4bbe5c166f/ba20ae9c3103066e341c51c3ea527fc837d2a73f
+        //  ([platform] dropping obsolete implementations of macOS message dialogs; wiring clients to `MessagesService`)
         return false;
       }
     });
 
-    String sheetTitle = getTitle(sheetPanel, robot);
+    String sheetTitle = "fixme";
     assertThat(sheetTitle).named("Sheet title").isEqualTo(title);
 
     return new MacSheetPanelFixture(robot, sheetPanel);
-  }
-
-  @Nullable
-  private static String getTitle(@NotNull JPanel sheetPanel, @NotNull Robot robot) {
-    final JEditorPane messageTextPane = getMessageTextPane(sheetPanel);
-
-    JEditorPane titleTextPane = robot.finder().find(sheetPanel, new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
-      @Override
-      protected boolean isMatching(@NotNull JEditorPane editorPane) {
-        return editorPane != messageTextPane;
-      }
-    });
-
-    return getHtmlBody(titleTextPane.getText());
   }
 
   @Nullable
@@ -148,21 +131,10 @@ public class MessagesFixture {
     @Override
     @NotNull
     public String getMessage() {
-      JEditorPane messageTextPane = getMessageTextPane(target());
-      String text = getHtmlBody(messageTextPane.getText());
-      return nullToEmpty(text);
+      // FIXME: 0cd838a3446179badf9a0161d0a8bd4bbe5c166f/ba20ae9c3103066e341c51c3ea527fc837d2a73f
+      //  ([platform] dropping obsolete implementations of macOS message dialogs; wiring clients to `MessagesService`)
+      return "fixme";
     }
-  }
-
-  @NotNull
-  private static JEditorPane getMessageTextPane(@NotNull JPanel sheetPanel) {
-    SheetController sheetController = findSheetController(sheetPanel);
-    return field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
-  }
-
-  @NotNull
-  private static SheetController findSheetController(@NotNull JPanel sheetPanel) {
-    return field("this$0").ofType(SheetController.class).in(sheetPanel).get();
   }
 
   @Nullable

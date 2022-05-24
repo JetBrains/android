@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 import com.intellij.ui.Gray;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil.FontSize;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public class Header extends JPanel {
   @NotNull private final JLabel myTitleLabel;
@@ -44,12 +46,8 @@ public class Header extends JPanel {
     setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
   }
 
-  public void setLabelFor(@NotNull Component c) {
-    myTitleLabel.setLabelFor(c);
-  }
-
-  public void setDisplayedMnemonic(char aChar) {
-    myTitleLabel.setDisplayedMnemonic(aChar);
+  public void setIcon(@NotNull Icon icon) {
+    myTitleLabel.setIcon(icon);
   }
 
   @Override
@@ -61,6 +59,12 @@ public class Header extends JPanel {
   @Override
   public Dimension getMinimumSize() {
     Dimension size = super.getMinimumSize();
+    return new Dimension(size.width, getTabsHeight());
+  }
+
+  @Override
+  public Dimension getMaximumSize() {
+    Dimension size = super.getMaximumSize();
     return new Dimension(size.width, getTabsHeight());
   }
 }

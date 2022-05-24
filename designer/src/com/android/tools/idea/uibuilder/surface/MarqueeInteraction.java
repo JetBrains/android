@@ -129,7 +129,7 @@ public class MarqueeInteraction extends Interaction {
   public List<Layer> createOverlays() {
     ColorSet colorSet = mySceneView.getColorSet();
     myOverlay = new MarqueeLayer(colorSet);
-    return Collections.<Layer>singletonList(myOverlay);
+    return Collections.singletonList(myOverlay);
   }
 
   /**

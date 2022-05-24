@@ -38,7 +38,6 @@ import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
@@ -60,7 +59,7 @@ import javax.swing.JComponent
 interface DatabaseInspectorProjectService {
   companion object {
     @JvmStatic fun getInstance(project: Project): DatabaseInspectorProjectService {
-      return ServiceManager.getService(project, DatabaseInspectorProjectService::class.java)
+      return project.getService(DatabaseInspectorProjectService::class.java)
     }
   }
 

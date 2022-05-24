@@ -23,12 +23,11 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 public final class MemoryDataSeries implements DataSeries<Long> {
   @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;

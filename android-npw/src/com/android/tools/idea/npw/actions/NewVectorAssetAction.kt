@@ -19,10 +19,10 @@ import com.android.tools.idea.actions.AndroidAssetStudioAction
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep
+import com.android.tools.idea.npw.toUrl
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.ui.JBUI
@@ -65,6 +65,6 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
   }
 
   override fun getHelpUrl(): URL? {
-    return WizardUtils.toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
+    return toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
   }
 }

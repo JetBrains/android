@@ -16,19 +16,24 @@
 package com.android.tools.adtui.device;
 
 import com.android.resources.ScreenOrientation;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.android.tools.adtui.webp.WebpMetadata;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import javax.imageio.ImageIO;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("ConstantConditions")
 public class DeviceArtDescriptorTest extends TestCase {
+
+  @Override
+  public void setUp() {
+    WebpMetadata.ensureWebpRegistered();
+  }
 
   public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
@@ -67,19 +72,21 @@ public class DeviceArtDescriptorTest extends TestCase {
 
         // We've pre-subtracted the crop everywhere now
         assertNull(descriptor.getCrop(orientation));
-        assertTrue(id, descriptor.getFrame(orientation).exists());
+        File frame = descriptor.getFrame(orientation);
+        assertTrue(frame.getParentFile().getName() + '/' + frame.getName() + " does not exist", frame.exists());
         File dropShadow = descriptor.getDropShadow(orientation);
         if (dropShadow != null) {
-          assertTrue(id, dropShadow.exists());
+          assertTrue(dropShadow.getParentFile().getName() + '/' + dropShadow.getName() + " does not exist", dropShadow.exists());
         }
         File reflectionOverlay = descriptor.getReflectionOverlay(orientation);
         if (reflectionOverlay != null) {
-          assertTrue(id, reflectionOverlay.exists());
+          assertTrue(reflectionOverlay.getParentFile().getName() + '/' + reflectionOverlay.getName() + " does not exist",
+                     reflectionOverlay.exists());
         }
 
-        verifyCompatibleImage(descriptor.getFrame(orientation));
-        verifyCompatibleImage(descriptor.getDropShadow(orientation));
-        verifyCompatibleImage(descriptor.getReflectionOverlay(orientation));
+        verifyCompatibleImage(frame);
+        verifyCompatibleImage(dropShadow);
+        verifyCompatibleImage(reflectionOverlay);
         verifyCompatibleImage(descriptor.getMask(orientation));
       }
     }
@@ -99,18 +106,32 @@ public class DeviceArtDescriptorTest extends TestCase {
     }
   }
 
-  public void testWearSpecs() {
+  public void testWatchRound() {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
-      if ("wear_round".equals(spec.getId())) {
+      if ("watch_round".equals(spec.getId())) {
         verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
         verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
         verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
         verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
-        return;  // pass: found wear_round spec
+        return;  // pass: found watch_round spec
       }
     }
-    fail("Did not find wear_round spec");
+    fail("Did not find watch_round spec");
+  }
+
+  public void testWatchSquare() {
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if ("watch_square".equals(spec.getId())) {
+        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
+        verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
+        verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
+        return;  // pass: found watch_round spec
+      }
+    }
+    fail("Did not find watch_square spec");
   }
 
   private static void verifyFileExists(@Nullable File f) {

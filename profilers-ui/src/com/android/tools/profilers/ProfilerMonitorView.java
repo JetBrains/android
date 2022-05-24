@@ -26,7 +26,7 @@ import com.android.tools.idea.IdeInfo;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
-  private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
+  private static final int MINIMUM_MONITOR_HEIGHT = JBUIScale.scale(50);
 
   @NotNull private final T myMonitor;
 
@@ -145,7 +145,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
         linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
         linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
           }
         });

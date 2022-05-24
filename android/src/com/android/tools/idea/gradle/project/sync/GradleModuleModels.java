@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface GradleModuleModels extends Serializable {
   /**

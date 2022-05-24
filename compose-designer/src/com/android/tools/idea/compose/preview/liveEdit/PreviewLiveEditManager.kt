@@ -19,10 +19,13 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
+import com.google.common.cache.CacheBuilder
+import com.google.common.hash.Hashing
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
@@ -38,6 +41,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
@@ -47,7 +51,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.configuration.externalProjectPath
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -108,7 +111,7 @@ private class CompilerDaemonClientImpl(daemonPath: String,
                                        private val log: Logger) : CompilerDaemonClient {
   private val daemonShortId = daemonPath.substringAfterLast("/")
 
-  data class Request(val parameters: List<String>, val onComplete: (Boolean) -> Unit) {
+  data class Request(val parameters: List<String>, val onComplete: (CompilationResult) -> Unit) {
     val id = UUID.randomUUID().toString()
   }
 
@@ -116,24 +119,28 @@ private class CompilerDaemonClientImpl(daemonPath: String,
   private val writer = process.outputStream.bufferedWriter()
   private val reader = process.inputStream.bufferedReader()
 
-  /** [Channel] to send the compilation requests. */
+  /** [Channel] to send the compilation request. */
   private val channel = Channel<Request>()
 
   init {
-    scope.launch {
+    val handler = CoroutineExceptionHandler { _, exception ->
+      log.info("Daemon stopped ($daemonShortId)", exception)
+      channel.close(exception)
+    }
+    scope.launch(handler) {
       log.info("Daemon thread started ($daemonShortId)")
       while (true) {
         val call = channel.receive()
 
-        log.debug("[${call.id}] New request")
-        val requestStart = System.currentTimeMillis()
-        call.parameters.forEach {
-          writer.write(it)
-          writer.write("\n")
-        }
-        writer.write("$CMD_DONE\n")
-        writer.flush()
         try {
+          log.debug("[${call.id}] New request")
+          val requestStart = System.currentTimeMillis()
+          call.parameters.forEach {
+            writer.write(it)
+            writer.write("\n")
+          }
+          writer.write("$CMD_DONE\n")
+          writer.flush()
           do {
             val line = reader.readLine() ?: break
             log.debug("[${call.id}] $line")
@@ -141,7 +148,11 @@ private class CompilerDaemonClientImpl(daemonPath: String,
               val resultLine = line.split(" ")
               val resultCode = resultLine.getOrNull(1)?.toInt() ?: -1
               log.debug("[${call.id}] Result $resultCode in ${System.currentTimeMillis() - requestStart}ms")
-              call.onComplete(resultCode == SUCCESS_RESULT_CODE)
+
+              call.onComplete(when (resultCode) {
+                                SUCCESS_RESULT_CODE -> CompilationResult.Success
+                                else -> CompilationResult.DaemonError(resultCode)
+                              })
               break
             }
             ensureActive()
@@ -150,7 +161,7 @@ private class CompilerDaemonClientImpl(daemonPath: String,
         }
         catch (t: Throwable) {
           log.error(t)
-          call.onComplete(false)
+          call.onComplete(CompilationResult.RequestException(t))
         }
         ensureActive()
       }
@@ -158,12 +169,15 @@ private class CompilerDaemonClientImpl(daemonPath: String,
   }
 
   override fun dispose() {
+    channel.close()
     process.destroyForcibly()
   }
 
-  override val isRunning: Boolean = process.isAlive
-  override suspend fun compileRequest(args: List<String>): Boolean = withContext(scope.coroutineContext) {
-    val result = CompletableDeferred<Boolean>()
+  override val isRunning: Boolean
+    get() = !channel.isClosedForSend && process.isAlive
+
+  override suspend fun compileRequest(args: List<String>): CompilationResult = withContext(scope.coroutineContext) {
+    val result = CompletableDeferred<CompilationResult>()
     channel.send(Request(args) { result.complete(it) })
     result.await()
   }
@@ -182,12 +196,6 @@ private class DaemonRegistry(
 
   private val daemons: MutableMap<String, CompilerDaemonClient> = mutableMapOf()
   private val startingDaemons: MutableMap<String, CompletableDeferred<CompilerDaemonClient>> = mutableMapOf()
-
-  /**
-   * Returns all the current registered daemons.
-   */
-  val allDaemons: Collection<CompilerDaemonClient>
-    get() = daemons.values
 
   /**
    * Creates a daemon in the background and waits for it to be available.
@@ -230,8 +238,9 @@ private class DaemonRegistry(
           try {
             val newDaemon = createDaemon(version)
             synchronized(daemons) {
-              daemons[version] = newDaemon
-              startingDaemons.remove(version)
+              if (startingDaemons.remove(version) != null) {
+                daemons[version] = newDaemon
+              }
             }
             pending.complete(newDaemon)
           } catch (t: Throwable) {
@@ -248,7 +257,21 @@ private class DaemonRegistry(
     }.await()
   }
 
-  override fun dispose() {}
+  /**
+   * Stops all the daemons registered in this registry. The operation is executed asynchronously.
+   */
+  fun stopAllDaemons() = scope.launch {
+    synchronized(daemons) {
+      val allDaemons = daemons.values
+      daemons.clear()
+      startingDaemons.clear()
+      allDaemons
+    }.forEach { Disposer.dispose(it) }
+  }
+
+  override fun dispose() {
+    stopAllDaemons()
+  }
 }
 
 /**
@@ -257,11 +280,13 @@ private class DaemonRegistry(
  */
 private fun defaultCompileClassPathLocator(module: Module): List<String> {
   // Build classpath
+  val mainArtifact = AndroidModuleModel.get(module)
+    ?.selectedVariant
+    ?.mainArtifact
   val modulePath = listOfNotNull(
-    CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path,
-    "${module.externalProjectPath}/build/tmp/kotlin-classes/debug",
-    "${module.externalProjectPath}/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar"
-  )
+    CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path
+  ) + (mainArtifact?.classesFolder?.map { it.absolutePath } ?: emptyList())
+
   val libraryDeps = module.getLibraryDependenciesJars()
     .map { it.toString() }
 
@@ -292,7 +317,8 @@ private fun findDaemonPath(version: String): String {
     FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/compose-designer/lib/")
   }
   else {
-    FileUtil.join(homePath, "plugins/android/resources/")
+    // When running as part of the distribution, we allow also to override the path to the daemon via a system property.
+    System.getProperty("preview.live.edit.daemon.path", FileUtil.join(homePath, "plugins/design-tools/resources/"))
   }
 
   return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
@@ -321,24 +347,60 @@ private fun defaultDaemonFactory(version: String, log: Logger, scope: CoroutineS
 }
 
 /**
+ * Unique ID for a given compilation requests. The ID should be the same for the same input.
+ */
+private typealias CompileRequestId = String
+
+/**
+ * Creates a [CompileRequestId] for the given inputs. [files] will be used to ensure the [CompileRequestId] changes if
+ * one of the given files contents have changed. [requestUniqueArgs] is the list of unique arguments for this requests, usually
+ * the classpath of the request.
+ */
+private fun createCompileRequestId(files: Collection<PsiFile>, requestUniqueArgs: List<String>): CompileRequestId {
+  val filesDependency = files
+    .sortedBy { it.virtualFile.path }.joinToString("\n") {
+      "${it.virtualFile.path}@${it.modificationStamp}"
+    }
+
+  val compilationRequestContents = """
+        $filesDependency
+        ${requestUniqueArgs.joinToString(" ")}
+        """.trimIndent()
+
+  @Suppress("UnstableApiUsage")
+  return Hashing.goodFastHash(32).newHasher()
+    .putString(compilationRequestContents, Charsets.UTF_8)
+    .hash()
+    .toString()
+}
+
+private val FIXED_COMPILER_ARGS = listOf(
+  "-verbose",
+  "-version",
+  "-no-stdlib", "-no-reflect", // Included as part of the libraries classpath
+  "-Xdisable-default-scripting-plugin",
+  "-jvm-target", "1.8")
+private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.live.edit.max.cached.requests", 5)
+
+/**
  * Service that talks to the compiler daemon and manages the daemons and compilation requests.
  *
- * @param project [Project] to associate this service to. This manager has one instance per project.
  * @param alternativeDaemonFactory Optional daemon factory to use if the default one should not be used. Mainly for testing.
  * @param moduleClassPathLocator A method that given a [Module] returns the classpath to be passed to the compiler when making
  *  compilation requests for it.
  * @param moduleRuntimeVersionLocator A method that given a [Module] returns the [GradleVersion] of the Compose runtime that should
  *  be used. This is useful when locating the specific kotlin compiler daemon.
+ * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
  */
 @Service
 class PreviewLiveEditManager private constructor(
-  project: Project,
   alternativeDaemonFactory: ((String) -> CompilerDaemonClient)? = null,
   private val moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
-  private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator) : Disposable {
+  private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
+  maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
   @Suppress("unused") // Needed for IntelliJ service constructor call
-  constructor(project: Project) : this(project, null)
+  constructor(project: Project) : this(null)
 
   private val log = Logger.getInstance(PreviewLiveEditManager::class.java)
 
@@ -351,13 +413,16 @@ class PreviewLiveEditManager private constructor(
   }
 
   /**
-   * Restarts all the daemons managed by this [PreviewLiveEditManager].
+   * Cache that keeps the result of a given compilation. Compilation requests are disambiguated via [CompileRequestId].
    */
-  fun restartAllDaemons() {
-    scope.launch {
-      daemonRegistry.allDaemons.forEach { Disposer.dispose(it) }
-    }
-  }
+  private val requestTracker = CacheBuilder.newBuilder()
+    .maximumSize(maxCachedRequests.toLong())
+    .build<CompileRequestId, CompletableDeferred<Pair<CompilationResult, String>>>()
+
+  /**
+   * Stops all the daemons managed by this [PreviewLiveEditManager].
+   */
+  fun stopAllDaemons() = daemonRegistry.stopAllDaemons()
 
   /**
    * Starts the appropriate daemon for the current [Module] dependencies. If this method is not called beforehand,
@@ -368,48 +433,73 @@ class PreviewLiveEditManager private constructor(
   }
 
   /**
-   * Sends a compilation request for the given [file] with the given context [Module] and returns if it was
+   * Sends a compilation request for the given [files]s with the given context [Module] and returns if it was
    * successful and the path where the result classes can be found.
    *
    * The method takes an optional [ProgressIndicator] to update the progress of the request.
    */
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
-  suspend fun compileRequest(file: PsiFile,
+  suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
-                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<Boolean, String> =
+                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
     withContext(scope.coroutineContext) {
       val startTime = System.currentTimeMillis()
       indicator.text = "Building classpath"
       val classPathString = moduleClassPathLocator(module).joinToString(File.pathSeparator)
+      val classPathArgs = if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
+
+      val requestId = createCompileRequestId(files, classPathArgs)
+      val (isRunning: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
+        var isRunning = true
+        val request = requestTracker.get(requestId) {
+          log.debug("New request with id=$requestId")
+          isRunning = false
+          CompletableDeferred()
+        }
+        isRunning to request
+      }
+      // If the request is already running, we wait for the result of that one instead.
+      if (isRunning) {
+        log.debug("Waiting for request id=$requestId")
+        return@withContext pendingRequest.await()
+      }
+
+      val outputDir = Files.createTempDirectory("overlay")
+
+      log.debug("output $outputDir (id=$requestId)")
+      val outputAbsolutePath = outputDir.toAbsolutePath().toString()
+      log.debug("Compiling $outputAbsolutePath (id=$requestId)")
+
+      val inputFilesArgs = files.map { it.virtualFile.path }.toList()
+      val args = FIXED_COMPILER_ARGS +
+                 classPathArgs +
+                 listOf("-d", outputAbsolutePath) +
+                 inputFilesArgs
+
       indicator.text = "Looking for compiler daemon"
       val runtimeVersion = moduleRuntimeVersionLocator(module).toString()
       val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
-      val outputDir = Files.createTempDirectory("overlay")
-
-      log.debug("output $outputDir")
-      val outputAbsolutePath = outputDir.toAbsolutePath().toString()
-      log.debug("Compiling $outputAbsolutePath")
-
-      val args = listOf(
-        "-verbose",
-        "-version",
-        "-no-stdlib", "-no-reflect", // Included as part of the libraries classpath
-        "-Xdisable-default-scripting-plugin",
-        "-jvm-target", "1.8",
-        "-cp", classPathString,
-        "-d", outputAbsolutePath,
-        file.virtualFile.path
-      )
 
       indicator.text = "Compiling"
       val result = daemon.compileRequest(args)
-      log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result)")
-      Pair(result, outputAbsolutePath)
+      log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result, id=$requestId)")
+      Pair(result, outputAbsolutePath).also {
+        synchronized(requestTracker) {
+          pendingRequest.complete(it)
+        }
+      }
     }
 
-  override fun dispose() {
-    restartAllDaemons()
-  }
+  /**
+   * Sends a compilation request for the a single [file]. See [PreviewLiveEditManager.compileRequest].
+   */
+  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
+  suspend fun compileRequest(file: PsiFile,
+                             module: Module,
+                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
+    compileRequest(listOf(file), module, indicator)
+
+  override fun dispose() {}
 
   companion object {
     fun getInstance(project: Project): PreviewLiveEditManager = project.getService(PreviewLiveEditManager::class.java)
@@ -418,10 +508,11 @@ class PreviewLiveEditManager private constructor(
     fun getTestInstance(project: Project,
                         daemonFactory: (String) -> CompilerDaemonClient,
                         moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
-                        moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator): PreviewLiveEditManager =
-      PreviewLiveEditManager(project,
-                             alternativeDaemonFactory = daemonFactory,
+                        moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
+                        maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): PreviewLiveEditManager =
+      PreviewLiveEditManager(alternativeDaemonFactory = daemonFactory,
                              moduleClassPathLocator = moduleClassPathLocator,
-                             moduleRuntimeVersionLocator = moduleRuntimeVersionLocator)
+                             moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
+                             maxCachedRequests = maxCachedRequests)
   }
 }

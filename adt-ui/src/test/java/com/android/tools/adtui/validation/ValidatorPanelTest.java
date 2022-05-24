@@ -78,7 +78,7 @@ public class ValidatorPanelTest {
     createPanel(panel -> {
       IntProperty shouldBePositive = new IntValueProperty(0);
 
-      panel.registerValidator(shouldBePositive, new Validator<Integer>() {
+      panel.registerValidator(shouldBePositive, new Validator<>() {
         @NotNull
         @Override
         public Result validate(@NotNull Integer value) {
@@ -115,7 +115,7 @@ public class ValidatorPanelTest {
     BoolProperty toggleSign = new BoolValueProperty(false);
     BoolProperty forceAbsolute = new BoolValueProperty(false);
     createPanel(panel -> {
-      panel.registerValidator(shouldBePositive, new Validator<Integer>() {
+      panel.registerValidator(shouldBePositive, new Validator<>() {
         @NotNull
         @Override
         public Result validate(@NotNull Integer value) {

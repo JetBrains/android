@@ -60,7 +60,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
     // Android Studio wants to always show the stripe button for profiler. It's a common entry point into
     // profiler for Studio users.
-    toolWindow.setShowStripeButton(true);
+    // In IDEA there is JAVA profiler which should have priority
+    toolWindow.setShowStripeButton(false);
 
     // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
     // The default behavior for intellij is to lazy load services so having this call here forces intellij to
@@ -75,7 +76,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     ToolWindowWrapper wrapper = new ToolWindowWrapperImpl(project, toolWindow);
     AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(wrapper, project);
 
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+    ContentFactory contentFactory = ContentFactory.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     Disposer.register(project, view);
     toolWindow.getContentManager().addContent(content);

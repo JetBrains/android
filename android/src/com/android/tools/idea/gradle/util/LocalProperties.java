@@ -15,25 +15,30 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.CMAKE_DIR_PROPERTY;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.isAbsolute;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.io.FilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods related to a Gradle project's local.properties file.
@@ -201,7 +206,7 @@ public final class LocalProperties {
     String path = getProperty(property);
     if (isNotEmpty(path)) {
       if (!isAbsolute(path)) {
-        String canonicalPath = toCanonicalPath(new File(myProjectFolderPath, toSystemDependentName(path)).getPath());
+        String canonicalPath = toCanonicalPath(new File(myProjectFolderPath, FileUtilRt.toSystemDependentName(path)).getPath());
         File file = new File(canonicalPath);
         if (!file.isDirectory()) {
           // Only accept resolved relative paths if they exist, otherwise just use the path as it was declared in local.properties.

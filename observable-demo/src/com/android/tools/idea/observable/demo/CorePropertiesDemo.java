@@ -16,7 +16,17 @@
 package com.android.tools.idea.observable.demo;
 
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -27,10 +37,16 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.google.common.base.CaseFormat;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Optional;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Sample UI which allows modification of and bindings to a simple data model built with
@@ -84,7 +100,7 @@ public final class CorePropertiesDemo {
     myBindings.bind(new TextProperty(myAgeLabel), new FormatExpression("%d", person.myAge));
     myBindings.bindTwoWay(new SelectedProperty(myCitizenshipCheckBox), person.myIsCitizen);
     final TextProperty employerName = new TextProperty(myEmployerTextField);
-    myBindings.bind(person.myEmployer, new Expression<Optional<String>>(employerName) {
+    myBindings.bind(person.myEmployer, new Expression<>(employerName) {
       @NotNull
       @Override
       public Optional<String> get() {
@@ -92,7 +108,7 @@ public final class CorePropertiesDemo {
       }
     });
     SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<>(myGenderCombo);
-    myBindings.bind(person.myGender, new TransformOptionalExpression<Gender, Gender>(Gender.OTHER, selectedGender) {
+    myBindings.bind(person.myGender, new TransformOptionalExpression<>(Gender.OTHER, selectedGender) {
       @NotNull
       @Override
       protected Gender transform(@NotNull Gender gender) {
@@ -111,7 +127,7 @@ public final class CorePropertiesDemo {
       }
     });
     myBindings.bind(new TextProperty(myCanVoteLabel), new YesNoExpression(person.myIsCitizen.and(person.myAge.isGreaterThanEqualTo(16))));
-    myBindings.bind(new TextProperty(myHasEmployerLabel), new TransformOptionalExpression<String, String>("No", person.myEmployer) {
+    myBindings.bind(new TextProperty(myHasEmployerLabel), new TransformOptionalExpression<>("No", person.myEmployer) {
       @NotNull
       @Override
       protected String transform(@NotNull String value) {

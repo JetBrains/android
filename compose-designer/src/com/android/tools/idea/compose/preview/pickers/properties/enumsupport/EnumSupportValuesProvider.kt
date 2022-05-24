@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
+import javax.swing.ListCellRenderer
 
 /**
  * Interface that may be used by [EnumSupport] instances to retrieve values the moment they're called.
@@ -54,4 +55,6 @@ internal class EnumSupportWithConstantData(
   override fun createValue(stringValue: String): EnumValue {
     return customCreateValue?.invoke(stringValue) ?: super.createValue(stringValue)
   }
+
+  override val renderer: ListCellRenderer<EnumValue> = PsiEnumValueCellRenderer()
 }

@@ -19,8 +19,7 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
+import com.android.tools.idea.devicemanager.DevicePanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -29,7 +28,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -39,7 +37,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.AbstractButton;
@@ -48,22 +46,23 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable, DetailsPanelPanel<PhysicalDevice> {
+public final class PhysicalDevicePanel extends DevicePanel {
   private final @Nullable Project myProject;
+  private final @NotNull Disposable myParent;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
+  private final @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> myNewPhysicalDeviceTable;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
+  private final @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> myNewPhysicalDeviceDetailsPanel;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
-  private @Nullable PhysicalDeviceTable myTable;
-  private final @NotNull Component myScrollPane;
-  private @Nullable DetailsPanel myDetailsPanel;
 
   @VisibleForTesting
   static final class SetDevices implements FutureCallback<List<PhysicalDevice>> {
@@ -86,39 +85,46 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     }
   }
 
-  public PhysicalDevicePanel(@Nullable Project project) {
+  public PhysicalDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
     this(project,
+         parent,
          PairDevicesUsingWiFiService::getInstance,
+         PhysicalDeviceTable::new,
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
-         PhysicalDeviceTable::new,
          new PhysicalDeviceAsyncSupplier(project),
-         SetDevices::new);
+         SetDevices::new,
+         PhysicalDeviceDetailsPanel::new);
   }
 
   @VisibleForTesting
   PhysicalDevicePanel(@Nullable Project project,
+                      @NotNull Disposable parent,
                       @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
                       @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices) {
-    super(null);
-
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices,
+                      @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> newPhysicalDeviceDetailsPanel) {
     myProject = project;
+    myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
+    myNewPhysicalDeviceTable = newPhysicalDeviceTable;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
+    myNewPhysicalDeviceDetailsPanel = newPhysicalDeviceDetailsPanel;
 
     initPairUsingWiFiButton();
     initSeparator();
     initHelpButton();
-    initTable(newPhysicalDeviceTable);
+    initTable();
     myScrollPane = new JBScrollPane(myTable);
+    initDetailsPanelPanel();
     layOut();
 
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetDevices.apply(this));
+    Disposer.register(parent, this);
   }
 
   private void initPairUsingWiFiButton() {
@@ -153,9 +159,9 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/physical"));
   }
 
-  private void initTable(@NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable) {
-    myTable = newPhysicalDeviceTable.apply(this);
-    myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+  @Override
+  protected @NotNull JTable newTable() {
+    return myNewPhysicalDeviceTable.apply(this);
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
@@ -172,17 +178,17 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   private void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
-    assert myTable != null;
-    PhysicalDeviceTableModel model = myTable.getModel();
+    PhysicalDeviceTableModel model = getTable().getModel();
 
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
     model.setDevices(devices);
 
-    Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
+    Disposer.register(myParent, myNewPhysicalDeviceChangeListener.apply(model));
   }
 
   @Override
-  public void dispose() {
+  protected @NotNull DetailsPanel newDetailsPanel() {
+    return myNewPhysicalDeviceDetailsPanel.apply(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
 
   @Nullable Project getProject() {
@@ -195,42 +201,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   @NotNull PhysicalDeviceTable getTable() {
-    assert myTable != null;
-    return myTable;
+    return (PhysicalDeviceTable)myTable;
   }
 
-  @Override
-  public @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
-    assert myTable != null;
-    return myTable.getSelectedDevice();
-  }
-
-  @Override
-  public boolean containsDetailsPanel() {
-    return myDetailsPanel != null;
-  }
-
-  @Override
-  public void removeDetailsPanel() {
-    remove(myDetailsPanel);
-    myDetailsPanel = null;
-  }
-
-  @Override
-  public void initDetailsPanel(@NotNull PhysicalDevice device) {
-    myDetailsPanel = new PhysicalDeviceDetailsPanel(device, myProject);
-
-    myDetailsPanel.getCloseButton().addActionListener(event -> {
-      assert myTable != null;
-      myTable.clearSelection();
-
-      removeDetailsPanel();
-      layOut();
-    });
-  }
-
-  @Override
-  public void layOut() {
+  private void layOut() {
     GroupLayout layout = new GroupLayout(this);
     Group toolbarHorizontalGroup = layout.createSequentialGroup();
 
@@ -244,14 +218,6 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
     toolbarHorizontalGroup.addComponent(myHelpButton);
 
-    Group horizontalGroup = layout.createParallelGroup()
-      .addGroup(toolbarHorizontalGroup)
-      .addComponent(myScrollPane);
-
-    if (myDetailsPanel != null) {
-      horizontalGroup.addComponent(myDetailsPanel);
-    }
-
     Group toolbarVerticalGroup = layout.createParallelGroup(Alignment.CENTER);
 
     if (myPairUsingWiFiButton != null) {
@@ -262,13 +228,13 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
     toolbarVerticalGroup.addComponent(myHelpButton);
 
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(toolbarHorizontalGroup)
+      .addComponent(myDetailsPanelPanel);
+
     Group verticalGroup = layout.createSequentialGroup()
       .addGroup(toolbarVerticalGroup)
-      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
-
-    if (myDetailsPanel != null) {
-      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
-    }
+      .addComponent(myDetailsPanelPanel);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);

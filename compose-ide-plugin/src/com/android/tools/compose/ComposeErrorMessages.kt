@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose
 
+import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
@@ -73,7 +74,7 @@ object ComposeErrorMessages : DefaultErrorMessages.Extension {
       ComposeErrors.CONFLICTING_OVERLOADS,
       @Suppress("InvalidBundleOrProperty")
       ComposeBundle.message("errors.conflicting_overloads"),
-      Renderers.commaSeparated(
+      CommonRenderers.commaSeparated(
         Renderers.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS
       )
     )

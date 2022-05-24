@@ -25,7 +25,6 @@ import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import java.awt.datatransfer.DataFlavor
 import java.util.stream.Collectors

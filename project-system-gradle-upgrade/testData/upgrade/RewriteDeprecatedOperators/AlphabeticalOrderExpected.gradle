@@ -1,14 +1,14 @@
 android {
   buildToolsVersion '1.2.3'
-  compileSdk 30
+  compileSdkVersion(30)
   flavorDimensions 'paid', 'country'
   defaultConfig {
     manifestPlaceholders a: 'b'
     matchingFallbacks = ['demo', 'trial']
-    maxSdk 30
-    minSdk 28
+    maxSdkVersion(30)
+    minSdkVersion(28)
     resourceConfigurations += ['en', 'fr']
-    targetSdk 29
+    targetSdkVersion(29)
     testFunctionalTest true
     testHandleProfiling false
     testInstrumentationRunnerArguments one: 'two'
@@ -24,10 +24,10 @@ android {
       dimension 'paid'
       manifestPlaceholders e: 'f', g: 'h'
       matchingFallbacks = ['trial']
-      maxSdk 29
-      minSdk 27
+      maxSdkVersion(29)
+      minSdkVersion(27)
       resourceConfigurations += ['uk']
-      targetSdk 28
+      targetSdkVersion(28)
       testFunctionalTest false
       testHandleProfiling true
       testInstrumentationRunnerArguments three: 'four', five: 'six'

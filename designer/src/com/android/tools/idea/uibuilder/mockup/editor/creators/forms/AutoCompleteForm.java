@@ -18,14 +18,14 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators.forms;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.intellij.ui.TextFieldWithAutoCompletion;
+import java.awt.BorderLayout;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A Form with only an auto-complete {@link TextFieldWithAutoCompletion} to find View tag name

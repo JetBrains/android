@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
-import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -38,7 +37,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
 
   public void testEquals() throws IOException {
-    List<IdeNativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<IdeNativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
@@ -73,7 +72,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   }
 
   public void testSimplest() throws IOException {
-    List<IdeNativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<IdeNativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
@@ -89,11 +88,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(2);
   }
 
@@ -113,11 +112,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(2);
     PsiFileNode child2child1 = (PsiFileNode)children2.get(0);
     PsiFileNode child2child2 = (PsiFileNode)children2.get(1);
@@ -141,11 +140,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(2);
     PsiFileNode child2child1 = (PsiFileNode)children2.get(0);
     PsiFileNode child2child2 = (PsiFileNode)children2.get(1);
@@ -169,11 +168,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(2);
     PsiFileNode child2child1 = (PsiFileNode)children2.get(0);
     PsiFileNode child2child2 = (PsiFileNode)children2.get(1);
@@ -207,11 +206,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(8);
     assertThatNodeIs(children2.get(0), "includes/my-other-thing1/bar1x.h");
     assertThatNodeIs(children2.get(1), "includes/my-other-thing1/foo1x.h");
@@ -247,11 +246,11 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       settings,
       null
     );
-    List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
+    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
     assertThat(child.toString()).isEqualTo("includes");
-    List<? extends AbstractTreeNode> children2 = new ArrayList<>(child.getChildren());
+    List<? extends AbstractTreeNode<?>> children2 = new ArrayList<>(child.getChildren());
     assertThat(children2).hasSize(8);
     assertThatNodeIs(children2.get(0), "includes/my-other-thing1/bar1x.h");
     assertThatNodeIs(children2.get(1), "includes/my-other-thing1/foo1x.h");

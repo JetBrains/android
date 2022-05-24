@@ -20,12 +20,13 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
@@ -82,44 +83,46 @@ class PsiCallEnumSupportValuesProvider private constructor(
 
 private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
   {
-    val existingDevices = getGroupedDevices(module)
-    val devicesEnumValueBuilder = DeviceEnumValueBuilder.withDefaultDevices()
-
-    existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhone)
-    existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addTablet)
-    existingDevices[DeviceGroup.GENERIC]?.forEach(devicesEnumValueBuilder::addGeneric)
-
-    devicesEnumValueBuilder.build()
+    val devicesEnumValueBuilder = DeviceEnumValueBuilder()
+    getGroupedDevices(module).forEach { (group, devices) ->
+      when (group) {
+        DeviceGroup.NEXUS,
+        DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
+        DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
+        DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
+        DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
+        DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
+        DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
+        DeviceGroup.OTHER -> {
+          // Do nothing
+        }
+      }
+    }
+    devicesEnumValueBuilder.includeDefaultsAndBuild()
   }
 
 private fun DeviceEnumValueBuilder.addPhone(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addPhone(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addPhoneById(displayName = device.displayName, id = device.id)
 }
 
 private fun DeviceEnumValueBuilder.addTablet(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addTablet(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addTabletById(displayName = device.displayName, id = device.id)
+}
+
+private fun DeviceEnumValueBuilder.addWear(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Wear)
+}
+
+private fun DeviceEnumValueBuilder.addTv(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Tv)
+}
+
+private fun DeviceEnumValueBuilder.addAuto(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Auto)
 }
 
 private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addGeneric(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addGenericById(displayName = device.displayName, id = device.id)
 }
 
 /**
@@ -127,7 +130,7 @@ private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
  */
 private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.toList()
+    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
   } ?: emptyList()
   return groupDevices(studioDevices)
 }
@@ -138,7 +141,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
     val uiModeValueParams = configurationClass.fields.filter {
       it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK")
     }.mapNotNull { uiMode ->
-      (uiMode.computeConstantValue() as? Int)?.let {
+      (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
         val displayName = if (UiMode.VR.resolvedValue == it.toString()) {
           UiMode.VR.display
         }
@@ -202,10 +205,14 @@ private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile)
   }
 
 private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
-  {
-    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.mapNotNull { locale ->
-      locale.qualifier.full.nullize()?.let { EnumValue.Companion.item(it, locale.toLocaleId()) }
-    } ?: emptyList()
+  localesProvider@{
+    val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
+    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.forEach { locale ->
+      locale.qualifier.full.nullize()?.let {
+        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
+      }
+    }
+    return@localesProvider enumValueLocales
   }
 
 private data class ClassEnumValueParams(

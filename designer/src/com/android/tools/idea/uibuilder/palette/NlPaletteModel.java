@@ -35,7 +35,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -59,6 +58,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -150,13 +150,12 @@ public class NlPaletteModel implements Disposable {
   }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
-    return facet.getModule().getComponent(NlPaletteModel.class);
+    return facet.getModule().getService(NlPaletteModel.class);
   }
 
   private NlPaletteModel(@NotNull Module module) {
     myTypeToPalette = Collections.synchronizedMap(new HashMap<>());
     myModule = module;
-    Disposer.register(module, this);
   }
 
   @NotNull
@@ -234,7 +233,7 @@ public class NlPaletteModel implements Disposable {
       URL url = NlPaletteModel.class.getResource(getPaletteFileNameFromId(id));
       URLConnection connection = url.openConnection();
 
-      try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
+      try (Reader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
         return Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
       }
     }

@@ -75,7 +75,7 @@ class ManifestPanelContentTest : GradleIntegrationTest {
       }
 
       ProjectDumper().nest(projectRoot, "~") {
-        assertThat(normalizeReportForTests(reportBuilder))
+        assertThat(normalizeReportForTests(reportBuilder).lines().filter { it != "" }.sorted())
           .isEqualTo("""
 
 <B>manifest</B>
@@ -176,7 +176,7 @@ Value provided by Gradle
 
 Value provided by Gradle
 
-Merged from the <a href='<~>/lib/src/main/AndroidManifest.xml:1:149'>navgraph.lib</a> manifest, line 1
+Merged from the <a href='<~>/lib/src/main/AndroidManifest.xml:1:145'>navgraph.lib</a> manifest, line 1
 
 Merged from the <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-ui-2.3.5/AndroidManifest.xml:19:4'>AndroidManifest.xml</a> navigation file, line 19
 
@@ -290,19 +290,19 @@ Added from the <a href='<~>/app/src/main/AndroidManifest.xml:9:8'>navgraph.app m
 
 <B>intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
 <B>action#android.intent.action.MAIN</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
 <B>category#android.intent.category.LAUNCHER</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
@@ -352,7 +352,7 @@ Added from the <a href='<~>/lib/src/main/res/navigation/lib_nav.xml:21:8'>lib_na
 
 Added from the <a href='<~>/lib/src/main/AndroidManifest.xml:2:2'>navgraph.lib</a> manifest, line 2
 
-          """.trimIndent())
+          """.trimIndent().lines().filter { it != "" }.sorted())
       }
     }
   }

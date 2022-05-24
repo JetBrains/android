@@ -16,10 +16,10 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.property.ui.ActionCellRenderer
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel

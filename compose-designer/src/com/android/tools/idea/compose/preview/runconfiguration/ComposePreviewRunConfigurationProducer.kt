@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
@@ -53,7 +52,6 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
     if (!isComposeRunConfigurationEnabled()) return false
-    if (context.module?.isNonLibraryAndroidModule() != true) return false
 
     configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName, true)
     context.containingComposePreviewFunction()?.let {

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest

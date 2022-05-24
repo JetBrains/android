@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
-import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
 
 public class DownloadableFontCacheServiceImplTest extends FontTestCase {
 

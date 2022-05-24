@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_EXPAND_ALL;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.treeStructure.Tree;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_EXPAND_ALL;
 
 public abstract class AbstractBaseExpandAllAction extends DumbAwareAction {
   protected AbstractBaseExpandAllAction(@NotNull Tree tree) {

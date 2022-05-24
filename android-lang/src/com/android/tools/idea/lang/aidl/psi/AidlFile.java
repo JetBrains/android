@@ -16,15 +16,14 @@
 package com.android.tools.idea.lang.aidl.psi;
 
 import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class AidlFile extends PsiFileBase {
   private final FileType myFileType;
@@ -56,7 +55,7 @@ public class AidlFile extends PsiFileBase {
   public Collection<AidlDeclaration> getAllAidlDeclarations() {
     // "PsiTreeUtil.findChildrenOfType(this, AidlDeclaration.class)" could do all the following with one call
     // but it needs to traverse all the elements.
-    List<AidlDeclaration> results = Lists.newArrayList();
+    List<AidlDeclaration> results = new ArrayList<>();
     AidlBody body = PsiTreeUtil.getChildOfType(this, AidlBody.class);
     List<AidlDeclaration> topLevels = PsiTreeUtil.getChildrenOfTypeAsList(body, AidlDeclaration.class);
     results.addAll(topLevels);

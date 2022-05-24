@@ -28,7 +28,6 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import java.lang.RuntimeException
 
 /**
  * Return the top-level package associated with this project.

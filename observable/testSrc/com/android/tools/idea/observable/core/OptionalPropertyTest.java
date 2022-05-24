@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.observable.core;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.CountListener;
-import org.junit.Test;
-
 import java.util.NoSuchElementException;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public final class OptionalPropertyTest {
   @Test

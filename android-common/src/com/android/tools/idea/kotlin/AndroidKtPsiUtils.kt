@@ -19,7 +19,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.LightClassUtil

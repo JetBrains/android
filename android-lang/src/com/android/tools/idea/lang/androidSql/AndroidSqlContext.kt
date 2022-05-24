@@ -40,7 +40,7 @@ interface AndroidSqlContext {
 
     companion object {
       val EP_NAME: ExtensionPointName<AndroidSqlContext.Provider> = ExtensionPointName.create(
-        "com.android.tools.idea.lang.androidSql.contextProvider");
+        "com.android.tools.idea.lang.androidSql.contextProvider")
     }
   }
 }

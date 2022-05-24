@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.RenderSession
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.Cursor
-import java.awt.event.MouseEvent
 
 /**
  * An implementation of [Interaction] that passes interaction events to layoutlib via [LayoutlibSceneManager]
@@ -34,7 +33,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     val androidX = Coordinates.getAndroidX(sceneView, x)
     val androidY = Coordinates.getAndroidY(sceneView, y)
     when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEvent(RenderSession.TouchEventType.RELEASE, androidX, androidY)
+      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.RELEASE, androidX, androidY)
     }
     sceneView.surface.repaint()
   }
@@ -50,7 +49,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     val androidX = Coordinates.getAndroidX(sceneView, myStartX)
     val androidY = Coordinates.getAndroidY(sceneView, myStartY)
     when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEvent(RenderSession.TouchEventType.PRESS, androidX, androidY)
+      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.PRESS, androidX, androidY)
     }
   }
 
@@ -79,7 +78,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     val androidX = Coordinates.getAndroidX(sceneView, x)
     val androidY = Coordinates.getAndroidY(sceneView, y)
     when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEvent(RenderSession.TouchEventType.DRAG, androidX, androidY)
+      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.DRAG, androidX, androidY)
     }
     sceneView.surface.repaint()
   }

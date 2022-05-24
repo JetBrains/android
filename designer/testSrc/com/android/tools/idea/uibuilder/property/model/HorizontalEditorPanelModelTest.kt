@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.property.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.SdkConstants.TextAlignment
+import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

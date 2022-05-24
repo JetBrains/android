@@ -20,8 +20,11 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorPolicy;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -44,7 +47,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
       return false;
     }
 
-    Module m = ProjectFileIndex.SERVICE.getInstance(project).getModuleForFile(file);
+    Module m = ProjectFileIndex.getInstance(project).getModuleForFile(file);
     if (m == null || AndroidFacet.getInstance(m) == null) {
       return false;
     }

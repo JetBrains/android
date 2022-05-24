@@ -17,14 +17,17 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.util.ui.JBUI;
 import icons.StudioIllustrations;
+import java.awt.BorderLayout;
+import java.util.HashSet;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Tests for {@link DynamicWizardStep}
@@ -117,7 +120,7 @@ public class DynamicWizardStepTest extends TestCase {
       register(INPUT_KEY, myInputField);
       register(DERIVED_KEY, myDerivedField);
       myState.remove(INPUT_KEY);
-      registerValueDeriver(DERIVED_KEY, new ValueDeriver<String>() {
+      registerValueDeriver(DERIVED_KEY, new ValueDeriver<>() {
         @Nullable
         @Override
         public Set<ScopedStateStore.Key<?>> getTriggerKeys() {

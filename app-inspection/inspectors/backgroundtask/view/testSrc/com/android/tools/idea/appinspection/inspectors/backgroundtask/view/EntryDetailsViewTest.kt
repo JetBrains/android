@@ -26,7 +26,9 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.findLabels
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueComponent
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,6 +38,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -95,6 +98,17 @@ class EntryDetailsViewTest {
   fun workEntrySelected() = runBlocking {
     val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
     client.sendWorkAddedEvent(workInfo)
+
+    client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      jobScheduledBuilder.apply {
+        jobBuilder.apply {
+          jobId = 222
+          serviceName = "SERVICE"
+          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId(workInfo.id)
+        }
+      }
+    }
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
 
@@ -124,6 +138,8 @@ class EntryDetailsViewTest {
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Enqueued")
       assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CHRONOMETER)
+      val jobComponent = executionPanel.getValueComponent("Related Job") as ActionLink
+      assertThat(jobComponent.text).isEqualTo("SERVICE")
 
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val previousComponent = workContinuationPanel.getValueComponent("Previous") as JPanel
@@ -146,6 +162,12 @@ class EntryDetailsViewTest {
       val keyLabel = TreeWalker(dataComponent).descendantStream().filter { (it as? JLabel)?.text == "k = " }.findFirst().get()
       val valueLabel = (keyLabel.parent as JPanel).getComponent(1) as JLabel
       assertThat(valueLabel.text).isEqualTo("\"v\"")
+    }
+
+    // Remove work from client.
+    client.sendWorkRemovedEvent(workInfo.id)
+    withContext(uiDispatcher) {
+      assertThat(detailsView.findLabels("WorkContinuation").isEmpty()).isTrue()
     }
   }
 
@@ -380,13 +402,16 @@ class EntryDetailsViewTest {
 
   @Test
   fun jobEntrySelected() = runBlocking {
+    val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
+    client.sendWorkAddedEvent(workInfo)
+
     val event = client.sendBackgroundTaskEvent(0) {
       taskId = 1
       jobScheduledBuilder.apply {
         jobBuilder.apply {
           jobId = 222
           serviceName = "SERVICE"
-          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
+          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId(workInfo.id)
           networkType = BackgroundTaskInspectorProtocol.JobInfo.NetworkType.NETWORK_TYPE_METERED
           isPeriodic = false
         }
@@ -402,8 +427,6 @@ class EntryDetailsViewTest {
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
       val serviceComponent = descriptionPanel.getValueComponent("Service") as ActionLink
       assertThat(serviceComponent.text).isEqualTo(jobScheduled.job.serviceName)
-      val workIdComponent = descriptionPanel.getValueComponent("UUID") as JLabel
-      assertThat(workIdComponent.text).isEqualTo("12345")
 
       val executionPanel = detailsView.getCategoryPanel("Execution") as JPanel
       val constraintsComponent = executionPanel.getValueComponent("Constraints") as JPanel
@@ -413,6 +436,8 @@ class EntryDetailsViewTest {
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Scheduled")
       assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
+      val workerComponent = executionPanel.getValueComponent("Related Worker") as ActionLink
+      assertThat(workerComponent.text).isEqualTo("ClassName1")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel

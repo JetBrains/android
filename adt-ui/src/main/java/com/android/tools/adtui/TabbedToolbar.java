@@ -25,7 +25,6 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -42,6 +41,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,14 +52,10 @@ import org.jetbrains.annotations.Nullable;
 public class TabbedToolbar extends JPanel {
   private final JPanel myActionPanel = new JPanel();
   private final JPanel myTabsPanel = new JPanel();
-  private int myActiveTab;
-  private int myMouseOverTab;
-  // Caching value as it can change each time we add a new child.
-  // Note: We cannot reference preferred height from TabLabel as it causes a circular dependency.
-  // Note: If we do not set the preferred height of the child the label is not framed properly.
-  // Note: If we do not use the updated preferred height when more than 1 item is added we end up with a pixel space on the first item.
-  private int myPreferredHeight;
-  private List<Runnable> mySelectionActions = new ArrayList<Runnable>();
+  @Nullable private TabLabel myActiveTab;
+  @Nullable private TabLabel myMouseOverTab;
+  private final HorizontalScrollView myTabScrollView = new HorizontalScrollView(myTabsPanel);
+  private List<Runnable> mySelectionActions = new ArrayList<>();
 
   /**
    * Creates a toolbar where the label can be replaces by a custom component.
@@ -72,7 +68,7 @@ public class TabbedToolbar extends JPanel {
     // [Title][Padding][(Tab)(Tab)(Tab)              ][(Action)(Action)]
     setLayout(new TabularLayout("Fit,5px,*,Fit", "*"));
     add(title, new TabularLayout.Constraint(0, 0));
-    add(myTabsPanel, new TabularLayout.Constraint(0, 2));
+    add(myTabScrollView, new TabularLayout.Constraint(0, 2));
     add(myActionPanel, new TabularLayout.Constraint(0, 3));
   }
 
@@ -115,7 +111,7 @@ public class TabbedToolbar extends JPanel {
       @Override
       public void mouseEntered(MouseEvent e) {
         super.mouseEntered(e);
-        myMouseOverTab = tab.hashCode();
+        myMouseOverTab = tab;
         // Need to repaint to show proper background color.
         repaint();
       }
@@ -123,7 +119,7 @@ public class TabbedToolbar extends JPanel {
       @Override
       public void mouseExited(MouseEvent e) {
         super.mouseExited(e);
-        myMouseOverTab = 0;
+        myMouseOverTab = null;
         // Need to repaint to reset background color.
         repaint();
       }
@@ -131,12 +127,12 @@ public class TabbedToolbar extends JPanel {
     tab.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
-        myMouseOverTab = tab.hashCode();
+        myMouseOverTab = tab;
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        myMouseOverTab = 0;
+        myMouseOverTab = null;
       }
     });
     tab.addKeyListener(new KeyAdapter() {
@@ -150,8 +146,8 @@ public class TabbedToolbar extends JPanel {
     myTabsPanel.add(tab);
     mySelectionActions.add(selectTabAction);
     // Cache preferred height of control so we can properly adjust child elements sizes.
-    myPreferredHeight = getPreferredSize().height;
     selectTab(tab, selectedListener);
+    myTabScrollView.scrollTo(myTabsPanel.getWidth());
   }
 
   /**
@@ -160,7 +156,6 @@ public class TabbedToolbar extends JPanel {
   public void clearTabs() {
     myTabsPanel.removeAll();
     mySelectionActions.clear();
-    myPreferredHeight = 0; // Clear preferred height to prevent growing forever.
   }
 
   public int countTabs() {
@@ -172,7 +167,7 @@ public class TabbedToolbar extends JPanel {
   }
 
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
-    myActiveTab = tab.hashCode();
+    myActiveTab = tab;
     listener.doAction();
   }
 
@@ -206,12 +201,16 @@ public class TabbedToolbar extends JPanel {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);
         closeButton.addActionListener((e) -> onClosed.doAction());
         add(closeButton, BorderLayout.EAST);
+        // Also close with middle click
+        addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (SwingUtilities.isMiddleMouseButton(e)) {
+              onClosed.doAction();
+            }
+          }
+        });
       }
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-      return new Dimension(super.getPreferredSize().width, myPreferredHeight);
     }
 
     @Override
@@ -219,7 +218,7 @@ public class TabbedToolbar extends JPanel {
       GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAAHintForSwingComponent());
 
       // 1) Adjust our background color before painting for hover effect.
-      if (myMouseOverTab == hashCode()) {
+      if (myMouseOverTab == this) {
         setBackground(myHighlightColor);
       }
       else {
@@ -230,7 +229,7 @@ public class TabbedToolbar extends JPanel {
       super.paintComponent(g);
 
       // 3) Draw focused state for active tab.
-      if (myActiveTab == hashCode()) {
+      if (myActiveTab == this) {
         Rectangle bounds = this.getBounds();
         int selectedHeight = JBUIScale.scale(2);
         g.setColor(myFocusedColor);

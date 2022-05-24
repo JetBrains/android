@@ -1,7 +1,29 @@
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.CLASS_ACTION_PROVIDER;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_BACKUP_AGENT;
+import static com.android.SdkConstants.CLASS_CONTEXT;
+import static com.android.SdkConstants.CLASS_FRAGMENT;
+import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
+import static com.android.SdkConstants.CLASS_VIEW;
+
 import com.intellij.codeInsight.daemon.ImplicitUsageProvider;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiNameValuePair;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -10,8 +32,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Finds implicit usages of fields, methods, parameters and constructors; resulting from Android conventions.
@@ -170,7 +190,7 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
           || InheritanceUtil.isInheritor(aClass, CLASS_BACKUP_AGENT)) {
           // Activity, Service, ContentProvider and BroadcastReceiver should also be treated as having implicit usages,
           // but for some reason that's already the case (they are not marked as unused constructors currently;
-          // perhaps due to the XML DOM bindings?
+          // perhaps due to the XML DOM bindings?). [Update: see b/203560143].
           return true;
         }
       }

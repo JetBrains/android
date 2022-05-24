@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -31,7 +32,7 @@ public class LayoutInspectorCaptureType extends FileCaptureType {
 
   @Override
   public boolean accept(@NotNull VirtualFile file) {
-    return !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get();
+    return !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get() || !LayoutInspectorSettingsKt.getEnableLiveLayoutInspector();
   }
 
   @NotNull

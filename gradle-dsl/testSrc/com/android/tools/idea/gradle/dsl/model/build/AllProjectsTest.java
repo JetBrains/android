@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -25,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryMod
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -203,10 +206,89 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
   }
 
+  @Test
+  public void testLibsVariablePropertyValue() throws IOException {
+    writeToBuildFile(TestFile.LIBS_VARIABLE_PROPERTY_VALUE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertSize(1, buildModel.repositories().repositories());
+  }
+
+  @Test
+  public void testDependenciesInSubProject() throws IOException {
+    writeToBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel mainBuildModel = projectBuildModel.getModuleBuildModel(myBuildFile);
+    GradleBuildModel subBuildModel = projectBuildModel.getModuleBuildModel(mySubModuleBuildFile);
+
+    assertSize(1, mainBuildModel.dependencies().artifacts());
+    assertSize(2, subBuildModel.dependencies().artifacts());
+  }
+
+  @Test
+  public void testDependenciesInSubProjectAddDependency() throws IOException {
+    writeToBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel subBuildModel = projectBuildModel.getModuleBuildModel(mySubModuleBuildFile);
+
+    subBuildModel.dependencies().addArtifact("testImplementation", "org.junit:junit:4.11");
+    applyChanges(projectBuildModel);
+
+    verifyFileContents(myBuildFile, TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    verifyFileContents(mySubModuleBuildFile, TestFile.DEPENDENCIES_IN_SUBPROJECT_ADD_DEPENDENCY_EXPECTED);
+  }
+
+  @Test
+  public void testDependenciesInSubProjectRemoveGlobalDependency() throws IOException {
+    writeToBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel subBuildModel = projectBuildModel.getModuleBuildModel(mySubModuleBuildFile);
+
+    DependenciesModel dependenciesModel = subBuildModel.dependencies();
+    ArtifactDependencyModel artifact = subBuildModel.dependencies().artifacts().get(0);
+    assertEquals("com.example:foo:1.0", artifact.compactNotation());
+    dependenciesModel.remove(artifact);
+    applyChanges(projectBuildModel);
+
+    verifyFileContents(myBuildFile, "");
+    verifyFileContents(mySubModuleBuildFile, TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+  }
+
+  @Test
+  public void testDependenciesInSubProjectRemoveSubprojectDependency() throws IOException {
+    writeToBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel subBuildModel = projectBuildModel.getModuleBuildModel(mySubModuleBuildFile);
+
+    DependenciesModel dependenciesModel = subBuildModel.dependencies();
+    ArtifactDependencyModel artifact = subBuildModel.dependencies().artifacts().get(1);
+    assertEquals("com.example:bar:1.0", artifact.compactNotation());
+    dependenciesModel.remove(artifact);
+    applyChanges(projectBuildModel);
+
+    verifyFileContents(myBuildFile, TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    verifyFileContents(mySubModuleBuildFile, "");
+  }
+
   enum TestFile implements TestFileName {
     ALL_PROJECTS_SECTION("allProjectsSection"),
     DELETE_REPOSITORY("deleteRepository"),
     DELETE_REPOSITORY_EXPECTED("deleteRepositoryExpected"),
+    DEPENDENCIES_IN_SUBPROJECT("dependenciesInSubproject"),
+    DEPENDENCIES_IN_SUBPROJECT_ADD_DEPENDENCY_EXPECTED("dependenciesInSubprojectAddDependencyExpected"),
+    DEPENDENCIES_IN_SUBPROJECT_SUB("dependenciesInSubproject_sub"),
+    LIBS_VARIABLE_PROPERTY_VALUE("libsVariablePropertyValue"),
     OVERRIDE_ALL_PROJECTS_SECTION("overrideAllProjectsSection"),
     OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT("overrideAllProjectsSectionInSubproject"),
     OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB("overrideAllProjectsSectionInSubproject_sub"),

@@ -15,18 +15,22 @@
  */
 package com.android.tools.adtui;
 
+import static com.android.tools.adtui.AxisComponent.REMOVE_MAJOR_TICK_DENSITY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.awt.*;
-
-import static com.android.tools.adtui.AxisComponent.REMOVE_MAJOR_TICK_DENSITY;
-import static org.junit.Assert.*;
 
 public class AxisComponentTest {
   @Test

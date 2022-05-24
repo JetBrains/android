@@ -26,4 +26,6 @@ internal data class FormattingOptions(
   var processThreadFormat: ProcessThreadFormat = ProcessThreadFormat(BOTH, enabled = true),
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
-)
+) {
+  fun getHeaderWidth() =  appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+}

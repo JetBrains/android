@@ -6,17 +6,16 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.PlatformIcons;
+import java.io.File;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   private final ResourceFolderType myResourceFolderType;
@@ -27,7 +26,7 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   }
 
   public CreateResourceDirectoryAction(@Nullable ResourceFolderType resourceFolderType) {
-    super(AndroidBundle.message("new.resource.dir.action.title"), AndroidBundle.message("new.resource.action.description"),
+    super(AndroidBundle.messagePointer("new.resource.dir.action.title"), AndroidBundle.messagePointer("new.resource.action.description"),
           PlatformIcons.FOLDER_ICON);
     myResourceFolderType = resourceFolderType;
   }
@@ -57,7 +56,7 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     CreateResourceDirectoryDialogBase dialog = newResourceHandler.createNewResourceDirectoryDialog(
-      project, LangDataKeys.MODULE.getData(dataContext), folderType,
+      project, PlatformCoreDataKeys.MODULE.getData(dataContext), folderType,
       CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext,
       resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));

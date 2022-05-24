@@ -43,8 +43,8 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Cursor;
@@ -205,7 +205,7 @@ final class OverviewTabContent extends TabContent {
                             ? httpData.getConnectionEndTimeUs()
                             : httpData.getRequestStartTimeUs() + 1);
     ConnectionsStateChart connectionsChart = new ConnectionsStateChart(httpData, range);
-    connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUI.scale(28)));
+    connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUIScale.scale(28)));
     connectionsChart.setHeightGap(0);
     panel.add(connectionsChart.getComponent());
 
@@ -227,7 +227,7 @@ final class OverviewTabContent extends TabContent {
     legendModel.add(receivedLegend);
 
     // TODO: Add waiting time in (currently hidden because it's always 0)
-    LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build();
+    LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUIScale.scale(8)).build();
     legend.setFont(STANDARD_FONT);
     legend.configure(sentLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.ui.EditorTextField;
+import java.util.regex.Pattern;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
@@ -24,10 +27,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class EditorTextFieldDriver extends JComponentDriver implements TextDisplayDriver<EditorTextField> {
   /**

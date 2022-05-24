@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import static com.intellij.util.ui.UIUtil.CONTRAST_BORDER_COLOR;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.net.URL;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.util.ui.UIUtil.CONTRAST_BORDER_COLOR;
 
 
 /**
@@ -93,7 +97,7 @@ public class UIUtils {
    * "Normal" background color as is found on a new JPanel background.
    */
   private static final Color AS_STANDARD_BACKGROUND_COLOR =
-    new JBColor(UIUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
+    new JBColor(StartupUiUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
 
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;
@@ -174,7 +178,7 @@ public class UIUtils {
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
   public static void setHtml(JEditorPane pane, String content, String css, String headContent) {
-    pane.setEditorKit(UIUtil.getHTMLEditorKit());
+    pane.setEditorKit(HTMLEditorKitBuilder.simple());
     // It's assumed that markup is for display purposes in our context.
     pane.setEditable(false);
     // Margins should be handled by the css in this case.
@@ -239,14 +243,16 @@ public class UIUtils {
   /**
    * Filter the given html content and replace local relative paths for images
    * by absolute paths, to work around a limitation of JEditorPane HTML's parser.
-   * @param html
+   *
+   * @param resourceClass class to use for getting resources.
+   * @param html The html to search for resource references, residing in the same jar as {@code resourceClass}
    * @return processed html content if local images are used.
    */
-  public static @Nullable String addLocalHTMLPaths(@NotNull ClassLoader classLoader, @Nullable String html) {
+  public static @Nullable String addLocalHTMLPaths(@NotNull Class<?> resourceClass, @Nullable String html) {
     if (html != null) {
       String localImage = findLocalImage(html);
       if (localImage != null) {
-        URL url = classLoader.getResource("/" + localImage);
+        URL url = resourceClass.getResource("/" + localImage);
         if (url != null) {
           return addLocalHTMLPaths(html, url, localImage);
         }

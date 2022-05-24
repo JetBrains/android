@@ -17,9 +17,8 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.sessions.SessionArtifactView;
 import icons.StudioIcons;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * A {@link SessionArtifactView} that represents a legacy allocation recording.

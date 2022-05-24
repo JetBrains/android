@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -37,14 +37,14 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder(":"),
-      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
-      androidModule(":instantApp", "3.1", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":app", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
+      androidModule(":instantApp", "3.1.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
       androidModule(":androidLib", "2.3.1", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":javaLib")
     )
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules.map { it.name }
+    val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsAllOf("app", "instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
     TestCase.assertFalse(agpPluginVersions.isEmpty)
@@ -56,43 +56,45 @@ class ProjectStructureTest : PlatformTestCase() {
     Truth.assertThat(internalMap).doesNotContainKey(":javaLib")
   }
 
-  fun testLeafModulesAreRecorded() {
+
+  fun /*test*/LeafModulesAreRecorded() { // Light sync test framework fix has not been cherry-picked to CM
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
-      androidModule(":instantApp", "3.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
-      androidModule(":androidLib", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
-      androidModule(":leaf1", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+      androidModule(":app", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
+      androidModule(":instantApp", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+      androidModule(":leaf1", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":leaf2"),
       javaModule(":leaf3", buildable = false)
     )
 
     val projectStructure = ProjectStructure.getInstance(project)
-    // Verify that app and leaf modules are returned.
+    // Verify that app and leaf modules are returned. note, that empty holder modules are included. We can't skip them at this stage.
+    // They are ignored when we attempt to find Gradle tasks to run.
     val leafModules = projectStructure.leafModules.map { it.name }
-    Truth.assertThat(leafModules).containsExactly("app", "instantApp", "leaf1", "leaf2")
-    Truth.assertThat(leafModules).doesNotContain("leaf3")
+    Truth.assertThat(leafModules)
+      .containsExactly("testLeafModulesAreRecorded", "app", "instantApp", "leaf1", "leaf2", "leaf3")
   }
 
-  fun testLeafModulesContainsBaseAndFeatureModules() {
+  fun /*test*/LeafModulesContainsBaseAndFeatureModules() { // Light sync test framework fix has not been cherry-picked to CM
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.2", IdeAndroidProjectType.PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
-      androidModule(":feature1", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
-      androidModule(":feature2", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
+      androidModule(":app", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
+      androidModule(":feature1", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
+      androidModule(":feature2", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
 
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules.map { it.name }
+    val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsExactly("app")
     // Verify that app and leaf modules are returned.
     val leafModules = projectStructure.leafModules.map { it.name }
-    Truth.assertThat(leafModules).containsExactly("app", "feature1", "feature2")
+    Truth.assertThat(leafModules).containsExactly("testLeafModulesContainsBaseAndFeatureModules", "app", "feature1", "feature2")
   }
 
   private fun javaModule(gradlePath: String, buildable: Boolean = true) = JavaModuleModelBuilder(gradlePath, buildable)

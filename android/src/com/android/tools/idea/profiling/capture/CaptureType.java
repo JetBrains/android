@@ -19,9 +19,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureT
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public abstract class CaptureType {
   @NotNull

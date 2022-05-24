@@ -15,12 +15,11 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.Range;
-import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.adtui.model.Range;
+import java.util.concurrent.TimeUnit;
+import org.junit.Test;
 
 public class RangeTimeScrollBarTest {
   private static final double EPSILON = 1e-4;

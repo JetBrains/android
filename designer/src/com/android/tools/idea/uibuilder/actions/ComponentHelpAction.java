@@ -15,25 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_VIEW_PKG;
+import static com.android.SdkConstants.ANDROID_WEBKIT_PKG;
+import static com.android.SdkConstants.ANDROID_WIDGET_PREFIX;
+import static com.android.SdkConstants.GOOGLE_SUPPORT_ARTIFACT_PREFIX;
+
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.ExternalJavaDocAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.function.Supplier;
-
-import static com.android.SdkConstants.*;
+import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ComponentHelpAction extends AnAction {
   private static final String DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/";
@@ -100,7 +104,7 @@ public class ComponentHelpAction extends AnAction {
         className.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
         className.startsWith(ANDROIDX_PKG_PREFIX) ||
         className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
-      return DEFAULT_ANDROID_REFERENCE_PREFIX + StringUtil.replaceChar(className, '.', '/') + ".html";
+      return DEFAULT_ANDROID_REFERENCE_PREFIX + className.replace('.', '/') + ".html";
     }
     return null;
   }

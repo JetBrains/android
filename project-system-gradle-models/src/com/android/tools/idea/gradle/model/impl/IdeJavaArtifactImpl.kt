@@ -19,21 +19,21 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import java.io.File
 
 data class IdeJavaArtifactImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String,
   override val assembleTaskName: String,
-  override val classesFolder: File,
-  override val additionalClassesFolders: Collection<File>,
-  override val javaResourcesFolder: File?,
+  override val classesFolder: Collection<File>,
   override val variantSourceProvider: IdeSourceProvider?,
   override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: Collection<String>,
   private val mutableGeneratedSourceFolders: MutableList<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
+  override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
   override val mockablePlatformJar: File?
 ) : IdeJavaArtifact {
   override val generatedSourceFolders: Collection<File> get() = mutableGeneratedSourceFolders

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector.groups
 
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.inspector.androidSortOrder
+import com.android.tools.property.panel.api.GroupSpec
+import com.android.tools.property.ptable2.PTableItem
 
 abstract class AbstractMarginGroup(override val name: String,
                                    private val all: NlPropertyItem?,

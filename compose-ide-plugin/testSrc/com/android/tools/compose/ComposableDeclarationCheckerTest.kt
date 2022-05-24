@@ -17,13 +17,11 @@ package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
 /**
- * Tests for [ComposeSampleResolutionService]
+ * Tests for [ComposeKDocLinkResolutionService]
  */
 class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
   fun testPropertyWithInitializer() {
@@ -138,7 +136,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
           val composableLambda = @Composable {}
           acceptSuspend <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
           acceptComposableSuspend @Composable {}
-          acceptComposableSuspend(<error descr="[UNSUPPORTED_FEATURE] The feature \"suspend conversion\" is disabled">composableLambda</error>)
+          acceptComposableSuspend(composableLambda)
           acceptSuspend(<error descr="Expecting ')'"><error descr="Expecting an expression"><</error></error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!COMPOSABLE_SUSPEND_FUN, TYPE_MISMATCH!>@Composable suspend fun()</error> <warning descr="[UNUSED_LAMBDA_EXPRESSION] The lambda expression is unused. If you mean a block, you can use 'run { ... }'">{ }</warning><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">)</error>
       }
         """

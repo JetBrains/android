@@ -19,16 +19,15 @@ import com.android.io.CancellableFileIo;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import java.awt.Component;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +69,7 @@ public class PatchRunner {
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static final Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<@NotNull LocalPackage, PatchRunner> ourCache = new WeakHashMap<>();
 
   /**
    * Run the IJ patcher by reflection.
@@ -189,7 +188,7 @@ public class PatchRunner {
    */
   @NotNull
   private static ClassLoader getClassLoader(@NotNull Path patcherJar) {
-    return UrlClassLoader.build().files(Collections.singletonList(patcherJar)).parent(PatchInstaller.class.getClassLoader()).get();
+    return UrlClassLoader.build().files(Collections.singletonList(patcherJar)).allowLock(false).parent(PatchInstaller.class.getClassLoader()).get();
   }
 
   @NotNull

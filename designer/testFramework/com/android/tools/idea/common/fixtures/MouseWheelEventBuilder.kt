@@ -16,10 +16,8 @@
 package com.android.tools.idea.common.fixtures
 
 import com.android.tools.adtui.common.SwingCoordinate
-import org.intellij.lang.annotations.MagicConstant
 import org.mockito.Mockito
 import java.awt.event.MouseWheelEvent
-import java.awt.event.MouseWheelEvent.WHEEL_BLOCK_SCROLL
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 
 class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) : MouseEventBuilder(x, y) {

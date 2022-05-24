@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.manifest.StaleManifestNotificationProvider;
@@ -24,8 +28,14 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.treeStructure.Tree;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.tree.TreePath;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -36,13 +46,6 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-
-import static org.junit.Assert.*;
 
 public class MergedManifestFixture extends ComponentFixture<MergedManifestFixture, ManifestPanel>{
 

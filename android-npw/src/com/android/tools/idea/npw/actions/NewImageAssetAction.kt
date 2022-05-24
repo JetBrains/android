@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.actions
 import com.android.tools.idea.actions.AndroidAssetStudioAction
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep
+import com.android.tools.idea.npw.toUrl
 import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
@@ -45,6 +45,6 @@ class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset 
   }
 
   override fun getHelpUrl(): URL? {
-    return WizardUtils.toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
+    return toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
   }
 }

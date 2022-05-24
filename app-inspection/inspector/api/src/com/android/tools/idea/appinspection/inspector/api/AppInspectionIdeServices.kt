@@ -16,9 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.openapi.application.PathManager
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * A set of utility methods used for communicating requests to the IDE.

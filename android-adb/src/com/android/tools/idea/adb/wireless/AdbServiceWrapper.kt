@@ -17,8 +17,13 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
+
+/**
+ * Amount of time to wait for device to come online after pairing.
+ * This is the default timeout for [AdbServiceWrapper.waitForOnlineDevice]
+ */
+internal const val ADB_DEVICE_CONNECT_MILLIS = 120_000L
 
 /**
  * List of ADB services required for ADB over Wi-FI pairing
@@ -31,17 +36,17 @@ interface AdbServiceWrapper {
    * [stdin] String to pass as "stdin" to the ADB executable, to be used if there is interaction required
    */
   @AnyThread
-  fun executeCommand(args: List<String>, stdin: String = ""): ListenableFuture<AdbCommandResult>
+  suspend fun executeCommand(args: List<String>, stdin: String = ""): AdbCommandResult
 
   /**
-   * Returns a [ListenableFuture] that completes when the device corresponding to [pairingResult]
-   * is visible as a `connected` device to the underlying ADB implementation.
+   * Returns when the device corresponding to [pairingResult] is visible as a `connected`
+   * device to the underlying ADB implementation.
    *
-   * The [ListenableFuture] fails with a [AdbCommandException] in case the device does not show
-   * up as online within a "reasonable" timeout (chosen by the implementation).
+   * Throws a [AdbCommandException] in case the device does not show up as online within a
+   * "reasonable" timeout (chosen by the implementation).
    */
   @AnyThread
-  fun waitForOnlineDevice(pairingResult: PairingResult): ListenableFuture<AdbOnlineDevice>
+  suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice
 }
 
 /**

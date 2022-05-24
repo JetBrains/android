@@ -17,7 +17,7 @@
   <id>com.android.tools.design</id>
   <name>Design Tools</name>
   <version>1.0</version>
-  <vendor>Google</vendor>
+  <vendor>Google,JetBrains</vendor>
 
   <description>Provides a suite of design tools for Android Studio</description>
 

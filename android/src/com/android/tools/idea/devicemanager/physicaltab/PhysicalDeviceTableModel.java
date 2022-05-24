@@ -18,9 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.devicemanager.Device;
 import com.google.common.annotations.VisibleForTesting;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -31,49 +29,37 @@ import org.jetbrains.annotations.NotNull;
 
 @UiThread
 final class PhysicalDeviceTableModel extends AbstractTableModel {
-  private static final boolean SPLIT_ACTIONS_ENABLED = false;
-
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
   static final int TYPE_MODEL_COLUMN_INDEX = 2;
-  static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
-
-  private static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
-  private static final int REMOVE_MODEL_COLUMN_INDEX = 4;
-  private static final int MORE_MODEL_COLUMN_INDEX = 5;
+  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
+  static final int REMOVE_MODEL_COLUMN_INDEX = 4;
+  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 5;
 
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
 
-  /**
-   * Supplies a key for JTable.defaultRenderersByColumnClass and ActionsComponent
-   */
-  static final class Actions {
+  static final class ActivateDeviceFileExplorerWindowValue {
     @SuppressWarnings("InstantiationOfUtilityClass")
-    static final Actions INSTANCE = new Actions();
-
-    private Actions() {
-    }
-  }
-
-  private static final class ActivateDeviceFileExplorerWindowValue {
-    private static final ActivateDeviceFileExplorerWindowValue INSTANCE = new ActivateDeviceFileExplorerWindowValue();
+    static final ActivateDeviceFileExplorerWindowValue INSTANCE = new ActivateDeviceFileExplorerWindowValue();
 
     private ActivateDeviceFileExplorerWindowValue() {
     }
   }
 
-  private static final class RemoveValue {
-    private static final RemoveValue INSTANCE = new RemoveValue();
+  static final class RemoveValue {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final RemoveValue INSTANCE = new RemoveValue();
 
     private RemoveValue() {
     }
   }
 
-  private static final class MoreValue {
-    private static final MoreValue INSTANCE = new MoreValue();
+  static final class PopUpMenuValue {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final PopUpMenuValue INSTANCE = new PopUpMenuValue();
 
-    private MoreValue() {
+    private PopUpMenuValue() {
     }
   }
 
@@ -125,7 +111,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
       PhysicalDevice newDevice = new PhysicalDevice.Builder()
         .setKey(k)
-        .setLastOnlineTime(device.getLastOnlineTime())
         .setType(device.getType())
         .setName(device.getName())
         .setNameOverride(nameOverride)
@@ -177,7 +162,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
     combinedDevices.addAll(domainNameDevices);
     combinedDevices.addAll(serialNumberDevices);
-    combinedDevices.sort(null);
 
     myCombinedDevices = combinedDevices;
   }
@@ -189,11 +173,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   private static @NotNull PhysicalDevice combine(@NotNull PhysicalDevice domainNameDevice, @NotNull PhysicalDevice serialNumberDevice) {
-    Collection<Instant> times = Arrays.asList(domainNameDevice.getLastOnlineTime(), serialNumberDevice.getLastOnlineTime());
-
     return new PhysicalDevice.Builder()
       .setKey(serialNumberDevice.getKey())
-      .setLastOnlineTime(Collections.min(times, PhysicalDevice.LAST_ONLINE_TIME_COMPARATOR))
       .setType(serialNumberDevice.getType())
       .setName(serialNumberDevice.getName())
       .setNameOverride(serialNumberDevice.getNameOverride())
@@ -215,29 +196,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return SPLIT_ACTIONS_ENABLED ? 6 : 4;
+    return 6;
   }
 
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
-    if (SPLIT_ACTIONS_ENABLED) {
-      switch (modelColumnIndex) {
-        case DEVICE_MODEL_COLUMN_INDEX:
-          return "Device";
-        case API_MODEL_COLUMN_INDEX:
-          return "API";
-        case TYPE_MODEL_COLUMN_INDEX:
-          return "Type";
-        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-          return "Actions";
-        case REMOVE_MODEL_COLUMN_INDEX:
-        case MORE_MODEL_COLUMN_INDEX:
-          return "";
-        default:
-          throw new AssertionError(modelColumnIndex);
-      }
-    }
-
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return "Device";
@@ -245,8 +208,10 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         return "API";
       case TYPE_MODEL_COLUMN_INDEX:
         return "Type";
-      case ACTIONS_MODEL_COLUMN_INDEX:
-        return "Actions";
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+      case REMOVE_MODEL_COLUMN_INDEX:
+      case POP_UP_MENU_MODEL_COLUMN_INDEX:
+        return "";
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -254,32 +219,19 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
-    if (SPLIT_ACTIONS_ENABLED) {
-      switch (modelColumnIndex) {
-        case DEVICE_MODEL_COLUMN_INDEX:
-          return Device.class;
-        case API_MODEL_COLUMN_INDEX:
-        case TYPE_MODEL_COLUMN_INDEX:
-          return Object.class;
-        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-          return ActivateDeviceFileExplorerWindowValue.class;
-        case REMOVE_MODEL_COLUMN_INDEX:
-          return RemoveValue.class;
-        case MORE_MODEL_COLUMN_INDEX:
-          return MoreValue.class;
-        default:
-          throw new AssertionError(modelColumnIndex);
-      }
-    }
-
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-      case TYPE_MODEL_COLUMN_INDEX:
         return Object.class;
-      case ACTIONS_MODEL_COLUMN_INDEX:
-        return Actions.class;
+      case TYPE_MODEL_COLUMN_INDEX:
+        return Collection.class;
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        return ActivateDeviceFileExplorerWindowValue.class;
+      case REMOVE_MODEL_COLUMN_INDEX:
+        return RemoveValue.class;
+      case POP_UP_MENU_MODEL_COLUMN_INDEX:
+        return PopUpMenuValue.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -287,58 +239,35 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
-    if (SPLIT_ACTIONS_ENABLED) {
-      switch (modelColumnIndex) {
-        case DEVICE_MODEL_COLUMN_INDEX:
-        case API_MODEL_COLUMN_INDEX:
-        case TYPE_MODEL_COLUMN_INDEX:
-          return false;
-        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-        case REMOVE_MODEL_COLUMN_INDEX:
-        case MORE_MODEL_COLUMN_INDEX:
-          return true;
-        default:
-          throw new AssertionError(modelColumnIndex);
-      }
+    switch (modelColumnIndex) {
+      case DEVICE_MODEL_COLUMN_INDEX:
+      case API_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
+        return false;
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+      case REMOVE_MODEL_COLUMN_INDEX:
+      case POP_UP_MENU_MODEL_COLUMN_INDEX:
+        return true;
+      default:
+        throw new AssertionError(modelColumnIndex);
     }
-
-    return modelColumnIndex == ACTIONS_MODEL_COLUMN_INDEX;
   }
 
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
-    if (SPLIT_ACTIONS_ENABLED) {
-      switch (modelColumnIndex) {
-        case DEVICE_MODEL_COLUMN_INDEX:
-          return myCombinedDevices.get(modelRowIndex);
-        case API_MODEL_COLUMN_INDEX:
-          return myCombinedDevices.get(modelRowIndex).getApi();
-        case TYPE_MODEL_COLUMN_INDEX:
-          return myCombinedDevices.get(modelRowIndex).getConnectionTypes().stream()
-            .map(Object::toString)
-            .collect(Collectors.joining(" "));
-        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-          return ActivateDeviceFileExplorerWindowValue.INSTANCE;
-        case REMOVE_MODEL_COLUMN_INDEX:
-          return RemoveValue.INSTANCE;
-        case MORE_MODEL_COLUMN_INDEX:
-          return MoreValue.INSTANCE;
-        default:
-          throw new AssertionError(modelColumnIndex);
-      }
-    }
-
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return myCombinedDevices.get(modelRowIndex).getConnectionTypes().stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(" "));
-      case ACTIONS_MODEL_COLUMN_INDEX:
-        return Actions.INSTANCE;
+        return myCombinedDevices.get(modelRowIndex).getConnectionTypes();
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        return ActivateDeviceFileExplorerWindowValue.INSTANCE;
+      case REMOVE_MODEL_COLUMN_INDEX:
+        return RemoveValue.INSTANCE;
+      case POP_UP_MENU_MODEL_COLUMN_INDEX:
+        return PopUpMenuValue.INSTANCE;
       default:
         throw new AssertionError(modelColumnIndex);
     }

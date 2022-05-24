@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
 
 public class IssuesByTypeAndTextComparator implements Comparator<PsIssue> {
   @NotNull public static final IssuesByTypeAndTextComparator INSTANCE = new IssuesByTypeAndTextComparator();

@@ -38,7 +38,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -116,6 +115,23 @@ public class ConfigurationManager implements Disposable {
       module.putUserData(KEY, configurationManager);
     }
     return configurationManager;
+  }
+
+  /**
+   * Gets the {@link Configuration} associated with the given module.
+   *
+   * @return the {@link Configuration} for the given module.
+   */
+  @Slow
+  @NotNull
+  public static Configuration getConfigurationForModule(@NotNull Module module) {
+    Project project = module.getProject();
+    ConfigurationManager configurationManager = getOrCreateInstance(module);
+
+    VirtualFile projectFile = project.getProjectFile();
+    assert projectFile != null;
+
+    return configurationManager.getConfiguration(projectFile);
   }
 
   public ConfigurationManager(@NotNull Module module) {

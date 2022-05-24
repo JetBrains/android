@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
 import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
-import java.util.ArrayList
 import java.util.regex.Pattern
 
 // Largely copied from the Kotlin test framework (after taking over android-kotlin sources).

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.api.actions;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.model.NlComponent;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * A group of mutually exclusive toggle actions. When one is invoked, the others

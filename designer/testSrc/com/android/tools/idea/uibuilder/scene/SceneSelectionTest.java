@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.event.InputEvent;
-import java.util.List;
-
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableList;
+import java.awt.event.InputEvent;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Test selecting widgets

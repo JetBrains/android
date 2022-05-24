@@ -21,6 +21,7 @@ import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.warningsFilterComponent
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.intellij.openapi.Disposable
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -59,7 +60,8 @@ private const val SPLITTER_PROPERTY = "BuildAnalyzer.WarningsView.Splitter.Propo
 class WarningsPageView(
   val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers,
-  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers)
+  val disposable: Disposable,
+  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers, disposable)
 ) : BuildAnalyzerDataPageView {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
@@ -104,11 +106,20 @@ class WarningsPageView(
 
     override fun create(pageId: WarningsPageId): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
       name = "details-${pageId}"
-      val scrollPane = JBScrollPane().apply {
-        border = JBUI.Borders.empty()
-        setViewportView(detailPagesFactory.createDetailsPage(pageId))
+
+
+      val detailsPage = detailPagesFactory.createDetailsPage(pageId)
+      //TODO(mlazeba): refactor to be more general. page should request scroll or even move scroll creation to the pages.
+      if (pageId == WarningsPageId.jetifierUsageWarningRoot) {
+        add(detailsPage, BorderLayout.CENTER)
       }
-      add(scrollPane, BorderLayout.CENTER)
+      else {
+        val scrollPane = JBScrollPane().apply {
+          border = JBUI.Borders.empty()
+          setViewportView(detailsPage)
+        }
+        add(scrollPane, BorderLayout.CENTER)
+      }
     }
   }
 

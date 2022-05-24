@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -38,7 +37,6 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
-import com.android.tools.idea.common.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
@@ -50,21 +48,20 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
-import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -558,7 +555,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    dumbService.queueTask(UnindexedFilesUpdater(project))
+    UnindexedFilesUpdater(project).queue(project)
     dumbService.completeJustSubmittedTasks()
     return result
   }
@@ -575,7 +572,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    dumbService.queueTask(UnindexedFilesUpdater(project))
+    UnindexedFilesUpdater(project).queue(project)
     dumbService.completeJustSubmittedTasks()
   }
 

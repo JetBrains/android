@@ -16,11 +16,11 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol.AcquireDatabaseLockCommand
-import androidx.sqlite.inspection.SqliteInspectorProtocol.ReleaseDatabaseLockCommand
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Event
-import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import androidx.sqlite.inspection.SqliteInspectorProtocol.KeepDatabasesOpenCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.ReleaseDatabaseLockCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform

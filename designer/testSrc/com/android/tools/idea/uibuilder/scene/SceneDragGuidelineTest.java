@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import org.jetbrains.annotations.NotNull;
-
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Test dragging a widget

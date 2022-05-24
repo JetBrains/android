@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorTextFieldFixture;
 import com.android.tools.idea.uibuilder.actions.MorphPanel;
+import javax.swing.JButton;
+import javax.swing.JList;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class MorphDialogFixture extends ComponentFixture<MorphDialogFixture, MorphPanel> {
 

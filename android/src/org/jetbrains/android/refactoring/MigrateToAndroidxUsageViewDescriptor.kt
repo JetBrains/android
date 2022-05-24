@@ -16,9 +16,7 @@
 package org.jetbrains.android.refactoring
 
 import com.intellij.psi.PsiElement
-import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
-import com.intellij.usageView.UsageViewBundle
 
 class MigrateToAndroidxUsageViewDescriptor(private val myElements: Array<PsiElement>) : UsageViewDescriptorAdapter() {
 

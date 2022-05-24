@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.apk.paths;
 
-import com.google.common.base.Joiner;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
+import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for {@link PathTree}.

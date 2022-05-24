@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.common.contentDeselectionBackground
-import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.memory.adapters.MemoryObject
 import java.awt.Graphics
@@ -32,7 +31,7 @@ internal class PercentColumnRenderer<T: MemoryObject>(
 ): SimpleColumnRenderer<T>(textGetter, iconGetter, alignment) {
 
   private var percent = 0
-  private var hasFocus = false;
+  private var hasFocus = false
 
   override fun paintComponent(g: Graphics) {
     if (percent > 0) {
@@ -67,7 +66,7 @@ internal class PercentColumnRenderer<T: MemoryObject>(
                                      hasFocus: Boolean) {
     super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     if (value is MemoryObjectTreeNode<*>) {
-      this.hasFocus = hasFocus;
+      this.hasFocus = hasFocus
       percent = percentGetter.apply(value as MemoryObjectTreeNode<T>)
     }
   }

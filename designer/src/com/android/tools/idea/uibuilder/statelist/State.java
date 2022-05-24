@@ -17,11 +17,10 @@ package com.android.tools.idea.uibuilder.statelist;
 
 import android.R;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 enum State {
   PRESSED("Pressed", R.attr.state_pressed),

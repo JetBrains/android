@@ -53,6 +53,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 const val UI_THREAD = "UI thread"
 const val WORKER_THREAD = "Worker thread"
@@ -164,15 +165,12 @@ class CoroutineUtilsTest {
 
     val messages = mutableListOf<String>()
 
-    val defaultProcessor = LoggedErrorProcessor.getInstance()
-    try {
-      LoggedErrorProcessor.setNewInstance(object : LoggedErrorProcessor() {
-        override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
-          messages.add(message)
-          return false
-        }
-      })
-
+    LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
+      override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
+        messages.add(message)
+        return false
+      }
+    }) {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
 
@@ -182,9 +180,6 @@ class CoroutineUtilsTest {
       workerExecutor.shutdown()
       workerExecutor.awaitTermination(2, TimeUnit.SECONDS)
       assertThat(messages).containsExactly("expected failure", "computing")
-    }
-    finally {
-      LoggedErrorProcessor.setNewInstance(defaultProcessor)
     }
   }
 
@@ -336,6 +331,51 @@ class CoroutineUtilsTest {
     finally {
       // Release the lock
       writeLatch.countDown()
+    }
+  }
+
+  @Test
+  fun `write action with coroutines times out`()  {
+    val readActionIsReady = CountDownLatch(1)
+    val readLatch = CountDownLatch(1)
+
+    thread {
+      com.intellij.openapi.application.runReadAction {
+        readActionIsReady.countDown()
+        // Hold the read lock
+        readLatch.await()
+      }
+    }
+
+    // Wait until we know the read action has the lock
+    readActionIsReady.await()
+    runBlocking(workerThread) {
+      val writeActionExecuted = CompletableDeferred<Boolean>()
+      try {
+        val smartReadJob = launch(workerThread) {
+          assertThat(writeActionExecuted.isCompleted).isFalse()
+          runWriteActionAndWait {
+            writeActionExecuted.complete(true)
+          }
+          assertThat(writeActionExecuted.isCompleted).isTrue()
+        }
+        try {
+          withTimeout(2000) {
+            // This be block and the timeout will expire
+            writeActionExecuted.await()
+          }
+          fail("The read lock is still being held, timeout was expected")
+        }
+        catch (_: TimeoutCancellationException) {
+        }
+        finally {
+          smartReadJob.cancel()
+        }
+      }
+      finally {
+        // Release the lock
+        readLatch.countDown()
+      }
     }
   }
 

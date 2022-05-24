@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.createTransferable
 import com.intellij.ide.dnd.FileCopyPasteUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.Cursor
 import java.awt.GraphicsEnvironment
 import java.awt.datatransfer.Transferable
@@ -92,7 +91,7 @@ internal class ResourceDragHandlerImpl (private val importDelegate: ImportResour
       override fun getDragImage() = createDragPreview(assetList, assetList.selectedValue, assetList.selectedIndex)
 
       override fun createTransferable(c: JComponent?): Transferable {
-        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         return createTransferable(assetList.selectedValue.getHighestDensityAsset())
       }
 

@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.openapi.command.WriteCommandAction;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *  Test a simple horizontal spread inside chain

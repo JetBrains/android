@@ -30,7 +30,6 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -237,7 +236,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       Disposer.register(this, receiver);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
-      myExecutors.get(device).submit(() -> {
+      myExecutors.get(device).execute(() -> {
         String filename = System.getProperty("studio.logcat.debug.readFromFile");
         if (filename != null && SystemInfo.isUnix) {
           executeDebugLogcatFromFile(filename, receiver);
@@ -394,7 +393,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
       stopReceiving(device);
 
-      executor.submit(() -> {
+      executor.execute(() -> {
         try {
           execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
         }
@@ -448,7 +447,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       if (!oldMessages.isEmpty()) {
         ExecutorService executor = myExecutors.get(device);
         assert executor != null;
-        executor.submit(listenerConnector::processBacklog);
+        executor.execute(listenerConnector::processBacklog);
       }
     }
   }

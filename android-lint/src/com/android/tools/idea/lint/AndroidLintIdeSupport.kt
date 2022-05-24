@@ -16,11 +16,9 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
-import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -37,16 +35,18 @@ import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
-import com.android.utils.SdkUtils
 import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
@@ -68,7 +68,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.groovy.GroovyFileType
+import org.jetbrains.plugins.gradle.config.isGradleFile
 import java.io.File
 import java.util.EnumSet
 
@@ -79,7 +79,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val model = AndroidModuleModel.get(module) ?: return null
-    val version = model.modelVersion ?: return null
+    val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {
@@ -102,7 +102,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun getSeverityOverrides(module: Module): Map<String, Int>? {
     val model = AndroidModuleModel.get(module) ?: return null
-    val version = model.modelVersion ?: return null
+    val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {
@@ -155,18 +155,13 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     else if (fileType === FileTypes.PLAIN_TEXT) {
       return super.canAnnotate(file, module)
     }
-    else if (fileType === GroovyFileType.GROOVY_FILE_TYPE) {
-      if (!SdkUtils.endsWithIgnoreCase(file.name, DOT_GRADLE)) {
-        return false
+    else if (file.isGradleFile()) {
+      // Ensure that we're listening to the PSI structure for Gradle file edit notifications
+      val project = file.project
+      if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+        AndroidFileChangeListener.getInstance(project)
       }
-      else {
-        // Ensure that we're listening to the PSI structure for Gradle file edit notifications
-        val project = file.project
-        if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-          AndroidFileChangeListener.getInstance(project)
-        }
-        return true
-      }
+      return true
     }
     return false
   }
@@ -184,7 +179,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun createProject(client: LintIdeClient,
                              files: List<VirtualFile>?,
                              vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
-    return AndroidLintIdeProject.create(client, files, *modules);
+    return AndroidLintIdeProject.create(client, files, *modules)
   }
 
   override fun createProjectForSingleFile(client: LintIdeClient,
@@ -215,9 +210,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (p != null) {
       val latest = SdkMavenRepository.getCoordinateFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
-        // Update version dependency in the module. Note that this will trigger a sync too.
-        val manager = GradleDependencyManager.getInstance(module.project)
-        manager.updateLibrariesToVersion(module, listOf(latest), null)
+        module.getModuleSystem().updateLibrariesToVersion(listOf(latest))
+        module.project.getProjectSystem().getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
       }
     }
   }

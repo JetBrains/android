@@ -15,13 +15,16 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import static org.mockito.Mockito.*;
 
 @RunWith(JUnit4.class)
 public class WorkBenchManagerTest {

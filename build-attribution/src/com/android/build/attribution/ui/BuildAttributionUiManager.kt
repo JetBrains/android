@@ -39,12 +39,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindowId
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
@@ -68,7 +65,7 @@ interface BuildAttributionUiManager : Disposable {
 
   companion object {
     fun getInstance(project: Project): BuildAttributionUiManager {
-      return ServiceManager.getService(project, BuildAttributionUiManager::class.java)
+      return project.getService(BuildAttributionUiManager::class.java)
     }
   }
 }
@@ -183,6 +180,9 @@ class BuildAttributionUiManagerImpl(
       createNewView()
       createNewTab()
     }
+    if (reportUiData.shouldAutoOpenTab()) {
+      openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+    }
   }
 
   private fun createNewView() {
@@ -213,7 +213,7 @@ class BuildAttributionUiManagerImpl(
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
         Disposer.register(content, Disposable { onContentClosed() })
-        ServiceManager.getService(project, BuildContentManager::class.java).addContent(content)
+        project.getService(BuildContentManager::class.java).addContent(content)
         uiAnalytics.tabCreated()
         contentManager = content.manager
         contentManager?.addContentManagerListener(contentManagerListener)
@@ -242,7 +242,7 @@ class BuildAttributionUiManagerImpl(
         }
         uiAnalytics.registerOpenEventSource(eventSource)
         contentManager!!.setSelectedContent(buildContent!!, true, true)
-        ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD)!!.show {}
+        BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
       }
     }
   }
@@ -277,7 +277,7 @@ private class NewViewComponentContainer(
   init {
     val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
     val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
-    view = BuildAnalyzerComboBoxView(model, controller)
+    view = BuildAnalyzerComboBoxView(model, controller, this)
   }
 
   override fun getPreferredFocusableComponent(): JComponent = component
@@ -313,4 +313,9 @@ private data class OpenRequest(
     val NO_REQUEST = OpenRequest(false, BuildAttributionUiAnalytics.TabOpenEventSource.TAB_HEADER)
     fun requestFrom(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) = OpenRequest(true, eventSource)
   }
+}
+
+private fun BuildAttributionReportUiData.shouldAutoOpenTab() : Boolean = when {
+  successfulBuild && jetifierData.checkJetifierBuild -> true
+  else -> false
 }

@@ -34,22 +34,30 @@ import java.io.File
 class NpwControl(private val project: Project) : TemplateRendererListener {
 
   override fun multiRenderingFinished() {
-    // Update project files.
-    updateRepositories(File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE))
-    updateRepositories(File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE))
+    // Plugin definitions are in the root project build.gradle file
+    val pluginDefinitions = getContent(File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE))
+
+    // We need to update repositories and pluginManagement block in settings.gradle
+    File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE).let { file ->
+      val settingsOld = getContent(file) ?: return@let
+      val settingsWithRepos = AndroidGradleTests.updateLocalRepositories(settingsOld, AndroidGradleTests.getLocalRepositoriesForGroovy())
+      val settingsNew = pluginDefinitions?.let { updatePluginsResolutionManagement(settingsWithRepos, it) } ?: settingsWithRepos
+      writeContent(settingsOld, settingsNew, file)
+    }
+
     AndroidGradleTests.createGradleWrapper(File(project.basePath!!), GRADLE_LATEST_VERSION) // Point distributionUrl to local file
   }
 
-  private fun updateRepositories(gradleFile: File) {
-    if (gradleFile.exists()) {
-      val gradleVirtualFile = VfsUtil.findFileByIoFile(gradleFile, true)!!
-      val origContent = VfsUtil.loadText(gradleVirtualFile)
-      val newContent = AndroidGradleTests.updateLocalRepositories(origContent, AndroidGradleTests.getLocalRepositoriesForGroovy())
-        .run { updatePluginsResolutionManagement(this) }
-      if (newContent != origContent) {
-        runWriteAction {
-          VfsUtil.saveText(gradleVirtualFile, newContent)
-        }
+  private fun getContent(file: File): String? {
+    if (!file.exists()) return null
+    val gradleVirtualFile = VfsUtil.findFileByIoFile(file, true)!!
+    return VfsUtil.loadText(gradleVirtualFile)
+  }
+
+  private fun writeContent(origContent: String, newContent: String, file: File) {
+    if (newContent != origContent) {
+      runWriteAction {
+        VfsUtil.saveText(VfsUtil.findFileByIoFile(file, true)!!, newContent)
       }
     }
   }

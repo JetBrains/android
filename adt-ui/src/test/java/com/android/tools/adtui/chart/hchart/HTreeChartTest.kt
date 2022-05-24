@@ -19,13 +19,13 @@ import com.android.tools.adtui.model.DefaultHNode
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
-import org.junit.Before
-import org.junit.Test
-
-import java.awt.*
-
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo.isMac
+import org.junit.Before
+import org.junit.Test
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.FontMetrics
 import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {

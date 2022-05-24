@@ -29,7 +29,6 @@ import com.intellij.ui.table.TableView;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import javax.swing.table.AbstractTableModel;
@@ -56,7 +55,7 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
   private final ListenableFuture<Long> myFuture;
 
   SizeOnDisk(@NotNull AvdInfo device, @NotNull TableView<AvdInfo> table) {
-    this(device, table, () -> getSize(Paths.get(device.getDataFolderPath())), EdtExecutorService.getInstance());
+    this(device, table, () -> getSize(device.getDataFolderPath()), EdtExecutorService.getInstance());
   }
 
   @NotNull
@@ -78,7 +77,7 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
 
     myFuture = futureSupplier.get();
 
-    addCallback(executor, new FutureCallback<Long>() {
+    addCallback(executor, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable Long value) {
         assert value != null;

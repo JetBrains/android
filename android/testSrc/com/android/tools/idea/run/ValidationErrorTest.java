@@ -17,9 +17,8 @@ package com.android.tools.idea.run;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
-import junit.framework.TestCase;
-
 import java.util.List;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link ValidationError}

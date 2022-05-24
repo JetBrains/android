@@ -16,7 +16,6 @@
 package com.android.tools.idea.bleak.expander
 
 import com.android.tools.idea.bleak.Edge
-import gnu.trove.TObjectHash
 import java.lang.ref.WeakReference
 
 /** [ArrayObjectIdentityExpander] expands arrays, creating a child node for each non-null element,

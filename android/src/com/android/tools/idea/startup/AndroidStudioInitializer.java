@@ -30,10 +30,10 @@ import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
-import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.ConsentDialog;
 import com.android.tools.idea.stats.GcPauseWatcher;
-import com.intellij.analytics.AndroidStudioAnalytics;
+import com.google.common.base.Predicates;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -125,20 +126,25 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+    //AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
-    // If the user hasn't opted in, we will ask IJ to check if the user has
-    // provided a decision on the statistics consent. If the user hasn't made a
-    // choice, a modal dialog will be shown asking for a decision
-    // before the regular IDE ui components are shown.
-    if (!AnalyticsSettings.getOptedIn()) {
-      Application application = ApplicationManager.getApplication();
-      // If we're running in a test or headless mode, do not show the dialog
-      // as it would block the test & IDE from proceeding.
-      // NOTE: in this case the metrics logic will be left in the opted-out state
-      // and no metrics are ever sent.
-      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
-        ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
+    if (StudioFlags.NEW_CONSENT_DIALOG.get()) {
+      ConsentDialog.showConsentDialogIfNeeded();
+    }
+    else {
+      // If the user hasn't opted in, we will ask IJ to check if the user has
+      // provided a decision on the statistics consent. If the user hasn't made a
+      // choice, a modal dialog will be shown asking for a decision
+      // before the regular IDE ui components are shown.
+      if (!AnalyticsSettings.getOptedIn()) {
+        Application application = ApplicationManager.getApplication();
+        // If we're running in a test or headless mode, do not show the dialog
+        // as it would block the test & IDE from proceeding.
+        // NOTE: in this case the metrics logic will be left in the opted-out state
+        // and no metrics are ever sent.
+        if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
+          ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog(), Predicates.alwaysTrue()));
+        }
       }
     }
 
@@ -172,9 +178,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
     // which doesn't delete files that have been removed or renamed
     if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
+      String msg = "Your " + ApplicationNamesInfo.getInstance().getFullProductName() + " installation is corrupt and will not work properly.\n" +
                    "(Found plugins/android-designer which should not be present.)\n" +
-                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
+                   "This usually happens if "+ ApplicationNamesInfo.getInstance().getFullProductName() +" is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
       int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());

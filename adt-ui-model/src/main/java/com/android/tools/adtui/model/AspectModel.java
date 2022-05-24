@@ -17,14 +17,17 @@ package com.android.tools.adtui.model;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.*;
-
 public class AspectModel<T extends Enum<T>> extends AspectObserver {
 
-  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
+  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<>());
 
   public void changed(T aspect) {
     // Copy elements over before iterating over them to avoid ConcurrentModificationException

@@ -15,14 +15,13 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -71,15 +70,9 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigr
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.psi.KtFile
-
-private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
-private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
-private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
+import java.nio.file.FileSystems
 
 private val log = logger<MigrateToAndroidxProcessor>()
-
-private fun isImportElement(element: PsiElement?): Boolean =
-  element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
 
 /**
  * Returns the latest available version for the given `AppCompatMigrationEntry.GradleMigrationEntry`
@@ -88,7 +81,7 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
   val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
                                                                newArtifactName, null,
                                                                true,
-                                                               FileOpUtils.create())
+                                                               FileSystems.getDefault())
   if (revision != null) {
     log.debug { "$newGroupName:$newArtifactName will use $revision" }
     return revision
@@ -173,7 +166,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
     }
 
     try {
-      val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleMigrationEntry>()
+      val gradleDependencyEntries = mutableMapOf<Pair<String, String>, GradleMigrationEntry>()
       for (entry in migrationMap) {
         when (entry.type) {
           CHANGE_CLASS -> {
@@ -212,7 +205,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
       usageAccumulator.addAll(findUsagesInBuildFiles(project, gradleDependencyEntries))
     }
     finally {
-      ApplicationManager.getApplication().invokeLater(Runnable {
+      ApplicationManager.getApplication().invokeLater({
         WriteAction.run<RuntimeException> { run { this.finishFindMigration() } }
       }, myProject.disposed)
     }
@@ -239,28 +232,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
         // First, unwrap any KotlinFileWrapper
         .map { (it as? KotlinFileWrapper)?.delegate ?: it }
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
-        .sortedByDescending {
-          // The refactoring operations need to be done in a specific order to work correctly.
-          // We need to refactor the imports first in order to allow shortenReferences to work (since it needs
-          // to check that the imports are there).
-          // We need to process first the class migrations since they have higher priority. If we don't,
-          // the package refactoring would be applied first and then the class would incorrectly be refactored.
-          // Then, we need to first process the longest package names so, if there are conflicting refactorings,
-          // the most specific one applies.
-
-          var value = when (it) {
-            is ClassMigrationUsageInfo -> CLASS_MIGRATION_BASE_PRIORITY
-            is PackageMigrationUsageInfo -> PACKAGE_MIGRATION_BASE_PRIORITY + it.mapEntry.myOldName.length
-            else -> DEFAULT_MIGRATION_BASE_PRIORITY
-          }
-
-          if (isImportElement(it.element)) {
-            // This is an import, promote
-            value += 1000
-          }
-
-          value
-        }
+        .sortToApply()
         .mapNotNull { it.applyChange(migration) }
         .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
@@ -437,7 +409,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
         }
       }
 
-      val androidBlock = gradleBuildModel.android() ?: continue
+      val androidBlock = gradleBuildModel.android()
       for (flavorBlock in androidBlock.productFlavors() + androidBlock.defaultConfig()) {
         val runnerModel = flavorBlock.testInstrumentationRunner().resultModel
         val runnerName = runnerModel.getValue(GradlePropertyModel.STRING_TYPE) ?: continue

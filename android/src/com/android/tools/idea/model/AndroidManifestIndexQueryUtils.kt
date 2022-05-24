@@ -30,7 +30,6 @@ import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getA
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivityAliases
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider

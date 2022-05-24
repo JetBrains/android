@@ -365,7 +365,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         return null;
       }
 
-      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
       if (treeNodeAdapter instanceof ClassSet) {
         ClassSet classSet = (ClassSet)treeNodeAdapter;
         return new CodeLocation.Builder(classSet.getClassEntry().getClassName()).build();
@@ -681,7 +681,6 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     List<MemoryObjectTreeNode<ClassifierSet>> subResults = childNodes.stream()
       .filter(node -> node.getAdapter().overlapsWith(targetSet))
       .collect(Collectors.toList());
-    assert childNodes.isEmpty() || !subResults.isEmpty();
     return subResults.size() == 1 ? findSmallestSuperSetNode(subResults.get(0), targetSet) : rootNode;
   }
 

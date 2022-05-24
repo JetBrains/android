@@ -28,10 +28,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -116,7 +114,6 @@ final class AsyncDevicesGetter implements Disposable {
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
       .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
-      .setFileSystem(FileSystems.getDefault())
       .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
       .setChecker(myChecker)
       .build();
@@ -220,7 +217,7 @@ final class AsyncDevicesGetter implements Disposable {
 
     AndroidFacet facet = facetGetter.apply(module);
 
-    if (facet == null || Disposer.isDisposed(facet)) {
+    if (facet == null || facet.isDisposed()) {
       myChecker = null;
       return;
     }

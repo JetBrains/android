@@ -41,6 +41,7 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LeakHunter;
 import java.io.File;
@@ -97,7 +98,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     boolean versionChanged = false;
 
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
     GradleBuildModel buildModel = GradleBuildModel.parseBuildFile(buildFile, project);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
@@ -144,7 +145,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     assertAbout(libraryDependencies()).that(ModuleSystemUtil.getMainModule(appModule)).containsMatching(
-      false, "Gradle: artifacts:library\\-debug:unspecified$", COMPILE);
+      false, "Gradle: (artifacts|__wrapped_aars__):?:?\\|?:library\\-debug:unspecified(@aar)?$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
@@ -158,6 +159,11 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     String localJarName = "Gradle: " + localJarModule.getName() + ".local";
     assertAbout(libraryDependencies()).that(localJarModule).hasDependency(localJarName, COMPILE, true);
+
+    Module[] moduleDependencies =
+      ModuleRootManager.getInstance(ModuleSystemUtil.getMainModule(TestModuleUtil.findAppModule(getProject()))).getModuleDependencies();
+    assertSize(1, moduleDependencies);
+    assertEquals(localJarModule, moduleDependencies[0]);
   }
 
   public void testWithInterModuleDependencies() throws Exception {

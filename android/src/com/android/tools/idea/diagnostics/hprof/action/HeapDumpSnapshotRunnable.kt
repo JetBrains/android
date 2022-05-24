@@ -74,7 +74,7 @@ class HeapDumpSnapshotRunnable(
         val instance = AndroidStudioSystemHealthMonitor.getInstance()
 
         if (instance == null) {
-          LOG.error("Android Studio System Health Monitor not initialized.")
+          LOG.error(ApplicationNamesInfo.getInstance().fullProductName+ " System Health Monitor not initialized.")
           return
         }
 
@@ -160,7 +160,7 @@ class HeapDumpSnapshotRunnable(
         return false
       }
 
-      val nextCheckPropertyMs = PropertiesComponent.getInstance().getOrInitLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
+      val nextCheckPropertyMs = PropertiesComponent.getInstance().getLong(NEXT_CHECK_TIMESTAMP_KEY,0)
       val currentTimestampMs = System.currentTimeMillis()
 
       if (nextCheckPropertyMs > currentTimestampMs) {
@@ -199,7 +199,7 @@ class HeapDumpSnapshotRunnable(
 
     private fun confirmRestart() {
       val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
-      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message")
+      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName())
       val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
       val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
       val result = MessageDialogBuilder.yesNo(title, message)
@@ -247,7 +247,7 @@ class HeapDumpSnapshotRunnable(
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),
               AndroidBundle.message("heap.dump.snapshot.created", hprofPath.toString(), productName),
-              NotificationType.INFORMATION, null)
+              NotificationType.INFORMATION)
             notification.notify(null)
           }
         }
@@ -258,7 +258,7 @@ class HeapDumpSnapshotRunnable(
           val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
             AndroidBundle.message("heap.dump.analysis.notification.title"),
             AndroidBundle.message("heap.dump.snapshot.created.no.analysis", hprofPath.toString()),
-            NotificationType.INFORMATION, null)
+            NotificationType.INFORMATION)
           notification.notify(null)
         }
       }

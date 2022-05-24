@@ -25,7 +25,7 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -127,17 +127,21 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "     strings.xml (debug)\n" +
                       "    styles.xml\n" +
                       " empty (non-Android)\n" +
+                      "  main (non-Android)\n" +
+                      "  test (non-Android)\n" +
                       " javamodule (non-Android)\n" +
-                      "  java\n" +
-                      "   foo\n" +
-                      "    Foo.java\n" +
-                      "  tests\n" +
-                      "   foo\n" +
-                      "    FooTest.java\n" +
-                      "  resources\n" +
-                      "   res2.txt\n" +
-                      "  test-resources\n" +
-                      "   test-res.txt\n" +
+                      "  main (non-Android)\n" +
+                      "   java\n" +
+                      "    foo\n" +
+                      "     Foo.java\n" +
+                      "   resources\n" +
+                      "    res2.txt\n" +
+                      "  test (non-Android)\n" +
+                      "   tests\n" +
+                      "    foo\n" +
+                      "     FooTest.java\n" +
+                      "   test-resources\n" +
+                      "    test-res.txt\n" +
                       " lib (Android)\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n" +
@@ -153,8 +157,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  build.gradle (Project: testProjectView)\n" +
                       "  build.gradle (Module: testProjectView.app)\n" +
                       "  sonar.gradle (Module: testProjectView.app)\n" +
-                      "  build.gradle (Module: testProjectView.empty)\n" +
-                      "  build.gradle (Module: testProjectView.javamodule)\n" +
+                      "  build.gradle (Module: testProjectView.empty.main)\n" +
+                      "  build.gradle (Module: testProjectView.javamodule.main)\n" +
                       "  build.gradle (Module: testProjectView.lib)\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
                       "  proguard-rules.pro (ProGuard Rules for testProjectView.app)\n" +
@@ -244,14 +248,15 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String projectName = getProject().getName();
     String expected = projectName + "\n" +
                       " Gradle Scripts\n" +
-                      "  build.gradle (Module: " + modules[0].getName() + ")\n" +
+                      "  build.gradle (Project: " + modules[0].getName() + ")\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
                       "  gradle.properties (Project Properties)\n" +
                       "  local.properties (SDK Location)\n" +
                       " " + modules[0].getName() + " (Android)\n" +
                       "  java\n" +
-                      "   foo (main)\n" +
-                      "    Foo.java\n" +
+                      "   com (main)\n" +
+                      "    foo\n" +
+                      "     Foo.java\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n" +
                       "  res\n" +
@@ -342,7 +347,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     // Create BuildConfig.java in one of the generated source folders.
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     assertNotNull(androidModel);
     Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
     assertThat(generatedFolders).isNotEmpty();
@@ -383,7 +388,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     requestSyncAndWait();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     File generatedResourcesFolder = androidModel.getMainArtifact()
       .getGeneratedResourceFolders()
       .stream()
@@ -417,7 +422,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                                   Stack<String> path,
                                   Set<List<String>> result) {
     for (Object child : structure.getChildElements(node)) {
-      String nodeName = ((AbstractTreeNode)child).toTestString(null);
+      String nodeName = ((AbstractTreeNode<?>)child).toTestString(null);
       if (structure.getChildElements(child).length == 0) {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);

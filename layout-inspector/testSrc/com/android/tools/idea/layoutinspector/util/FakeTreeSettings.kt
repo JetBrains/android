@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.util
 
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_COMPOSE_AS_CALLSTACK
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_HIDE_SYSTEM_NODES
-import com.android.tools.idea.layoutinspector.tree.DEFAULT_SUPPORT_LINES
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_HIGHLIGHT_SEMANTICS
+import com.android.tools.idea.layoutinspector.tree.DEFAULT_SUPPORT_LINES
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 
 class FakeTreeSettings : TreeSettings {

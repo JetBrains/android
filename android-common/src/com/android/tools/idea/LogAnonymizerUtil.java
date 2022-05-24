@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea;
 
-import com.google.common.hash.Hashing;
-import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_SUPPORT_ARTIFACT_PREFIX;
+
+import com.google.common.hash.Hashing;
+import com.intellij.openapi.module.Module;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods used to anonymize information going to the local logs

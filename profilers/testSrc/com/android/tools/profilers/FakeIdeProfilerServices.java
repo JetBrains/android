@@ -96,7 +96,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether jank detection UI is enabled
    */
-  private boolean myIsJankDetectionUiEnabled = false;
+  private boolean myIsJankDetectionUiEnabled = true;
 
   /**
    * JNI references alloc/dealloc events are tracked and shown.

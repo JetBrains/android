@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import java.io.File;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 public class IdeaSourceDirectoryStub implements IdeaSourceDirectory {
   @NotNull private final File myDir;

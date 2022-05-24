@@ -22,12 +22,11 @@ import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runWriteAction
@@ -41,7 +40,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -50,7 +48,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
 class BuildTest {
@@ -114,7 +111,7 @@ class BuildTest {
     assertTrue(hasExistingClassFile(psiFile))
 
     runAndWaitForBuildToComplete {
-      GradleProjectBuilder.getInstance(project).clean()
+      GradleBuildInvoker.getInstance(project).cleanProject()
     }
     // Ensure that the VFS is up to date, so the .class file is not cached when removed.
     ApplicationManager.getApplication().invokeAndWait {

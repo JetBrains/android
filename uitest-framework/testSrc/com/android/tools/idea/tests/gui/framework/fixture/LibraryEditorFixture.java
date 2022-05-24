@@ -17,6 +17,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.ui.HyperlinkLabel;
+import java.awt.Container;
+import java.io.File;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
@@ -24,10 +30,6 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
 
 /**
  * Fixture to work with {@link LibraryEditorForm} to add debug symbols.
@@ -67,11 +69,11 @@ public class LibraryEditorFixture extends EditorFixture {
     FileChooserDialogFixture debugSymbolsDialog =
       FileChooserDialogFixture.findDialog(
         robot,
-        new GenericTypeMatcher<JDialog>(JDialog.class) {
+        new GenericTypeMatcher<>(JDialog.class) {
           @Override
           protected boolean isMatching(@NotNull JDialog component) {
             return "Debug Symbols".equals(component.getTitle());
-         }
+          }
         });
 
     debugSymbolsDialog.select(VfsUtil.findFileByIoFile(debugSymbols, true));

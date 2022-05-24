@@ -47,7 +47,6 @@ import org.junit.runners.Parameterized
 @RunsInEdt
 class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
   companion object {
-    @Suppress("unused") // Used by JUnit
     @get:Parameterized.Parameters(name = "{0}")
     @get:JvmStatic
     val parameters: List<DataBindingMode>

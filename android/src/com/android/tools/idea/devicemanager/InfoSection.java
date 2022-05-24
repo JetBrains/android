@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.collect.Streams;
@@ -83,35 +82,35 @@ public class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device) {
-    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString());
+  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device,
+                                                                               @NotNull WearPairingManager manager) {
+    String key = device.getKey().toString();
+    PhoneWearPair pair = manager.getPairedDevices(key);
 
     if (pair == null) {
       return Optional.empty();
     }
 
-    PairingDevice otherDevice;
-
-    switch (device.getType()) {
-      case PHONE:
-        otherDevice = pair.getWear();
+    InfoSection section = new InfoSection("Paired device");
+    setText(section.addNameAndValueLabels("Paired with"), pair.getPeerDevice(key).getDisplayName());
+    String paringStatus;
+    switch (pair.getPairingStatus()) {
+      case OFFLINE:
+        paringStatus = "Offline";
         break;
-      case WEAR_OS:
-        otherDevice = pair.getPhone();
+      case CONNECTING:
+        paringStatus = "Connecting";
+        break;
+      case CONNECTED:
+        paringStatus = "Connected";
+        break;
+      case PAIRING_FAILED:
+        paringStatus = "Error pairing";
         break;
       default:
-        otherDevice = null;
-        break;
+        throw new AssertionError(pair.getPairingStatus());
     }
-
-    if (otherDevice == null) {
-      return Optional.empty();
-    }
-
-    InfoSection section = new InfoSection("Paired device");
-
-    setText(section.addNameAndValueLabels("Paired with"), otherDevice.getDisplayName());
-    setText(section.addNameAndValueLabels("Status"), pair.getAllDevicesOnline() ? "Connected" : "Offline");
+    setText(section.addNameAndValueLabels("Status"), paringStatus);
     section.setLayout();
 
     return Optional.of(section);

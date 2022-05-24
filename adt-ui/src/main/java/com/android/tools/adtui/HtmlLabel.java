@@ -18,25 +18,25 @@ package com.android.tools.adtui;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.html.HTMLDocument;
-import java.awt.*;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static com.intellij.util.ui.UIUtil.getLabelFont;
+import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLDocument;
+import org.jetbrains.annotations.NotNull;
 
 public class HtmlLabel extends JEditorPane {
 
   public HtmlLabel() {
     addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent event) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
           String uri = event.getDescription();
           try {
@@ -55,7 +55,7 @@ public class HtmlLabel extends JEditorPane {
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane) {
-    setUpAsHtmlLabel(editorPane, getLabelFont());
+    setUpAsHtmlLabel(editorPane, StartupUiUtil.getLabelFont());
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {
@@ -68,7 +68,7 @@ public class HtmlLabel extends JEditorPane {
   }
 
   private static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font, @NotNull String color) {
-    editorPane.setEditorKit(UIUtil.getHTMLEditorKit());
+    editorPane.setEditorKit(HTMLEditorKitBuilder.simple());
     editorPane.setEditable(false);
     editorPane.setOpaque(false);
     editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);

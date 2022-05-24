@@ -16,15 +16,19 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.FileNotFoundException
+import java.nio.file.Files
 
 /**
  * [FakeVirtualFile] that supports [VirtualFile.contentsToByteArray].
@@ -121,5 +125,75 @@ class ProjectSystemClassLoaderTest {
     assertEquals(0, loader.loadedVirtualFiles.count())
     assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
+  }
+
+  @Test
+  fun `verify platform classes are not loaded`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    val virtualFile1 = TestVirtualFile(rootDir, "file1")
+    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val virtualFile3 = TestVirtualFile(rootDir, "file3")
+    val classes = mapOf(
+      "_layoutlib_._internal_..class1" to virtualFile1,
+      "java.lang.Test" to virtualFile2,
+      "test.package.A" to virtualFile3
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertNull(loader.loadClass("_layoutlib_._internal_..Class1"))
+    assertNull(loader.loadClass("java.lang.Test"))
+    assertEquals(virtualFile3.contentsToByteArray(), loader.loadClass("test.package.A"))
+    assertEquals(1, loader.loadedVirtualFiles.count())
+  }
+
+  /**
+   * Regression test for b/216309775. If a class is not found, but then added by a build, the project class loader should pick it up.
+   */
+  @Test
+  fun `verify failed class loads are not cached`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    val virtualFile1 = TestVirtualFile(rootDir, "file1")
+    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val classes = mutableMapOf(
+      "test.package.A" to virtualFile1
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertNull(loader.loadClass("test.package.B"))
+    classes["test.package.B"] = virtualFile2
+    assertNotNull(loader.loadClass("test.package.B"))
+  }
+
+  /**
+   * Regression test for b/218453131 where we need to check that we get the latest version of the class file and not the
+   * VFS cached version.
+   */
+  @Test
+  fun `ensure latest version of the class file is accessed`() {
+    val tempDirectory = VfsUtil.findFileByIoFile(Files.createTempDirectory("out").toFile(), true)!!
+
+    val classFile = runWriteActionAndWait {
+      val classFile = tempDirectory.createChildData(this, "A.class")
+      val classFileContents = "Initial content"
+      classFile.setBinaryContent(classFileContents.toByteArray())
+      classFile
+    }
+
+    val classes = mutableMapOf(
+      "test.package.A" to classFile
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertEquals("Initial content", String(loader.loadClass("test.package.A")!!))
+
+    // Write the file externally (not using VFS) and check the contents
+    Files.writeString(classFile.toNioPath(), "Updated content")
+    assertEquals("Updated content", String(loader.loadClass("test.package.A")!!))
   }
 }

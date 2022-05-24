@@ -18,10 +18,10 @@
     <layoutLibraryProvider implementation="com.android.layoutlib.LayoutlibProvider"/>
   </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
+<!--  <application-components>-->
+<!--    <component>-->
+<!--      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>-->
+<!--      <headless-implementation-class/>-->
+<!--    </component>-->
+<!--  </application-components>-->
 </idea-plugin>

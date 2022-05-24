@@ -94,37 +94,36 @@ public class AddKotlinTest {
 
     ProjectViewFixture.PaneFixture projectPane = ideFrameFixture.getProjectView().selectProjectPane();
 
-    ProjectWithKotlinTestUtil.newKotlinFileAndClass(
-      projectPane,
-      ideFrameFixture,
-      PROJECT_DIR_NAME,
-      PACKAGE_NAME,
-      ProjectWithKotlinTestUtil.CLASS_NAME,
-      "Class");
     ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
-      ideFrameFixture,
-      PROJECT_DIR_NAME,
-      PACKAGE_NAME,
-      ProjectWithKotlinTestUtil.FILE_NAME,
-      "File");
+                                                    ideFrameFixture,
+                                                    PROJECT_DIR_NAME,
+                                                    PACKAGE_NAME,
+                                                    ProjectWithKotlinTestUtil.CLASS_NAME,
+                                                    ProjectWithKotlinTestUtil.TYPE_CLASS);
     ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
-      ideFrameFixture,
-      PROJECT_DIR_NAME,
-      PACKAGE_NAME,
-      ProjectWithKotlinTestUtil.INTERFACE_NAME,
-      "Interface");
+                                                    ideFrameFixture,
+                                                    PROJECT_DIR_NAME,
+                                                    PACKAGE_NAME,
+                                                    ProjectWithKotlinTestUtil.FILE_NAME,
+                                                    ProjectWithKotlinTestUtil.TYPE_FILE);
     ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
-      ideFrameFixture,
-      PROJECT_DIR_NAME,
-      PACKAGE_NAME,
-      ProjectWithKotlinTestUtil.ENUM_NAME,
-      "Enum class");
+                                                    ideFrameFixture,
+                                                    PROJECT_DIR_NAME,
+                                                    PACKAGE_NAME,
+                                                    ProjectWithKotlinTestUtil.INTERFACE_NAME,
+                                                    ProjectWithKotlinTestUtil.TYPE_INTERFACE);
     ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
-      ideFrameFixture,
-      PROJECT_DIR_NAME,
-      PACKAGE_NAME,
-      ProjectWithKotlinTestUtil.OBJECT_NAME,
-      "Object");
+                                                    ideFrameFixture,
+                                                    PROJECT_DIR_NAME,
+                                                    PACKAGE_NAME,
+                                                    ProjectWithKotlinTestUtil.ENUM_NAME,
+                                                    ProjectWithKotlinTestUtil.TYPE_ENUMCLASS);
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
+                                                    ideFrameFixture,
+                                                    PROJECT_DIR_NAME,
+                                                    PACKAGE_NAME,
+                                                    ProjectWithKotlinTestUtil.OBJECT_NAME,
+                                                    ProjectWithKotlinTestUtil.TYPE_OBJECT);
 
     EditorNotificationPanelFixture editorNotificationPanelFixture =
       ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");

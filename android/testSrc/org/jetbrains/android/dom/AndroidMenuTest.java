@@ -3,13 +3,11 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
-import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
-
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
+import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 
 public class AndroidMenuTest extends AndroidDomTestCase {
   public AndroidMenuTest() {

@@ -965,6 +965,36 @@ MODULE: MultiFlavor.app
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+                JavaDirectoryUrls:
+                    file://./app/build/generated/source/buildConfig/firstAbcSecondAbc/debug
+                    file://./app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out
+                    file://./app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out
+                    file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out
+                ResDirectoryUrls:
+                    file://./app/build/generated/res/rs/firstAbcSecondAbc/debug
+                    file://./app/build/generated/res/resValues/firstAbcSecondAbc/debug
+        GeneratedUnitTestSources:
+            GeneratedUnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+                JavaDirectoryUrls:
+                    file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out
+        GeneratedAndroidTestSources:
+            GeneratedAndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+                JavaDirectoryUrls:
+                    file://./app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug
+                    file://./app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out
+                    file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out
+                    file://./app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out
+                ResDirectoryUrls:
+                    file://./app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug
+                    file://./app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -49,9 +50,7 @@ class RunSqliteStatementAnnotator : Annotator {
     // We don't want to add multiple annotations for these sql statements.
     if (element != injectionHost) return
 
-    holder.createInfoAnnotation(element, null).also { annotation ->
-      annotation.gutterIconRenderer = RunSqliteStatementGutterIconRenderer(element)
-    }
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).gutterIconRenderer(RunSqliteStatementGutterIconRenderer(element)).create()
   }
 }
 

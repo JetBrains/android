@@ -23,12 +23,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPane
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.intellij.ui.components.JBLabel;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,6 @@ public class IssuesViewer {
   @NotNull private final PsContext myContext;
   @NotNull private final DependencyViewIssuesRenderer myRenderer;
 
-  private JBLabel myEmptyIssuesLabel;
-
   @NotNull private List<IssuesViewerPanel> myIssuesPanels;
   private JPanel myIssuesPanel1;
   private JPanel myIssuesPanel2;
@@ -50,7 +47,6 @@ public class IssuesViewer {
   private JPanel myIssuesPanel4;
   private JPanel myMainPanel;
 
-  private boolean myShowEmptyText;
   @Nullable private Set<PsIssue> myLastDisplayedIssues = null;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull DependencyViewIssuesRenderer renderer) {
@@ -63,32 +59,26 @@ public class IssuesViewer {
     if (newIssues.equals(myLastDisplayedIssues)) return;
     myLastDisplayedIssues = newIssues;
     if (newIssues.isEmpty()) {
-      if (myShowEmptyText) {
-        myEmptyIssuesLabel.setVisible(true);
-      }
       for (IssuesViewerPanel panel : myIssuesPanels) {
         panel.setVisible(false);
       }
       revalidateAndRepaintPanels();
       return;
     }
-    else {
-      myEmptyIssuesLabel.setVisible(false);
-    }
 
-    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
+    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = new HashMap<>();
     for (PsIssue issue : newIssues) {
       PsIssue.Severity severity = issue.getSeverity();
       List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
-        currentIssues = Lists.newArrayList();
+        currentIssues = new ArrayList<>();
         issuesBySeverity.put(severity, currentIssues);
       }
       currentIssues.add(issue);
     }
 
     List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
-    Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
+    severities.sort((t1, t2) -> t1.getPriority() - t2.getPriority());
 
     int typeCount = severities.size();
     assert typeCount < 5; // There are only 4 types of issues
@@ -133,13 +123,6 @@ public class IssuesViewer {
                                    (IssuesViewerPanel) myIssuesPanel4);
     for (IssuesViewerPanel panel : myIssuesPanels) {
       panel.setVisible(false);
-    }
-  }
-
-  public void setShowEmptyText(boolean showEmptyText) {
-    myShowEmptyText = showEmptyText;
-    if (!myShowEmptyText) {
-      myEmptyIssuesLabel.setVisible(false);
     }
   }
 }

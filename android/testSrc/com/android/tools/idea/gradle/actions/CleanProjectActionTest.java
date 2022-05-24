@@ -15,23 +15,27 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
  * Tests for {@link CleanProjectAction}.
  */
 public class CleanProjectActionTest extends PlatformTestCase {
   private CleanProjectAction myAction;
-  @Mock private GradleProjectBuilder myGradleProjectBuilder;
+
+  @Mock private GradleBuildInvoker myGradleBuildInvoker;
   @Mock private GradleBuildState myGradleBuildState;
 
   @Override
@@ -40,7 +44,7 @@ public class CleanProjectActionTest extends PlatformTestCase {
     initMocks(this);
 
     myAction = new CleanProjectAction();
-    new IdeComponents(myProject).replaceProjectService(GradleProjectBuilder.class, myGradleProjectBuilder);
+    new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myGradleBuildInvoker);
     new IdeComponents(myProject).replaceProjectService(GradleBuildState.class, myGradleBuildState);
   }
 
@@ -49,7 +53,7 @@ public class CleanProjectActionTest extends PlatformTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     Project project = getProject();
     myAction.doPerform(event, project);
-    verify(myGradleProjectBuilder).clean();
+    verify(myGradleBuildInvoker).cleanProject();
   }
 
   public void testNotCleanWhileBuild() {
@@ -57,6 +61,6 @@ public class CleanProjectActionTest extends PlatformTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     Project project = getProject();
     myAction.doPerform(event, project);
-    verify(myGradleProjectBuilder, never()).clean();
+    verify(myGradleBuildInvoker, never()).cleanProject();
   }
 }

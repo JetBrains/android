@@ -15,39 +15,37 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
-import com.google.common.collect.Maps;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Map;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
   private static final Icon NONE = StudioIcons.Common.ANDROID_HEAD; // placeholder
 
-  @VisibleForTesting static final int MAX_WIDTH = JBUI.scale(16);
-  @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
+  @VisibleForTesting static final int MAX_WIDTH = JBUIScale.scale(16);
+  @VisibleForTesting static final int MAX_HEIGHT = JBUIScale.scale(16);
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
 
-  private Map<String, Icon> myThumbnailCache = Maps.newHashMap();
+  private Map<String, Icon> myThumbnailCache = new HashMap<>();
 
   /**
    * Stores timestamps for the last modification time of image files using the
    * path as a key.
    */
-  private Map<String, Long> myModificationStampCache = Maps.newHashMap();
+  private Map<String, Long> myModificationStampCache = new HashMap<>();
   private boolean myRetina;
 
   public GutterIconCache() {

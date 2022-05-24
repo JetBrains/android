@@ -34,13 +34,11 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.Messages
@@ -104,9 +102,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private var myOpenTimeMs: Long = 0
   private var inDoOK = false
   private var needsSync = false
-
-  private val isDefaultProject: Boolean
-    get() = myProject === ProjectManager.getInstance().defaultProject
 
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
@@ -207,7 +202,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun getId(): String = "android.project.structure"
 
   @Nls
-  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String = if (myProject.isDefault) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
@@ -386,8 +381,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   override fun reset() {
-    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
-    try {
+    HeavyProcessLatch.INSTANCE.performOperation(HeavyProcessLatch.Type.Processing, "Resetting Project Structure") {
       val configurables = myConfigurables.keys
 
       for (each in configurables) {
@@ -408,9 +402,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       if (myUiState.proportion > 0) {
         mySplitter!!.proportion = myUiState.proportion
       }
-    }
-    finally {
-      token.finish()
     }
   }
 
@@ -522,7 +513,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
     @JvmStatic
     fun getInstance(project: Project): ProjectStructureConfigurable =
-      ServiceManager.getService(project, ProjectStructureConfigurable::class.java)
+      project.getService(ProjectStructureConfigurable::class.java)
 
     private fun parseFloatValue(value: String?): Float = value?.toFloatOrNull() ?: 0f
 

@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.*;
+import com.android.resources.Density;
+import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenRound;
+import com.android.resources.ScreenSize;
+import com.android.resources.TouchScreen;
 import com.android.sdklib.devices.Multitouch;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.ScreenType;

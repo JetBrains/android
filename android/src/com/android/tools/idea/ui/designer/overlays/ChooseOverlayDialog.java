@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.designer.overlays;
 
 import com.intellij.ide.util.ChooseElementsDialog;
-import com.intellij.openapi.project.Project;
 import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;

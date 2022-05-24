@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 /**
  * Class responsible for setting up the coroutine debugger panel
  */
-// TODO(b/182023182) disable when running api lower than 28
 class CoroutineDebuggerProjectListener : ProjectManagerListener {
   private var associatedProject: Project? = null
 
@@ -43,7 +42,7 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
     }
     associatedProject = project
 
-    val connection = project.messageBus.connect(project)
+    val connection = project.messageBus.connect()
 
     val executionListener = CoroutineDebuggerListener(project)
     connection.subscribe(XDebuggerManager.TOPIC, executionListener)
@@ -52,6 +51,11 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
 
 private class CoroutineDebuggerListener(private val project: Project) : XDebuggerManagerListener {
   override fun processStarted(debugProcess: XDebugProcess) {
+    // don't show coroutine debugger panel if disabled in settings
+    if (!CoroutineDebuggerSettings.isCoroutineDebuggerEnabled()) {
+      return
+
+    }
     // we check the process handler to differentiate between regular JVM processes and Android processes.
     // we don't want to create the panel if the process is regular JVM.
     if (debugProcess.processHandler !is SwappableProcessHandler) {

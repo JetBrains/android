@@ -15,26 +15,33 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.util.FormatUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.util.FormatUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages list of modules.
@@ -44,9 +51,9 @@ public final class ModuleListModel {
   private Map<ModuleToImport, ModuleValidationState> myModules;
   private Multimap<ModuleToImport, ModuleToImport> myRequiredModules;
   @Nullable private VirtualFile mySelectedDirectory;
-  private Map<ModuleToImport, String> myNameOverrides = Maps.newHashMap();
+  private Map<ModuleToImport, String> myNameOverrides = new HashMap<>();
   private ModuleToImport myPrimaryModule;
-  private Map<ModuleToImport, Boolean> myExplicitSelection = Maps.newHashMap();
+  private Map<ModuleToImport, Boolean> myExplicitSelection = new HashMap<>();
 
   public ModuleListModel(@Nullable Project project) {
     myProject = project;
@@ -105,7 +112,7 @@ public final class ModuleListModel {
       namesToModules.put(module.name, module);
     }
     Multimap<ModuleToImport, ModuleToImport> requiredModules = LinkedListMultimap.create();
-    Queue<ModuleToImport> queue = Lists.newLinkedList();
+    Queue<ModuleToImport> queue = new LinkedList<>();
 
     for (ModuleToImport module : modules) {
       if (Objects.equal(module, myPrimaryModule) || !isUnselected(module, false)) {
@@ -166,7 +173,7 @@ public final class ModuleListModel {
 
   private void checkForDuplicateNames() {
     Collection<ModuleToImport> modules = getSelectedModules();
-    ImmutableMultiset<String> names = ImmutableMultiset.copyOf(Iterables.transform(modules, new Function<ModuleToImport, String>() {
+    ImmutableMultiset<String> names = ImmutableMultiset.copyOf(Iterables.transform(modules, new Function<>() {
       @Override
       public String apply(@Nullable ModuleToImport input) {
         return input == null ? null : getModuleName(input);
@@ -183,7 +190,7 @@ public final class ModuleListModel {
   }
 
   public Set<ModuleToImport> getSelectedModules() {
-    return ImmutableSet.copyOf(Iterables.filter(myModules.keySet(), new Predicate<ModuleToImport>() {
+    return ImmutableSet.copyOf(Iterables.filter(myModules.keySet(), new Predicate<>() {
       @Override
       public boolean apply(@Nullable ModuleToImport input) {
         assert input != null;
@@ -222,7 +229,7 @@ public final class ModuleListModel {
   }
 
   private Map<ModuleToImport, ModuleValidationState> validateModules(Iterable<ModuleToImport> modules) {
-    Map<ModuleToImport, ModuleValidationState> result = Maps.newHashMap();
+    Map<ModuleToImport, ModuleValidationState> result = new HashMap<>();
     for (ModuleToImport module : modules) {
       result.put(module, validateModule(module));
     }
@@ -295,7 +302,7 @@ public final class ModuleListModel {
       case DUPLICATE_MODULE_NAME:
         return "More then one module with this name is selected";
       case REQUIRED:
-        Iterable<String> requiredBy = Iterables.transform(myRequiredModules.get(module), new Function<ModuleToImport, String>() {
+        Iterable<String> requiredBy = Iterables.transform(myRequiredModules.get(module), new Function<>() {
           @Override
           public String apply(ModuleToImport input) {
             return "'" + getModuleName(input) + "'";

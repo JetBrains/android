@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -29,28 +30,46 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiStatement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.PlatformIcons;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.dom.manifest.Action;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.ApplicationComponent;
+import org.jetbrains.android.dom.manifest.Category;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.Receiver;
+import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class NewAndroidComponentDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -89,7 +108,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     myCreator = new ElementCreator(module.getProject(), CommonBundle.getErrorTitle()) {
 
       @Override
-      protected PsiElement[] create(String newName) throws Exception {
+      protected PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
         final PsiElement element = NewAndroidComponentDialog.this.create(newName, directory, module.getProject());
         if (element != null) {
           return new PsiElement[]{element};
@@ -98,7 +117,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       }
 
       @Override
-      protected String getActionName(String newName) {
+      protected @NotNull String getActionName(@NotNull String newName) {
         return AndroidBundle.message("android.new.component.action.command.name");
       }
     };
@@ -118,7 +137,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
   private static boolean containsCustomApplicationClass(@NotNull final Module module) {
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    PsiClass applicationClass = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
+    PsiClass applicationClass = ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       @Nullable
       public PsiClass compute() {

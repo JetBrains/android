@@ -264,7 +264,7 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
       Mode.Tall -> makeTallView()
       Mode.Compact -> makeCompactView()
     })
-    invalidate()
+    revalidate()
     repaint()
   }
 

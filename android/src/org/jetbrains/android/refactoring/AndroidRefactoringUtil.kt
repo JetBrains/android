@@ -10,6 +10,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -28,12 +29,12 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.migration.MigrationUtil
 import org.jetbrains.android.dom.resources.Style
+import org.jetbrains.android.refactoring.errorreporter.ErrorReporter
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.android.util.ErrorReporter
 import javax.swing.JCheckBox
 
 internal val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
-internal val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
+internal val DataContext.module: Module? get() = PlatformCoreDataKeys.MODULE.getData(this)
 
 internal fun getParentStyle(style: Style): StyleRefData? {
   val parentStyleRefValue = style.parentStyle.value
@@ -58,7 +59,7 @@ internal fun computeAttributeMap(
     val attributeName = item.name.stringValue
     val attributeValue = item.stringValue
 
-    if (attributeName == null || attributeName.isEmpty() || attributeValue == null) {
+    if (attributeName.isNullOrEmpty() || attributeValue == null) {
       continue
     }
     val localName = attributeName.substringAfterLast(':')

@@ -18,9 +18,8 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.Nullable;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 public class JavaArtifactStub extends BaseArtifactStub implements JavaArtifact {
   private File myMockablePlatformJar;

@@ -20,10 +20,9 @@ import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import java.util.Map;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.util.Map;
 
 public class AndroidResolveHelperTest extends AndroidTestCase {
   @Override

@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
@@ -40,15 +26,16 @@ import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.LintFix.ShowUrl;
 import com.android.tools.lint.detector.api.Location;
+import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.PriorityAction;
 import com.intellij.codeInspection.BatchSuppressManager;
 import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -109,6 +96,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
+// TODO: autofix should be the default, and if not set, the first one
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   static {
     LintClient.setClientName(CLIENT_STUDIO);
@@ -347,7 +335,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       final List<SuppressQuickFix> result = new ArrayList<>();
       result.add(suppressLintQuickFix);
       result.addAll(
-        Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
+        Arrays.asList(BatchSuppressManager.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
       result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
                                   new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
       return result.toArray(SuppressQuickFix.EMPTY_ARRAY);
@@ -409,7 +397,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return issue;
   }
 
-  @SuppressWarnings("rawtypes")
   private static @NotNull List<InspectionToolWrapper<?, ?>> getInspectionTools(@NotNull Project project) {
     InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
     try {
@@ -560,6 +547,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     sb.append("<br><br>");
     sb.append(myIssue.getExplanation(HTML));
     sb.append("<br><br>Issue id: ").append(myIssue.getId());
+    List<Option> options = myIssue.getOptions();
+    if (!options.isEmpty()) {
+      sb.append("<br><br>");
+      String optionsHtml = Option.Companion.describe(options, TextFormat.HTML, true);
+      sb.append(optionsHtml);
+    }
     List<String> urls = myIssue.getMoreInfo();
     if (!urls.isEmpty()) {
       boolean separated = false;
@@ -762,7 +755,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;
-      List<LintIdeQuickFix> fixList = Lists.newArrayList();
+      List<LintIdeQuickFix> fixList = new ArrayList<>();
       for (LintFix fix : group.getFixes()) {
         Collections.addAll(fixList, createFixes(file, fix));
       }
@@ -771,8 +764,25 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       switch (group.getType()) {
         case COMPOSITE:
           return new LintIdeQuickFix[]{new CompositeLintFix(lintFix.getDisplayName(), lintFix.getFamilyName(), fixes)};
-        case ALTERNATIVES:
+        case ALTERNATIVES: {
+          if (fixes.length > 1) {
+            // IntelliJ will sort fixes alphabetically -- it will NOT preserve the order fixes are registered in.
+            // The only way to work around this is to arrange for the labels have the same alphabetical ordering
+            // as their priorities, which can be tricky.
+            //
+            // However, IntelliJ later introduced a PriorityAction interface. Unfortunately, it is NOT a general
+            // priority where we can just assign priorities as ordinals; instead, there are a few enums. So we'll
+            // use these priorities to at a minimum force the first (presumably default) option to have the highest
+            // priority.
+            //
+            // We don't use the full complement of priorities because we don't want these actions to be sorted
+            // lower than some of the fallback/default intention actions, such as suppression, and it turns out
+            // these actions are already using HIGH priority so the best we can do is to boost one of them up
+            // to TOP.
+            fixes[0].setPriority(PriorityAction.Priority.TOP);
+          }
           return fixes;
+        }
       }
     }
     else if (lintFix instanceof ShowUrl) {
@@ -781,14 +791,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return LintIdeQuickFix.EMPTY_ARRAY;
   }
 
-  static class CompositeLintFix implements LintIdeQuickFix {
-    private final String myDisplayName;
-    private final String myFamilyName;
+  static class CompositeLintFix extends DefaultLintQuickFix {
     private final LintIdeQuickFix[] myFixes;
 
     CompositeLintFix(String displayName, String familyName, LintIdeQuickFix[] myFixes) {
-      myDisplayName = displayName;
-      myFamilyName = familyName;
+      super(displayName != null ? displayName : "Fix", familyName);
       this.myFixes = myFixes;
     }
 
@@ -810,24 +817,13 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       }
       return true;
     }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myDisplayName != null ? myDisplayName : "Fix";
-    }
-
-    @Nullable
-    @Override
-    public String getFamilyName() {
-      return myFamilyName;
-    }
   }
 
-  static class RemoteAttributeFix implements LintIdeQuickFix {
+  static class RemoteAttributeFix extends DefaultLintQuickFix {
     private final SetAttribute myData;
 
     RemoteAttributeFix(SetAttribute data) {
+      super(data.getDisplayName(), data.getFamilyName());
       myData = data;
     }
 
@@ -859,18 +855,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       return myData.getNamespace() != null ? tag.getAttribute(myData.getAttribute(), myData.getNamespace()) :
              tag.getAttribute(myData.getAttribute());
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myData.getDisplayName();
-    }
-
-    @Nullable
-    @Override
-    public String getFamilyName() {
-      return myData.getFamilyName();
     }
   }
 

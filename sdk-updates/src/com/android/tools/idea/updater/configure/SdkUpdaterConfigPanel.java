@@ -37,8 +37,8 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -54,9 +54,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -95,14 +93,16 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.JComboBox;
@@ -263,7 +263,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     setUpDiskCleanupLink();
     myBindingsManager.bindTwoWay(
       mySelectedSdkLocation,
-      new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+      new AdapterProperty<>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
         @NotNull
         @Override
         protected Optional<File> convertFromSourceType(@NotNull String value) {
@@ -283,7 +283,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable(false);
         ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
         channelChangedCallback.run();
@@ -343,7 +343,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.setHyperlinkText("Edit");
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         final DynamicWizardHost host = new DialogWrapperHost(null);
         DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup", host) {
           @Override
@@ -585,8 +585,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        boolean traversalBackward = "TRAVERSAL_BACKWARD".equals(getCause(e));
-        if (traversalBackward) {
+        if (e.getCause() == FocusEvent.Cause.TRAVERSAL_BACKWARD) {
           backwardAction.doAction(table);
         }
         else {
@@ -594,23 +593,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
         }
       }
     });
-  }
-
-  @Nullable
-  private static String getCause(@NotNull FocusEvent event) {
-    try {
-      // TODO: replace this with event.getCause() when JDK8 is no longer supported
-      Method getCause = event.getClass().getDeclaredMethod("getCause");
-      Object enumValue = getCause.invoke(event);
-      if (enumValue == null) {
-        return null;
-      }
-      return enumValue.toString();
-    }
-    catch (ReflectiveOperationException ex) {
-      Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
-      return null;
-    }
   }
 
   /**
@@ -658,8 +640,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    */
   private void validate() {
     Path nullableSdkPath = myConfigurable.getRepoManager().getLocalPath();
-    File nullableSdkLocation = nullableSdkPath == null ? null : myConfigurable.getSdkHandler().getFileOp().toFile(nullableSdkPath);
-    @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
+    @NotNull Path sdkLocation = nullableSdkPath == null ? Paths.get("") : nullableSdkPath;
 
     Validator.Result result = PathValidator.forAndroidSdkLocation().validate(sdkLocation);
     Validator.Severity severity = result.getSeverity();
@@ -681,7 +662,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
-    Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
+    Set<UpdatablePackage> toolsPackages = new TreeSet<>();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();
@@ -702,7 +683,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
    */
   public Collection<PackageNodeModel> getStates() {
-    List<PackageNodeModel> result = Lists.newArrayList();
+    List<PackageNodeModel> result = new ArrayList<>();
     result.addAll(myPlatformComponentsPanel.myStates);
     result.addAll(myToolComponentsPanel.myStates);
     return result;

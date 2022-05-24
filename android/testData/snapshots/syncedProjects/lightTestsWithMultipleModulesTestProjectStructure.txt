@@ -1,6 +1,6 @@
 PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : corretto-<JAVA_VERSION>
+        Version                       : Amazon Corretto version <JDK_VERSION>
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectId               : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectPath             : <PROJECT>
@@ -41,7 +41,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -63,6 +62,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/ml [-]
@@ -73,6 +73,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/ml [-]
@@ -83,6 +84,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main/ml [-]
@@ -93,6 +95,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/ml [-]
@@ -102,6 +105,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
@@ -111,6 +115,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
@@ -120,6 +125,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
@@ -129,6 +135,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
@@ -140,7 +147,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : lib
     MODULE                        : lib
@@ -170,7 +177,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -192,6 +198,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/ml [-]
@@ -202,6 +209,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/ml [-]
@@ -212,6 +220,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/ml [-]
@@ -222,6 +231,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/ml [-]
@@ -231,6 +241,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
@@ -240,6 +251,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
@@ -249,6 +261,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
@@ -258,6 +271,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
@@ -269,7 +283,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration

@@ -15,15 +15,19 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.perflib.heap.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.perflib.heap.ClassInstance;
+import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Field;
+import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.Type;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class MockClassInstance extends ClassInstance {
   @Nullable private final ArrayList<Instance> mySoftReferences;

@@ -117,7 +117,7 @@ public abstract class IconGenerator implements Disposable {
   public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
-    myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
+    myApiLookup = new AtomicNullableLazyValue<>() {
       @Override
       @Nullable
       protected ApiLookup compute() {

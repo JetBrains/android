@@ -137,6 +137,8 @@ class BackgroundTaskTreeModel(
 
   fun getTreeNode(id: String) = nodeMap[client.getEntry(id)]
 
+  fun getJobUnderWork(workId: String) = workIdJobMap[workId]
+
   val allTags get() = nodeMap.keys.flatMap { entry -> entry.tags }.toSortedSet().toList()
 
   private fun BackgroundTaskEntry.acceptedByFilter() = filterTag == null || tags.contains(filterTag)

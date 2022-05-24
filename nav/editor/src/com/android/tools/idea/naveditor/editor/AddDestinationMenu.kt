@@ -17,7 +17,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
@@ -31,6 +30,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
@@ -71,6 +71,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -95,7 +96,6 @@ import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.ListModel
 import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
@@ -231,7 +231,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
     buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
     buttonPanel.background = BACKGROUND_COLOR
     val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
@@ -315,7 +315,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.iconWidth }.max() ?: 0
+          maxIconWidth = dests.map { it.iconWidth }.maxOrNull() ?: 0
           val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(
@@ -327,8 +327,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           )
 
           application.invokeLater {
-            @Suppress("UNCHECKED_CAST")
-            destinationsList.model = listModel as ListModel<Destination>
+            destinationsList.model = listModel
 
             destinationsList.setPaintBusy(false)
             destinationsList.emptyText.text = "No existing destinations"
@@ -418,7 +417,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
       component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       // explicitly update so the new SceneComponent is created
-      surface.sceneManager!!.requestRender()
+      surface.sceneManager!!.requestRenderAsync()
     }, surface.model?.file)
 
     addDynamicDependency(destination)

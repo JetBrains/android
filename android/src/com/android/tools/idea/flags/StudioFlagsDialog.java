@@ -35,6 +35,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.ide.IdeCoreBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.ex.util.EditorUtil;
@@ -50,11 +51,10 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.LightColors;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -203,13 +203,13 @@ public final class StudioFlagsDialog extends DialogWrapper {
           }
 
           JBLabel name = new JBLabel(flag.getDisplayName());
-          name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+          name.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
           JBLabel id = new JBLabel("(" + flag.getId() + ")");
           id.setFont(EditorUtil.getEditorFont());
 
           JTextArea description = new JTextArea(flag.getDescription());
-          description.setFont(UIUtil.getLabelFont());
+          description.setFont(StartupUiUtil.getLabelFont());
           description.setLineWrap(true);
           description.setWrapStyleWord(true);
           description.setEditable(false);
@@ -221,7 +221,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
           HyperlinkLabel resetLink = new HyperlinkLabel("Reset to default");
           resetLink.addHyperlinkListener(new HyperlinkAdapter() {
             @Override
-            protected void hyperlinkActivated(HyperlinkEvent e) {
+            protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
               flagEditor.flagProperty().clearOverride();
             }
           });
@@ -250,7 +250,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     mySearchTextField.getTextEditor().setBackground(emptySearchResult ? LightColors.RED : UIUtil.getTextFieldBackground());
     if (emptySearchResult) {
       JLabel label = new JLabel();
-      label.setText(UIBundle.message("message.nothingToShow"));
+      label.setText(IdeCoreBundle.message("message.nothingToShow"));
       label.setHorizontalAlignment(SwingConstants.CENTER);
 
       myContentPanel.setLayout(new BorderLayout());
@@ -385,7 +385,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     @SuppressWarnings("unchecked")
     Class<T> enumClass = (Class<T>)flag.get().getClass();
 
-    return new FlagEditor<T>() {
+    return new FlagEditor<>() {
       FlagProperty<T> myFlagProperty = new FlagProperty<>(flag);
 
       @NotNull

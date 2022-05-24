@@ -18,11 +18,12 @@ package com.android.tools.swingp;
 import com.android.tools.swingp.json.IncludeMethodsSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Window;
+import java.awt.geom.AffineTransform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 @JsonAdapter(IncludeMethodsSerializer.class)
 public class WindowPaintMethodStat extends MethodStat {

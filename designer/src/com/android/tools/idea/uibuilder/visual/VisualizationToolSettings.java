@@ -20,8 +20,8 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Transient;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -69,7 +69,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
     private boolean myVisible = false;
     private boolean myShowDecoration = false;
     @NotNull private String myConfigurationSetId = ConfigurationSetProvider.defaultSet.getId();
-    @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
+    @NotNull private Map<String, CustomConfigurationSet> myCustomConfigurationSets = new LinkedHashMap<>();
 
     public boolean isFirstTimeOpen() {
       return myFirstTimeOpen;
@@ -97,10 +97,10 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
 
     /**
      * Get the name of {@link ConfigurationSet}. This function is public just because it is part of JavaBean.
-     * Do not use this function; For getting {@link ConfigurationSet}, use {@link #getConfigurationSet} instead.
+     * Do not use this function; For getting {@link ConfigurationSet}, use {@link #getLastSelectedConfigurationSet} instead.
      *
      * Because {@link ConfigurationSet} is an enum class, once the saved {@link ConfigurationSet} is renamed or deleted, the fatal error
-     * may happen due to parsing persistent state failed. Thus, use {@link #getConfigurationSet} instead which handles the exception cases.
+     * may happen due to parsing persistent state failed. Thus, use {@link #getLastSelectedConfigurationSet} instead which handles the exception cases.
      */
     @SuppressWarnings("unused") // Used by JavaBeans
     @NotNull
@@ -110,7 +110,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
 
     /**
      * Set the name of {@link ConfigurationSet}. This function is public just because it is part of JavaBean.
-     * Do not use this function; For setting {@link ConfigurationSet}, use {@link #setConfigurationSet(ConfigurationSet)} instead.
+     * Do not use this function; For setting {@link ConfigurationSet}, use {@link #setLastSelectedConfigurationSet(ConfigurationSet)} instead.
      */
     @SuppressWarnings("unused") // Used by JavaBeans
     public void setConfigurationSetId(@NotNull String configurationSetId) {
@@ -118,21 +118,22 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
     }
 
     @NotNull
-    public List<CustomConfigurationAttribute> getCustomConfigurationAttributes() {
-      return myCustomConfigurationAttributes;
+    public Map<String, CustomConfigurationSet> getCustomConfigurationSets() {
+      return myCustomConfigurationSets;
     }
 
-    public void setCustomConfigurationAttributes(@NotNull List<CustomConfigurationAttribute> configurationStrings) {
-      myCustomConfigurationAttributes = configurationStrings;
+    @SuppressWarnings("unused") // Used by JavaBeans
+    public void setCustomConfigurationSets(@NotNull Map<String, CustomConfigurationSet> customConfigurationSets) {
+      myCustomConfigurationSets = customConfigurationSets;
     }
 
     /**
-     * Helper function to get {@link ConfigurationSet}. This function handles the illegal name case which happens when saved
+     * Helper function to get the selected {@link ConfigurationSet}. This function handles the illegal name case which happens when saved
      * {@link ConfigurationSet} is renamed or deleted.
      */
     @Transient
     @NotNull
-    public ConfigurationSet getConfigurationSet() {
+    public ConfigurationSet getLastSelectedConfigurationSet() {
       ConfigurationSet set = ConfigurationSetProvider.getConfigurationById(myConfigurationSetId);
       if (set == null || !set.getVisible()) {
         // The saved configuration set may be renamed or deleted, use default one instead.
@@ -146,7 +147,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
      * Helper function to set {@link ConfigurationSet}.
      */
     @Transient
-    public void setConfigurationSet(@NotNull ConfigurationSet configurationSet) {
+    public void setLastSelectedConfigurationSet(@NotNull ConfigurationSet configurationSet) {
       myConfigurationSetId = configurationSet.getId();
     }
   }

@@ -28,12 +28,11 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModificatio
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
+import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.List;
 
 /**
  * Base class for dragging targets.

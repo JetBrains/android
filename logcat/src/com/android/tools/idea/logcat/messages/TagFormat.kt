@@ -44,4 +44,6 @@ internal data class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDupli
     }
     return tag.padEnd(maxLength + 1)
   }
+
+  fun width() = if (enabled) maxLength + 1 else 0
 }

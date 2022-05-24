@@ -20,10 +20,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   private static final String CLASS_TEXT = "class My<caret>Class {};";

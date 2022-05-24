@@ -17,6 +17,8 @@ package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.isResourceDirectory
+import com.android.tools.idea.res.isResourceSubdirectory
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
@@ -30,8 +32,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.isResourceDirectory
-import com.android.tools.idea.res.isResourceSubdirectory
 
 /**
  * Opens the [ResourceExplorer] and select the current [VirtualFile] if available and is

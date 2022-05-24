@@ -17,7 +17,9 @@ package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
+import com.google.common.truth.Truth
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
@@ -32,8 +34,8 @@ import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.io.File
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
@@ -522,5 +524,13 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     assertEquals(testKeyStorePassword2, String(keystoreStep.keyStorePasswordField.password))
     assertEquals(testKeyPassword2, String(keystoreStep.keyPasswordField.password))
+  }
+
+  fun testGetHelpId() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+    Truth.assertThat(keystoreStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
   }
 }

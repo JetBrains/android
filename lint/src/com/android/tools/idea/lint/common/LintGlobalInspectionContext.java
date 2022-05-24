@@ -23,7 +23,6 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Scope;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
@@ -43,7 +42,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
@@ -52,6 +51,7 @@ import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.testFramework.LightVirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -139,7 +139,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     List<VirtualFile> files = null;
-    final List<Module> modules = Lists.newArrayList();
+    final List<Module> modules = new ArrayList<>();
 
     int scopeType = scope.getScopeType();
     switch (scopeType) {
@@ -156,7 +156,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.FILE:
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
-        files = Lists.newArrayList();
+        files = new ArrayList<>();
         SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
@@ -184,7 +184,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
           final List<VirtualFile> finalList = files;
           scope.accept(new PsiElementVisitor() {
             @Override
-            public void visitFile(PsiFile file) {
+            public void visitFile(@NotNull PsiFile file) {
               VirtualFile virtualFile = file.getVirtualFile();
               if (virtualFile != null) {
                 finalList.add(virtualFile);
@@ -263,7 +263,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
         if (!baselineFile.isAbsolute()) {
           String path = module.getProject().getBasePath();
           if (path != null) {
-            baselineFile = new File(FileUtil.toSystemDependentName(path), baselineFile.getPath());
+            baselineFile = new File(FileUtilRt.toSystemDependentName(path), baselineFile.getPath());
           }
         }
         myBaseline = new LintBaseline(client, baselineFile);

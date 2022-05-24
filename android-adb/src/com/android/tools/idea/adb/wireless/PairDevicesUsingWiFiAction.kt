@@ -35,7 +35,7 @@ class PairDevicesUsingWiFiAction : AnAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
     if (!PairDevicesUsingWiFiService.getInstance(project).isFeatureEnabled) {
-      return;
+      return
     }
 
     val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()

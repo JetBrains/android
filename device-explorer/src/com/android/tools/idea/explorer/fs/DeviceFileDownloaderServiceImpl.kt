@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.concurrency.transformAsyncNullable
-import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.explorer.DeviceExplorerFileManager
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
@@ -65,7 +64,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
 
     return deviceFileSystemService.start { AdbFileProvider.fromProject(project)?.adbFile }.transformAsyncNullable(edtExecutor) {
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
-        val deviceFileSystem = devices!!.find { it.deviceSerialNumber == deviceSerialNumber }
+        val deviceFileSystem = devices.find { it.deviceSerialNumber == deviceSerialNumber }
         require(deviceFileSystem != null)
         doDownload(deviceFileSystem, onDevicePaths, downloadProgress, localDestinationDirectory)
       }
@@ -75,8 +74,8 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   override fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit> {
-    val futures = virtualFiles.map { fileManager.deleteFile(it).transformNullable(taskExecutor) { Unit } }
-    return Futures.whenAllSucceed(futures).call( { Unit }, taskExecutor)
+    val futures = virtualFiles.map { fileManager.deleteFile(it) }
+    return Futures.whenAllSucceed(futures).call({}, taskExecutor)
   }
 
   // TODO(b/170230430) downloading files seems to trigger indexing.
@@ -111,12 +110,11 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   private fun mapPathsToEntries(deviceFileSystem: DeviceFileSystem, onDevicePaths: List<String>): ListenableFuture<List<DeviceFileEntry>> {
     return if (haveSameParent(onDevicePaths)) {
       val parentPath = AdbPathUtil.getParentPath(onDevicePaths[0])
-      val parentEntryFuture = deviceFileSystem.getEntry(parentPath)
-      parentEntryFuture
+      deviceFileSystem.getEntry(parentPath)
         // if the path is not found getEntry fails with IllegalArgumentException.
         .catching(taskExecutor, IllegalArgumentException::class.java) { null }
         .transformAsyncNullable(taskExecutor) { parentEntry ->
-          if (parentEntry == null ) {
+          if (parentEntry == null) {
             Futures.immediateFuture(emptyList())
           }
           else {

@@ -32,7 +32,7 @@ private const val LAYOUT_INSPECTOR_FILE_TYPE_NAME = "Layout Inspector"
 private const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 var enableLiveLayoutInspector
-  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, true)
+  get() = true // b/207568525
   set(value) {
     if (value != enableLiveLayoutInspector) {
       PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value, true)

@@ -21,12 +21,11 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries

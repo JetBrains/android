@@ -22,14 +22,15 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
+import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
 
 public class WindowPickerDialog extends DialogWrapper {
   @NonNls private static final String WINDOW_PICKER_DIMENSIONS_KEY = "LayoutInspector.WindowPicker.Options.Dimensions";
@@ -45,7 +46,7 @@ public class WindowPickerDialog extends DialogWrapper {
 
     myPanel = new JPanel(new BorderLayout());
 
-    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<ClientWindow>(windows));
+    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<>(windows));
     myWindowsCombo.setRenderer(SimpleListCellRenderer.create("", ClientWindow::getDisplayName));
     myWindowsCombo.setSelectedIndex(0);
     myPanel.add(myWindowsCombo, BorderLayout.CENTER);

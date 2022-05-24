@@ -86,7 +86,7 @@ fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: 
 /**
  * Transforms a [ListenableFuture] by throwing out the result.
  */
-fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform(directExecutor()) { null }
+fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Unit> = transform(directExecutor()) { }
 
 /**
  * Wrapper function to convert Future to ListenableFuture
@@ -269,8 +269,17 @@ fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> 
 /**
  * @see [Futures.catching]
  */
-fun <V, X : Throwable> ListenableFuture<V>.catching(executor: Executor, exceptionType: Class<X>, fallback: (X) -> V): ListenableFuture<V> {
+fun <V, X : Throwable> ListenableFuture<out V>.catching(
+    executor: Executor, exceptionType: Class<X>, fallback: (X) -> V): ListenableFuture<V> {
   return Futures.catching(this, exceptionType, Function<X, V> { t -> fallback(t!!) }, executor)
+}
+
+/**
+ * @see [Futures.catchingAsync]
+ */
+fun <V, X : Throwable> ListenableFuture<out V>.catchingAsync(
+    executor: Executor, exceptionType: Class<X>, fallback: (X) -> ListenableFuture<V>): ListenableFuture<V> {
+  return Futures.catchingAsync(this, exceptionType, { t -> fallback(t!!) }, executor)
 }
 
 /**

@@ -24,6 +24,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiSearchScopeUtil;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +57,7 @@ public class MlShortNamesCache extends PsiShortNamesCache {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
 
-    return ArrayUtil.toStringArray(MlProjectService.getInstance(myProject).getAllClassNames());
+    return ArrayUtilRt.toStringArray(MlProjectService.getInstance(myProject).getAllClassNames());
   }
 
   @NotNull

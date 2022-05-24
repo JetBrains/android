@@ -16,9 +16,8 @@
 
 package org.jetbrains.android.dom.resources;
 
-import org.jetbrains.android.dom.AndroidDomElement;
-
 import java.util.List;
+import org.jetbrains.android.dom.AndroidDomElement;
 
 public interface StyledText extends AndroidDomElement {
   List<StyledText> getBs();

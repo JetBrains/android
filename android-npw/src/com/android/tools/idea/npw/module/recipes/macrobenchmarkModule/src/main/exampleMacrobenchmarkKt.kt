@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main
 
-fun exampleMacrobenchmarkKt(packageName: String, targetPackageName: String) =
+fun exampleMacrobenchmarkKt(className: String, packageName: String, targetPackageName: String) =
 """package $packageName
 
 import androidx.benchmark.macro.CompilationMode
@@ -35,13 +35,13 @@ import org.junit.runner.RunWith
  *
  * Before running this benchmark:
  * 1) switch your app's active build variant in the Studio (affects Studio runs only)
- * 2) add `<profileable shell=true>` to your app's manifest, within the `<application>` tag
+ * 2) add `<profileable android:shell="true" />` to your app's manifest, within the `<application>` tag
  *
  * Run this benchmark from Studio to see startup measurements, and captured system traces
  * for investigating your app's performance.
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleStartupBenchmark {
+class $className {
     @get:Rule
     val benchmarkRule = MacrobenchmarkRule()
 
@@ -49,8 +49,7 @@ class ExampleStartupBenchmark {
     fun startup() = benchmarkRule.measureRepeated(
         packageName = "$targetPackageName",
         metrics = listOf(StartupTimingMetric()),
-        compilationMode = CompilationMode.SpeedProfile(),
-        iterations = 3,
+        iterations = 5,
         startupMode = StartupMode.COLD
     ) {
         pressHome()

@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.gradle.project.AndroidModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleImporter;
@@ -22,26 +28,19 @@ import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
-import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates new project modules from existing Android Eclipse projects.
@@ -121,10 +120,10 @@ public final class AdtModuleImporter extends ModuleImporter {
     final GradleImport gradleImport = getGradleImport();
     gradleImport.importProjects(Collections.singletonList(virtualToIoFile(importSource)));
     Map<String, File> adtProjects = gradleImport.getDetectedModuleLocations();
-    Set<ModuleToImport> modules = Sets.newHashSet();
+    Set<ModuleToImport> modules = new HashSet<>();
     for (final Map.Entry<String, File> entry : adtProjects.entrySet()) {
       VirtualFile location = findFileByIoFile(entry.getValue(), false);
-      modules.add(new ModuleToImport(entry.getKey(), location, new Supplier<Iterable<String>>() {
+      modules.add(new ModuleToImport(entry.getKey(), location, new Supplier<>() {
         @Override
         public Iterable<String> get() {
           return gradleImport.getProjectDependencies(entry.getKey());

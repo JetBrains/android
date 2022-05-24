@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.property.NlPropertyType
-import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -132,6 +132,7 @@ object TypeResolver {
       SdkConstants.ATTR_FOREGROUND,
       SdkConstants.ATTR_HAND_HOUR,
       SdkConstants.ATTR_HAND_MINUTE,
+      SdkConstants.ATTR_HAND_SECOND,
       SdkConstants.ATTR_HEADER_BACKGROUND,
       SdkConstants.ATTR_INSET_BACKGROUND,
       SdkConstants.ATTR_INSET_FOREGROUND,
@@ -217,15 +218,23 @@ object TypeResolver {
       SdkConstants.ATTR_TRACK_TINT,
       "boxStrokeErrorColor",
       "checkedIconTint",
+      "collapsedTitleTextColor",
+      "dividerColor",
+      "expandedTitleTextColor",
       "haloColor",
       "placeholderTextColor",
       "prefixTextColor",
+      "subheaderColor",
       "suffixTextColor",
       "thumbColor",
       "thumbStrokeColor",
       "tickColor",
       "tickColorActive",
       "tickColorInactive",
+      "dialTint",
+      "hand_hourTint",
+      "hand_minuteTint",
+      "hand_secondTint",
       "trackColor",
       "trackColorActive",
       "trackColorInactive" -> NlPropertyType.COLOR_STATE_LIST
@@ -258,6 +267,8 @@ object TypeResolver {
       SdkConstants.ATTR_ELEVATION -> NlPropertyType.DIMENSION
 
       SdkConstants.ATTR_MENU -> NlPropertyType.MENU
+
+      SdkConstants.ATTR_BACKGROUND_TINT_MODE -> NlPropertyType.ENUM
 
       // tools
       // TODO: Figure out a way to map this using ToolsAttributeUtil

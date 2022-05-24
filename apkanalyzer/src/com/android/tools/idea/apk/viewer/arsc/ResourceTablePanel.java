@@ -16,19 +16,32 @@
 package com.android.tools.idea.apk.viewer.arsc;
 
 import com.google.common.collect.ImmutableList;
-import com.google.devrel.gmscore.tools.apk.arsc.*;
+import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
+import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
+import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.table.JBTable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.Collection;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import org.jetbrains.annotations.NotNull;
 
 public class ResourceTablePanel {
   private JPanel myContainer;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -24,19 +25,15 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.ACTION_COLOR
 import com.android.tools.idea.naveditor.scene.ConnectionDirection
-import com.android.tools.idea.naveditor.scene.FRAME_COLOR
 import com.android.tools.idea.naveditor.scene.SELECTED_COLOR
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
-import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.scene.getDestinationDirection
 import com.android.tools.idea.naveditor.scene.verifyScene
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.common.LayoutTestUtilities
 import com.google.common.truth.Truth.assertThat
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.Color
 import java.awt.event.MouseEvent.BUTTON1

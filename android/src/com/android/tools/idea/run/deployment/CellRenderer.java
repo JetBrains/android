@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.ui.popup.list.PopupListElementRenderer;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtil.FontSize;
 import javax.swing.JList;
@@ -37,6 +38,6 @@ final class CellRenderer extends PopupListElementRenderer<ActionItem> {
       return;
     }
 
-    myTextLabel.setFont(UIUtil.getLabelFont());
+    myTextLabel.setFont(StartupUiUtil.getLabelFont());
   }
 }

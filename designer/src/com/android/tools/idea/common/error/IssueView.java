@@ -15,32 +15,41 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBHtmlEditorKit;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.StyleSheetUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.border.Border;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Representation of a {@link Issue} in the {@link IssuePanel}
@@ -53,7 +62,7 @@ public class IssueView extends JPanel {
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
 
   private final IssuePanel myContainerIssuePanel;
-  private RoundedLineBorder mySelectedBorder = IdeBorderFactory.createRoundedBorder(JBUI.scale(BORDER_THICKNESS));
+  private RoundedLineBorder mySelectedBorder = IdeBorderFactory.createRoundedBorder(JBUIScale.scale(BORDER_THICKNESS));
   private Border myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
   @SuppressWarnings("FieldCanBeLocal") // Used for the form
   private JPanel myContent;
@@ -103,11 +112,11 @@ public class IssueView extends JPanel {
     setBackground(UIUtil.getEditorPaneBackground());
 
     if (myInitialized) {
-      mySelectedBorder = IdeBorderFactory.createRoundedBorder(JBUI.scale(BORDER_THICKNESS));
+      mySelectedBorder = IdeBorderFactory.createRoundedBorder(JBUIScale.scale(BORDER_THICKNESS));
       mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-      myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+      myErrorTitle.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
     }
   }
 
@@ -345,7 +354,7 @@ public class IssueView extends JPanel {
 
     public StyleSheet createStyleSheet() {
       StyleSheet style = new StyleSheet();
-      style.addStyleSheet(JBHtmlEditorKit.createStyleSheet());
+      style.addStyleSheet(StyleSheetUtil.getDefaultStyleSheet());
       style.addRule("body { font-family: Sans-Serif; }");
       style.addRule("code { font-size: 100%; font-family: monospace; }"); // small by Swing's default
       style.addRule("small { font-size: small; }"); // x-small by Swing's default

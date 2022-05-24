@@ -18,11 +18,10 @@ package com.android.tools.swingp;
 import com.android.tools.swingp.json.IncludeMethodsSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A stat counter that surrounds and captures timing and call information of a sequence of calls within a stack frame.

@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 /**
  * Sets the compiler output paths on the module [DataNode].
  */
+// TODO(b/213887150) : once this bug is fixed and we have code coverage exclusively with Jacoco, then this can be deleted.
 @JvmOverloads
 fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
@@ -32,8 +33,8 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
 
   data.isInheritProjectCompileOutputPath = false
 
-  val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.absolutePath
-  val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.absolutePath
+  val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.first().absolutePath
+  val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.first()?.absolutePath
 
   data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
   data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)

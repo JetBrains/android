@@ -16,10 +16,7 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinProj;
-import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.StudioRobot;
@@ -27,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.utils.Pair;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,7 +40,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;

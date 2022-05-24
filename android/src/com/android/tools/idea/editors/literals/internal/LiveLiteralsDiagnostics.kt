@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.annotations.TestOnly
 import java.util.EnumMap
 import java.util.concurrent.Executor
@@ -189,7 +188,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
   override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) {
     activeDevices[deviceId] = deviceType
     val numberOfDevices = activeDevices.count { it.value == deviceType }
-    val stats = currentStatsCollector.getOrCreate(deviceType) { RemoteStatsCollector(msProvider) }
+    val stats = currentStatsCollector.computeIfAbsent(deviceType) { RemoteStatsCollector(msProvider) }
     stats?.activeDevices = numberOfDevices.coerceAtLeast(stats.activeDevices)
     onReport(LiveLiteralsEvent.newBuilder()
                .setEventType(LiveLiteralsEvent.LiveLiteralsEventType.START)
@@ -231,7 +230,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
       msProvider() - it
     }
     val deviceType = activeDevices[deviceId] ?: LiveLiteralsMonitorHandler.DeviceType.UNKNOWN
-    val stats = currentStatsCollector.getOrCreate(deviceType) { RemoteStatsCollector(msProvider) }
+    val stats = currentStatsCollector.computeIfAbsent(deviceType) { RemoteStatsCollector(msProvider) }
 
     if (problems.isEmpty()) {
       stats.successfulDeployments++

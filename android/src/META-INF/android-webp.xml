@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (C) 2021 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <actions>
+    <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
+    </action>
+    <action class="com.android.tools.idea.rendering.webp.ConvertFromWebpAction" id="ConvertFromWebp">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
+    </action>
+
+    <group id="ResourceExplorer.webp" popup="false">
+      <add-to-group group-id="ResourceExplorer" anchor="last"/>
+      <separator/>
+      <reference ref="ConvertToWebp" />
+    </group>
+  </actions>
+
+  <extensions defaultExtensionNs="com.android">
+    <rendering.renderSecurityManagerOverrides implementation="com.android.tools.idea.rendering.webp.WebpRenderSecurityManagerOverrides"/>
+  </extensions>
+</idea-plugin>

@@ -33,9 +33,9 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
@@ -44,8 +44,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -64,8 +62,11 @@ import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.event.AncestorEvent;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,7 +109,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return "Android SDK Updater";
+    return AndroidBundle.message("configurable.SdkUpdaterConfigurable.display.name");
   }
 
   @Nullable
@@ -180,8 +182,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     boolean sourcesModified = myPanel.areSourcesModified();
     myPanel.saveSources();
 
-    final List<LocalPackage> toDelete = Lists.newArrayList();
-    final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
+    final List<LocalPackage> toDelete = new ArrayList<>();
+    final Map<RemotePackage, UpdatablePackage> requestedPackages = new HashMap<>();
     for (PackageNodeModel model : myPanel.getStates()) {
       if (model.getState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
         if (model.getPkg().hasLocal()) {
@@ -302,7 +304,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     if (found) {
       Path location = getSdkHandler().getLocation();
       Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(
-        location == null ? null : getSdkHandler().getFileOp().toFile(location),
+        location,
         fullInstallationsDownloadSize, patchesDownloadSize,
         spaceToBeFreedUp);
       // Now form the summary message ordering the constituents properly.
@@ -397,7 +399,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   @VisibleForTesting
-  static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable File sdkRoot, long fullInstallationsDownloadSize,
+  static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable Path sdkRoot, long fullInstallationsDownloadSize,
                                                              long patchesDownloadSize, long spaceToBeFreedUp) {
     HtmlBuilder message = new HtmlBuilder();
     message.add("Disk usage:\n");
@@ -414,8 +416,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.listItem().add("Estimated disk space to be additionally occupied on SDK partition after installation: "
                              + new Storage(sdkRootUsageAfterInstallation).toUiString());
       if (sdkRoot != null) {
-        long sdkRootUsableSpace = sdkRoot.getUsableSpace();
-        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot.getAbsolutePath(),
+        long sdkRootUsableSpace = 0;
+        try {
+          sdkRootUsableSpace = Files.getFileStore(sdkRoot).getUsableSpace();
+        }
+        catch (IOException ignore) {
+          // We'll just say there's 0 usable space
+        }
+        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot.toAbsolutePath(),
                                              new Storage(sdkRootUsableSpace).toUiString()));
         long totalSdkUsableSpace = sdkRootUsableSpace + spaceToBeFreedUp;
         issueDiskSpaceWarning = (totalSdkUsableSpace < sdkRootUsageAfterInstallation);

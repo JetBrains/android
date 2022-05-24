@@ -20,11 +20,14 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class NlGraphics {
   private final SceneView myScene;

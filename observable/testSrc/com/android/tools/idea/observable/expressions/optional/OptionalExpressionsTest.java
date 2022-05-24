@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.observable.expressions.optional;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class OptionalExpressionsTest {
   @Test

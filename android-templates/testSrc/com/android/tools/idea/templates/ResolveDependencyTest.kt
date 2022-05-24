@@ -22,8 +22,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.nullable
+import org.mockito.Mockito.`when`
 import java.security.InvalidParameterException
 import kotlin.test.assertFailsWith
 

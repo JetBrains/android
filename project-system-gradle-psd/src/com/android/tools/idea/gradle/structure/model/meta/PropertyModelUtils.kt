@@ -70,6 +70,7 @@ fun ResolvedPropertyModel.asLanguageLevel(): LanguageLevel? =
       ValueType.STRING -> LanguageLevelUtil.parseFromGradleString("'{${toString()}'")
       ValueType.BIG_DECIMAL -> LanguageLevelUtil.parseFromGradleString(toString())
       ValueType.REFERENCE -> LanguageLevelUtil.parseFromGradleString(toString())
+      ValueType.CUSTOM -> LanguageLevelUtil.parseFromGradleString(toString())
       else -> null
     }
 
@@ -145,8 +146,7 @@ internal fun <T : Any> ResolvedPropertyModel.setParsedValue(
       nullifier()
     }
     is ParsedValue.Set.Parsed -> {
-      val dsl = value.dslText
-      when (dsl) {
+      when (val dsl = value.dslText) {
       // Dsl modes.
         is DslText.Reference -> setDslText(dsl)
         is DslText.InterpolatedString -> setDslText(dsl)

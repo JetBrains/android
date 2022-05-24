@@ -104,12 +104,9 @@ public final class OverlayConfiguration {
       } else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
-                           null,
                            "Internal error",
-                           null,
                            "Overlay does not exist.",
-                           NotificationType.ERROR,
-                           null));
+                           NotificationType.ERROR));
       }
     }
   }

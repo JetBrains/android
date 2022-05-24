@@ -23,8 +23,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
+import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionException;
@@ -212,7 +212,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       targetProject = openProject;
 
       // First check the titles of the run configurations.
-      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
+      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<>() {
         @NotNull
         @Override
         public Boolean fun(String title) {

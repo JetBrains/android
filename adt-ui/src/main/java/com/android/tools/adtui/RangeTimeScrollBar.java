@@ -18,9 +18,8 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBScrollBar;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A custom scrollbar that represents time unit and synchronizes with its global and view ranges.

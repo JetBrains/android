@@ -19,9 +19,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.StateRestoringCheckBox;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 class UnusedResourcesDialog extends RefactoringDialog {
   private final UnusedResourcesProcessor myProcessor;

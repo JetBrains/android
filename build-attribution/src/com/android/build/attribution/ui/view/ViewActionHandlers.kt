@@ -25,6 +25,10 @@ import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.ui.awt.RelativePoint
+import java.util.function.Supplier
 
 /**
  * Handlers that are called by the view on the corresponding action from the user.
@@ -88,5 +92,6 @@ interface ViewActionHandlers {
   fun turnConfigurationCachingOnInProperties()
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
   fun runCheckJetifierTask()
-  fun turnJetifierOffInProperties()
+  fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>)
+  fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction
 }

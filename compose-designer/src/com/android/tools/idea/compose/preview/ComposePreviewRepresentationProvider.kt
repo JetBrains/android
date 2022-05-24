@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
@@ -25,7 +24,7 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.preview.actions.AnimationInteractiveSwitchAction
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
@@ -33,7 +32,6 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildOnSave
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
@@ -80,7 +78,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
     listOfNotNull(
       StopInteractivePreviewAction(),
-      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled { StopAnimationInspectorAction() },
+      StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
       ForceCompileAndRefreshAction(surface),
       SingleFileCompileAction(),
@@ -94,8 +92,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.ifEnabled { ToggleAutoBuildOnSave() },
-    StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
     ComposeIssueNotificationAction.getInstance()
   ))
 
@@ -172,32 +168,29 @@ class ComposePreviewRepresentationProvider(
   }
 
   init {
-    if (StudioFlags.COMPOSE_PREVIEW.get()) {
-      DesignerTypeRegistrar.register(ComposeEditorFileType)
-    }
+    DesignerTypeRegistrar.register(ComposeEditorFileType)
   }
 
   /**
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
   override fun accept(project: Project, psiFile: PsiFile): Boolean =
-    StudioFlags.COMPOSE_PREVIEW.get() && psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
+    psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override val previewElements: Sequence<PreviewElement>
-        get() = if (DumbService.isDumb(psiFile.project))
+      override suspend fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
+        emptySequence()
+      else
+        try {
+          filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
+        }
+        catch (_: IndexNotReadyException) {
           emptySequence()
-        else
-          try {
-            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
-          }
-          catch (_: IndexNotReadyException) {
-            emptySequence()
-          }
+        }
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     if (LOG.isDebugEnabled) {

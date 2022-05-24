@@ -15,7 +15,8 @@
  */
 package com.android.tools.property.ptable2.impl
 
-import com.android.tools.property.ptable2.*
+import com.android.tools.property.ptable2.DefaultPTableCellEditor
+import com.android.tools.property.ptable2.PTableCellEditor
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.Component
 import javax.swing.JTable

@@ -18,7 +18,7 @@ package com.android.tools.adtui.workbench;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Dimension;
 import java.util.function.Function;
 import javax.swing.Icon;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
 public class ToolWindowDefinition<T> {
-  public static final int DEFAULT_SIDE_WIDTH = JBUI.scale(225);
+  public static final int DEFAULT_SIDE_WIDTH = JBUIScale.scale(225);
   public static final Dimension DEFAULT_BUTTON_SIZE = DEFAULT_MINIMUM_BUTTON_SIZE;
   public static final int ALLOW_BASICS = 0x0;
   public static final int ALLOW_FLOATING = 0x01;

@@ -20,6 +20,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -30,18 +42,6 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Stats poller and serializer.
@@ -174,7 +174,7 @@ public class StatsSerializer {
           try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             JsonElement element = RenderStatsManager.getJson();
             if (element != JsonNull.INSTANCE) {
-              try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream))) {
+              try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 JsonWriter jsonWriter = new JsonWriter(bufferedWriter);
                 jsonWriter.setLenient(true);
                 Streams.write(element, jsonWriter);

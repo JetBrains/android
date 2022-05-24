@@ -21,6 +21,7 @@ import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
+import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.property.NavPropertiesPanelDefinition
 import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -46,7 +47,7 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
-                        { NavDesignSurface(myProject, it, this) },
+                        { NavDesignSurface(myProject, it, this) }, NavComponentRegistrar,
                         {
                           listOf(
                             NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),

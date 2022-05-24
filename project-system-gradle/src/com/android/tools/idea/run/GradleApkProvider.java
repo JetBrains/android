@@ -17,7 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFileOrLogError;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
@@ -47,7 +47,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -70,6 +70,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -148,7 +149,7 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(myFacet);
     if (androidModel == null) {
       getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
@@ -159,7 +160,7 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   public List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
                                @NotNull AndroidVersion deviceVersion,
-                               @NotNull AndroidModuleModel androidModel,
+                               @NotNull GradleAndroidModel androidModel,
                                @NotNull IdeVariant variant) throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
 
@@ -233,7 +234,7 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
+  private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull GradleAndroidModel androidModel,
                                                          @NotNull List<String> deviceAbis,
                                                          @NotNull AndroidVersion deviceVersion) {
     IdeAndroidProject project = androidModel.getAndroidProject();
@@ -245,7 +246,7 @@ public class GradleApkProvider implements ApkProvider {
         if (featureFacet == null) {
           return null;
         }
-        AndroidModuleModel androidFeatureModel = AndroidModuleModel.get(featureFacet);
+        GradleAndroidModel androidFeatureModel = GradleAndroidModel.get(featureFacet);
         if (androidFeatureModel == null) {
           return null;
         }
@@ -322,7 +323,7 @@ public class GradleApkProvider implements ApkProvider {
               @NotNull List<String> deviceAbis,
               @NotNull AndroidVersion deviceVersion,
               @NotNull AndroidFacet facet) throws ApkProvisionException {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
     assert androidModel != null;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       return getApkFromBuildOutputFile(variantName, artifact, deviceAbis);
@@ -460,7 +461,7 @@ public class GradleApkProvider implements ApkProvider {
         continue;
       }
 
-      AndroidModuleModel targetAndroidModel = AndroidModuleModel.get(targetModule);
+      GradleAndroidModel targetAndroidModel = GradleAndroidModel.get(targetModule);
       if (targetAndroidModel == null) {
         getLogger().warn("Android model for tested module is null. Sync might have failed.");
         continue;
@@ -474,7 +475,7 @@ public class GradleApkProvider implements ApkProvider {
 
       File targetApk = getApk(targetVariant.getName(), targetVariant.getMainArtifact(), deviceAbis, deviceVersion, targetFacet);
 
-      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant, myOutputModelProvider).getPackageName();
+      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant).getPackageName();
       targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 
@@ -485,13 +486,21 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   public List<ValidationError> validate() {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
+
+    GradleAndroidModel androidModuleModel = GradleAndroidModel.get(myFacet);
     if (androidModuleModel == null) {
       Runnable requestProjectSync =
         () -> ProjectSystemUtil.getSyncManager(myFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
+    }
+
+    if (myAlwaysDeployApkFromBundle) {
+      if (StringUtil.isEmpty(androidModuleModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName())) {
+        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + myFacet.getModule().getName() + "'");
+        result.add(error);
+      }
     }
 
     if (isTest()) {
@@ -537,7 +546,7 @@ public class GradleApkProvider implements ApkProvider {
   private static ApkInfo collectAppBundleOutput(@NotNull Module module,
                                                 @NotNull PostBuildModelProvider outputModelProvider,
                                                 @NotNull String pkgName) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel == null) {
       getLogger().warn("Android model is null. Sync might have failed");
       return null;
@@ -548,7 +557,7 @@ public class GradleApkProvider implements ApkProvider {
       String outputListingFile = GradleBuildOutputUtil
         .getOutputListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
                               OutputType.ApkFromBundle);
-      apkFiles = outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();
+      apkFiles = outputListingFile != null ? getOutputFilesFromListingFileOrLogError(outputListingFile) : emptyList();
     }
     else {
       apkFiles = collectApkFilesFromPostBuildModel(outputModelProvider,
@@ -622,7 +631,7 @@ public class GradleApkProvider implements ApkProvider {
     return fileName.substring(0, separatorIndex);
   }
 
-  private boolean isArtifactSigned(AndroidModuleModel androidModuleModel) {
+  private boolean isArtifactSigned(GradleAndroidModel androidModuleModel) {
     IdeAndroidArtifact artifact = myTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
     return artifact != null && artifact.isSigned();
   }

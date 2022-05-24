@@ -39,7 +39,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateWearDeviceModels() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = WearDeviceModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
@@ -75,7 +75,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
   }
 
   fun testDisposedConfigurationManagerShouldCleanTheCached() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = WearDeviceModelsProvider
     val manager = ConfigurationManager.getOrCreateInstance(myFacet)
     modelsProvider.createNlModels(testRootDisposable, file, myFacet)

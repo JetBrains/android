@@ -1,12 +1,15 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import static com.android.SdkConstants.CLASS_R;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -35,15 +38,22 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin files.
+ *
+ * Despite the fact that AndroidDocumentationProvider is only registered for Java, since the light classes for resources are as Java
+ * classes, the documentation provider works for kotlin files.
+ */
 public class AndroidDocumentationProvider implements DocumentationProvider, ExternalDocumentationProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider");
 
   @Override
-  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+  public @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
     if (originalElement == null) {
       return null;
     }
@@ -58,17 +68,25 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     }
 
     ResourceReference resourceReference = referencePsiElement.getResourceReference();
-    return AndroidJavaDocRenderer.render(module, resourceReference.getResourceUrl());
+    AndroidFacet androidFacet = AndroidFacet.getInstance(originalElement);
+    if (androidFacet == null) {
+      return AndroidJavaDocRenderer.render(module, null, resourceReference.getResourceUrl());
+    }
+
+    // Creating a basic configuration in case rendering of webp or xml drawables.
+    Configuration configuration =
+      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet), null, FolderConfiguration.createDefault());
+    return AndroidJavaDocRenderer.render(module, configuration, resourceReference.getResourceUrl());
   }
 
   @Override
-  public String fetchExternalDocumentation(final Project project, final PsiElement element, final List<String> docUrls, boolean onHover) {
+  public @Nls String fetchExternalDocumentation(final Project project, final PsiElement element, final List<String> docUrls, boolean onHover) {
     // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
     // never get a chance to provide documentation for it via generateDoc, presumably because the
     // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
     // something we have documentation for. We do however get a chance to fetch documentation for it;
     // that's this call, so in that case we insert our javadoc rendering into the fetched documentation.
-    String doc = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+    String doc = ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       public String compute() {
         if (isFrameworkFieldDeclaration(element)) {
@@ -137,26 +155,23 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
   private static boolean isMyContext(@NotNull final PsiElement element, @NotNull final Project project) {
     if (element instanceof PsiClass) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-        @Override
-        public Boolean compute() {
-          PsiFile file = element.getContainingFile();
-          if (file == null) {
-            return false;
-          }
-          VirtualFile vFile = file.getVirtualFile();
-          if (vFile == null) {
-            return false;
-          }
-          String path = FileUtil.toSystemIndependentName(vFile.getPath());
-          if (StringUtil.toLowerCase(path).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
-            if (!ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty()) {
-              VirtualFile jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
-              return jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY.equals(jarFile.getName());
-            }
-          }
+      return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+        PsiFile file = element.getContainingFile();
+        if (file == null) {
           return false;
         }
+        VirtualFile vFile = file.getVirtualFile();
+        if (vFile == null) {
+          return false;
+        }
+        String path = FileUtil.toSystemIndependentName(vFile.getPath());
+        if (StringUtil.toLowerCase(path).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
+          if (!ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty()) {
+            VirtualFile jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
+            return jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY.equals(jarFile.getName());
+          }
+        }
+        return false;
       });
     }
     return false;

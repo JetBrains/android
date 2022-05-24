@@ -1,10 +1,9 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceReference;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Information about attr and styleable resources in an easy to consume form.

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static org.fest.reflect.core.Reflection.method;
+
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.Splitter;
+import java.awt.Component;
+import java.awt.Container;
+import java.nio.file.Path;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
-import java.nio.file.Path;
-
-import static org.fest.reflect.core.Reflection.method;
 
 public class ApkViewerFixture extends EditorFixture {
 
@@ -39,7 +39,7 @@ public class ApkViewerFixture extends EditorFixture {
 
   @NotNull
   public static ApkViewerFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
-    Component target = ideFrameFixture.robot().finder().findByName(ideFrameFixture.target(), "apkViwerContainer", Splitter.class, true);
+    Component target = ideFrameFixture.robot().finder().findByName(ideFrameFixture.target(), "apkViewerContainer", Splitter.class, true);
     return new ApkViewerFixture(ideFrameFixture, target);
   }
 

@@ -127,7 +127,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     mSaveButton.addActionListener(this);
     buttonsPanel.add(mSaveButton);
 
-    mComboBox = new JComboBox<String>(new String[0]) {
+    mComboBox = new JComboBox<>(new String[0]) {
       @Override
       public Dimension getMaximumSize() {
         Dimension max = super.getMaximumSize();

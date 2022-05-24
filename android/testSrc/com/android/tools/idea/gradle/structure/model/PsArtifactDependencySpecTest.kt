@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import junit.framework.TestCase
 import org.gradle.tooling.model.GradleModuleVersion
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 /**
  * Tests for [PsArtifactDependencySpec].

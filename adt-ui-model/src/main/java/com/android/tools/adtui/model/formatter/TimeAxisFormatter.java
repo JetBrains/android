@@ -15,11 +15,8 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import com.google.common.annotations.VisibleForTesting;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * This formatter assumes a microsecond input value.

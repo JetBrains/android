@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.meta.asString
 
 enum class PsModuleType(val androidModuleType: IdeAndroidProjectType? = null) {
@@ -53,7 +53,7 @@ fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
 }
 
 fun GradleBuildModel.parsedModelModuleType(): PsModuleType =
-    plugins()
+    appliedPlugins()
         .mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }
         .firstOrNull { it != PsModuleType.UNKNOWN }
     ?: PsModuleType.UNKNOWN

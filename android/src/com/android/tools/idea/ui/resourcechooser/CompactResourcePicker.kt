@@ -42,13 +42,13 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.GuiUtils
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearch
+import com.intellij.util.ModalityUiUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBDimension
@@ -74,6 +74,7 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.event.DocumentEvent
 import kotlin.properties.Delegates
 
+private const val CELL_WIDTH = 300
 private const val PANEL_WIDTH = 300
 private const val PANEL_HEIGHT = 400
 
@@ -173,10 +174,13 @@ class CompactResourcePicker(
     border = componentPadding
     emptyText.text = "" // No need to show any text right away (before loading is even started)
     background = PICKER_BACKGROUND_COLOR
-    cellRenderer = CompactResourceListCellRenderer(
-      AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
-      scaledCellHeight)
-    fixedCellHeight = JBUIScale.scale(scaledCellHeight)
+    fixedCellHeight = scaledCellHeight
+    fixedCellWidth = JBUIScale.scale(CELL_WIDTH)
+    cellRenderer =
+      CompactResourceListCellRenderer(
+        AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
+        scaledCellHeight
+      )
     addListSelectionListener { event ->
       if (!event.valueIsAdjusting) {
         selectedValue?.getHighestDensityAsset()?.resourceUrl?.toString()?.let { resourceName ->
@@ -222,12 +226,12 @@ class CompactResourcePicker(
    */
   private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
     {
-      GuiUtils.invokeLaterIfNeeded(
-        {
-          // Schedule the 'loading' state of the list, to avoid flashing in the UI
-          resourcesList.setPaintBusy(true)
-          resourcesList.emptyText.text = "Loading..."
-        }, ModalityState.defaultModalityState())
+      ModalityUiUtil.invokeLaterIfNeeded(
+        ModalityState.defaultModalityState()) {
+        // Schedule the 'loading' state of the list, to avoid flashing in the UI
+        resourcesList.setPaintBusy(true)
+        resourcesList.emptyText.text = "Loading..."
+      }
     }, 250L, TimeUnit.MILLISECONDS)
 
   init {

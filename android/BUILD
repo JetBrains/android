@@ -28,6 +28,7 @@ iml_module(
     resources = ["resources"],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
+    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -77,7 +78,6 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
-        "//tools/adt/idea/android/lib:pepk",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
@@ -89,7 +89,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2:utp-core-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -152,7 +151,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
-            "shard_count": 5,
+            "shard_count": 2,
             "data": [
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",
@@ -161,29 +160,10 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
-        "gradle.project.sync.snapshots": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
-            "tags": ["no_windows"],
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
-        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
-        },
-        "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
-            # testDependentNativeModules (ag/9872410)
-            "tags": [
-                "no_windows",
-            ],
-            "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
-        },
-        "navigator.SourceProvidersSnapshotComparisonTest": {
-            # testDependentNativeModules (ag/9872410)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",
         },
         "imports": {
             "shard_count": 2,
@@ -221,6 +201,7 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:layoutlib_extensions",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
@@ -252,7 +233,11 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -296,7 +281,6 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
-        "//tools/adt/idea/android/lib:pepk[test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
@@ -312,7 +296,6 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//prebuilts/tools/common/m2:utp-core-proto",
@@ -341,6 +324,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java[test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
     ],
 )
 
@@ -429,6 +414,8 @@ filegroup(
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/data-binding:compilerCommon.antlr.shaded",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -452,7 +439,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.0.1",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
@@ -471,6 +458,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.1",
+        "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
@@ -494,6 +482,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.7",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
@@ -588,13 +577,8 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",
         },
-        "GradleSyncKtsIntegrationTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.gradle.project.sync.GradleSyncKtsIntegrationTest",
-            "tags": ["no_windows"],
-        },
         "other": {
-            "shard_count": 4,
+            "shard_count": 3,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",

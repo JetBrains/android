@@ -57,7 +57,7 @@ public class FileResourceReader {
   private static final LoadingCache<String, ZipMap> sZipCache = CacheBuilder.newBuilder()
     .maximumSize(10)
     .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build(new CacheLoader<String, ZipMap>() {
+    .build(new CacheLoader<>() {
       @Override
       public ZipMap load(@NotNull String path) throws IOException {
         return ZipMap.from(Paths.get(path));

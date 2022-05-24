@@ -18,9 +18,8 @@ package com.android.tools.idea.stats;
 import com.android.tools.analytics.Anonymizer;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 public class AnonymizerUtil {
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";

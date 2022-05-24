@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.draw
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.CHECK_BOX
+import com.android.SdkConstants.IMAGE_BUTTON
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.PROGRESS_BAR
+import com.android.SdkConstants.RELATIVE_LAYOUT
+import com.android.SdkConstants.SEEK_BAR
+import com.android.SdkConstants.SWITCH
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneContext

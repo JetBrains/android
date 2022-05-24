@@ -22,9 +22,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
@@ -44,6 +46,11 @@ class MoveTabActionTest {
   private val content1 by lazy { createContent(toolWindow) }
   private val content2 by lazy { createContent(toolWindow) }
   private val content3 by lazy { createContent(toolWindow) }
+
+  @After
+  fun tearDown(){
+    Disposer.dispose(project)
+  }
 
   @Test
   fun presentation() {

@@ -58,7 +58,6 @@ import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -306,7 +305,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         return;
       }
 
-      myToBeFlattened = Lists.newArrayList();
+      myToBeFlattened = new ArrayList<>();
       processComponent(myLayout);
 
       flatten();
@@ -399,7 +398,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
             continue;
           }
           if (toDelete == null) {
-            toDelete = Lists.newArrayList();
+            toDelete = new ArrayList<>();
           }
           toDelete.add(name);
         }
@@ -438,7 +437,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       }
       documentManager.doPostponedOperationsAndUnblockDocument(document);
 
-      List<TextRange> ranges = Lists.newArrayList();
+      List<TextRange> ranges = new ArrayList<>();
       for (NlComponent component : myToBeFlattened) {
         XmlTag tag = component.getTagDeprecated();
         PsiElement openStart = null;

@@ -1,0 +1,32 @@
+<idea-plugin>
+  <extensionPoints>
+    <extensionPoint qualifiedName="org.jetbrains.kotlin.android.model.androidModuleInfoProvider"
+                    interface="org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider"
+                    area="IDEA_MODULE"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <psi.treeChangePreprocessor implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor"/>
+    <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidGotoDeclarationHandler"/>
+    <referencesSearch implementation="org.jetbrains.kotlin.AndroidExtensionsReferenceSearchExecutor"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <projectResolve implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsProjectResolverExtension"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <expressionCodegenExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.IDEAndroidExtensionsExpressionCodegenExtension"/>
+    <storageComponentContainerContributor implementation="org.jetbrains.kotlin.android.synthetic.AndroidExtensionPropertiesComponentContainerContributor"/>
+    <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.IDEAndroidOnDestroyClassBuilderInterceptorExtension"/>
+    <packageFragmentProviderExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.res.IDEAndroidPackageFragmentProviderExtension"/>
+    <simpleNameReferenceExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidSimpleNameReferenceExtension"/>
+    <kotlinIndicesHelperExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidIndicesHelperExtension"/>
+    <gradleProjectImportHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsGradleImportHandler"/>
+    <completionInformationProvider implementation="org.jetbrains.kotlin.AndroidExtensionsCompletionInformationProvider" />
+    <expressionCodegenExtension implementation="org.jetbrains.kotlin.android.parcel.IDEParcelableCodegenExtension"/>
+    <syntheticResolveExtension implementation="org.jetbrains.kotlin.android.parcel.IDEParcelableResolveExtension"/>
+    <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
+    <quickFixContributor implementation="org.jetbrains.kotlin.android.parcel.quickfixes.ParcelableQuickFixContributor"/>
+  </extensions>
+</idea-plugin>

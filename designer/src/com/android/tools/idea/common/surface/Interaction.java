@@ -16,11 +16,10 @@
 package com.android.tools.idea.common.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import org.intellij.lang.annotations.JdkConstants.InputEventMask;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An interaction is a mouse or keyboard driven user operation, such as a

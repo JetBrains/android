@@ -15,10 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -50,6 +61,10 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
     var name = ""
     when (resolvedName) {
       IdeArtifactName.MAIN -> icon = AllIcons.Modules.SourceRoot
+      IdeArtifactName.TEST_FIXTURES -> {
+        name = "TestFixtures"
+        icon = AllIcons.Modules.SourceRoot
+      }
       IdeArtifactName.ANDROID_TEST -> {
         name = "AndroidTest"
         icon = ANDROID_TEST_ROOT
@@ -122,6 +137,11 @@ fun getPossibleConfigurationNames(
       configurationNames.add(ANDROID_TEST_API)
       configurationNames.add(ANDROID_TEST_IMPLEMENTATION)
     }
+    IdeArtifactName.TEST_FIXTURES -> {
+      configurationNames.add(TEST_FIXTURES_COMPILE)
+      configurationNames.add(TEST_FIXTURES_API)
+      configurationNames.add(TEST_FIXTURES_IMPLEMENTATION)
+    }
   }
 
   when (resolvedName) {
@@ -153,6 +173,11 @@ fun getPossibleConfigurationNames(
         configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + API_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
+      }
+      IdeArtifactName.TEST_FIXTURES -> {
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + COMPILE_SUFFIX)
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + API_SUFFIX)
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
       }
     }
   }

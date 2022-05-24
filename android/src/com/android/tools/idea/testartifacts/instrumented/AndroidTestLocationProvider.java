@@ -24,11 +24,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidTestLocationProvider implements SMTestLocator {
   public static final String PROTOCOL_ID = "android";
@@ -41,7 +40,7 @@ public class AndroidTestLocationProvider implements SMTestLocator {
     if (PROTOCOL_ID.equals(protocol)) {
       PsiElement element = findElement(path, project, scope);
       if (element != null) {
-        return Collections.singletonList((Location)new PsiLocation<PsiElement>(project, element));
+        return Collections.singletonList((Location)new PsiLocation<>(project, element));
       }
     }
 

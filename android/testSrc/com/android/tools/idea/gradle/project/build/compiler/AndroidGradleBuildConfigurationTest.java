@@ -19,9 +19,8 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CONTINUE_BUILD_OPT
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Lists;
-import junit.framework.TestCase;
-
 import java.util.Collection;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link AndroidGradleBuildConfiguration}.

@@ -325,11 +325,11 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     fun AgpUpgradeComponentRefactoringProcessor.isRewriteDeprecatedOperators() =
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REWRITE_DEPRECATED_OPERATORS
 
-    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersion"))
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ResConfigs"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
     processor.classpathRefactoringProcessor.isEnabled = false
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRewriteDeprecatedOperators() }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionExpected"))
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ResConfigsExpected"))
   }
 }

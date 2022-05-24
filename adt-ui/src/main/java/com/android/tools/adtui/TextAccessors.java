@@ -17,11 +17,12 @@ package com.android.tools.adtui;
 
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.ui.TextAccessor;
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.text.JTextComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 /**
  * Adapts different text components to a common interface.

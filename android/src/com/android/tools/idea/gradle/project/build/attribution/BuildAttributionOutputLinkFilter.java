@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.attribution;
 
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +48,7 @@ public class BuildAttributionOutputLinkFilter implements Filter {
     return new HyperlinkInfo() {
       @Override
       public void navigate(@NotNull Project project) {
-        ServiceManager.getService(project, BuildAttributionManager.class).openResultsTab();
+        project.getService(BuildAttributionManager.class).openResultsTab();
       }
     };
   }

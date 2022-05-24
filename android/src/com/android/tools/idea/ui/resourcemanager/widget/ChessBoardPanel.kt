@@ -20,7 +20,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.LayoutManager

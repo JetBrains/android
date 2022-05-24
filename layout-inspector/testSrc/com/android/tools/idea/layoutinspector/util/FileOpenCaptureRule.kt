@@ -55,6 +55,10 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
   }
 
+  fun checkNoNavigation() {
+    Mockito.verifyNoInteractions(fileManager!!)
+  }
+
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
     val text = String(file.contentsToByteArray(), Charsets.UTF_8)
     val line = StringUtil.offsetToLineColumn(text, offset)

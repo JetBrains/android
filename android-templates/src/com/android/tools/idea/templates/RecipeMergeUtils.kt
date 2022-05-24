@@ -69,7 +69,8 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
   fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val report = mergeManifest(context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
+    val namespace = context.moduleTemplateData?.packageName ?: ""
+    val report = mergeManifest(namespace, context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }
@@ -221,7 +222,7 @@ private fun areXmlTagsEquivalent(element1: XmlTag, element2: XmlTag): Boolean {
 /**
  * Merges the given manifest fragment into the given manifest file
  */
-private fun mergeManifest(moduleRoot: File, targetManifest: File,
+private fun mergeManifest(namespace: String, moduleRoot: File, targetManifest: File,
                           targetXml: String, mergeText: String): MergingReport? {
   try {
     val isMasterManifest = FileUtil.filesEqual(moduleRoot, targetManifest.parentFile)
@@ -232,6 +233,7 @@ private fun mergeManifest(moduleRoot: File, targetManifest: File,
       .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
                     ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
                     ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
+      .setNamespace(namespace)
       .addFlavorAndBuildTypeManifest(tempFile2)
       .asType(if (isMasterManifest) XmlDocument.Type.MAIN else XmlDocument.Type.OVERLAY)
       .withFileStreamProvider(object : ManifestMerger2.FileStreamProvider() {

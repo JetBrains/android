@@ -15,6 +15,64 @@
  */
 package com.android.tools.idea.lang.databinding.highlight;
 
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.AND;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.ANDAND;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.ASTERISK;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.BOOLEAN_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.BYTE_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.CHARACTER_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.CHAR_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.CLASS_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.COLON;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.DEFAULT_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.DIV;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.DOUBLE_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.DOUBLE_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.EQ;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.EQEQ;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.EXCL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.FALSE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.FLOAT_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.FLOAT_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.GT;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.GTEQ;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.GTGT;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.GTGTGT;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.INSTANCEOF_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.INTEGER_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.INT_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LBRACKET;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LONG_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LONG_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LPARENTH;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LT;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.LTLT;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.MINUS;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.NE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.NULL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.OR;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.OROR;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.PLUS;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.QUEST;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.QUESTQUEST;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.RBRACKET;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.RESOURCE_REFERENCE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.RPARENTH;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.SHORT_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.STRING_LITERAL;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.TILDE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.TRUE;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.VOID_KEYWORD;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.XOR;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.BRACKETS;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.KEYWORD;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.MARKUP_ATTRIBUTE;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.NUMBER;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.OPERATION_SIGN;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.PARENTHESES;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.STRING;
+
 import com.android.tools.idea.lang.databinding._DbLexer;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.google.common.collect.Maps;
@@ -25,12 +83,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
-
-import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
-import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.*;
+import org.jetbrains.annotations.NotNull;
 
 public class DbSyntaxHighlighter extends SyntaxHighlighterBase {
 

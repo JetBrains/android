@@ -21,13 +21,22 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
+import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInspection.CommonProblemDescriptor;
+import com.intellij.codeInspection.GlobalInspectionTool;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionManagerEx;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.codeInspection.reference.RefEntity;
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.impl.ProjectImpl;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Segment;
@@ -38,29 +47,26 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceContributor;
+import com.intellij.testFramework.InspectionTestUtil;
+import com.intellij.testFramework.InspectionsKt;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.AppScheduledExecutorService;
+import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -75,7 +81,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
 
   protected JavaCodeInsightTestFixture myFixture;
-  private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
+  protected MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
@@ -90,22 +96,15 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-    Callable<Void> callable = () -> {
-      ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-      return null;
-    };
-    callable.call();
-    AppScheduledExecutorService service = (AppScheduledExecutorService)AppExecutorUtil.getAppScheduledExecutorService();
-    List<Future<Void>> futures = service.invokeAll(Collections.nCopies(service.getBackendPoolExecutorSize(), callable));
-    for (Future<Void> future : futures) {
-      future.get();
+    // super.tearDown will dispose testRootDisposable, which may invoke methods on mocked objects => project may leak
+    // super.tearDown will also clean all the local fields. Make a copy of mockitoCleaner to invoke cleanupAndTearDown() after super.
+    MockitoThreadLocalsCleaner cleaner = mockitoCleaner;
+    try {
+      super.tearDown();
     }
-    myFixture = null;
-
-    super.tearDown();
-
-    mockitoCleaner.cleanupAndTearDown();
+    finally {
+      cleaner.cleanupAndTearDown();
+    }
     checkUndisposedAndroidRelatedObjects();
   }
 
@@ -117,7 +116,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     DisposerExplorer.visitTree(disposable -> {
       if (allLeakedDisposables.contains(disposable) ||
           disposable.getClass().getName().startsWith("com.android.tools.analytics.HighlightingStats") ||
-          (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
+          (disposable instanceof ProjectEx && (((ProjectEx)disposable).isDefault() || ((ProjectEx)disposable).isLight())) ||
           disposable.toString().startsWith("services of ") || // See ComponentManagerImpl.serviceParentDisposable.
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
           disposable instanceof PsiReferenceContributor) {
@@ -132,13 +131,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       return DisposerExplorer.VisitResult.CONTINUE;
     });
     if (!firstLeak.isNull()) {
-      Disposable disposable = firstLeak.get();
-      Disposable parent = DisposerExplorer.getParent(disposable);
-      String baseMsg = "Undisposed object '" + disposable + "' of type '" + disposable.getClass().getName() + "'";
-      if (parent == null) {
+        Disposable root = firstLeak.get();
+        StringBuilder disposerChain = new StringBuilder(root.toString());
+        Disposable parent;
+        while ((parent = DisposerExplorer.getParent(root)) != null) {
+          root = parent;
+          disposerChain.append(" <- ").append(root);
+        }
+      String baseMsg = "Undisposed object of type " + root.getClass().getName() + ": " + disposerChain.append(" (root)") + "'";
+      if (DisposerExplorer.getParent(firstLeak.get()) == null) {
         throw new RuntimeException(
           baseMsg + ", registered as a root disposable (see cause for creation trace)",
-          DisposerExplorer.getTrace(disposable));
+          DisposerExplorer.getTrace(firstLeak.get()));
       } else {
         throw new RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.getClass().getName() + "'");
       }
@@ -310,5 +314,31 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       sb.append(":?");
     }
     sb.append('\n');
+  }
+
+  protected SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
+    @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
+    return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
+  }
+
+  /**
+   * Given an inspection and a path to a directory that contains an "expected.xml" file, run the
+   * inspection on the current test project and verify that its output matches that of the
+   * expected file.
+   */
+  protected SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
+    @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
+    myFixture.enableInspections(wrapper.getTool());
+
+    scope.invalidate();
+
+    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
+    GlobalInspectionContextForTests globalContext =
+      InspectionsKt.createGlobalContextForTool(scope, getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
+
+    InspectionTestUtil.runTool(wrapper, scope, globalContext);
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, myFixture.getTestDataPath() + globalTestDir);
+
+    return globalContext.getPresentation(wrapper).getProblemElements();
   }
 }

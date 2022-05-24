@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.gct.testrecorder.ui.RecordingDialog;
+import javax.swing.JDialog;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 /** Fixture for {@link com.google.gct.testrecorder.ui.RecordingDialog}. */
 public class RecordingDialogFixture extends IdeaDialogFixture<RecordingDialog> {

@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea;
 
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
+import java.util.List;
+import org.junit.Test;
 
 public class LogAnonymizerUtilTest {
   @Test

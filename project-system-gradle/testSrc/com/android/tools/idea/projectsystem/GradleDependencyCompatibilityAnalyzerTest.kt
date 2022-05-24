@@ -16,10 +16,10 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -321,7 +321,6 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(foundDependency.version!!.major).isEqualTo(23)
 
     // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
     if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
       assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")

@@ -87,9 +87,7 @@ public class AddInstantModuleTest {
     ideFrame.getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .invokeMenuPath("New", "Module");
-
-    NewModuleWizardFixture.find(ideFrame)
+      .openFromContextualMenu(NewModuleWizardFixture::find, "New", "Module")
       .clickNextToInstantDynamicFeature()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();

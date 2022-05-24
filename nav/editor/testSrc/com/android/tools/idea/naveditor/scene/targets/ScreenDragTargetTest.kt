@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
@@ -23,8 +24,6 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.common.LayoutTestUtilities
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.event.MouseEvent.BUTTON1
 

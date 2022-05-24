@@ -35,11 +35,11 @@ import com.google.wireless.android.sdk.stats.NavPropertyInfo.TagType.ACTION_TAG
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.`when`
 import java.awt.Font
 import javax.swing.JComboBox
 import javax.swing.JLabel

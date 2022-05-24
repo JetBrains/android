@@ -22,11 +22,9 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil;
 import com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Check that all {@link com.android.tools.idea.run.AndroidRunConfiguration AndroidRunConfigurations} of an Android project
@@ -38,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public final class RunConfigurationChecker  {
   @NotNull private final Project myProject;
-  @NotNull private AtomicBoolean myCheckPerformed = new AtomicBoolean();
+  @NotNull private final AtomicBoolean myCheckPerformed = new AtomicBoolean();
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public RunConfigurationChecker(@NotNull Project project) {
@@ -47,7 +45,7 @@ public final class RunConfigurationChecker  {
 
   @NotNull
   public static RunConfigurationChecker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, RunConfigurationChecker.class);
+    return project.getService(RunConfigurationChecker.class);
   }
 
   public void ensureRunConfigsInvokeBuild() {

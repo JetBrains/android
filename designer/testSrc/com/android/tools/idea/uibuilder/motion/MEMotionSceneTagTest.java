@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.motion;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.motion.adapters.MTestXmlFile;
-import java.util.ArrayList;
 import junit.framework.TestCase;
 
 public class MEMotionSceneTagTest extends TestCase {

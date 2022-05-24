@@ -15,11 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.ADDITIONAL_PARAMETERS;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.JAVA_MAX_HEAP_SIZE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.JUMBO_MODE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.KEEP_RUNTIME_ANNOTATED_CLASSES;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.MAX_PROCESS_COUNT;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.OPTIMIZE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.PRE_DEX_LIBRARIES;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.THREAD_COUNT;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;

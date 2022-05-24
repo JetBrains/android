@@ -21,6 +21,7 @@ import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.utils.keysToMap
@@ -35,6 +36,9 @@ class BuildAnalyzerComboBoxViewTest {
   val applicationRule: ApplicationRule = ApplicationRule()
 
   @get:Rule
+  val disposableRule: DisposableRule = DisposableRule()
+
+  @get:Rule
   val edtRule = EdtRule()
 
   val model = BuildAnalyzerViewModel(MockUiData(), BuildAttributionWarningsFilter())
@@ -43,7 +47,7 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Before
   fun setUp() {
-    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
+    view = BuildAnalyzerComboBoxView(model, mockHandlers, disposableRule.disposable).apply {
       wholePanel.size = Dimension(600, 200)
     }
   }

@@ -75,7 +75,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   )
 
   applyPlugin("com.android.dynamic-feature", projectData.gradlePluginVersion)
-  addKotlinIfNeeded(projectData)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.api)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))

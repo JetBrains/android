@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import java.io.File;
 import java.util.function.Supplier;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-
-import java.io.File;
 
 /** Rule that takes a screenshot when the test fails. */
 class ScreenshotOnFailure extends TestWatcher {

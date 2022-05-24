@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -27,7 +28,8 @@ import com.intellij.openapi.project.Project
  */
 internal class HeaderFormatOptionsAction(
   private val project: Project,
-  private val formattingOptions: FormattingOptions, private val refreshDocument: () -> Unit,
+  private val logcatPresenter: LogcatPresenter,
+  private val formattingOptions: FormattingOptions,
 ) : DumbAwareAction(
   LogcatBundle.message("logcat.header.options.title"),
   LogcatBundle.message("logcat.header.options.description"),
@@ -37,7 +39,7 @@ internal class HeaderFormatOptionsAction(
     val dialog = HeaderFormatOptionsDialog(project, formattingOptions)
     if (dialog.dialogWrapper.showAndGet()) {
       dialog.applyTo(formattingOptions)
-      refreshDocument()
+      logcatPresenter.reloadMessages()
     }
   }
 }

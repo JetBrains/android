@@ -16,18 +16,10 @@
 package com.android.tools.idea.tests.gui.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.faketransport.commands.CommandHandler
-import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
-import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement

@@ -19,7 +19,8 @@
                     interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"
                     area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="com.android.androidStartupActivity"
-                    interface="com.android.tools.idea.AndroidStartupActivity"/>
+                    interface="com.android.tools.idea.AndroidStartupActivity"
+                    dynamic="true"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>

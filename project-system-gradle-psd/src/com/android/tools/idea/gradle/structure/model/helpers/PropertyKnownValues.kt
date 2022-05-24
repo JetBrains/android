@@ -17,8 +17,15 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
+import com.android.tools.idea.gradle.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -33,21 +40,15 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
-import kotlin.streams.toList
 
 fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
@@ -72,7 +73,8 @@ fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<St
 fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
   ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
   ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
-  ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8")
+  ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
+  ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11"),
 ))
 
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
@@ -142,34 +144,40 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
     model.parent.parent.repositorySearchFactory
       .create(model.parent.getArtifactRepositories())
       .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
-    MoreExecutors.directExecutor())
+    { it!!.toVersionValueDescriptors() },
+    directExecutor())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
   Futures.transform(
     model.repositorySearchFactory
-      .create(model.getBuildScriptArtifactRepositories())
+      .create(model.getPluginArtifactRepositories())
       .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
-    MoreExecutors.directExecutor())
-
+    { sr ->
+      val searchResult = sr!!
+      val versions = searchResult.artifacts.flatMap { it.versions }.distinct().toSet()
+      val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      // return only results that will not lead to forced upgrades
+      searchResult.toVersionValueDescriptors { computeGradlePluginUpgradeState(it, latestKnown, versions).importance != FORCE }
+    },
+    directExecutor())
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
-      override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
+      override val literals: List<ValueDescriptor<String>> =
+        it.sortedByDescending { GradleVersion.tryParse(it) }.map { ValueDescriptor(it) }
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }
 
 @VisibleForTesting
-fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
+fun SearchResult.toVersionValueDescriptors(filter: (GradleVersion) -> Boolean = { true }): List<ValueDescriptor<String>> =
   artifacts
     .flatMap { it.versions }
     .distinct()
+    .filter(filter)
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
-
 
 fun <T : PsChildModel> ListProperty<T, File>.withProFileSelector(module: T.() -> PsAndroidModule) =
   withFileSelectionRoot(

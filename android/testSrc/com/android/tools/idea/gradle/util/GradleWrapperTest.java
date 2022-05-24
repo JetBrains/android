@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
@@ -27,7 +27,7 @@ import com.android.SdkConstants;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectStoreOwner;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
-public class GradleWrapperTest extends PlatformTestCase {
+public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);

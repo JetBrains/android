@@ -25,58 +25,39 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
-  private var componentStack: ComponentStack? = null
+  protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   protected var model: InspectorModel? = null
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setUp() {
     val project = projectRule.project
     model = model(project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
-    val fileManager = Mockito.mock(FileEditorManager::class.java)
-    Mockito.`when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    @Suppress("UnstableApiUsage")
-    Mockito.`when`(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
-    Mockito.`when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack = ComponentStack(project)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
-    val propertiesComponent = PropertiesComponentMock()
-    projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
+    projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     model!!.resourceLookup.dpi = 560
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
 
   @After
   fun tearDown() {
-    componentStack!!.restore()
-    componentStack = null
     model = null
   }
 
@@ -115,20 +96,11 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
     ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, null, "",
                     0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17, 0)
 
-  protected fun browseProperty(attrName: String,
-                             type: Type,
-                             source: ResourceReference?): OpenFileDescriptor {
+  protected fun browseProperty(attrName: String, type: Type, source: ResourceReference?) {
     val node = model!!["title"]!!
     val property = InspectorPropertyItem(
       ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node.drawId, model!!)
-    val fileManager = FileEditorManager.getInstance(projectRule.project)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-
     property.helpSupport.browse()
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    return file.value
   }
 }
 
@@ -330,10 +302,8 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
 
   @Test
   fun testBrowseBackgroundInLayout() {
-    val descriptor = browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
-    assertThat(descriptor.file.name).isEqualTo("demo.xml")
-    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
-      .isEqualTo("framework:background=\"@drawable/battery\"")
+    browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
+    fileOpenCaptureRule.checkEditor("demo.xml", 14, "framework:background=\"@drawable/battery\"")
   }
 }
 
@@ -342,9 +312,7 @@ class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidPro
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
-    val descriptor = browseProperty(ATTR_TEXT_SIZE, Type.INT32, textAppearance)
-    assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
-    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
-      .isEqualTo("<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
+    browseProperty(ATTR_TEXT_SIZE, Type.INT32, textAppearance)
+    fileOpenCaptureRule.checkEditor("styles_material.xml", 228, "<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
   }
 }

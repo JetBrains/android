@@ -16,11 +16,11 @@
 package com.android.tools.idea.logcat;
 
 import com.intellij.execution.ConsoleFolding;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /** {@link AndroidLogcatReceiver} expands stack traces that were elided "(...N more)". This folds just those additional lines. */
 public class ExceptionFolding extends ConsoleFolding {
@@ -33,5 +33,10 @@ public class ExceptionFolding extends ConsoleFolding {
   @Override
   public String getPlaceholderText(@NotNull Project project, @NotNull List<String> lines) {
     return " <" + lines.size() + " more...>";
+  }
+
+  @Override
+  public boolean isEnabledForConsole(@NotNull ConsoleView consoleView) {
+    return consoleView.getComponent().getParent() instanceof AndroidLogConsole;
   }
 }

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.adb;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class AdbShellCommandResult {
   @NotNull private String myCommand;

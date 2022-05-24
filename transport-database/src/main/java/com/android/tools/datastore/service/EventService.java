@@ -24,14 +24,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service

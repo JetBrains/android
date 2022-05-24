@@ -18,11 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
-import javax.swing.*;
 
 public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
 
@@ -39,7 +40,7 @@ public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
   public static DeleteDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
     Robot robot = ideFrame.robot();
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Delete").and(
-      new GenericTypeMatcher<JDialog>(JDialog.class) {
+      new GenericTypeMatcher<>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, SafeDeleteDialog.class) != null;

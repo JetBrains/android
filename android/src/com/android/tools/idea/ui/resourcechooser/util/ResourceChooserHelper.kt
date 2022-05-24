@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.util
 
-import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -29,6 +29,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialG
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
@@ -56,7 +57,7 @@ import javax.swing.JTable
  * @param file The context file with a Configuration, used for theme attributes
  */
 fun createResourcePickerDialog(
-  dialogTitle: String,
+  @NlsContexts.DialogTitle dialogTitle: String,
   currentValue: String?,
   facet: AndroidFacet,
   resourceTypes: Set<ResourceType>,
@@ -94,7 +95,7 @@ fun createResourcePickerDialog(
  */
 fun createAndShowColorPickerPopup(
   initialColor: Color?,
-  initialColorResource: ResourceReference?,
+  initialColorResource: ResourceValue?,
   configuration: Configuration?,
   resourcePickerSources: List<ResourcePickerSources>,
   restoreFocusComponent: Component?,

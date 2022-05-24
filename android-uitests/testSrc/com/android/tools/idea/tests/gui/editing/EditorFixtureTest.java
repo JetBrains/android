@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -25,8 +27,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class EditorFixtureTest {

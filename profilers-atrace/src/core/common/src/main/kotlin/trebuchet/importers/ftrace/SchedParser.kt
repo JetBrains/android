@@ -17,9 +17,7 @@
 package trebuchet.importers.ftrace
 
 import trebuchet.model.SchedulingState
-import trebuchet.model.fragments.ThreadModelFragment
 import trebuchet.util.PreviewReader
-import java.util.regex.Pattern
 
 object SchedParser : FunctionHandlerRegistry() {
     init {
@@ -83,8 +81,7 @@ object SchedParser : FunctionHandlerRegistry() {
     }
 
     private fun PreviewReader.readSchedulingState(): SchedulingState {
-        val byte = readByte()
-        return when (byte) {
+      return when (readByte()) {
             'S'.toByte() -> SchedulingState.SLEEPING
             'R'.toByte() -> SchedulingState.RUNNABLE
             'D'.toByte() -> {

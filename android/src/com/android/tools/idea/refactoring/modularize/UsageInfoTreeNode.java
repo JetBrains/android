@@ -28,9 +28,8 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.usageView.UsageInfo;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class UsageInfoTreeNode extends DependencyTreeNode {
 
@@ -47,7 +46,7 @@ public class UsageInfoTreeNode extends DependencyTreeNode {
 
   @Override
   public void render(@NotNull ColoredTreeCellRenderer renderer) {
-    renderer.setIcon(ApplicationManager.getApplication().runReadAction(new Computable<Icon>() {
+    renderer.setIcon(ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       public Icon compute() {
         return myPsiElement.getIcon(Iconable.ICON_FLAG_VISIBILITY | Iconable.ICON_FLAG_READ_STATUS);

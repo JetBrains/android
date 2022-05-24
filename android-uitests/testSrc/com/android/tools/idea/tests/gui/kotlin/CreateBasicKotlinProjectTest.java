@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinProj;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinProj;
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateBasicKotlinProjectTest {

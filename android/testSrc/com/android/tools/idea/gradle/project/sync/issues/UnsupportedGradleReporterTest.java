@@ -53,7 +53,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(IdeSyncIssue.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnsupportedGradleReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
   }

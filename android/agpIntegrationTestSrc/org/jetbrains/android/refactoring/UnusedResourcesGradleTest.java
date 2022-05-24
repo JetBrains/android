@@ -15,14 +15,14 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_GROOVY;
+import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_KTS;
+
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
-
-import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_GROOVY;
-import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_KTS;
 
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is

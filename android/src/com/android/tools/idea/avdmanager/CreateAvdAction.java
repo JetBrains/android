@@ -17,9 +17,8 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Invoke the wizard to create a new AVD

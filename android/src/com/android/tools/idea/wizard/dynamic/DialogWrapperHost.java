@@ -31,16 +31,28 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.border.EmptyBorder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Uses {@link DialogWrapper} to display a wizard in a dialog
@@ -53,7 +65,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
 
   private DynamicWizard myWizard;
   private TallImageComponent myIcon = new TallImageComponent(null);
-  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<ProgressIndicator>();
+  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<>();
 
   private JPanel myCenterPanel;
 

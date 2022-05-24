@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.LocaleColumnFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableColumnFilter;
@@ -26,10 +25,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import java.util.stream.IntStream;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import javax.swing.JComponent;
-import java.util.stream.IntStream;
 
 class FilterLocalesAction extends ComboBoxAction {
 
@@ -79,7 +78,7 @@ class FilterLocalesAction extends ComboBoxAction {
 
   @NotNull
   private AnAction newShowLocaleAction(@NotNull Locale locale) {
-    String text = "Show " + LocaleMenuAction.getLocaleLabel(locale, false);
+    String text = "Show " + Locale.getLocaleLabel(locale, false);
 
     return new AnAction(text, null, locale.getFlagImage()) {
       @Override

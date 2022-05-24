@@ -17,96 +17,49 @@ package com.android.tools.idea.run.deployment
 
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.ide.HelpTooltip
-import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import org.jetbrains.android.util.AndroidBundle
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JList
 
-internal open class UpdatableDeviceHelpTooltip : HelpTooltip() {
+internal class UpdatableDeviceHelpTooltip {
   private var myCompatibility: LaunchCompatibility? = null
+  private var owner: JComponent? = null
 
-  init {
-    createMouseListeners()
+  fun installOn(component: JComponent) {
+    owner = component
   }
 
-  protected open fun createCustomMouseListener(): MouseAdapter {
-    return object : MouseAdapter() {
-      override fun mouseEntered(event: MouseEvent) {
-        if (myCompatibility == null || myCompatibility!!.state == LaunchCompatibility.State.OK) {
-          return
-        }
-        myMouseListener.mouseEntered(event)
-      }
-
-      override fun mouseExited(event: MouseEvent) = myMouseListener.mouseExited(event)
-
-      override fun mouseMoved(event: MouseEvent) {
-        if (myCompatibility == null || myCompatibility!!.state == LaunchCompatibility.State.OK) {
-          return
-        }
-        myMouseListener.mouseMoved(event)
-      }
-    }
-  }
-
-  override fun installOn(component: JComponent) {
-    val listener = createCustomMouseListener()
-    component.addMouseListener(listener)
-    component.addMouseMotionListener(listener)
-  }
-
-  protected fun updateTooltip(device: Device) {
+  fun updateTooltip(device: Device) {
     val compatibility = device.launchCompatibility
-    if (compatibility == myCompatibility) {
+    if (owner == null || compatibility == myCompatibility) {
       return
     }
-    myCompatibility = compatibility
-    hidePopup(true)
 
-    val title = when (compatibility.state) {
-      LaunchCompatibility.State.OK -> return
-      LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
-      LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
+    cancel()
+    myCompatibility = compatibility
+
+    val helpTooltip = HelpTooltip()
+    if (updateTooltip(device, helpTooltip)) {
+      helpTooltip.installOn(owner!!)
     }
-    initPopupBuilder(HelpTooltip().setTitle(title).setDescription(compatibility.reason))
   }
 
   fun cancel() {
     myCompatibility = null
-    hidePopup(true)
+    if (owner != null) {
+      HelpTooltip.dispose(owner!!)
+    }
   }
 }
 
-internal class UpdatableDeviceHelpTooltipForList : UpdatableDeviceHelpTooltip() {
-  private fun getDeviceForEvent(event: MouseEvent): Device? {
-    val list = event.component as JList<*>
-    val index = list.locationToIndex(event.point)
-    val action = (list.model.getElementAt(index) as ActionItem).action
-
-    return when (action) {
-      is SelectDeviceAction -> action.device
-      is SnapshotActionGroup -> action.device
-      else -> null
-    }
+internal fun updateTooltip(device: Device, helpTooltip: HelpTooltip): Boolean {
+  val title = when (device.launchCompatibility.state) {
+    LaunchCompatibility.State.OK -> return false
+    LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
+    LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
   }
 
-  override fun createCustomMouseListener(): MouseAdapter {
-    val listener = super.createCustomMouseListener()
+  helpTooltip.setTitle(title)
+  helpTooltip.setDescription(device.launchCompatibility.reason)
 
-    return object : MouseAdapter() {
-      override fun mouseEntered(event: MouseEvent) {
-        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
-        listener.mouseEntered(event)
-      }
-
-      override fun mouseExited(event: MouseEvent) = listener.mouseExited(event)
-
-      override fun mouseMoved(event: MouseEvent) {
-        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
-        listener.mouseMoved(event)
-      }
-    }
-  }
+  return true
 }

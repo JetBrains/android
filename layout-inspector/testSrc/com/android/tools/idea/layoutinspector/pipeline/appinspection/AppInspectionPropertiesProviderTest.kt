@@ -70,7 +70,7 @@ class AppInspectionPropertiesProviderTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(), projectRule) {
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
     it.name == MODERN_PROCESS.name
   }
 
@@ -87,6 +87,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
+    inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   @Test
@@ -147,7 +148,7 @@ class AppInspectionPropertiesProviderTest {
       val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
-        assertProperty("backgroundTint", PropertyType.COLOR, "#22FF00", namespace = APP_NAMESPACE)
+        assertProperty("backgroundTint", PropertyType.COLOR, "#4422FF00", namespace = APP_NAMESPACE)
       }
       // Assert that "android:backgroundTint" is omitted
       assertThat(result.table.getByNamespace(ANDROID_URI)).isEmpty()

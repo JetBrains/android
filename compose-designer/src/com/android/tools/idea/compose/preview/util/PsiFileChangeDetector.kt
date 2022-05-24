@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.google.common.base.Objects
+import com.intellij.ide.PowerSaveMode
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -194,8 +195,10 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
   }
 
   override fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean): Boolean {
-    if (isFileTooLarge(file)) {
-      log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
+    // If the file is too large, or we are in power save mode, do a simple check.
+    val isFileTooLarge = isFileTooLarge(file)
+    if (isFileTooLarge || PowerSaveMode.isEnabled()) {
+      if (isFileTooLarge) log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
       return naiveDetector.hasFileChanged(file, updateOnCheck)
     }
 
@@ -205,11 +208,13 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
   override fun markFileAsUpToDate(file: PsiFile) {
     // First use the naive change detector to avoid running an expensive change calculation where there have been no changes at all
     if (!naiveDetector.hasFileChanged(file, false)) return
-    if (!isFileTooLarge(file)) {
+
+    val isFileTooLarge = isFileTooLarge(file)
+    if (!isFileTooLarge && !PowerSaveMode.isEnabled()) {
       calculateAndCheckFileHash(file, true)
     }
     else {
-      log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
+      if (isFileTooLarge) log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
     }
     naiveDetector.markFileAsUpToDate(file)
   }

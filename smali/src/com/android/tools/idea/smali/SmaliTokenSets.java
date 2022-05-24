@@ -15,9 +15,45 @@
  */
 package com.android.tools.idea.smali;
 
-import com.intellij.psi.tree.TokenSet;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_ABSTRACT;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_BRIDGE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_FINAL;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_INTERFACE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_NATIVE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_PRIVATE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_PROTECTED;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_PUBLIC;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_STATIC;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_SYNCHRONIZED;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_SYNTHETIC;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_TRANSIENT;
+import static com.android.tools.idea.smali.psi.SmaliTypes.AM_VOLATILE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.CHAR;
+import static com.android.tools.idea.smali.psi.SmaliTypes.COMMENT;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_ANNOTATION;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_ANNOTATION_END;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_CLASS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_FIELD;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_IMPLEMENTS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_LINE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_METHOD;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_METHOD_END;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_PARAM;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_PROLOGUE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_REGISTERS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_SOURCE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOT_SUPER;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOUBLE_QUOTED_STRING;
+import static com.android.tools.idea.smali.psi.SmaliTypes.FALSE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.HEX_NUMBER;
+import static com.android.tools.idea.smali.psi.SmaliTypes.L_CURLY;
+import static com.android.tools.idea.smali.psi.SmaliTypes.L_PARENTHESIS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.REGULAR_NUMBER;
+import static com.android.tools.idea.smali.psi.SmaliTypes.R_CURLY;
+import static com.android.tools.idea.smali.psi.SmaliTypes.R_PARENTHESIS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.TRUE;
 
-import static com.android.tools.idea.smali.psi.SmaliTypes.*;
+import com.intellij.psi.tree.TokenSet;
 
 final class SmaliTokenSets {
   private SmaliTokenSets() {

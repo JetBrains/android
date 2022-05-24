@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
     header.setResizingAllowed(false);
 
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
-    setRowHeight(JBUI.scale(40));
+    setRowHeight(JBUIScale.scale(40));
     setRowSelectionAllowed(false);
   }
 
@@ -125,7 +125,7 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
       component = prepareRenderer(getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
     }
 
-    return component.getPreferredSize().width + JBUI.scale(8);
+    return component.getPreferredSize().width + JBUIScale.scale(8);
   }
 
   @Override

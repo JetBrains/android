@@ -16,12 +16,12 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
 import com.google.common.html.HtmlEscapers
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.ToolbarUpdater
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -63,13 +63,21 @@ class CollapsibleLabelPanel(
     }
   }
 
-  private val button = IconWithFocusBorder { if (model.expandable) expandAction else null }
+  private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
+  private val actionButtons = mutableListOf<FocusableActionButton>()
+  private val updater = object : ToolbarUpdater(this) {
+    override fun updateActionsImpl(forced: Boolean) {
+      if (!ApplicationManager.getApplication().isDisposed) {
+        actionButtons.forEach { it.update() }
+      }
+    }
+  }
 
   val text: String?
     get() = label.text
 
   val icon: Icon?
-    get() = button.icon
+    get() = expandButton.icon
 
   var innerBorder: Border?
     get() = label.border
@@ -84,19 +92,18 @@ class CollapsibleLabelPanel(
     if (fontStyle != Font.PLAIN) {
       label.font = label.font.deriveFont(fontStyle)
     }
-    button.border = JBUI.Borders.emptyRight(2)
-    add(button, BorderLayout.WEST)
+    expandButton.border = JBUI.Borders.emptyRight(2)
+    add(expandButton, BorderLayout.WEST)
     add(label, BorderLayout.CENTER)
-    model.addValueChangedListener(ValueChangedListener { valueChanged() })
+    model.addValueChangedListener { valueChanged() }
     if (actions.isNotEmpty()) {
-      val dataManager = DataManager.getInstance()
-      val buttons = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
+      val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
       actions.forEach {
         val button = FocusableActionButton(it)
-        buttons.add(button)
-        model.registerAction(it, it.templatePresentation, dataManager.getDataContext(button))
+        buttonPanel.add(button)
+        actionButtons.add(button)
       }
-      add(buttons, BorderLayout.EAST)
+      add(buttonPanel, BorderLayout.EAST)
     }
     label.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(event: MouseEvent) {
@@ -118,7 +125,7 @@ class CollapsibleLabelPanel(
     label.isVisible = isVisible
     label.text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
     label.foreground = if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
-    button.icon = model.icon
+    expandButton.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
   }

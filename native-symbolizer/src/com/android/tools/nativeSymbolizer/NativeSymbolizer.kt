@@ -18,7 +18,6 @@ package com.android.tools.nativeSymbolizer
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import java.io.File
 import java.io.IOException
@@ -75,9 +74,9 @@ fun getLlvmSymbolizerPath(): String {
   }
 
   val result = if (StudioPathManager.isRunningFromSources()) {
-    Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", os, "lldb", "bin", exe)
+    Paths.get(StudioPathManager.resolveDevPath("prebuilts/tools/${os}/lldb/bin/$exe}"))
   } else {
-    Paths.get(PathManager.getBinPath(), "lldb", "bin", exe)
+    Paths.get(PathManager.getHomePath(), "plugins", "android-ndk", "resources", "lldb", "bin", exe)
   }
   return result.toString()
 }

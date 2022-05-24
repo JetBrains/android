@@ -177,7 +177,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
                                     @NotNull IAndroidTarget projectTarget,
                                     @NotNull AndroidFacet facet,
                                     Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
-                                    @NonNull Set<String> supportedAbis) {
+                                    @NonNull Set<Abi> supportedAbis) {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
     if (myAvdInfo.getStatus() != AvdInfo.AvdStatus.OK) {

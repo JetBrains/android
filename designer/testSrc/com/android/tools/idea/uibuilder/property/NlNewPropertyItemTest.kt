@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_GRAVITY
+import com.android.SdkConstants.ATTR_ORIENTATION
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.SdkConstants.PREFIX_ANDROID
+import com.android.SdkConstants.PREFIX_APP
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth.assertThat

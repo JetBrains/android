@@ -19,7 +19,6 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
-import icons.StudioIcons
 import javax.swing.Icon
 
 class WiFiPairingNotificationServiceImpl(private val project: Project) : WiFiPairingNotificationService {

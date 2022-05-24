@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.logCatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
@@ -40,6 +41,7 @@ class MessageBacklogTest {
     messageBacklog.addAll(listOf(message1, message2, message3))
 
     assertThat(messageBacklog.messages).containsExactly(message2, message3)
+    assertThat(messageBacklog.messages).containsExactly(message2, message3)
   }
 
   @Test
@@ -51,5 +53,52 @@ class MessageBacklogTest {
     messageBacklog.addAll(listOf(message3))
 
     assertThat(messageBacklog.messages).containsExactly(message2, message3)
+  }
+
+  /**
+   * This test indirectly verifies that [MessageBacklog.clear] is implemented properly.
+   */
+  @Test
+  fun clear_resetsSize() {
+    // We use a MessageBacklog that can hold 2 of our messages.
+    val messageBacklog = MessageBacklog(20)
+    // And fill it up so it's at capacity
+    messageBacklog.addAll(listOf(message1, message2))
+
+    // We clear it
+    messageBacklog.clear()
+    // And add 2 messages again
+    messageBacklog.addAll(listOf(message1, message2))
+
+    // If clear() did not also reset the internal size, we would have an empty backlog because as each message is added, the size would
+    // exceed the max size and the message would be deleted.
+    assertThat(messageBacklog.messages).containsExactly(message1, message2)
+  }
+
+  /**
+   * This test indirectly verifies that [MessageBacklog.clear] is implemented properly.
+   */
+  @Test
+  fun clear_resetsSize_largeBatch() {
+    // We use a MessageBacklog that can hold 2 of our messages.
+    val messageBacklog = MessageBacklog(20)
+    // And fill it up so it's at capacity
+    messageBacklog.addAll(listOf(message1, message2))
+
+    // We clear it
+    messageBacklog.clear()
+    // And add 4 messages
+    messageBacklog.addAll(listOf(message1, message1, message2, message3))
+
+    // If clear() did not also reset the internal size, we would have an empty backlog because as each message is added, the size would
+    // exceed the max size and the message would be deleted.
+    assertThat(messageBacklog.messages).containsExactly(message2, message3)
+  }
+
+  @Test
+  fun messages_isUnmodifiable() {
+    val mutableList = MessageBacklog(20).messages as MutableList<LogCatMessage>
+
+    assertThrows(UnsupportedOperationException::class.java, mutableList::clear)
   }
 }

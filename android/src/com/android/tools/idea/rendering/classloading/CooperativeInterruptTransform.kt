@@ -1,6 +1,10 @@
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.*
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 import org.jetbrains.org.objectweb.asm.commons.Method
 import kotlin.reflect.jvm.javaMethod

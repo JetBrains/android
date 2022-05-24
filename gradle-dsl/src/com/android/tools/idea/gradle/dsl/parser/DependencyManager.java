@@ -18,16 +18,16 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.intellij.util.containers.HashSetQueue;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Class to manage unresolved dependencies.
@@ -96,10 +96,13 @@ public final class DependencyManager {
     //  this element, for correctness we have to check all those files.  At the moment this is a loop over all the files to check
     //  whether they apply the file containing the element, which scales badly; information about which files are applied where could
     //  probably be cached and updated at parse-time.
-    for (GradleDslFile buildFile : myUnresolvedReferences.keySet()) {
-      if (!seen.contains(buildFile)) {
-        if (buildFile.getApplyDslElement().contains(thisFile)) {
-          resolveAllIn(buildFile, true);
+    for (GradleDslFile unresolvedFile : myUnresolvedReferences.keySet()) {
+      if (unresolvedFile instanceof GradleScriptFile) {
+        GradleScriptFile scriptFile = (GradleScriptFile)unresolvedFile;
+        if (!seen.contains(scriptFile)) {
+          if (scriptFile.getApplyDslElement().contains(thisFile)) {
+            resolveAllIn(scriptFile, true);
+          }
         }
       }
     }
@@ -109,7 +112,7 @@ public final class DependencyManager {
     List<GradleReferenceInjection> injections = myUnresolvedReferences.getOrDefault(dslFile, new ArrayList<>());
     for (Iterator<GradleReferenceInjection> it = injections.iterator(); it.hasNext(); ) {
       GradleReferenceInjection injection = it.next();
-      GradleDslElement newElement = injection.getOriginElement().resolveExternalSyntaxReference(injection.getName(), true);
+      GradleDslElement newElement = injection.getOriginElement().resolveInternalSyntaxReference(injection.getName(), true);
       if (newElement != null) {
         injection.resolveWith(newElement);
         newElement.registerDependent(injection);
@@ -120,8 +123,11 @@ public final class DependencyManager {
       myUnresolvedReferences.remove(dslFile);
     }
     if (appliedFiles) {
-      for (GradleDslFile appliedFile : dslFile.getApplyDslElement()) {
-        resolveAllIn(appliedFile, true);
+      if (dslFile instanceof GradleScriptFile) {
+        GradleScriptFile scriptFile = (GradleScriptFile)dslFile;
+        for (GradleScriptFile appliedFile : scriptFile.getApplyDslElement()) {
+          resolveAllIn(appliedFile, true);
+        }
       }
     }
   }

@@ -22,14 +22,11 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
+import java.util.Objects;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkListener;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 
 public class RenderErrorModel {
 

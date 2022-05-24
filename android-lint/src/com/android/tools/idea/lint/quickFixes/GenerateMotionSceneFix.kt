@@ -25,9 +25,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.util.EditorUtil
+import com.android.tools.idea.util.ReformatUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
@@ -37,6 +37,7 @@ import com.intellij.psi.xml.XmlTag
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.android.uipreview.EditorUtil
 import org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist
 import java.io.IOException
 
@@ -48,9 +49,7 @@ import java.io.IOException
  * <li>Set the layoutDescription attribute on the MotionLayout. </li>
  * </ul>
  */
-class GenerateMotionSceneFix(val url: ResourceUrl) : LintIdeQuickFix {
-  override fun getName() = "Generate MotionScene file"
-
+class GenerateMotionSceneFix(val url: ResourceUrl) : DefaultLintQuickFix("Generate MotionScene file") {
   override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
     val facet = AndroidFacet.getInstance(startElement) ?: return false
     val appResources = ResourceRepositoryManager.getAppResources(facet)
@@ -69,7 +68,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) : LintIdeQuickFix {
         val xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML)
         val resFile = xmlDir.createChildData(project, "${url.name}$DOT_XML")
         VfsUtil.saveText(resFile, generateMotionSceneContent(widgetId))
-        EditorUtil.reformatAndRearrange(project, resFile)
+        ReformatUtil.reformatAndRearrange(project, resFile)
         EditorUtil.openEditor(project, resFile)
         EditorUtil.selectEditor(project, resFile)
         motionTag?.setAttribute(ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, AUTO_URI, url.toString())

@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before

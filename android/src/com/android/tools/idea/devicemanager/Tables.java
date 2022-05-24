@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -68,6 +69,14 @@ public final class Tables {
     return table.getForeground();
   }
 
+  static @NotNull Icon getIcon(@NotNull JTable table, boolean selected, @NotNull Icon icon) {
+    if (selected) {
+      return ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, table.getSelectionForeground());
+    }
+
+    return icon;
+  }
+
   public static void selectNextOrFirstRow(@NotNull JTable table) {
     int viewRowIndex = table.getSelectedRow() + 1;
 
@@ -106,20 +115,22 @@ public final class Tables {
   }
 
   public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
+    sizeWidthToFit(table, viewColumnIndex, JBUIScale.scale(65));
+  }
+
+  public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex, int minWidth) {
     TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
-    int width = getPreferredColumnWidth(table, viewColumnIndex);
+    int width = getPreferredColumnWidth(table, viewColumnIndex, minWidth);
 
     column.setMinWidth(width);
     column.setMaxWidth(width);
     column.setPreferredWidth(width);
   }
 
-  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex) {
+  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex, int minWidth) {
     OptionalInt width = IntStream.range(-1, table.getRowCount())
       .map(viewRowIndex -> getPreferredCellWidth(table, viewRowIndex, viewColumnIndex))
       .max();
-
-    int minWidth = JBUIScale.scale(65);
 
     if (!width.isPresent()) {
       return minWidth;
@@ -141,6 +152,6 @@ public final class Tables {
       component = table.prepareRenderer(table.getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
     }
 
-    return component.getPreferredSize().width + JBUI.scale(8);
+    return component.getPreferredSize().width + JBUIScale.scale(8);
   }
 }

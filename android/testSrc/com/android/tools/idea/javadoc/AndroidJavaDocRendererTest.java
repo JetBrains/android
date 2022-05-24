@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.javadoc;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.lint.client.api.LintClient;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
@@ -56,10 +56,30 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
     PsiElement docTargetElement =
-        DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+      DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));
+  }
+
+  public void testBrokenCustomDrawableJava() {
+    // Layout lib cannot render the custom drawable here, so it should show an error.
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/customDrawable.xml", "res/drawable/ic_launcher.xml");
+    checkDoc("/javadoc/drawables/Activity1.java",
+             "src/p1/p2/Activity.java", actualDoc -> {
+        assertThat(actualDoc).contains("Couldn't render");
+        assertThat(actualDoc).doesNotContain("render.png");
+      });
+  }
+
+  public void testWebPDrawableJava() {
+    // WebP images need to be rendered by layoutlib, so should show the rendered PNG.
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
+    checkDoc("/javadoc/drawables/Activity1.java",
+             "src/p1/p2/Activity.java", actualDoc -> {
+        assertThat(actualDoc).contains("render.png");
+        assertThat(actualDoc).doesNotContain("Couldn't render");
+      });
   }
 
   public void testString1Java() {
@@ -105,8 +125,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void checkString3(String sourcePath, String targetPath) {
     checkStrings(sourcePath,
                  targetPath,
-                 "<div class='definition'><pre>p1.p2<br>public static final class <b>string</b>\n" +
-                 "extends <a href=\"psi_element://java.lang.Object\"><code>Object</code></a></pre></div><table class='sections'></table>");
+                 "<div class=\"bottom\"><icon src=\"AllIcons.Nodes.Package\">&nbsp;<a href=\"psi_element://p1.p2\"><code><span style=\"color:#000000;\">p1.p2</span></code></a></div><div class='definition'><pre><span style=\"color:#000080;font-weight:bold;\">public static final</span> <span style=\"color:#000080;font-weight:bold;\">class</span> <span style=\"color:#000000;\">string</span></pre></div><table class='sections'></table>");
   }
 
   public void testDimensionsJava() {

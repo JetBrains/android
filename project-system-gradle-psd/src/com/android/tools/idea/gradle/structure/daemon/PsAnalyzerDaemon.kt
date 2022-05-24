@@ -44,7 +44,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.util.EventListener
-import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 

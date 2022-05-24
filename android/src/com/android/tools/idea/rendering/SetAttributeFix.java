@@ -16,10 +16,10 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -20,10 +20,9 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
@@ -61,14 +60,12 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
-    final DataContext dataContext = e.getDataContext();
     // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
     // this event to monitor invoked actions.
-    manager.fireBeforeActionPerformed(this, dataContext, e);
-
-    tryUpdateConfiguration();
-    updatePresentation(e.getPresentation());
+    ActionUtil.performDumbAwareWithCallbacks(this, e, () -> {
+      tryUpdateConfiguration();
+      updatePresentation(e.getPresentation());
+    });
   }
 
   /**

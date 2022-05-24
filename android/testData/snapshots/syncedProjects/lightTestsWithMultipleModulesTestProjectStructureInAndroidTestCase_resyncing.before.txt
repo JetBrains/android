@@ -27,7 +27,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -49,6 +48,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/java [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest/ml [-]
@@ -59,6 +59,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/app/src/debug/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug/java [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/debug/ml [-]
@@ -69,6 +70,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/app/src/main [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/main/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/main/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/app/src/main/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/main/java [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/main/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/main/ml [-]
@@ -79,6 +81,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/app/src/test [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/app/src/test/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/java [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/ml [-]
@@ -88,6 +91,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTest/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTest/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTest/ml [-]
@@ -97,6 +101,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/debug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/debug/ml [-]
@@ -106,6 +111,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/ml [-]
@@ -115,6 +121,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/ml [-]
@@ -126,7 +133,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : lib
     MODULE                        : lib
@@ -156,7 +163,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -178,6 +184,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/java [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest/ml [-]
@@ -188,6 +195,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/java [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/debug/ml [-]
@@ -198,6 +206,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/lib/src/main/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main/java [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/main/ml [-]
@@ -208,6 +217,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/aidl [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/lib/src/test/custom [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/java [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/kotlin [-]
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/ml [-]
@@ -217,6 +227,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>/lib/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTest/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTest/ml [-]
@@ -226,6 +237,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/debug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/debug/ml [-]
@@ -235,6 +247,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/ml [-]
@@ -244,6 +257,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/custom [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/ml [-]
@@ -255,7 +269,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing
         LinkedProjectId               : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing

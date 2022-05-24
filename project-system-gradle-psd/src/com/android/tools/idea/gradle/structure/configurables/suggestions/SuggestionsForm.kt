@@ -22,8 +22,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
-import com.intellij.util.ExceptionUtil.currentStackTrace
-import org.jetbrains.kotlin.cli.common.repl.renderReplStackTrace
 
 class SuggestionsForm(
     private val context: PsContext,

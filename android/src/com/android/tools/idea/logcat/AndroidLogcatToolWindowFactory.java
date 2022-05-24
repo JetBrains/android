@@ -44,16 +44,15 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
 
 public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
@@ -105,7 +104,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     logcatPanel.startLoading();
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
-    Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
+    Futures.addCallback(future, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
         Logger.getInstance(AndroidLogcatToolWindowFactory.class).info("Successfully obtained debug bridge");

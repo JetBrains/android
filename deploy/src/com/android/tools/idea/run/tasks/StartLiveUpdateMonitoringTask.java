@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.annotations.Nullable;
-import com.android.sdklib.AndroidVersion;
 import org.jetbrains.annotations.NotNull;
 
 

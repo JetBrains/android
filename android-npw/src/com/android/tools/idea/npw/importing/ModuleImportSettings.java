@@ -16,9 +16,8 @@
 package com.android.tools.idea.npw.importing;
 
 import com.intellij.openapi.ui.MessageType;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.event.ActionListener;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface for controls that deal with module import setup

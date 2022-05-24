@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.rendering.Locale
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -32,9 +32,26 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.util.xmlb.annotations.Transient
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.WeakHashMap
-import java.util.function.Consumer
+
+data class CustomConfigurationSet(var title: String = "Custom",
+                                  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList()) {
+  @Transient
+  fun addConfigAttribute(attribute: CustomConfigurationAttribute) {
+    val list = customConfigAttributes.toMutableList()
+    list.add(attribute)
+    customConfigAttributes = list
+  }
+
+  @Transient
+  fun removeConfigAttribute(attribute: CustomConfigurationAttribute) {
+    val list = customConfigAttributes.toMutableList()
+    list.remove(attribute)
+    customConfigAttributes = list
+  }
+}
 
 data class NamedConfiguration(val name: String, val config: Configuration)
 
@@ -54,7 +71,7 @@ data class CustomConfigurationAttribute(var name: String = "",
                                         var nightMode: NightMode? = null)
 
 private object CustomModelDataContext: DataContext {
-  override fun getData(dataId: String): Any? = when (dataId) {
+  override fun getData(dataId: String): Any = when (dataId) {
     IS_CUSTOM_MODEL.name -> true
     else -> false
   }
@@ -64,10 +81,9 @@ private object CustomModelDataContext: DataContext {
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
  * The custom [Configuration] is added by [AddCustomConfigurationAction].
  */
-class CustomModelsProvider(private val configurationSetListener: ConfigurationSetListener): VisualizationModelsProvider {
-  private val _configurationsAttributes = VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes.toMutableList()
-  val configurationAttributes: List<CustomConfigurationAttribute>
-    get() = _configurationsAttributes
+class CustomModelsProvider(val customId: String,
+                           val customConfigSet: CustomConfigurationSet,
+                           private val configurationSetListener: ConfigurationSetListener) : VisualizationModelsProvider {
 
   /**
    * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for removing [CustomConfigurationAttribute].
@@ -76,15 +92,15 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
   private val configurationToConfigurationAttributesMap = WeakHashMap<Configuration, CustomConfigurationAttribute>()
 
   fun addCustomConfigurationAttributes(config: CustomConfigurationAttribute) {
-    _configurationsAttributes.add(config)
-    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = _configurationsAttributes
+    customConfigSet.addConfigAttribute(config)
+    VisualizationUtil.setCustomConfigurationSet(customId, customConfigSet)
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
   fun removeCustomConfigurationAttributes(model: NlModel) {
     val config = configurationToConfigurationAttributesMap[model.configuration] ?: return
-    _configurationsAttributes.remove(config)
-    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = _configurationsAttributes
+    customConfigSet.removeConfigAttribute(config)
+    VisualizationUtil.setCustomConfigurationSet(customId, customConfigSet)
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
@@ -108,11 +124,11 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
     models.add(NlModel.builder(facet, currentFile, currentFileConfig)
       .withParentDisposable(parentDisposable)
       .withModelDisplayName("Default (Current File)")
-      .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+      .withComponentRegistrar(NlComponentRegistrar)
       .build())
 
     // Custom Configurations
-    for (attributes in configurationAttributes) {
+    for (attributes in customConfigSet.customConfigAttributes) {
       val customConfig = attributes.toNamedConfiguration(currentFileConfig) ?: continue
 
       val config = customConfig.config
@@ -126,7 +142,7 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(customConfig.name)
         .withModelTooltip(config.toHtmlTooltip())
-        .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+        .withComponentRegistrar(NlComponentRegistrar)
         .withDataContext(CustomModelDataContext)
         .build()
       models.add(model)
@@ -139,7 +155,8 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
 
 private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Configuration): NamedConfiguration? {
   val configurationManager = defaultConfig.configurationManager
-  val device = if (deviceId != null) configurationManager.getDeviceById(deviceId!!) else return null
+  val id = deviceId ?: return null
+  val device = configurationManager.getDeviceById(id)
   val target = configurationManager.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
   val state = device?.defaultState?.deepCopy()
   state?.let {
@@ -158,5 +175,5 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Con
   newConfig.nightMode = nightMode ?: defaultConfig.nightMode
   newConfig.uiMode = uiMode ?: defaultConfig.uiMode
   // When the custom configuration has empty name, show its tooltips instead of leave it blank.
-  return NamedConfiguration(if (name != "") name else newConfig.toTooltips(), newConfig)
+  return NamedConfiguration(name, newConfig)
 }

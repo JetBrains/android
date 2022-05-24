@@ -68,7 +68,7 @@ public class DeleteAvdAction extends AvdUiAction {
       return;
     }
 
-    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<Boolean>() {
+    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable Boolean running) {
         assert running != null;

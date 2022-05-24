@@ -17,9 +17,9 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import org.jetbrains.android.dom.manifest.Manifest
 import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.application.runWriteAction
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor

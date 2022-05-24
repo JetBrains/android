@@ -143,7 +143,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
       VirtualFile virtualFile = newFile.getVirtualFile();
       NlModel model = NlModel.builder(facet, virtualFile, ConfigurationManager.getOrCreateInstance(facet).getConfiguration(virtualFile))
         .withParentDisposable(newFile.getProject())
-        .withComponentRegistrar(surface.getComponentRegistrar())
+        .withComponentRegistrar(getScreenView().getSceneManager().getModel().getComponentRegistrar())
         .build();
       manager.addRenderListener(new RenderListener() {
         @Override

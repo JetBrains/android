@@ -16,7 +16,11 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.InfoSection;
+import com.android.tools.idea.devicemanager.PairedDevicesPanel;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -125,14 +129,20 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device, new AsyncDetailsBuilder(project, device).buildAsync(), SummarySectionCallback::new, DeviceSectionCallback::new);
+    this(device, new AsyncDetailsBuilder(project, device).buildAsync());
+  }
+
+  @VisibleForTesting
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future) {
+    this(device, future, SummarySectionCallback::new, DeviceSectionCallback::new, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
                              @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
                              @NotNull NewInfoSectionCallback<@NotNull SummarySection> newSummarySectionCallback,
-                             @NotNull NewInfoSectionCallback<@NotNull DeviceSection> newDeviceSectionCallback) {
+                             @NotNull NewInfoSectionCallback<@NotNull DeviceSection> newDeviceSectionCallback,
+                             @NotNull WearPairingManager manager) {
     super(device.getName());
     myOnline = device.isOnline();
 
@@ -147,8 +157,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myDeviceSection = null;
 
       myInfoSections.add(mySummarySection);
-      InfoSection.newPairedDeviceSection(device).ifPresent(myInfoSections::add);
+      InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
       // myInfoSections.add(myDeviceSection);
+
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this);
+      }
     }
     else {
       mySummarySection = null;

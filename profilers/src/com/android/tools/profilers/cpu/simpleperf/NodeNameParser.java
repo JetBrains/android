@@ -15,13 +15,14 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.profilers.cpu.nodemodel.*;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SyscallModel;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.Nullable;
 
 /**

@@ -64,7 +64,7 @@ public class HideablePanel extends JPanel {
   private final EventListenerList myStateChangeListeners;
   private final JPanel myTitlePanel;
 
-  public HideablePanel(@NotNull Builder builder) {
+  private HideablePanel(@NotNull Builder builder) {
     super(new BorderLayout());
     myChild = builder.myContent;
     myStateChangeListeners = new EventListenerList();

@@ -15,9 +15,9 @@
  */
 package com.android.tools.property.panel.impl.model
 
+import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.panel.api.TableLineModel
 import kotlin.properties.Delegates
 
 /**

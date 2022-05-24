@@ -136,6 +136,16 @@ interface IdeJavaLibrary: IdeArtifactLibrary {
   val artifact: File
 }
 
+/**
+ * A source set in an Android module.
+ */
+enum class IdeModuleSourceSet(val sourceSetName: String, val canBeConsumed: Boolean) {
+  MAIN("main", true),
+  TEST_FIXTURES("testFixtures", true),
+  UNIT_TEST("unitTest", false),
+  ANDROID_TEST("androidTest", false),
+}
+
 interface IdeModuleLibrary: IdeLibrary {
   /**
    * Returns the gradle path.
@@ -152,4 +162,14 @@ interface IdeModuleLibrary: IdeLibrary {
    * Returns the build id.
    */
   val buildId: String
+
+  /**
+   * Returns the sourceSet associated with the library.
+   */
+  val sourceSet: IdeModuleSourceSet
+
+  /**
+   * The artifact that this module dependency is targeting, this is only populated when V2 models are used
+   */
+  val artifact: File?
 }

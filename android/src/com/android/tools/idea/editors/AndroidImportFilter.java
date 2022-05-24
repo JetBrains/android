@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors;
 
+import static com.android.SdkConstants.CLASS_R;
+import static com.android.SdkConstants.CLASS_R_PREFIX;
+
 import com.android.annotations.concurrency.AnyThread;
 import com.android.resources.ResourceType;
 import com.intellij.codeInsight.ImportFilter;
@@ -23,9 +26,6 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.CLASS_R;
-import static com.android.SdkConstants.CLASS_R_PREFIX;
 
 public class AndroidImportFilter extends ImportFilter {
   /** Never import android.R, or inner classes of application R or android.R classes */

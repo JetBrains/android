@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,7 +29,7 @@ public class ConstraintSetPanelCommands {
   private static final boolean DEBUG = false;
 
   public static void createAllConstraints(ArrayList<MTag> displayedRows, MTag constraintSet) {
-    ArrayList<MTag> tagList = new ArrayList<MTag>();
+    ArrayList<MTag> tagList = new ArrayList<>();
     for (MTag row : displayedRows) {
       if (!constraintSet.equals(row.getParent())) {
         tagList.add(row);

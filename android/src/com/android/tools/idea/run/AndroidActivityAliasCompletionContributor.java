@@ -16,8 +16,13 @@
 
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.editor.LaunchOptionConfigurableContext;
-import com.intellij.codeInsight.completion.*;
+import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
+import com.intellij.codeInsight.completion.CompletionContributor;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -29,15 +34,14 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.Processor;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.ActivityAlias;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class AndroidActivityAliasCompletionContributor extends CompletionContributor {
 
@@ -71,7 +75,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     if (activityClass != null) {
       final CompletionResultSet finalResult = result;
 
-      ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true, true, false).forEach(new Processor<PsiClass>() {
+      ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true, true, false).forEach(new Processor<>() {
         @Override
         public boolean process(PsiClass psiClass) {
           final PsiModifierList modifierList = psiClass.getModifierList();
@@ -107,11 +111,11 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
 
   @NotNull
   private static Set<String> collectActivityAliases(@NotNull AndroidFacet facet) {
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
 
     doCollectActivityAliases(facet, result);
 
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), true)) {
+    for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), true)) {
       doCollectActivityAliases(depFacet, result);
     }
     return result;

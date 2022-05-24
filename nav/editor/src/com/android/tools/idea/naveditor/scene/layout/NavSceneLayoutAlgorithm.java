@@ -16,9 +16,8 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.common.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A mechanism for layout out screens in the navigation editor.

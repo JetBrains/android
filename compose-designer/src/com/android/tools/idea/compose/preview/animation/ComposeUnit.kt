@@ -31,7 +31,7 @@ object ComposeUnit {
     fun toString(componentId: Int): String
     override fun toString(): String
 
-    /** Transforms a component to a [Double]. It unifies painting of the curves in [CurvePainter]. */
+    /** Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]. */
     fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
   }
 
@@ -49,7 +49,7 @@ object ComposeUnit {
                                               "${if (componentId == 0) component1 else "_"} , " +
                                               "${if (componentId == 1) component2 else "_"} )"
 
-    override fun toString(): String = components.joinToString(prefix = "(", postfix = ")") { it.toString() }
+    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
   abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) :
@@ -60,7 +60,7 @@ object ComposeUnit {
                                               "${if (componentId == 1) component2 else "_"} , " +
                                               "${if (componentId == 2) component3 else "_"} )"
 
-    override fun toString(): String = components.joinToString(prefix = "(", postfix = ")") { it.toString() }
+    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
   abstract class Unit4D<A>(val component1: A, val component2: A, val component3: A, val component4: A) :

@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.validation.validators;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.validation.Validator;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ValidatorsTest {
 

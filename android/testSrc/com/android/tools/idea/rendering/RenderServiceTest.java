@@ -17,11 +17,10 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import java.util.concurrent.CompletableFuture;
-import junit.framework.TestCase;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import junit.framework.TestCase;
 
 public class RenderServiceTest extends TestCase {
   public void testGetSafeBounds() {

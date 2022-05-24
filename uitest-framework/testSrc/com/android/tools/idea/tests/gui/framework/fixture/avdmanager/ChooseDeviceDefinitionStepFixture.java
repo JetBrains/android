@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
+import javax.swing.JButton;
+import javax.swing.JRootPane;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 
 public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture, W> {
@@ -83,10 +83,11 @@ public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   private JTableFixture getTableFixture() {
-    final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<TableView>(TableView.class) {
+    final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<>(TableView.class) {
       @Override
       protected boolean isMatching(@NotNull TableView component) {
-        return component.getRowCount() > 0 && component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+        return component.getRowCount() > 0 &&
+               component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
       }
     });
     return new JTableFixture(robot(), deviceList);

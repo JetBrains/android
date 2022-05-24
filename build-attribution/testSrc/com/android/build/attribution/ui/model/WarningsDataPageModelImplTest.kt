@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.analyzers.AnalyzerNotRun
+import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.MockUiData
@@ -217,10 +218,10 @@ class WarningsDataPageModelImplTest {
   }
 
   @Test
-  fun testNoJetifierIssueDetected() = testNoJetifierWarningShown(JetifierNotUsed)
+  fun testNoJetifierIssueDetected() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(JetifierNotUsed))
 
   @Test
-  fun testJetifierAnalyzerSwitchedOff() = testNoJetifierWarningShown(AnalyzerNotRun)
+  fun testJetifierAnalyzerSwitchedOff() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(AnalyzerNotRun))
 
   private fun testNoJetifierWarningShown(jetifierData: JetifierUsageAnalyzerResult) {
     // Arrange
@@ -242,6 +243,25 @@ class WarningsDataPageModelImplTest {
       |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
+  }
+
+  @Test
+  fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
+    // Arrange
+    val model = WarningsDataPageModelImpl(MockUiData().apply {
+      jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
+    })
+
+    // Assert
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
+      |=>JETIFIER_USAGE
+    """.trimMargin())
   }
 
   @Test

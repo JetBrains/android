@@ -21,7 +21,6 @@ import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class RtlSupportUsageViewDescriptor implements UsageViewDescriptor {
   public RtlSupportUsageViewDescriptor() {

@@ -19,10 +19,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * All the settings of an {@link AttachedToolWindow} are shared globally for all instances

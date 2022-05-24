@@ -8,9 +8,10 @@ import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ConfigureAndroidSdkStep extends ModelWizardStep.WithoutModel {
 

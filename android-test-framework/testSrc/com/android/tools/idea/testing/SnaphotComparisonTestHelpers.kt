@@ -41,7 +41,8 @@ fun Project.saveAndDump(
     androidSdk = getSdk().toFile(),
     offlineRepos = getOfflineM2Repositories(),
     additionalRoots = additionalRoots,
-    devBuildHome = TestUtils.getWorkspaceRoot().toFile()
+    devBuildHome = TestUtils.resolveWorkspacePath("tools/adt/idea").toFile()
+    // This does not work in IDEA: devBuildHome = TestUtils.getWorkspaceRoot().toFile()
   )
 
   dumpToAction(this, dumper)

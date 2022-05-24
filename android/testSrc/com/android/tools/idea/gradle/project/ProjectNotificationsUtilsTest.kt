@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.testutils.MockitoKt.any
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
 
 class ProjectNotificationsUtilsTest {
   companion object {
@@ -36,35 +40,19 @@ class ProjectNotificationsUtilsTest {
   val projectRule = ProjectRule()
 
   @Test
-  fun testInvalidJdkErrorMessageNullPath() {
-    val expectedMessage = "Could not determine Gradle JDK\n" +
-                          "Having an incorrect Gradle JDK may result in unresolved symbols and problems when running Gradle tasks."
-    val actualMessage = invalidJdkErrorMessage(null)
-    assertThat(actualMessage).isEqualTo(expectedMessage)
-  }
-
-  @Test
-  fun testInvalidJdkErrorMessageInvalidPath() {
-    val expectedMessage = "Could not find a valid JDK at /path/to/invalid/jdk/\n" +
-                          "Having an incorrect Gradle JDK may result in unresolved symbols and problems when running Gradle tasks."
-    val actualMessage = invalidJdkErrorMessage("/path/to/invalid/jdk/")
-    assertThat(actualMessage).isEqualTo(expectedMessage)
-  }
-
-  @Test
-  fun testInvalidJdkErrorMessageValidPath() {
-    val jdk = IdeSdks.getInstance().jdk
-    assertThat(jdk).isNotNull()
-    val jdkPath = jdk!!.homePath
-    assertThat(jdkPath).isNotEmpty()
-    val actualMessage = invalidJdkErrorMessage(jdkPath)
-    assertThat(actualMessage).isNull()
-  }
-
-  @Test
   fun testInvalidGradleJdkLinks() {
     val links = generateInvalidGradleJdkLinks(projectRule.project)
-    assertThat(links).hasSize(1)
-    assertThat(links[0]).isInstanceOf(UseEmbeddedJdkHyperlink::class.java)
+    assertThat(links).hasSize(0)
+  }
+
+  @Test
+  fun testNotifyOnInvalidGradleJdkJdkUseEmbedded() {
+    val mockGradleManager = mock(GradleInstallationManager::class.java)
+    Mockito.`when`(mockGradleManager.getGradleJvmPath(any(), any())).thenReturn("/path/to/invalid/jdk/")
+
+    val project = projectRule.project
+    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
+
+    assertThat(notifyOnInvalidGradleJdk(projectRule.project)).isTrue()
   }
 }

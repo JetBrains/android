@@ -16,9 +16,8 @@
 package com.android.tools.adtui;
 
 import com.intellij.ui.TextAccessor;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.text.Document;
+import org.jetbrains.annotations.NotNull;
 
 public interface DocumentAccessor extends TextAccessor {
   @NotNull Document getDocument();

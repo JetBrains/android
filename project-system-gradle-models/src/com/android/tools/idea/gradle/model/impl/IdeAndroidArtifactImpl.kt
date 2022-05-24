@@ -17,28 +17,28 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import java.io.File
 
 data class IdeAndroidArtifactImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String,
   override val assembleTaskName: String,
-  override val classesFolder: File,
-  override val additionalClassesFolders: Collection<File>,
-  override val javaResourcesFolder: File?,
+  override val classesFolder: Collection<File>,
   override val variantSourceProvider: IdeSourceProvider?,
   override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: Collection<String>,
   private val mutableGeneratedSourceFolders: MutableList<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
+  override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
   override val applicationId: String,
   override val signingConfigName: String?,
   override val isSigned: Boolean,
@@ -47,7 +47,8 @@ data class IdeAndroidArtifactImpl(
   override val testOptions: IdeTestOptions?,
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformation,
-  override val codeShrinker: CodeShrinker?
+  override val codeShrinker: CodeShrinker?,
+  override val modelSyncFiles: Collection<IdeModelSyncFile>
 ) : IdeAndroidArtifact {
   override val generatedSourceFolders: Collection<File> get() = mutableGeneratedSourceFolders
 

@@ -19,7 +19,6 @@ import android.view.View
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test

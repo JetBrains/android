@@ -37,7 +37,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                      long secondsToWait) {
     // Sometimes we need to locate the button without it being enabled, because there is an issue with the UI where it needs
     // the mouse to be over it and moving before it will refresh itself.
-    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         AnAction action = component.getAction();
@@ -55,7 +55,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   public static ActionButtonFixture findByActionId(@NotNull final String actionId,
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
-    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         AnAction action = component.getAction();
@@ -74,7 +74,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container,
                                                    long secondsToWait) {
-    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         AnAction action = component.getAction();
@@ -105,7 +105,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
     @NotNull Robot robot,
     @NotNull Container container
   ) {
-    return findByMatcher(new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    return findByMatcher(new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         AnAction action = component.getAction();
@@ -120,7 +120,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
     @NotNull Robot robot,
     @NotNull Container container
   ) {
-    return findByMatcher(new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    return findByMatcher(new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         return actionInstance == component.getAction();
@@ -142,7 +142,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @NotNull Container container) {
-    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         try {

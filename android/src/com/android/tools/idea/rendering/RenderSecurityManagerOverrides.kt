@@ -24,6 +24,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
  */
 interface RenderSecurityManagerOverrides {
   fun allowsPropertiesAccess(): Boolean
+  fun allowsLibraryLinking(lib: String): Boolean
 }
 
 private val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
@@ -34,3 +35,10 @@ private val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
  * system property access during layout rendering, false otherwise.
  */
 fun isPropertyAccessAllowed() = EP_NAME.extensions.any { it.allowsPropertiesAccess() }
+
+
+/**
+ * Returns true if any registered [RenderSecurityManagerOverrides] extension allows
+ * linkage of the library [lib], false otherwise.
+ */
+fun isLibraryLinkingAllowed(lib: String) = EP_NAME.extensions.any { it.allowsLibraryLinking(lib) }

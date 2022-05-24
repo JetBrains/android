@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -24,15 +26,13 @@ import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import java.util.Collection;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.Collection;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardFixture> {
 
@@ -68,7 +68,7 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
   }
 
   public static FirstRunWizardFixture find(@NotNull Robot robot) {
-    JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
+    JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame frame) {
         if ("Android Studio Setup Wizard".equals(frame.getTitle())) {

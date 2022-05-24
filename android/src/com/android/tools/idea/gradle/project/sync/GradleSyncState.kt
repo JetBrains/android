@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
@@ -43,8 +42,8 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -85,13 +84,14 @@ val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST"
  * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
  * invocation of sync.
  */
-open class GradleSyncState @NonInjectable constructor(private val project: Project) {
+open class GradleSyncState @NonInjectable internal constructor(private val project: Project) {
   companion object {
     @JvmField
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
 
     @JvmField
-    val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
+    @Topic.AppLevel
+    val GRADLE_SYNC_TOPIC = Topic(GradleSyncListener::class.java, Topic.BroadcastDirection.NONE)
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
@@ -109,7 +109,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
 
     @JvmStatic
-    fun getInstance(project: Project): GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
+    fun getInstance(project: Project): GradleSyncState = project.getService(GradleSyncState::class.java)
   }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
@@ -160,7 +160,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
       if (state.isInProgress) {
-        LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
+        // TODO: IDEA-270939: sync can be invoked multiple times (once per linked project). It is not correct to track sync state per IDE project,
+        // it should be tracked per linked gradle project.
+        LOG.info("Sync already in progress for project '${project.name}'.", Throwable())
         return false
       }
 
@@ -230,9 +232,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       GradleSyncMessages.getInstance(project).errorDescription.isNotEmpty() -> GradleSyncMessages.getInstance(project).errorDescription
       else -> "Unknown cause".also { LOG.warn(IllegalStateException("No error message given")) }
     }
-    val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(millisTook)})"
+    val resultMessage = "Gradle sync failed in ${formatDuration(millisTook)}"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.ERROR, null)
-    LOG.warn(resultMessage)
+    LOG.warn(resultMessage + ". " + causeMessage)
 
     // Log the error to ideas log
     // Note: we log this as well as message above so the stack trace is present in the logs.
@@ -277,7 +279,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       externalSystemTaskId = null
     }
 
-    project.putUserData(GradleSyncExecutor.ALL_VARIANTS_SYNC_KEY, null)
     PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
@@ -312,7 +313,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       $jdkPath
       Using different JDK locations on different processes might cause Gradle to
       spawn multiple daemons, for example, by executing Gradle tasks from a terminal
-      while using Android Studio.
+      while using ${ApplicationNamesInfo.getInstance().fullProductName}.
     """.trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
@@ -346,7 +347,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         quickFixes.forEach { link -> link.executeIfClicked(project, event) }
       }
     }
-    notificationGroup.createNotification("", resultMessage, type.toNotificationType(), listener).notify(project)
+    val notification = notificationGroup.createNotification("", resultMessage, type.toNotificationType())
+    if (listener != null) notification.setListener(listener)
+    notification.notify(project)
   }
 
   private fun syncPublisher(block: GradleSyncListener.() -> Unit) {

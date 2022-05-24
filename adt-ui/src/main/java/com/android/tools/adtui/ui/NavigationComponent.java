@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -53,13 +53,13 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
     void itemSelected(@NotNull T item);
   }
 
-  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<ItemListener<T>>();
-  private final LinkedList<T> myItemStack = new LinkedList<T>();
+  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<>();
+  private final LinkedList<T> myItemStack = new LinkedList<>();
   private boolean hasRootItem = false;
 
   public NavigationComponent() {
     setEditable(false);
-    setEditorKit(UIUtil.getHTMLEditorKit());
+    setEditorKit(HTMLEditorKitBuilder.simple());
     putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
     // Disable links decoration.

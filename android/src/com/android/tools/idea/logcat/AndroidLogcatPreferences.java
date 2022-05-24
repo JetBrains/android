@@ -16,10 +16,8 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.tools.idea.util.xmlb.LogcatHeaderFormatConverter;
-import com.intellij.openapi.components.*;
+import com.android.tools.idea.logcat.converters.LogcatHeaderFormatConverter;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
@@ -44,7 +42,7 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   public LogcatHeaderFormat LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat();
 
   public static AndroidLogcatPreferences getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidLogcatPreferences.class);
+    return project.getService(AndroidLogcatPreferences.class);
   }
 
   @Override

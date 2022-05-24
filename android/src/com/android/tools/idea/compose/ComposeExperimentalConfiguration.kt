@@ -29,10 +29,9 @@ import com.intellij.openapi.project.ProjectManager
 @Service
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
-    var isAnimationPreviewEnabled by property(false)
-    var isDeployToDeviceEnabled by property(true)
-    var isInteractiveEnabled by property(true)
+    var isAnimationPreviewEnabled by property(true)
     var isPreviewPickerEnabled by property(true)
+    var isBuildOnSaveEnabled by property(true)
   }
 
   /**
@@ -47,31 +46,6 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     }
 
   /**
-   * True if deploy to device is enabled.
-   */
-  var isDeployToDeviceEnabled
-    get() = state.isDeployToDeviceEnabled
-    set(value) {
-      if (value != state.isDeployToDeviceEnabled) {
-        state.isDeployToDeviceEnabled = value
-        // Force update of the actions to hide/show deploy to device icons
-        ActivityTracker.getInstance().inc()
-        updateGutterIcons()
-      }
-    }
-
-  /**
-   * True if the interactive preview is enabled.
-   */
-  var isInteractiveEnabled
-    get() = state.isInteractiveEnabled
-    set(value) {
-      state.isInteractiveEnabled = value
-      // Force update of the actions to hide/show start interactive icons
-      ActivityTracker.getInstance().inc()
-    }
-
-  /**
    * True if the @Preview picker from the Gutter is enabled.
    */
   var isPreviewPickerEnabled
@@ -79,6 +53,15 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     set(value) {
       state.isPreviewPickerEnabled = value
       updateGutterIcons()
+    }
+
+  /**
+   * True if the @Preview build on save is enabled. This settings only applies when Live Edit is enabled.
+   */
+  var isBuildOnSaveEnabled
+    get() = state.isBuildOnSaveEnabled
+    set(value) {
+      state.isBuildOnSaveEnabled = value
     }
 
   companion object {

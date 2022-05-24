@@ -15,31 +15,27 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.ui.Icons;
-import com.intellij.icons.AllIcons;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.swing.JList;
+import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.annotations.NotNull;
 
 final class AddLocaleAction extends AnAction {
   private final StringResourceViewPanel myPanel;

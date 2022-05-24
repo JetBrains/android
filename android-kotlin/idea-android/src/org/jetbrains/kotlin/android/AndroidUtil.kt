@@ -26,9 +26,6 @@ import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.NONE
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtQualifiedExpression
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 
 internal fun JavaPropertyDescriptor.getAndroidResourceType(): ResourceType? {
     if (getResourceReferenceType() == NONE) {

@@ -20,10 +20,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFi
 import junit.framework.TestCase
 import org.fest.swing.core.Robot
 import org.fest.swing.timing.Wait
-import org.junit.Assert.assertTrue
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JPanel
 
 /**
  * Fixture for the Compose preview notifications panel

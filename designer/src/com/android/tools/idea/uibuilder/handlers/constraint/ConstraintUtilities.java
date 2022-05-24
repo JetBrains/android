@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
+
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
@@ -26,12 +28,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 
 /**
  * Utility functions

@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.property.support
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceUrl
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.util.text.StringUtil
 
 const val PROJECT_HEADER = "Project"
@@ -97,7 +97,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
 
   private fun determineHeaderFromLibraryName(libraryName: String?) =
     when {
-      libraryName == null || libraryName.isEmpty() -> PROJECT_HEADER
+      libraryName.isNullOrEmpty() -> PROJECT_HEADER
       libraryName.contains("appcompat") -> APPCOMPAT_HEADER
       else -> LIBRARY_HEADER
     }

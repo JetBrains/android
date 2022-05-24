@@ -18,9 +18,9 @@ package com.android.tools.idea
 import com.intellij.lang.ASTNode
 import com.intellij.lang.FileASTNode
 import com.intellij.psi.impl.java.stubs.JavaStubElementTypes
-import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import com.intellij.psi.impl.source.JavaFileElementType
 import com.intellij.psi.impl.source.tree.JavaElementType
+import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 
 
 private fun ASTNode.isClass() = when(elementType) {

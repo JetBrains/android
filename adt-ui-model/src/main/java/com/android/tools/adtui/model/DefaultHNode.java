@@ -16,11 +16,10 @@
 
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DefaultHNode<T> implements HNode<DefaultHNode<T>> {
 

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeClassField
-import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeVariant
 import java.io.File
@@ -27,10 +25,10 @@ import java.io.Serializable
 data class IdeVariantImpl(
   override val name: String,
   override val displayName: String,
-  override val mainArtifact: IdeAndroidArtifact,
-  override val unitTestArtifact: IdeJavaArtifact?,
-  override val androidTestArtifact: IdeAndroidArtifact?,
-  override val testFixturesArtifact: IdeAndroidArtifact?,
+  override val mainArtifact: IdeAndroidArtifactImpl,
+  override val unitTestArtifact: IdeJavaArtifactImpl?,
+  override val androidTestArtifact: IdeAndroidArtifactImpl?,
+  override val testFixturesArtifact: IdeAndroidArtifactImpl?,
   override val buildType: String,
   override val productFlavors: List<String>,
   override val minSdkVersion: IdeApiVersion,

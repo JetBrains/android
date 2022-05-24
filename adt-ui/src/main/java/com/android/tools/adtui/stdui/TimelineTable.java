@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -252,7 +253,7 @@ public final class TimelineTable {
 
     @Override
     public Insets getBorderInsets(Component c) {
-      return JBUI.emptyInsets();
+      return JBInsets.emptyInsets();
     }
 
     @Override

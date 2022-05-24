@@ -21,10 +21,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import java.util.Collection;
 import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 public class NlComponentUtil {
   /**

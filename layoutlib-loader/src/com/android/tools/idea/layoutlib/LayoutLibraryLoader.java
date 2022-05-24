@@ -27,16 +27,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
+import com.intellij.util.system.CpuArch;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -64,13 +64,13 @@ public class LayoutLibraryLoader {
     final File platformFolder = new File(platformFolderPath);
     if (!platformFolder.isDirectory()) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(platformFolderPath)));
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtilRt.toSystemDependentName(platformFolderPath)));
     }
 
     final File buildProp = new File(platformFolder, SdkConstants.FN_BUILD_PROP);
     if (!buildProp.isFile()) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
+        LayoutlibBundle.message("android.file.not.exist.error", FileUtilRt.toSystemDependentName(buildProp.getPath())));
     }
 
     final ILogger logger = new LogWrapper(LOG);
@@ -96,7 +96,7 @@ public class LayoutLibraryLoader {
   @NotNull
   private static String getPlatformName() {
     if (SystemInfo.isWindows) return "win";
-    else if (SystemInfo.isMac) return SystemInfo.isArm64 ? "mac-arm" : "mac";
+    else if (SystemInfo.isMac) return CpuArch.isArm64() ? "mac-arm" : "mac";
     else if (SystemInfo.isLinux) return "linux";
     else return "";
   }

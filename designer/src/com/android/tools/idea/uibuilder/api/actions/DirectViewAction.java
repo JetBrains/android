@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.api.actions;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.model.NlComponent;
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
 
 /**
  * A {@linkplain DirectViewAction} is an action related to one or more views.

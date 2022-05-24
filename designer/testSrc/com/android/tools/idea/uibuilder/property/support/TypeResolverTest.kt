@@ -15,12 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER
+import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE
+import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT
+import com.android.SdkConstants.ATTR_CHECKED_BUTTON
+import com.android.SdkConstants.ATTR_CHECKED_CHIP
+import com.android.SdkConstants.ATTR_CLASS
+import com.android.SdkConstants.ATTR_ELEVATION
+import com.android.SdkConstants.ATTR_FONT_FAMILY
+import com.android.SdkConstants.ATTR_INPUT_TYPE
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_LAYOUT_ABOVE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_MAXIMUM
+import com.android.SdkConstants.ATTR_SCROLLBAR_STYLE
+import com.android.SdkConstants.ATTR_SHOW_IN
+import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_SWITCH_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_ALL_CAPS
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.ide.common.rendering.api.ResourceNamespace
 import org.junit.Test
 
 class TypeResolverTest {

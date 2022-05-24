@@ -17,16 +17,12 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -34,9 +30,12 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,10 +71,10 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   @Nullable private String myCurrentLicense;
 
   // Licenses accepted by the user.
-  private final Map<String, Boolean> myAcceptances = Maps.newHashMap();
+  private final Map<String, Boolean> myAcceptances = new HashMap<>();
 
   // Only licenses that have not been accepted in the past by the user are displayed.
-  private final Set<String> myVisibleLicenses = Sets.newHashSet();
+  private final Set<String> myVisibleLicenses = new HashSet<>();
 
   // All package paths that will get installed.
   private final List<RemotePackage> myInstallRequests;
@@ -104,7 +103,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     myRootPanel.add(splitter, BorderLayout.CENTER);
     myRootPanel.add(optionsPanel, BorderLayout.SOUTH);
 
-    myLicenseTextField.setFont(UIUtil.getLabelFont());
+    myLicenseTextField.setFont(StartupUiUtil.getLabelFont());
   }
 
   private void initUI() {
@@ -207,7 +206,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
    * and updating related UI components.
    */
   private void setChanges(List<Change> changes) {
-    Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
+    Map<String, DefaultMutableTreeNode> licenseNodeMap = new HashMap<>();
     myVisibleLicenses.clear();
 
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();
@@ -270,13 +269,13 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
-    List<Change> toReturn = Lists.newArrayList();
+    List<Change> toReturn = new ArrayList<>();
     if (myInstallRequests != null) {
       for (RemotePackage p : myInstallRequests) {
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().getSdkRoot().getValue().toPath())) {
+          if (!license.checkAccepted(getModel().getSdkRoot().getValue())) {
             toReturn.add(new Change(p, license));
           }
         }

@@ -17,7 +17,11 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.property.panel.api.*
+import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableSupport
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil

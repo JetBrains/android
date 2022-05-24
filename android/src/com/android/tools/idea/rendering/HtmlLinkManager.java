@@ -341,7 +341,7 @@ public class HtmlLinkManager {
   String createCommandLink(@NotNull CommandLink command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<CommandLink>(5);
+      myLinkCommands = new SparseArray<>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;

@@ -20,9 +20,9 @@ import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
@@ -31,11 +31,12 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
-import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -54,8 +55,10 @@ interface PsiPropertyItem : NewPropertyItem {
 /**
  * Base [PropertiesModel] for pickers interacting with PSI elements.
  */
-abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
+internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
+
+  abstract val tracker: PreviewPickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
@@ -88,9 +91,8 @@ internal class PsiPropertyView(
     addTab("").apply {
       builders.add(
         PsiPropertiesInspectorBuilder(
-          EditorProvider.create(
-            PsiEnumProvider(enumSupportValuesProvider),
-            PsiPropertyItemControlTypeProvider
+          PsiEditorProvider(
+            PsiEnumProvider(enumSupportValuesProvider)
           )
         )
       )

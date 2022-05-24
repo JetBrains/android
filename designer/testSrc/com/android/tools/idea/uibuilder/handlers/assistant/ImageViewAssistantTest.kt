@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.assistant
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil

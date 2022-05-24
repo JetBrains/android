@@ -24,5 +24,22 @@
         canCloseContents="true"
         factoryClass="com.android.tools.idea.logcat.LogcatToolWindowFactory"
     />
+    <fileType
+        name="Logcat Filter File"
+        implementationClass="com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType"
+        fieldName="INSTANCE"
+        language="LogcatFilter"
+        extensions="lcf"
+    />
+    <lang.parserDefinition
+        language="LogcatFilter"
+        implementationClass="com.android.tools.idea.logcat.filters.parser.LogcatFilterParserDefinition"
+    />
+    <lang.syntaxHighlighterFactory
+        language="LogcatFilter"
+        implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterSyntaxHighlighterFactory"
+    />
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>
+
   </extensions>
 </idea-plugin>

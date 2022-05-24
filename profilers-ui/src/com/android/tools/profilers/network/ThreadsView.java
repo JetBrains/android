@@ -29,6 +29,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -69,9 +70,9 @@ import org.jetbrains.annotations.Nullable;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int STATE_HEIGHT = JBUI.scale(15);
-  private static final int SELECTION_OUTLINE_PADDING = JBUI.scale(3);
-  private static final int SELECTION_OUTLINE_BORDER = JBUI.scale(2);
+  private static final int STATE_HEIGHT = JBUIScale.scale(15);
+  private static final int SELECTION_OUTLINE_PADDING = JBUIScale.scale(3);
+  private static final int SELECTION_OUTLINE_BORDER = JBUIScale.scale(2);
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   private enum Column {

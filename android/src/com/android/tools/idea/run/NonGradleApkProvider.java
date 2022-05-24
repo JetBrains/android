@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.run.NonGradleApplicationIdProvider.computePackageName;
+
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * A provider of APK information for run configurations in non-Gradle projects.
@@ -53,11 +60,11 @@ public class NonGradleApkProvider implements ApkProvider {
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
     String packageName = myApplicationIdProvider.getPackageName();
     // Gather up all the dependency APKs to install, and check that none conflict.
-    HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<AndroidFacet, String>();
+    HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<>();
     fillRuntimeAndTestDependencies(myFacet.getModule(), depFacet2PackageName);
     checkPackageNames(depFacet2PackageName, myFacet, packageName);
 
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>();
+    List<ApkInfo> apkList = new ArrayList<>();
     addApk(apkList, packageName, myFacet);
 
     for (AndroidFacet depFacet : depFacet2PackageName.keySet()) {
@@ -94,8 +101,7 @@ public class NonGradleApkProvider implements ApkProvider {
           if (depFacet != null &&
               !module2PackageName.containsKey(depFacet) &&
               depFacet.getConfiguration().isAppProject()) {
-            //noinspection deprecation
-            String packageName = ApkProviderUtil.computePackageName(depFacet);
+            String packageName = computePackageName(depFacet);
             module2PackageName.put(depFacet, packageName);
             fillRuntimeAndTestDependencies(depModule, module2PackageName);
           }
@@ -107,9 +113,9 @@ public class NonGradleApkProvider implements ApkProvider {
   private static void checkPackageNames(@NotNull Map<AndroidFacet, String> additionalFacet2PackageName,
                                            @NotNull AndroidFacet facet,
                                            @NotNull String mainPackageName) throws ApkProvisionException {
-    final Map<String, List<String>> packageName2ModuleNames = new HashMap<String, List<String>>();
+    final Map<String, List<String>> packageName2ModuleNames = new HashMap<>();
     packageName2ModuleNames.put(
-      mainPackageName, new ArrayList<String>(Collections.singletonList(facet.getModule().getName())));
+      mainPackageName, new ArrayList<>(Collections.singletonList(facet.getModule().getName())));
 
     for (Map.Entry<AndroidFacet, String> entry : additionalFacet2PackageName.entrySet()) {
       final String moduleName = entry.getKey().getModule().getName();
@@ -117,7 +123,7 @@ public class NonGradleApkProvider implements ApkProvider {
       List<String> list = packageName2ModuleNames.get(packageName);
 
       if (list == null) {
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
         packageName2ModuleNames.put(packageName, list);
       }
       list.add(moduleName);

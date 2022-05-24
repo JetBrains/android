@@ -19,8 +19,9 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.android.tools.idea.welcome.install.Gvm;
@@ -32,7 +33,6 @@ import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.install.InstallationIntention;
 import com.android.tools.idea.welcome.install.Vm;
-import com.android.tools.idea.welcome.install.VmType;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -43,6 +43,7 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -195,7 +196,7 @@ public class VmWizard extends DynamicWizard {
         opChain.execute(sdkHandler.getLocation().toFile());
       }
       catch (InstallationCancelledException e) {
-        installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+        installContext.print(ApplicationNamesInfo.getInstance().getFullProductName() + " setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
       }
       catch (WizardException e) {
         throw new RuntimeException(e);

@@ -20,10 +20,9 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.containers.SortedList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Comparator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class CaptureTypeNode extends SimpleNode {
   private final CaptureType myType;
@@ -31,7 +30,7 @@ public class CaptureTypeNode extends SimpleNode {
 
   public CaptureTypeNode(CaptureType type) {
     myType = type;
-    myCaptureNodes = new SortedList<CaptureNode>(new Comparator<CaptureNode>() {
+    myCaptureNodes = new SortedList<>(new Comparator<>() {
       @Override
       public int compare(CaptureNode a, CaptureNode b) {
         return a.getName().compareToIgnoreCase(b.getName());

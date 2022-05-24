@@ -16,13 +16,12 @@
 package org.jetbrains.android.dom.navigation
 
 import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
-import com.android.tools.idea.projectsystem.getModuleSystem
 
 /**
  * Returns true if NavHostFragment is a superclass of the specified class

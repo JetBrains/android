@@ -18,10 +18,9 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.ui.ConsoleView;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 public interface AndroidExecutionState {
 

@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
+import com.android.tools.profilers.cpu.systemtrace.FrameState;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame;
 import java.awt.Color;
 import java.util.function.BooleanSupplier;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for Atrace frame rendering data.
  */
-public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameState> {
+public class FramesTrackRenderer implements TrackRenderer<FrameState> {
   private final BooleanSupplier myVsyncEnabler;
 
   public FramesTrackRenderer(BooleanSupplier vsyncEnabler) {
@@ -42,7 +42,7 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
 
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ?> trackModel) {
+  public JComponent render(@NotNull TrackModel<FrameState, ?> trackModel) {
     return VsyncPanel.of(new StateChart<>(
                            trackModel.getDataModel().getModel(), new FrameColorProvider(), new FrameTextConverter()),
                          trackModel.getDataModel().getVsyncSeries(),

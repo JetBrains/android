@@ -17,8 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchm
 
 import com.android.tools.idea.project.AndroidNotification
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -34,12 +34,10 @@ class BenchmarkLinkListener(private val project: Project) : HyperlinkListener {
         // TODO (gijosh): Check if we have a task that is currently pulling the file
         return
       }
-      val virtualFileTrace = LocalFileSystem.getInstance().findFileByIoFile(localFile)
+      val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile)
       if (virtualFileTrace != null) {
-        val providerList = FileEditorProviderManager.getInstance().getProviders(project, virtualFileTrace)
-        if (providerList.isNotEmpty()) {
-          providerList[0].createEditor(project, virtualFileTrace)
-        }
+        val fd = OpenFileDescriptor(project, virtualFileTrace)
+        FileEditorManager.getInstance(project).openEditor(fd, true)
       }
     }
   }

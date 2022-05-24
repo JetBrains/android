@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.profilers.performance
 
-import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.intellij.openapi.util.Disposer
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 
 /**

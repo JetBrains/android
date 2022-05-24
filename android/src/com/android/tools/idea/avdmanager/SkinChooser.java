@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -65,7 +64,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   private final @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> myUpdateSkins;
   private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
   private final @NotNull Executor myEdtExecutor;
-  private List<ItemListener> myListeners = Lists.newArrayList();
+  private List<ItemListener> myListeners = new ArrayList<>();
 
   SkinChooser(@Nullable Project project, boolean includeSdkHandlerSkins) {
     this(project,
@@ -91,7 +90,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     myDeviceSkinUpdaterServiceExecutor = deviceSkinUpdaterServiceExecutor;
     myEdtExecutor = edtExecutor;
 
-    getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
+    getComboBox().setRenderer(new ColoredListCellRenderer<>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<@NotNull ? extends File> list,
                                            @Nullable File skin,
@@ -129,7 +128,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     });
     FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
     addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition", project,
-                            skinChooserDescriptor, new TextComponentAccessor<JComboBox>() {
+                            skinChooserDescriptor, new TextComponentAccessor<>() {
         @Override
         public String getText(JComboBox component) {
           return ((File)component.getSelectedItem()).getPath();
@@ -161,7 +160,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
                                                                   SkinChooser::transform,
                                                                   myDeviceSkinUpdaterServiceExecutor);
 
-    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<Collection<Path>>() {
+    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable Collection<@NotNull Path> skins) {
         assert skins != null;

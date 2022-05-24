@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.gradle.util.ui;
 
+import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CommonActionsManager;
 import com.intellij.ide.DefaultTreeExpander;
 import com.intellij.ide.TreeExpander;
 import com.intellij.openapi.actionSystem.AnAction;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
 import javax.swing.tree.TreeNode;
-import java.awt.*;
-
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Panel that looks like an IDEA tool window. It has header with title and, optionally, action buttons.

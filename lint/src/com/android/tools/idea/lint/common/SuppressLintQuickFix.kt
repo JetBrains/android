@@ -56,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.plugins.groovy.GroovyLanguage
-import java.util.ArrayList
 
 class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) : SuppressQuickFix {
   private val label = displayName(element, id)

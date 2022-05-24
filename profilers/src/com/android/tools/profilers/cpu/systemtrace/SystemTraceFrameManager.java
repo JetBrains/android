@@ -85,7 +85,7 @@ public class SystemTraceFrameManager {
     new SliceStream(activeThread.get().getTraceEvents())
       .matchPattern(Pattern.compile(frameThread.getIdentifierRegEx()))
       .enumerate((sliceGroup) -> {
-        SystemTraceFrame frame = new SystemTraceFrame(sliceGroup, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
+        SystemTraceFrame frame = new SystemTraceFrame(sliceGroup, FrameState.Companion.getSlowFrameRateUs(), frameThread);
         frames.add(frame);
         return SliceStream.EnumerationResult.SKIP_CHILDREN;
       });

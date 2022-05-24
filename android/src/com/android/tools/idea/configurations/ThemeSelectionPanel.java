@@ -23,7 +23,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
@@ -45,6 +44,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +130,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myCategoryTree.addTreeSelectionListener(this);
     setInitialSelection(currentTheme);
     myThemeList.addListSelectionListener(this);
-    myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
+    myThemeList.setCellRenderer(new ColoredListCellRenderer<>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
         setIcon(StudioIcons.Shell.Menu.THEME_EDITOR);
@@ -465,8 +465,8 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     @NotNull private final Map<ThemeCategory, List<ThemeCategory>> myLabels;
 
     CategoryModel() {
-      myLabels = Maps.newHashMap();
-      List<ThemeCategory> topLevel = Lists.newArrayList();
+      myLabels = new HashMap<>();
+      List<ThemeCategory> topLevel = new ArrayList<>();
 
       if (ourRecent != null) {
         topLevel.add(ThemeCategory.RECENT);

@@ -46,6 +46,8 @@
               fileNames="proguard.cfg"
               patterns="proguard-*.txt"/>
 
+    <resolveScopeEnlarger implementation="com.android.tools.idea.lang.proguardR8.ProguardR8ResolveScopeEnlarger"/>
+
     <lang.parserDefinition language="SHRINKER_CONFIG"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
     <lang.syntaxHighlighterFactory language="SHRINKER_CONFIG"
@@ -127,7 +129,7 @@
               implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
               fieldName="INSTANCE"
               language="Renderscript"
-              extensions="rs;fs;rsh" />
+              extensions="fs;rs;rsh" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.syntaxHighlighter language="Renderscript"

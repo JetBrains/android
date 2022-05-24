@@ -16,9 +16,8 @@
 package org.jetbrains.android.dom.resources;
 
 import com.intellij.util.xml.DefinesXml;
-import org.jetbrains.android.dom.AndroidDomElement;
-
 import java.util.List;
+import org.jetbrains.android.dom.AndroidDomElement;
 
 @DefinesXml
 public interface Resources extends AndroidDomElement {
@@ -62,13 +61,20 @@ public interface Resources extends AndroidDomElement {
   DeclareStyleable addDeclareStyleable();
 
   List<Attr> getAttrs();
+
   Attr addAttr();
 
   List<Item> getItems();
+
   Item addItem();
 
   List<Overlayable> getOverlayables();
+
   Overlayable addOverlayable();
+
+  List<Macro> getMacros();
+
+  Macro addMacro();
 
   List<AndroidDomElement> getEatComments();
 }

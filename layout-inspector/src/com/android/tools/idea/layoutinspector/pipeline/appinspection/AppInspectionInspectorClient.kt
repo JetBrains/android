@@ -29,7 +29,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -45,11 +44,11 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -57,10 +56,12 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
@@ -68,6 +69,7 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import java.util.EnumSet
+import java.util.concurrent.TimeUnit
 
 
 @com.google.common.annotations.VisibleForTesting
@@ -84,14 +86,12 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
  *
  * @param apiServices App inspection services used for initializing and shutting down app
  *     inspection-based inspectors.
- * @param scope App inspection APIs use coroutines, while this class's interface does not, so this
- *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
-  private val stats: SessionStatistics,
+  private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
@@ -116,7 +116,10 @@ class AppInspectionInspectorClient(
       when {
         t is ConnectionFailedException -> t.message!!
         process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        else -> "Unknown error"
+        else -> {
+          Logger.getInstance(AppInspectionInspectorClient::class.java).warn(t)
+          "Unknown error"
+        }
       }
     )
   }
@@ -124,11 +127,8 @@ class AppInspectionInspectorClient(
   private val debugViewAttributes = DebugViewAttributes(model.project, process)
   private var debugViewAttributesChanged = false
 
-  private val metrics = LayoutInspectorMetrics(model.project, process, stats)
-
   override val capabilities =
     EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
-               Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
                Capability.SUPPORTS_SYSTEM_NODES,
                Capability.SUPPORTS_SKP)!!
 
@@ -211,18 +211,17 @@ class AppInspectionInspectorClient(
     return future
   }
 
-  override fun startFetching() {
+  override fun startFetching() =
     scope.launch(bannerExceptionHandler) {
       startFetchingInternal()
-    }
-  }
+    }.asCompletableFuture()
 
   private suspend fun startFetchingInternal() {
-    stats.live.toggledToLive()
+    metrics.stats?.live?.toggledToLive()
     viewInspector?.startFetching(continuous = true)
   }
 
-  override fun stopFetching() {
+  override fun stopFetching() =
     scope.launch(loggingExceptionHandler) {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
@@ -231,10 +230,9 @@ class AppInspectionInspectorClient(
       else {
         viewInspector?.updateScreenshotType(null, 1.0f)
       }
-      stats.live.toggledToRefresh()
+      metrics.stats?.live?.toggledToRefresh()
       viewInspector?.stopFetching()
-    }
-  }
+    }.asCompletableFuture()
 
   override fun refresh() {
     scope.launch(loggingExceptionHandler) {
@@ -243,7 +241,7 @@ class AppInspectionInspectorClient(
   }
 
   private suspend fun refreshInternal() {
-    stats.live.toggledToRefresh()
+    metrics.stats?.live?.toggledToRefresh()
     viewInspector?.startFetching(continuous = false)
   }
 
@@ -263,7 +261,7 @@ class AppInspectionInspectorClient(
     val metadata = viewInspector?.saveSnapshot(path)
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = metadata)
+    val saveMetrics = LayoutInspectorMetrics(model.project, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
 
@@ -325,7 +323,7 @@ fun checkSystemImageForAppInspectionCompatibility(
 ): Pair<Boolean, RepoPackage?> {
   if (process.device.isEmulator && process.device.apiLevel == 29) {
     val adb = AdbUtils.getAdbFuture(project).get()
-    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdName
+    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdData?.get(1, TimeUnit.SECONDS)?.name
     val avd = avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {

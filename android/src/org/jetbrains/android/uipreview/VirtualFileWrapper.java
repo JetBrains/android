@@ -5,13 +5,14 @@ import com.android.io.StreamException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 
 public class VirtualFileWrapper implements IAbstractFile {
@@ -26,12 +27,12 @@ public class VirtualFileWrapper implements IAbstractFile {
   @Override
   public InputStream getContents() throws StreamException {
     final String content = getFileContent();
-    return new ByteArrayInputStream(content.getBytes());
+    return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
   }
 
   @NotNull
   private String getFileContent() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       public String compute() {
         if (!myFile.isValid()) {
@@ -56,7 +57,7 @@ public class VirtualFileWrapper implements IAbstractFile {
 
   @Override
   public String getOsLocation() {
-    return FileUtil.toSystemDependentName(myFile.getPath());
+    return FileUtilRt.toSystemDependentName(myFile.getPath());
   }
 
   @Override

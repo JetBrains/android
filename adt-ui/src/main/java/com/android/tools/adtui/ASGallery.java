@@ -21,14 +21,13 @@ import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,6 +40,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -94,7 +94,7 @@ public class ASGallery<E> extends JBList {
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
-  @NotNull private Map<E, CellRenderer> myCellRenderers = Maps.newHashMap();
+  @NotNull private Map<E, CellRenderer> myCellRenderers = new HashMap<>();
 
   @Nullable private Action myDefaultAction;
 
@@ -142,7 +142,7 @@ public class ASGallery<E> extends JBList {
     installListeners();
     installKeyboardActions();
     if (!disableSpeedSearch) {
-      TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<Object, String>() {
+      TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<>() {
         @Override
         public String convert(Object o) {
           return myLabelProvider.apply((E)o);
@@ -328,7 +328,7 @@ public class ASGallery<E> extends JBList {
     }
 
     public static <P, R> Function<P, Optional<R>> wrap(Function<P, R> function) {
-      return new ToOptionalFunction<P, R>(function);
+      return new ToOptionalFunction<>(function);
     }
 
     @Override
@@ -371,7 +371,7 @@ public class ASGallery<E> extends JBList {
   @Override
   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
     // 10 pixels, so that mouse wheel/track pad scrolling is smoother.
-    return JBUI.scale(10);
+    return JBUIScale.scale(10);
   }
 
   @Override

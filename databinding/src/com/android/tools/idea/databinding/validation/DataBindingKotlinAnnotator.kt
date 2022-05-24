@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.module
@@ -44,9 +45,8 @@ class DataBindingKotlinAnnotator : Annotator {
     val gradleModel = GradleFacet.getInstance(module)?.gradleModuleModel ?: return
 
     if (!gradleModel.isKaptEnabled) {
-      holder.createErrorAnnotation(
-        element,
-        "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle")
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle").create()
     }
   }
 }

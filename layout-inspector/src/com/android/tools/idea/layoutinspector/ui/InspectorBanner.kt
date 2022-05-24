@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -37,15 +38,19 @@ import kotlin.math.max
 private const val HORIZONTAL_BORDER_SIZE = 6
 private const val VERTICAL_BORDER_SIZE = 3
 
+@VisibleForTesting
+const val INSPECTOR_BANNER_ACTION_PANEL_NAME = "InspectorBannerActionPanel"
+@VisibleForTesting
+const val INSPECTOR_BANNER_TEXT_NAME = "InspectorBannerText"
+
 /**
  * A banner for showing notifications in the Layout Inspector.
  */
 class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
   @VisibleForTesting
-  val text = JLabel()
-  private val actionLayout = FlowLayout(FlowLayout.CENTER, JBUI.scale(
-    HORIZONTAL_BORDER_SIZE), 0)
-  private val actionPanel = JPanel(actionLayout)
+  val text = JLabel().apply { name = INSPECTOR_BANNER_TEXT_NAME }
+  private val actionLayout = FlowLayout(FlowLayout.CENTER, JBUI.scale(HORIZONTAL_BORDER_SIZE), 0)
+  private val actionPanel = JPanel(actionLayout).apply { name = INSPECTOR_BANNER_ACTION_PANEL_NAME }
   private var classInitialized = true
 
   init {
@@ -76,19 +81,22 @@ class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
   }
 
   private fun applyNewNotification(statusNotification: StatusNotification?) {
-    isVisible = statusNotification != null
-    val notification = statusNotification ?: return
-    text.text = notification.message
-    actionPanel.removeAll()
-    notification.actions.forEach { action ->
-      val actionLabel = HyperlinkLabel(action.templateText, JBColor.BLUE)
-      actionLabel.addHyperlinkListener {
-        val context = DataManager.getInstance().getDataContext(actionLabel)
-        val presentation = action.templatePresentation.clone()
-        val event = AnActionEvent(it.inputEvent, context, ActionPlaces.NOTIFICATION, presentation, ActionManager.getInstance(), 0)
-        action.actionPerformed(event)
+    // Invoke so we can be sure concurrent or overlapping requests are processed separately, even if the requests come from the same thread.
+    invokeLater {
+      isVisible = statusNotification != null
+      val notification = statusNotification ?: return@invokeLater
+      text.text = notification.message
+      actionPanel.removeAll()
+      notification.actions.forEach { action ->
+        val actionLabel = HyperlinkLabel(action.templateText, JBColor.BLUE)
+        actionLabel.addHyperlinkListener {
+          val context = DataManager.getInstance().getDataContext(actionLabel)
+          val presentation = action.templatePresentation.clone()
+          val event = AnActionEvent(it.inputEvent, context, ActionPlaces.NOTIFICATION, presentation, ActionManager.getInstance(), 0)
+          action.actionPerformed(event)
+        }
+        actionPanel.add(actionLabel)
       }
-      actionPanel.add(actionLabel)
     }
   }
 

@@ -79,7 +79,7 @@ public class AndroidDepTest {
   public void transitiveDependenciesResolve() {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()

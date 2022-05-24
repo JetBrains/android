@@ -18,9 +18,8 @@ package org.jetbrains.android.formatter;
 import com.intellij.psi.codeStyle.arrangement.ArrangementEntry;
 import com.intellij.psi.codeStyle.arrangement.NameAwareArrangementEntry;
 import com.intellij.psi.codeStyle.arrangement.std.CustomArrangementOrderToken;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
 
 final class AndroidAttributeOrder extends CustomArrangementOrderToken {
   static final String ID = "ANDROID_ATTRIBUTE_ORDER";

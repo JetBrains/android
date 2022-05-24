@@ -60,6 +60,7 @@ class TargetAndroidArtifactNode internal constructor(
       IdeArtifactName.MAIN -> Unit
       IdeArtifactName.ANDROID_TEST -> append(" (androidTest)")
       IdeArtifactName.UNIT_TEST -> append(" (test)")
+      IdeArtifactName.TEST_FIXTURES -> append(" (testFixtures)")
     }
   }
 

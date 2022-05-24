@@ -22,11 +22,9 @@ import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation
-import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
+import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.IdeFocusManager
 import icons.StudioIcons
 import java.awt.Point
 import java.awt.event.ActionEvent

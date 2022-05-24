@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EventListener;
+import org.jetbrains.annotations.Nullable;
 
 public interface SelectionChangeListener<T> extends EventListener {
   void selectionChanged(@Nullable T newSelection);

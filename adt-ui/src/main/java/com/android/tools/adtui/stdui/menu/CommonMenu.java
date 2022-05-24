@@ -16,11 +16,25 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.model.stdui.CommonAction;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.MenuElement;
 
 /**
  * Used for creating our own {@link CommonPopupMenu} for showing sub-menus. The base class implementation creates a {@link JPopupMenu} and

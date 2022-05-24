@@ -17,9 +17,8 @@ package com.android.tools.idea.observable.expressions.bool;
 
 import com.android.tools.idea.observable.ObservableValue;
 import com.google.common.collect.Iterables;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression which returns true if any of a list of target values is true.

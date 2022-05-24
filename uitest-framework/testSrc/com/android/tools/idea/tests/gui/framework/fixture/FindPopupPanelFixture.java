@@ -18,11 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.find.impl.FindPopupPanel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 
 public class FindPopupPanelFixture extends JPanelFixture {

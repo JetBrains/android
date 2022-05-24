@@ -20,9 +20,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import java.awt.event.KeyEvent;
-import javax.swing.*;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -32,9 +29,24 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.util.Arrays;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.Popup;
+import javax.swing.SwingUtilities;
 
 /**
  * Base class for all popup UI's create dialogs.
@@ -147,7 +159,7 @@ public class BaseCreatePanel extends JPanel {
         @Override
         public void focusLost(FocusEvent e) {
           String s = getText();
-          if (s.trim().equals("")) {
+          if (s.trim().isEmpty()) {
             setText(mPromptText);
             setForeground(Color.GRAY);
           }

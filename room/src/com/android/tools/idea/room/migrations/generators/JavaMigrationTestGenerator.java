@@ -16,7 +16,19 @@
 package com.android.tools.idea.room.migrations.generators;
 
 import static com.android.tools.idea.room.migrations.generators.GeneratorsUtil.makePublic;
-import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.*;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getAssertStatement;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getCloseStatement;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getCreateDatabaseComment;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getCreateDatabaseStatement;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getExecSqlStatement;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getHelperInitializationExpression;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getMigrationTestMethodName;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getMigrationTestName;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getRunAndValidateMigrationComment;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getRunAndValidateMigrationStatement;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getTestDatabaseFieldName;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.getTestDatabaseName;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.selectRunnerClass;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;

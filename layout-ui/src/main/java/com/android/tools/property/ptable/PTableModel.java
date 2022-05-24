@@ -15,13 +15,12 @@
  */
 package com.android.tools.property.ptable;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.table.AbstractTableModel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.table.AbstractTableModel;
+import org.jetbrains.annotations.NotNull;
 
 public class PTableModel extends AbstractTableModel {
   private List<PTableItem> myItems;

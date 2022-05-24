@@ -19,7 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import icons.StudioIcons;
 import java.awt.Dimension;
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.AndroidTestCase;
@@ -31,10 +31,10 @@ public class AvdDisplayListTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myAvdInfo = new AvdInfo("name", new File("ini"), "folder", null, myPropertiesMap);
+    myAvdInfo = new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), null, myPropertiesMap);
   }
 
-  public void testGetResolution() throws Exception {
+  public void testGetResolution() {
     assertEquals("Unknown Resolution", AvdDisplayList.getResolution(myAvdInfo));
 
     myPropertiesMap.put(AvdManager.AVD_INI_DEVICE_NAME, "Nexus 5");

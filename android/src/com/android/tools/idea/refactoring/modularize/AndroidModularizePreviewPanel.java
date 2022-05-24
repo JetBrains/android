@@ -24,7 +24,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.*;
+import com.intellij.ui.CheckboxTree;
+import com.intellij.ui.CheckboxTreeBase;
+import com.intellij.ui.CheckboxTreeHelper;
+import com.intellij.ui.CheckboxTreeListener;
+import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dualView.TreeTableView;
@@ -35,15 +39,20 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ColumnInfo;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JPanel;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.nio.charset.Charset;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidModularizePreviewPanel {
   private static final Logger LOGGER = Logger.getInstance(AndroidModularizePreviewPanel.class);

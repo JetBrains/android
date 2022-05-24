@@ -17,28 +17,52 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.resources.*;
-import com.android.sdklib.devices.*;
+import com.android.resources.Density;
+import com.android.resources.Keyboard;
+import com.android.resources.Navigation;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenRatio;
+import com.android.sdklib.devices.ButtonType;
+import com.android.sdklib.devices.CameraLocation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Hardware;
+import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.Sensor;
+import com.android.sdklib.devices.Software;
+import com.android.sdklib.devices.State;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableDouble;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.double_.DoubleExpression;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Data class containing all properties needed to build a device.
  */
 public final class AvdDeviceData {
   private StringProperty myName = new StringValueProperty();
-  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
+  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
   private StringProperty myManufacturer = new StringValueProperty();
   private StringProperty myTagId = new StringValueProperty();
   private StringProperty myDeviceId = new StringValueProperty();
@@ -59,11 +83,11 @@ public final class AvdDeviceData {
   private IntProperty myScreenFoldedWidth3 = new IntValueProperty();
   private IntProperty myScreenFoldedHeight3 = new IntValueProperty();
 
-  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
+  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<>(new Storage(0, Storage.Unit.MiB));
 
   private BoolProperty myHasHardwareButtons = new BoolValueProperty();
   private BoolProperty myHasHardwareKeyboard = new BoolValueProperty();
-  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<Navigation>();
+  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<>();
 
   private BoolProperty mySupportsLandscape = new BoolValueProperty();
   private BoolProperty mySupportsPortrait = new BoolValueProperty();
@@ -77,7 +101,7 @@ public final class AvdDeviceData {
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
   private BoolProperty myHasSdCard = new BoolValueProperty();
-  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
+  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<>();
   private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
@@ -87,9 +111,9 @@ public final class AvdDeviceData {
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
-  private ObjectProperty<Density> myDensity = new ObjectValueProperty<Density>(Density.MEDIUM);
+  private ObjectProperty<Density> myDensity = new ObjectValueProperty<>(Density.MEDIUM);
 
-  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
+  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<>();
 
   private DoubleExpression myScreenDpi =
     // Every time the screen size is changed we calculate its dpi to validate it on the step

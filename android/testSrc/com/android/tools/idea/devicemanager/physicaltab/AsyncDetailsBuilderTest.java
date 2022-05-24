@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,10 +62,10 @@ public final class AsyncDetailsBuilderTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .setResolution(new Resolution(1080, 2160))
       .build();
 
-    assertEquals(device, future.get(32, TimeUnit.MILLISECONDS));
+    assertEquals(device, DeviceManagerFutures.get(future));
   }
 }

@@ -37,7 +37,6 @@ import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
@@ -55,7 +54,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
 
 private data class ResourceClasses(
@@ -88,7 +86,7 @@ private data class ResourceClasses(
 class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, ProjectLightResourceClassService::class.java)!!
+    fun getInstance(project: Project) = project.getService(ProjectLightResourceClassService::class.java)!!
   }
 
   /** Cache of AAR package names. */
@@ -157,7 +155,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     result.add(getModuleRClasses(androidFacet))
 
-    for (dependency in AndroidUtils.getAllAndroidDependencies(module, false)) {
+    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
       result.add(getModuleRClasses(dependency))
     }
 

@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FakeFieldObject implements FieldObject {
   @NotNull private final String myFieldName;

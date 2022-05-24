@@ -33,7 +33,6 @@ import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.system.measureTimeMillis

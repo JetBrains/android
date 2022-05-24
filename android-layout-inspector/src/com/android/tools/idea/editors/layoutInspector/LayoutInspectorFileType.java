@@ -16,13 +16,10 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class LayoutInspectorFileType implements FileType {
   public static final LayoutInspectorFileType INSTANCE = new LayoutInspectorFileType();

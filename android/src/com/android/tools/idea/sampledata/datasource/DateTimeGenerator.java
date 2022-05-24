@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sampledata.datasource;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
@@ -24,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
 import java.util.Random;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 public class DateTimeGenerator implements Function<OutputStream, Exception> {
   private final long myNow = System.currentTimeMillis();

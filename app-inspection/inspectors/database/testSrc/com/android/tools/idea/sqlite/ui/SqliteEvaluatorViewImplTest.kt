@@ -46,10 +46,10 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.ui.EditorTextField
 import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import javax.swing.JComboBox
 import javax.swing.JTable

@@ -19,7 +19,6 @@ import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -30,11 +29,11 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -292,7 +291,7 @@ public class DeviceTest {
               .map(entry -> entry.getValue())
               .findFirst().orElse(Collections.emptyList());
 
-          try (PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
+          try (PrintWriter pw = new PrintWriter(socket.getOutputStream(), false, StandardCharsets.UTF_8)) {
             for (String value : pids) {
               pw.write(value);
             }

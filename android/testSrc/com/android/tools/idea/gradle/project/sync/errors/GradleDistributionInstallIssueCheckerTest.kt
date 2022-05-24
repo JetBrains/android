@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsum
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.TestDataProvider
 import org.gradle.StartParameter
 import org.gradle.wrapper.PathAssembler
 import org.jetbrains.plugins.gradle.issue.GradleIssueData

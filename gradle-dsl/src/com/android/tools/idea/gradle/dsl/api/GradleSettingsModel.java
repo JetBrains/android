@@ -19,11 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManage
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 public interface GradleSettingsModel extends GradleFileModel {
   /**

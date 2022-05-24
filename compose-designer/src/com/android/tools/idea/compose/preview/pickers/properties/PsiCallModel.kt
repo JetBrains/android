@@ -28,12 +28,15 @@ import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -41,9 +44,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -65,11 +68,13 @@ import org.jetbrains.uast.toUElement
  *
  * In both cases, this [PsiCallPropertyModel] will deal with the named parameters as properties.
  */
-class PsiCallPropertyModel internal constructor(
-  private val project: Project,
+internal class PsiCallPropertyModel internal constructor(
+  val project: Project,
+  val module: Module,
   resolvedCall: ResolvedCall<*>,
-  defaultValues: Map<String, String?>
-) : PsiPropertyModel() {
+  defaultValues: Map<String, String?>,
+  override val tracker: PreviewPickerTracker
+) : PsiPropertyModel(), DataProvider {
   private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
@@ -83,8 +88,19 @@ class PsiCallPropertyModel internal constructor(
       }
     })
 
+  override fun getData(dataId: String): Any? =
+    when(dataId) {
+      // TODO: Implement to provide data required by some properties, eg: available devices
+      else -> null
+    }
+
   companion object {
-    fun fromPreviewElement(project: Project, module: Module?, previewElement: PreviewElement): PsiCallPropertyModel {
+    fun fromPreviewElement(
+      project: Project,
+      module: Module,
+      previewElement: PreviewElement,
+      tracker: PreviewPickerTracker
+    ): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
       val libraryDefaultValues: Map<String, String?> =
@@ -92,7 +108,7 @@ class PsiCallPropertyModel internal constructor(
           Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
           emptyMap()
         }
-      val defaultApiLevel = module?.let(ConfigurationManager::findExistingInstance)?.defaultTarget?.version?.apiLevel?.toString()
+      val defaultApiLevel = ConfigurationManager.findExistingInstance(module)?.defaultTarget?.version?.apiLevel?.toString()
 
       /**
        * Contains the default values for each parameter of the Preview annotation.
@@ -108,13 +124,14 @@ class PsiCallPropertyModel internal constructor(
             PARAMETER_HEIGHT,
             PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
             PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
-            PARAMETER_DEVICE -> entry.value ?: " " // Non-empty value, empty values are considered null and not rendered in the DropDown
+            PARAMETER_UI_MODE -> UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
+            PARAMETER_DEVICE -> entry.value ?: "Default"
             PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
             else -> entry.value
           }
         }
 
-      return PsiCallPropertyModel(project, resolvedCall, defaultValues)
+      return PsiCallPropertyModel(project, module, resolvedCall, defaultValues, tracker)
     }
 
     private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()

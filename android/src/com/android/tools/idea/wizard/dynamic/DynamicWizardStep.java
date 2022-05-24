@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
@@ -27,16 +30,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * DynamicWizardStep

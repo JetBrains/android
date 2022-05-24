@@ -19,15 +19,15 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   private lateinit var syncIssue1: IdeSyncIssue
@@ -40,7 +40,7 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
     syncIssue1 = mock(IdeSyncIssue::class.java)

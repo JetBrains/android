@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -24,6 +23,7 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.messages.MessageBusConnection

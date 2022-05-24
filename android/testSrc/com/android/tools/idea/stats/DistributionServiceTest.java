@@ -21,12 +21,11 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
+import java.io.File;
+import java.net.URL;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-
-import java.io.File;
-import java.net.URL;
 
 /**
  * Tests for {@link DistributionService}

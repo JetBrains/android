@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.ensureExists;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
+import java.io.File;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ProjectFolder {
   public abstract void createTopLevelBuildFile() throws IOException;

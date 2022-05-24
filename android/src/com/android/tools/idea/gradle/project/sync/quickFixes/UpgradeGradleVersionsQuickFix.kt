@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
@@ -65,7 +64,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
           }
         }
         else {
-          val assistantInvoker = ServiceManager.getService(project, AssistantInvoker::class.java)
+          val assistantInvoker = project.getService(AssistantInvoker::class.java)
           val processor = assistantInvoker.createProcessor(project, currentAgpVersion, agpVersion)
           val runProcessor =
             if ((!isUnitTestMode()) || (showDialogResultForTest == null))

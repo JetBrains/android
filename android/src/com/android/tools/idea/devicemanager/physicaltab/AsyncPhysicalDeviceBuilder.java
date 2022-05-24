@@ -30,19 +30,16 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class AsyncPhysicalDeviceBuilder {
   private final @NotNull IDevice myDevice;
   private final @NotNull Key myKey;
-  private final @Nullable Instant myLastOnlineTime;
 
   private final @NotNull ListenableFuture<@NotNull AndroidVersion> myVersionFuture;
   private final @NotNull ListenableFuture<@NotNull DeviceType> myTypeFuture;
@@ -50,10 +47,9 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
 
   @UiThread
-  AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key, @Nullable Instant lastOnlineTime) {
+  AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key) {
     myDevice = device;
     myKey = key;
-    myLastOnlineTime = lastOnlineTime;
 
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
@@ -104,7 +100,6 @@ final class AsyncPhysicalDeviceBuilder {
 
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
       .setKey(myKey)
-      .setLastOnlineTime(myLastOnlineTime)
       .setType(getDoneOrElse(myTypeFuture, DeviceType.PHONE))
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(myModelFuture), FutureUtils.getDoneOrNull(myManufacturerFuture)))
       .setTarget(Targets.toString(version))

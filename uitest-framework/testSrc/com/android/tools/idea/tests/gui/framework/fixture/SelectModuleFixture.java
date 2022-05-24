@@ -1,7 +1,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JTable;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
@@ -9,10 +14,6 @@ import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 public class SelectModuleFixture implements ContainerFixture<JDialog> {
 

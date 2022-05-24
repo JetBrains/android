@@ -15,15 +15,14 @@
  */
 package com.android.tools.property.ptable;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PTableItem {
   private PTableItem myParent;

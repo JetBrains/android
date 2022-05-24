@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ide.CopyPasteManager
 import org.fest.swing.annotation.RunsInEDT
 import org.fest.swing.core.Robot

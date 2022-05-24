@@ -17,7 +17,6 @@
 
 package com.android.tools.analytics
 
-import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioUpdateFlowEvent
 

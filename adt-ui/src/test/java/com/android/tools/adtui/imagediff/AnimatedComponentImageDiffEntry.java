@@ -15,17 +15,17 @@
  */
 package com.android.tools.adtui.imagediff;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.updater.Updater;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.swing.JPanel;
 
 /**
  * Entries used in image diff generators that generate tests for some {@link com.android.tools.adtui.AnimatedComponent} usually have a

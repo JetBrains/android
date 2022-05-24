@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.scene.target
 
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
@@ -25,8 +25,8 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -154,7 +154,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
-    @Suppress("ConstantConditionIf")
     if (DEBUG_RENDERER) {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) JBColor.yellow else JBColor.green)
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red)

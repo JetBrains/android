@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.deserializers;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;

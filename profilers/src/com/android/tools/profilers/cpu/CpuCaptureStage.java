@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.BoxSelectionListener;
 import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
@@ -40,24 +39,28 @@ import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.analysis.AndroidFrameTimelineAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.FramesAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
-import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel;
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip;
+import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
+import com.android.tools.profilers.cpu.systemtrace.FrameState;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -70,6 +73,7 @@ import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -78,15 +82,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,6 +103,9 @@ import org.jetbrains.annotations.Nullable;
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage<Timeline> {
+
+  private static final String DISPLAY_HELP_LINK = "https://d.android.com/r/studio-ui/profiler/display-tracks";
+
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -155,9 +166,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
-  private final List<CpuAnalysisModel<?>> myAnalysisModels = new ArrayList<>();
+  private final List<CpuAnalysisModel<?>> myPinnedAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
-  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
+  private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel = new MultiSelectionModel<>();
 
   private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
@@ -174,6 +185,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
    * Selection range: union of all selected trace events;
    */
   private final Timeline myTrackGroupTimeline = new DefaultTimeline();
+
+  private int myFrameSelectionCount = 0;
+  private int myAllFrameTogglingCount = 0;
+  private int myLifecycleTogglingCount = 0;
 
   /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
@@ -212,6 +227,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
       profilers.getIdeServices(), captureFile, traceId, configuration, captureProcessNameHint, captureProcessIdHint);
+
+    getMultiSelectionModel().addDependency(this)
+      .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::onActiveSelectionChanged);
   }
 
   public State getState() {
@@ -234,7 +253,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @NotNull
-  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+  public MultiSelectionModel<CpuAnalyzable<?>> getMultiSelectionModel() {
     return myMultiSelectionModel;
   }
 
@@ -245,8 +264,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @NotNull
-  public List<CpuAnalysisModel<?>> getAnalysisModels() {
-    return myAnalysisModels;
+  public List<CpuAnalysisModel<?>> getPinnedAnalysisModels() {
+    return myPinnedAnalysisModels;
   }
 
   /**
@@ -321,8 +340,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE;
   }
 
-  public void addCpuAnalysisModel(@NotNull CpuAnalysisModel model) {
-    myAnalysisModels.add(model);
+  private void addPinnedCpuAnalysisModel(@NotNull CpuAnalysisModel<?> model) {
+    myPinnedAnalysisModels.add(model);
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
@@ -338,17 +357,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return CpuProfilerStage.class;
   }
 
-  public void removeCpuAnalysisModel(int index) {
-    myAnalysisModels.remove(index);
-    myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
-  }
-
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, getTimeline().getViewRange());
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
-      addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+      addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+
+      CpuAnalysisModel<?> jankModel = AndroidFrameTimelineAnalysisModel.of(capture);
+      CpuAnalysisModel<?> framesModel = FramesAnalysisModel.of(capture);
+
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isJankDetectionUiEnabled()) {
+        if (jankModel != null) {
+          addPinnedCpuAnalysisModel(jankModel);
+        } else if (framesModel != null) {
+          addPinnedCpuAnalysisModel(framesModel);
+        }
+      } else {
+        if (framesModel != null) {
+          addPinnedCpuAnalysisModel(framesModel);
+        }
+      }
     }
     if (getStudioProfilers().getSession().getPid() == 0) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
@@ -396,20 +425,31 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
     }
 
-    if (capture.getSystemTraceData() != null) {
-      createDisplayPipelineTrackGroups(getStudioProfilers(),
-                                       capture.getSystemTraceData(), capture.getMainThreadId(),
-                                       getTimeline())
+    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+      createDisplayPipelineTrackGroups(getStudioProfilers(), (SystemTraceCpuCapture)capture, getTimeline(), myMultiSelectionModel)
         .forEach(myTrackGroupModels::add);
+    }
 
+    // In S with both timeline and lifecycle data, we move threads closer to display
+    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
+        !capture.getSystemTraceData().getAndroidFrameTimelineEvents().isEmpty() &&
+        getStudioProfilers().getIdeServices().getFeatureConfig().isJankDetectionUiEnabled()) {
+      // Thread states and trace events.
+      myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // RSS memory counters.
       myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
+    } else {
+      if(capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+        // CPU per-core usage and event etc. Systrace only.
+        myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
+        // RSS memory counters.
+        myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
+      }
+      // Thread states and trace events.
+      myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
     }
-
-    // Thread states and trace events.
-    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
 
     // Add action listener for tracking all track group actions.
     myTrackGroupModels.forEach(model -> model.addActionListener(new TrackGroupActionListener() {
@@ -435,6 +475,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }));
   }
 
+  private void onActiveSelectionChanged() {
+    Object activeSelection = getMultiSelectionModel().getActiveSelectionKey();
+    // If the range doesn't already cover a selection frame, switch to it
+    if (activeSelection instanceof AndroidFrameTimelineEvent) {
+      AndroidFrameTimelineEvent event = (AndroidFrameTimelineEvent)activeSelection;
+      getTimeline().getViewRange().adjustToContain(event.getExpectedStartUs(),
+                                                   Math.max(event.getExpectedEndUs(), event.getActualEndUs()));
+      trackFrameSelection();
+    }
+  }
+
+  private void onSelectionChanged() {
+    if (getMultiSelectionModel().getActiveSelectionKey() instanceof AndroidFrameTimelineEvent) {
+      trackFrameSelection();
+    }
+  }
+
+  private void trackFrameSelection() {
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackFrameSelectionPerTrace(++myFrameSelectionCount);
+  }
+
   private static TrackGroupModel createInteractionTrackGroup(@NotNull StudioProfilers studioProfilers, @NotNull Timeline timeline) {
     TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
     EventModel<UserEvent> userEventEventModel =
@@ -452,30 +513,33 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return interaction;
   }
 
-  private static Stream<TrackGroupModel> createDisplayPipelineTrackGroups(StudioProfilers profilers,
-                                                                          CpuSystemTraceData data,
-                                                                          int mainThreadId,
-                                                                          Timeline timeline) {
+  private Stream<TrackGroupModel> createDisplayPipelineTrackGroups
+        (@NotNull StudioProfilers profilers,
+         @NotNull SystemTraceCpuCapture capture,
+         @NotNull Timeline timeline,
+         @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
+    CpuSystemTraceData data = capture.getSystemTraceData();
     final boolean isJankDetectionOn =
       profilers.getIdeServices().getFeatureConfig().isJankDetectionUiEnabled() &&
       !data.getAndroidFrameTimelineEvents().isEmpty();
 
     return isJankDetectionOn
-           ? Stream.of(createJankDetectionTrackGroup(mainThreadId, data, timeline))
+           ? Stream.of(createJankDetectionTrackGroup(capture, data, timeline, multiSelectionModel))
            : Stream.concat(
              // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
-               Stream.of(createDisplayTrackGroup(mainThreadId, data, timeline)),
-               // Android frame lifecycle. Systrace only.
-               IntStream.range(0, data.getAndroidFrameLayers().size())
-                 .mapToObj(layerIndex ->
-                             createFrameLifecycleTrackGroup(data.getAndroidFrameLayers().get(layerIndex), timeline,
-                                                            // Collapse all but the first layer.
-                                                            layerIndex > 0,
-                                                            data)));
+             Stream.of(createDisplayTrackGroup(data, timeline)),
+             // Android frame lifecycle. Systrace only.
+             IntStream.range(0, data.getAndroidFrameLayers().size())
+               .mapToObj(layerIndex ->
+                           createFrameLifecycleTrackGroup(data.getAndroidFrameLayers().get(layerIndex), timeline,
+                                                          // Collapse all but the first layer.
+                                                          layerIndex > 0,
+                                                          data,
+                                                          multiSelectionModel)));
   }
 
   private static TrackGroupModel createDisplayTrackGroup(
-    int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+    @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
 
     TrackGroupModel display = TrackGroupModel.newBuilder()
       .setTitle("Display")
@@ -485,15 +549,13 @@ public class CpuCaptureStage extends Stage<Timeline> {
                         "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>" +
                         "<p><b>BufferQueue</b>: how many frame buffers are queued up, waiting for SurfaceFlinger to consume.</p>")
       // TODO(b/202330841)
-      .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
+      .setTitleHelpLink("Learn more", DISPLAY_HELP_LINK)
       .build();
 
     // Frame
     if (systemTraceData.getAndroidFrameLayers().isEmpty()) {
       // Hide frames if we have Frame Lifecycle data.
-      CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
-        "Main", mainThreadId, SystemTraceFrame.FrameThread.MAIN,
-        systemTraceData, timeline.getViewRange());
+      FrameState mainFrames = new FrameState(SystemTraceFrame.FrameThread.MAIN, systemTraceData, timeline.getViewRange());
       CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
       mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
       display.addTrackModel(
@@ -522,18 +584,23 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
                                                                 @NotNull Timeline timeline,
                                                                 boolean collapseInitially,
-                                                                @NotNull CpuSystemTraceData data) {
+                                                                @NotNull CpuSystemTraceData data,
+                                                                @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
     // Layer name takes the form of "app_name/surface_name", shorten it by omitting the app_name.
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
       .setTitle(title)
-      .setTitleHelpText("This section shows the lifecycle of every frame.")
+      .setTitleHelpText("<p><b>Application</b>: Duration of the app drawing the frame. " +
+                        "<p><b>Wait for GPU</b>: Time it takes the GPU to complete the frame.</p>" +
+                        "<p><b>Composition</b>: Composition time by SurfaceFlinger (not controlled by your app process).</p>" +
+                        "<p><b>Frames on display</b>: Duration of the frame presented on screen display.</p>")
       .setTitleHelpLink("Learn more", "https://d.android.com/r/studio-ui/profiler/frame-lifecycle")
       .setCollapsedInitially(collapseInitially)
       .build();
 
     layer.getPhaseList().stream()
-      .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), data.getVsyncCounterValues()))
+      .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), data.getVsyncCounterValues(),
+                                                    multiSelectionModel))
       .sorted(Comparator.comparingInt(trackModel -> trackModel.getAndroidFramePhase().ordinal()))
       .forEach(
         trackModel -> {
@@ -546,47 +613,103 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return frameLayer;
   }
 
-  private static TrackGroupModel createJankDetectionTrackGroup(
-    int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
-    TrackGroupModel display = TrackGroupModel.newBuilder()
+  private TrackGroupModel createJankDetectionTrackGroup(@NotNull SystemTraceCpuCapture capture,
+                                                        @NotNull CpuSystemTraceData systemTraceData,
+                                                        @NotNull Timeline timeline,
+                                                        @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    String toggleAllFrames = "All Frames";
+    String toggleLifeCycle = "Lifecycle";
+    TrackGroupModel.Builder displayBuilder = TrackGroupModel.newBuilder()
       .setTitle("Display")
-      .setTitleHelpText("This section contains display info. " +
-                        "<p><b>Janky Frames</b>: frames that are janky. " +
-                        "Frames missing deadlines are colored red, buffer stuffing yellow.</p>")
-      .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
-      .build();
+      .setTitleHelpText("<p><b>Janky frames</b>: Frames that lead to unstable frame rate or increased UI latency. " +
+                        "Frames in red are janky due to app process running longer than expected. " +
+                        "Frames in yellow are janky due to stuffed buffer queue.</p>" +
+                        "<p><b>All frames</b>: All frames being rendered by your app. " +
+                        "Frames in green are on-time.</p>" +
+                        "<p><b>Application</b>: Duration of the app drawing the frame. " +
+                        "Look for threads and events associated with the frame to fix jank.</p>" +
+                        "<p><b>Wait for GPU</b>: Time it takes the GPU to complete the frame.</p>" +
+                        "<p><b>Composition</b>: Composition time by SurfaceFlinger (not controlled by your app process).</p>" +
+                        "<p><b>Frames on display</b>: Duration of the frame presented on screen display.</p>")
+      .setTitleHelpLink("Learn more", DISPLAY_HELP_LINK)
+      .addDisplayToggle(
+        toggleAllFrames, false,
+        () -> getStudioProfilers().getIdeServices().getFeatureTracker().trackAllFrameTogglingPerTrace(++myAllFrameTogglingCount));
+    if (!systemTraceData.getAndroidFrameLayers().isEmpty()) {
+      displayBuilder.addDisplayToggle(
+        toggleLifeCycle, false,
+        () -> getStudioProfilers().getIdeServices().getFeatureTracker().trackLifecycleTogglingPerTrace(++myLifecycleTogglingCount));
+    }
+    TrackGroupModel display = displayBuilder.build();
 
     // Jank
-    JankyFrameModel jankyFrameModel = new JankyFrameModel(Arrays.asList(systemTraceData.getAndroidFrameTimelineEvents()),
-                                                          systemTraceData.getVsyncCounterValues(),
-                                                          timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.JANKY_FRAME, "Janky frames")
-                            .setDefaultTooltipModel(new JankyFrameTooltip(timeline, jankyFrameModel)));
-    return display;
+    List<AndroidFrameTimelineEvent> events = systemTraceData.getAndroidFrameTimelineEvents();
+    List<AndroidFrameTimelineEvent> jankEvents = events.stream()
+      .filter(AndroidFrameTimelineEvent::isJank)
+      .collect(Collectors.toList());
+    List<SeriesData<Long>> vsyncs = systemTraceData.getVsyncCounterValues();
+    AndroidFrameTimelineModel jankyFrameModel =
+      new AndroidFrameTimelineModel(jankEvents, vsyncs, timeline.getViewRange(), multiSelectionModel, capture);
+    AndroidFrameTimelineModel allFramesModel =
+      new AndroidFrameTimelineModel(events, vsyncs, timeline.getViewRange(), multiSelectionModel, capture);
+    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "Janky frames")
+                            .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, jankyFrameModel)),
+                          toggles -> !toggles.contains(toggleAllFrames));
+    display.addTrackModel(TrackModel.newBuilder(allFramesModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "All frames")
+                            .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, allFramesModel)),
+                          toggles -> toggles.contains(toggleAllFrames));
 
+    // Track displaying lifecycle data corresponding to frames in above track
+    Map<Long, AndroidFrameTimelineEvent> timelineEventIndex =
+      CollectionsKt.associateBy(systemTraceData.getAndroidFrameTimelineEvents(), AndroidFrameTimelineEvent::getSurfaceFrameToken);
+    BiConsumer<Function1<TraceProcessor.AndroidFrameEventsResult.FrameEvent, Boolean>,
+                         Function1<Set<String>, Boolean>> adder = (frameFilter, displayingCondition) ->
+      TraceProcessorModelKt.groupedByPhase(systemTraceData.getAndroidFrameLayers()).stream()
+        .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues(),
+                                                      multiSelectionModel, frameFilter, timelineEventIndex))
+        .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
+        .forEach(model -> {
+          AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, model);
+          display.addTrackModel(TrackModel.newBuilder(model, ProfilerTrackRendererType.ANDROID_FRAME_EVENT,
+                                                      model.getAndroidFramePhase().getDisplayName())
+                                  .setDefaultTooltipModel(tooltip),
+                                displayingCondition);
+        });
+    // lifecycle data for all frames
+    adder.accept(frame -> true,
+                 toggles -> toggles.contains(toggleLifeCycle) && toggles.contains(toggleAllFrames));
+    // lifecycle data for janky frames only
+    adder.accept(frame -> {
+                   AndroidFrameTimelineEvent event = timelineEventIndex.get((long)frame.getFrameNumber());
+                   return event != null && event.isJank();
+                 },
+                 toggles -> toggles.contains(toggleLifeCycle) && !toggles.contains(toggleAllFrames));
+    // Deadline text
+    display.addTrackModel(TrackModel.newBuilder(new DeadlineTextModel(multiSelectionModel,
+                                                                      systemTraceData.getVsyncCounterValues(),
+                                                                      timeline.getViewRange()),
+                                                ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT, "")
+                            .setDragEnabled(false));
+    return display;
   }
 
   private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,
                                                          @NotNull Timeline timeline,
-                                                         @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel,
+                                                         @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel,
                                                          @NotNull FeatureTracker featureTracker) {
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
-      capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
+      capture.getThreads().stream().sorted(CpuThreadComparator.withCaptureInfo(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     BoxSelectionModel boxSelectionModel = new BoxSelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
-    boxSelectionModel.addBoxSelectionListener(new BoxSelectionListener() {
-      @Override
-      public void boxSelectionCreated(long durationUs, int trackCount) {
-        featureTracker.trackSelectBox(durationUs, trackCount);
-      }
-    });
+    boxSelectionModel.addBoxSelectionListener(featureTracker::trackSelectBox);
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
       .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
                         "Shift+click to select multiple threads.")
-      .setTrackSelectable(true)
+      .setSelector(TrackGroupModel.makeBatchSelector(CpuThreadTrackModel.class.getName()))
       // For box selection
       .setBoxSelectionModel(boxSelectionModel)
       .build();

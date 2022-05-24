@@ -124,7 +124,7 @@ class PerfettoParserTest {
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     val systraceCapture = capture as SystemTraceCpuCapture
-    val androidFrameLayers = systraceCapture.getAndroidFrameLayers()
+    val androidFrameLayers = systraceCapture.androidFrameLayers
     assertThat(androidFrameLayers).hasSize(1)
     assertThat(androidFrameLayers[0].layerName).startsWith("android.com.java.profilertester")
     assertThat(androidFrameLayers[0].phaseCount).isEqualTo(4)

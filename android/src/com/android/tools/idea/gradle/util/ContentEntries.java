@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ContentEntries {
   private ContentEntries() {

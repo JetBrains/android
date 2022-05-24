@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
@@ -25,6 +24,7 @@ import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterX
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterY
 import com.android.tools.idea.uibuilder.model.ensureLiveId
+import com.google.common.annotations.VisibleForTesting
 import java.awt.Point
 
 const val SIZE = 20

@@ -16,10 +16,10 @@
 package com.android.tools.idea.observable.adapters;
 
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

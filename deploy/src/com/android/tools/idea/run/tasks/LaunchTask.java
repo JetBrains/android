@@ -17,10 +17,9 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.tools.idea.run.ApkInfo;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A step in launching a run configuration on device, for example installing an APK or unlocking

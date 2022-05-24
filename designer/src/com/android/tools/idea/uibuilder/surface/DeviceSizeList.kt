@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.uibuilder.surface.DeviceSizeList.DeviceSize
+import com.android.tools.idea.uibuilder.surface.DeviceSizeList.DeviceSize.Companion.create
 import com.google.common.annotations.VisibleForTesting
 
 /**

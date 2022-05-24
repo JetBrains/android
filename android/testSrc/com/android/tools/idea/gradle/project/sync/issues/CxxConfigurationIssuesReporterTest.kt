@@ -24,8 +24,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   private lateinit var syncMessages: GradleSyncMessagesStub
@@ -35,7 +35,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     reporter = CxxConfigurationIssuesReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }

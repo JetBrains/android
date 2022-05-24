@@ -351,7 +351,7 @@ class AddDynamicFeatureTest {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
     ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
 
@@ -378,7 +378,7 @@ class AddDynamicFeatureTest {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
     ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
 
@@ -416,7 +416,7 @@ class AddDynamicFeatureTest {
     downloadInstallKind: DownloadInstallKind = DownloadInstallKind.ON_DEMAND_ONLY,
     setFeatures: ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture>.() -> ConfigureDynamicFeatureDeliveryStepFixture<NewModuleWizardFixture> = { this }
   ): IdeFrameFixture {
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToDynamicFeature()
       .setSourceLanguage(lang)
@@ -440,7 +440,7 @@ class AddDynamicFeatureTest {
   }
 
   private fun createInstantDynamicModuleWithFusing(ideFrame: IdeFrameFixture): IdeFrameFixture {
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
       .checkFusingCheckbox()

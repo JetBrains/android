@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.createValueResource
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.psi.PsiDocumentManager
@@ -23,7 +24,6 @@ import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import com.android.tools.idea.res.createValueResource
 
 /**
  * [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project.

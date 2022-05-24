@@ -99,6 +99,8 @@ interface ProjectSystemSyncManager {
     PROJECT_LOADED,
     /** The project has been modified */
     PROJECT_MODIFIED,
+    /** The project has been modified (dependency updated) */
+    PROJECT_DEPENDENCY_UPDATED,
     /** The user requested the sync directly (by pushing the button) */
     USER_REQUEST;
   }
@@ -111,4 +113,4 @@ interface ProjectSystemSyncManager {
 }
 
 /** Endpoint for broadcasting changes in global sync status */
-@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic<SyncResultListener>("Project sync", SyncResultListener::class.java)
+@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic(SyncResultListener::class.java)

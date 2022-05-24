@@ -28,14 +28,11 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -85,7 +82,7 @@ fun getSingleApkOrParentFolderForRunConfiguration(
   else apks.map { it.parentFile }.singleOrNull()
 }
 
-fun getOutputFilesFromListingFile(listingFile: String): List<File> {
+fun getOutputFilesFromListingFileOrLogError(listingFile: String): List<File> {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
     val items = builtArtifacts.elements.map { File(it.outputFile) }
@@ -110,25 +107,12 @@ fun getOutputFilesFromListingFile(listingFile: String): List<File> {
   return emptyList()
 }
 
-private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
-  return if (useSelectApksFromBundleBuilder(module, configuration, null)) {
-    OutputType.ApkFromBundle
-  }
-  else {
-    OutputType.Apk
-  }
-}
-
-private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
+fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
   return firstOrNull { it.variantName == variantName }?.buildInformation
 }
 
-fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
-  return when (outputType) {
-    OutputType.Apk -> assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
-    else -> bundleTaskOutputListingFile
-  }
+fun IdeBuildTasksAndOutputInformation.getOutputListingFileOrLogError(outputType: OutputType): String? {
+  return getOutputListingFile(outputType)
     .also {
       if (it == null) {
         LOG.error(Throwable("Output listing build file is not available for output type $outputType in $this"))
@@ -136,22 +120,15 @@ fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputTyp
     }
 }
 
-fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
-  val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
-  if (builtArtifacts != null) {
-    return builtArtifacts
+fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType) =
+  when (outputType) {
+    OutputType.Apk -> assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
+    else -> bundleTaskOutputListingFile
   }
 
-  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
-  return null
-}
-
-fun getBuildOutputListingFile(
-  androidModel: AndroidModuleModel,
-  variantName: String
-): String? {
-  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-  return variantBuildInformation?.getOutputListingFile(OutputType.Apk)
+fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
+  return loadFromFile(File(listingFile), LogWrapper(LOG))
 }
 
 class LastBuildOrSyncService {
@@ -164,7 +141,7 @@ class LastBuildOrSyncService {
 internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListenerAdapter() {
   override fun onEnd(id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
-      ServiceManager.getService(project, LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
+      project.getService(LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
     }
   }
 }
@@ -180,12 +157,12 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         if (context == null) return
-        val service = ServiceManager.getService(context.project, LastBuildOrSyncService::class.java)
+        val service = context.project.getService(LastBuildOrSyncService::class.java)
         service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
       }
     })
 
-    val service = ServiceManager.getService(project, LastBuildOrSyncService::class.java)
+    val service = project.getService(LastBuildOrSyncService::class.java)
     service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
   }
 }
@@ -194,4 +171,10 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
   LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
 
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long)
+data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long) {
+  companion object {
+    @JvmStatic
+    fun mostRecentNotNull(vararg items: GenericBuiltArtifactsWithTimestamp?): GenericBuiltArtifactsWithTimestamp? =
+      items.filterNotNull().maxByOrNull { it.timeStamp }
+  }
+}

@@ -22,14 +22,11 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
-import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -45,6 +42,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ThreeState;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -66,7 +64,7 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
 
   // @VisibleForTesting
   StudioProgramRunner(@NotNull Function<Project, GradleSyncState> syncStateGetter,
-                             @NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
+                      @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @NotNull AndroidExecutionTarget> executionTargetGetter) {
     super(executionTargetGetter);
     mySyncStateGetter = syncStateGetter;
   }
@@ -93,8 +91,6 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     Project project = env.getProject();
     Executor executor = env.getExecutor();
     String executorId = executor.getId();
-
-    throwExceptionIfExecutorIdIsNotSupported(project, executorId);
 
     boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
     RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
@@ -147,25 +143,6 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     return descriptor;
   }
 
-  /**
-   * Throws exception if this runner is targeting multiple devices, but the operation implied by the executorId is not supported on
-   * multiple devices. The default implementation here allows running on multiple devices, but disallows debugging (or any other executors)
-   * on multiple devices.
-   */
-  protected void throwExceptionIfExecutorIdIsNotSupported(@NotNull Project project, @NotNull String executorId) throws ExecutionException {
-    if (((AndroidExecutionTarget)myGetActiveTarget.apply(project)).getAvailableDeviceCount() <= 1) {
-      return;
-    }
-
-    switch (executorId) {
-      case DefaultRunExecutor.EXECUTOR_ID:
-        return;
-      case DefaultDebugExecutor.EXECUTOR_ID:
-        throw new ExecutionException("Debugging is not supported on multiple devices");
-      default:
-        throw new ExecutionException("The " + executorId + " executor is not supported on multiple devices");
-    }
-  }
 
   @VisibleForTesting
   static class HiddenRunContentDescriptor extends RunContentDescriptor {

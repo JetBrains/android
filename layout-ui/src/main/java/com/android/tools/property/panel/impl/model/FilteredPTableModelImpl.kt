@@ -39,6 +39,7 @@ import com.android.tools.property.ptable2.PTableModelUpdateListener
  * this table.
  */
 class FilteredPTableModelImpl<P : PropertyItem>(
+  private val valueType: Class<P>,
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
   private val insertOperation: ((String, String) -> P?)?,
@@ -47,7 +48,8 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
   private val allowEditing: Boolean,
-  private val valueEditable: (P) -> Boolean
+  private val valueEditable: (P) -> Boolean,
+  private val hasCustomCursor: (P) -> Boolean
 ) : FilteredPTableModel<P>, PTableModel {
 
   private val listeners = mutableListOf<PTableModelUpdateListener>()
@@ -119,6 +121,10 @@ class FilteredPTableModelImpl<P : PropertyItem>(
       is PTableGroupItem -> true
       else -> column == PTableColumn.VALUE && valueEditable(item as P)
     }
+
+  @Suppress("UNCHECKED_CAST")
+  override fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean =
+    (column == PTableColumn.VALUE) && valueType.isInstance(item) && hasCustomCursor(item as P)
 
   override fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean {
     // Accept any move to the next editor unless we know that that the current row

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-
-import java.io.File;
 
 public class RootSourceFolder {
   @NotNull private final File myPath;

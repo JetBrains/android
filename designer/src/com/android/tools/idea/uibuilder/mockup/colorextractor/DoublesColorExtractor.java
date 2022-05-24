@@ -18,14 +18,17 @@ package com.android.tools.idea.uibuilder.mockup.colorextractor;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.pixelprobe.color.Colors;
 import com.google.common.annotations.VisibleForTesting;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
 
 
 /**

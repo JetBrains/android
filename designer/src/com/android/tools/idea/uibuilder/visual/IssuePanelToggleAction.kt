@@ -34,7 +34,10 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
         Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
         return false
       }
-      return service.isLayoutValidationIssuePanelVisible()
+      if (service.isLayoutAndQualifierPanelVisible()) {
+        return service.isIssueModelAttached(surface.issueModel)
+      }
+      return false
     }
     else {
       return !surface.issuePanel.isMinimized
@@ -49,9 +52,11 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
         return
       }
       if (state) {
-        service.showLayoutValidationIssuePanel()
+        service.showCurrentFileAndQualifierTab()
+        service.attachIssueModel(surface.issueModel, surface.model!!.virtualFile)
       }
       else {
+        service.detachIssueModel(surface.issueModel)
         service.hideIssuePanel()
       }
     }

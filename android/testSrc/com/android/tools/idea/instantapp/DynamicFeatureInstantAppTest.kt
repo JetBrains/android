@@ -17,8 +17,6 @@ package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.gradle.project.sync.executeMakeBeforeRunStepInTest
-import com.android.tools.idea.gradle.project.sync.mockDeviceFor
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -34,7 +32,9 @@ import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
+import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.androidFacet
@@ -101,8 +101,6 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
 
       launchOptionsBuilder = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
-        .setSkipNoopApkInstallations(true)
-        .setForceStopRunningApp(true)
 
       instantAppSdks = IdeComponents(null, projectRule.fixture.testRootDisposable)
         .mockApplicationService(InstantAppSdks::class.java)

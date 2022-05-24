@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.common.model.NlModel;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Handles the creation of the widgets and layouts from a mockup using the

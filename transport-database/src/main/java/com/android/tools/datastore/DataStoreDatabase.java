@@ -15,13 +15,12 @@
  */
 package com.android.tools.datastore;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 public class DataStoreDatabase {
   public enum Characteristic {

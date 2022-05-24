@@ -17,13 +17,11 @@ package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
 /**
- * Tests for [ComposeSampleResolutionService]
+ * Tests for [ComposeKDocLinkResolutionService]
  */
 class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
 

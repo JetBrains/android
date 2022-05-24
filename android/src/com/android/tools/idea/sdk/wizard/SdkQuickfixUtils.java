@@ -27,11 +27,11 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -212,7 +212,7 @@ public final class SdkQuickfixUtils {
       resolvedPackages.forEach(updatable -> resolvedUninstalls.remove(updatable.getLocal()));
     }
 
-    List<UpdatablePackage> unavailableDownloads = Lists.newArrayList();
+    List<UpdatablePackage> unavailableDownloads = new ArrayList<>();
     verifyAvailability(resolvedPackages, unavailableDownloads);
 
     // If there were requests we didn't understand or can't download, show an error.
@@ -241,8 +241,7 @@ public final class SdkQuickfixUtils {
     }
     List<RemotePackage> installRequests = ContainerUtil.map(resolvedPackages, UpdatablePackage::getRemote);
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(sdkHandler.getFileOp().toFile(mgr.getLocalPath())),
-                                                   installRequests));
+    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);
@@ -305,11 +304,11 @@ public final class SdkQuickfixUtils {
                                                @NotNull RepositoryPackages packages) throws PackageResolutionException {
     List<UpdatablePackage> result = new ArrayList<>();
     if (requestedPackages == null) {
-      requestedPackages = Lists.newArrayList();
+      requestedPackages = new ArrayList<>();
     }
     List<UpdatablePackage> resolved = Lists.newArrayList(requestedPackages);
 
-    List<RemotePackage> remotes = Lists.newArrayList();
+    List<RemotePackage> remotes = new ArrayList<>();
     for (UpdatablePackage p : resolved) {
       if (p.hasRemote()) {
         remotes.add(p.getRemote());

@@ -33,7 +33,7 @@ class NewDestinationLayoutAlgorithmTest : NavTestCase() {
     model.find("fragment2")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
     model.find("fragment3")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
 
-    model.surface.sceneManager!!.requestRender()
+    model.surface.sceneManager!!.requestRenderAsync()
     val scene = model.surface.scene!!
     assertEquals(-708, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(-708, scene.getSceneComponent("fragment1")!!.drawY)

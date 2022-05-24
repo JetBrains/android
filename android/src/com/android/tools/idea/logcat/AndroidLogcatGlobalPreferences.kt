@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.util.xmlb.DimensionConverter
+import com.android.tools.idea.logcat.converters.DimensionConverter
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State

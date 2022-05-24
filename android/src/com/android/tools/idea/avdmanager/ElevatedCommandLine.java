@@ -24,10 +24,14 @@ import com.sun.jna.platform.win32.ShellAPI;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
@@ -40,7 +44,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
-  public ElevatedCommandLine(@NotNull String... command) {
+  public ElevatedCommandLine(@NotNull String @NotNull ... command) {
     super(command);
     myTempFilePrefix = "temp";
   }

@@ -16,11 +16,10 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.uibuilder.palette.Palette.Item;
+import javax.swing.JList;
 import org.fest.swing.cell.JListCellReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 final class ItemTitleListCellReader implements JListCellReader {
   @Nullable

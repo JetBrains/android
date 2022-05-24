@@ -56,8 +56,8 @@ private const val THUMBNAIL_BORDER_THICKNESS = 1f
 private const val THUMBNAIL_OUTER_RADIUS = 5f
 private const val THUMBNAIL_INNER_RADIUS = 3f
 private val THUMBNAIL_BORDER_STROKE = BasicStroke(THUMBNAIL_BORDER_THICKNESS)
-private val INCLUDE_ICON_WIDTH = 45
-private val INCLUDE_ICON_HEIGHT = 60
+private const val INCLUDE_ICON_WIDTH = 45
+private const val INCLUDE_ICON_HEIGHT = 60
 
 sealed class Destination(protected open val parent: NlComponent) : Comparable<Destination> {
   /**

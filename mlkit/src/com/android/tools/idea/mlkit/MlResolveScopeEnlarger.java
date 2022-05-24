@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.android.tools.idea.mlkit.MlModuleService.getProjectDependencies;
+
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +41,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
   @Nullable
   @Override
-  public SearchScope getAdditionalResolveScope(@NotNull VirtualFile file, Project project) {
+  public SearchScope getAdditionalResolveScope(@NotNull VirtualFile file, @NotNull Project project) {
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     return module != null ? getAdditionalResolveScope(module) : null;
   }
@@ -66,27 +67,22 @@ public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
         searchScopeIncludingDeps = searchScopeIncludingDeps.union(getLocalResolveScope(moduleDep));
       }
       return CachedValueProvider.Result.create(
-        searchScopeIncludingDeps, ProjectMlModelFileTracker.getInstance(project), ModuleManager.getInstance(project));
+        searchScopeIncludingDeps, getProjectDependencies(project));
     });
   }
 
   @NotNull
   private static SearchScope getLocalResolveScope(@NotNull Module module) {
     Project project = module.getProject();
-    return CachedValuesManager.getManager(project).getCachedValue(module, () -> {
-      SearchScope localSearchScope;
-      if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
-        Collection<VirtualFile> virtualFiles = new ArrayList<>();
-        for (PsiClass lightClass : MlModuleService.getInstance(module).getLightModelClassList()) {
-          virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
-        }
-        localSearchScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles);
+    if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+      Collection<VirtualFile> virtualFiles = new ArrayList<>();
+      for (PsiClass lightClass : MlModuleService.getInstance(module).getLightModelClassList()) {
+        virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
       }
-      else {
-        localSearchScope = GlobalSearchScope.EMPTY_SCOPE;
-      }
-      return CachedValueProvider.Result.create(
-        localSearchScope, ProjectMlModelFileTracker.getInstance(project), ModuleManager.getInstance(project));
-    });
+      return GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles);
+    }
+    else {
+      return GlobalSearchScope.EMPTY_SCOPE;
+    }
   }
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditorFactory
-import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.icons.AllIcons

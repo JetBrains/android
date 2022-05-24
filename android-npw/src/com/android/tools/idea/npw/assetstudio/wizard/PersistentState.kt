@@ -347,8 +347,3 @@ class PersistentState {
     return values.isNullOrEmpty() && children.isNullOrEmpty()
   }
 }
-
-private fun <K, V> Map<K, V>?.isNullOrEmpty(): Boolean {
-  return this == null || this.isEmpty()
-}
-

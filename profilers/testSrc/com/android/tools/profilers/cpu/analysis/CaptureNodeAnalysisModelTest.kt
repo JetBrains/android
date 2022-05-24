@@ -60,6 +60,18 @@ class CaptureNodeAnalysisModelTest {
     assertThat(stats.standardDeviation).isWithin(EPSILON).of(11.873)
   }
 
+  @Test
+  fun `models with equal fields are equal`() {
+    val capture1 = Mockito.mock(CpuCapture::class.java)
+    val capture2 = Mockito.mock(CpuCapture::class.java)
+    val m1 = CaptureNodeAnalysisModel(ROOT_NODE, capture1)
+    val m2 = CaptureNodeAnalysisModel(ROOT_NODE, capture2)
+    val m3 = CaptureNodeAnalysisModel(FOO_1, capture1)
+    val m4 = CaptureNodeAnalysisModel(ROOT_NODE, capture1)
+    assertThat(m1).isEqualTo(m4)
+    assertThat(setOf(m1, m2, m3, m4)).hasSize(3)
+  }
+
   companion object {
     private const val EPSILON = 0.001
     /**

@@ -71,7 +71,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   data class TestDefinition(
     override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
     val modelsV2: Boolean = false
-  ) : AgpIntegrationTestDefinition<TestDefinition> {
+  ) : AgpIntegrationTestDefinition {
     override val name: String = ""
     override fun toString(): String = displayName()
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
@@ -171,8 +171,8 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   private fun runTestOn(testProjectPath: String, test: (Project) -> Unit) {
     val testDefinition = testDefinition!!
     outputCurrentlyRunningTest(testDefinition)
-    if (testDefinition.modelsV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    if (!testDefinition.modelsV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
       prepareGradleProject(
@@ -185,7 +185,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
       openPreparedProject("project", test)
     }
     finally {
-      if (testDefinition.modelsV2) {
+      if (!testDefinition.modelsV2) {
         StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
       }
     }

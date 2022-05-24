@@ -20,8 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ViewLoaderExtension {
-  ExtensionPointName<ViewLoaderExtension> EP_NAME =
-    new ExtensionPointName<ViewLoaderExtension>("org.jetbrains.android.uipreview.viewLoaderExtension");
+  ExtensionPointName<ViewLoaderExtension> EP_NAME = new ExtensionPointName<>("org.jetbrains.android.uipreview.viewLoaderExtension");
 
   @Nullable
   Class<?> loadClass(@NotNull String className, @NotNull ClassLoader delegateClassLoader);

@@ -46,6 +46,11 @@ interface PTableModel {
   fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean = false
 
   /**
+   * Returns true if an item has a renderer which needs to change the cursor.
+   */
+  fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean = false
+
+  /**
    * Returns true if it is acceptable to use the default implementation for
    * moving to the next editor after being done editing the [column] of the specified [item].
    * A return value of false will leave no active editors unless this is handled by other means.

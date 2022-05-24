@@ -20,11 +20,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import javax.swing.Icon;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Fixture for the toolbar displaying the View action for the selected component

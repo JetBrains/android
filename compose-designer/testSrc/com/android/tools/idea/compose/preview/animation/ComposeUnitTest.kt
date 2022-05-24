@@ -75,6 +75,143 @@ class ComposeUnitTest {
     assertEquals(listOf(1.2345f), composeUnit.components);
   }
 
+  @Suppress("unused") // Methods are called via reflection by tests.
+  class ValidIntOffset {
+    fun `unbox-impl`() = 0L
+
+    companion object {
+      @JvmStatic
+      fun `getX-impl`(impl: Long) = 1
+
+      @JvmStatic
+      fun `getY-impl`(impl: Long) = 2
+    }
+  }
+
+  @Test
+  fun parseIntOffset() {
+    val composeUnit = ComposeUnit.IntOffset.create(ValidIntOffset())
+    assertNotNull(composeUnit)
+    assertEquals(1, composeUnit.component1);
+    assertEquals(2, composeUnit.component2);
+    assertEquals("x ( 1 , _ )", composeUnit.toString(0))
+    assertEquals("y ( _ , 2 )", composeUnit.toString(1))
+    assertEquals("( 1 , 2 )", composeUnit.toString())
+    assertEquals(listOf(1, 2), composeUnit.components);
+  }
+
+  @Suppress("unused") // Methods are called via reflection by tests.
+  class ValidIntSize {
+    fun `unbox-impl`() = 0L
+
+    companion object {
+      @JvmStatic
+      fun `getWidth-impl`(impl: Long) = 1
+
+      @JvmStatic
+      fun `getHeight-impl`(impl: Long) = 2
+    }
+  }
+
+  @Test
+  fun parseIntSize() {
+    val composeUnit = ComposeUnit.IntSize.create(ValidIntSize())
+    assertNotNull(composeUnit)
+    assertEquals(1, composeUnit.component1);
+    assertEquals(2, composeUnit.component2);
+    assertEquals("width ( 1 , _ )", composeUnit.toString(0))
+    assertEquals("height ( _ , 2 )", composeUnit.toString(1))
+    assertEquals("( 1 , 2 )", composeUnit.toString())
+    assertEquals(listOf(1, 2), composeUnit.components);
+  }
+
+  @Suppress("unused") // Methods are called via reflection by tests.
+  class ValidSize {
+    fun `unbox-impl`() = 0L
+
+    companion object {
+      @JvmStatic
+      fun `getWidth-impl`(impl: Long) = 1.1f
+
+      @JvmStatic
+      fun `getHeight-impl`(impl: Long) = 2.2f
+    }
+  }
+
+  @Test
+  fun parseSize() {
+    val composeUnit = ComposeUnit.Size.create(ValidSize())
+    assertNotNull(composeUnit)
+    assertEquals(1.1f, composeUnit.component1);
+    assertEquals(2.2f, composeUnit.component2);
+    assertEquals("width ( 1.1 , _ )", composeUnit.toString(0))
+    assertEquals("height ( _ , 2.2 )", composeUnit.toString(1))
+    assertEquals("( 1.1 , 2.2 )", composeUnit.toString())
+    assertEquals(listOf(1.1f, 2.2f), composeUnit.components);
+  }
+
+  @Suppress("unused") // Methods are called via reflection by tests.
+  class ValidOffset {
+    fun `unbox-impl`() = 0L
+
+    companion object {
+      @JvmStatic
+      fun `getX-impl`(impl: Long) = 1.1f
+
+      @JvmStatic
+      fun `getY-impl`(impl: Long) = 2.2f
+    }
+  }
+
+  @Test
+  fun parseOffset() {
+    val composeUnit = ComposeUnit.Offset.create(ValidOffset())
+    assertNotNull(composeUnit)
+    assertEquals(1.1f, composeUnit.component1);
+    assertEquals(2.2f, composeUnit.component2);
+    assertEquals("x ( 1.1 , _ )", composeUnit.toString(0))
+    assertEquals("y ( _ , 2.2 )", composeUnit.toString(1))
+    assertEquals("( 1.1 , 2.2 )", composeUnit.toString())
+    assertEquals(listOf(1.1f, 2.2f), composeUnit.components);
+  }
+
+  @Suppress("unused") // Methods are called via reflection by tests.
+  class ValidColor {
+    fun `unbox-impl`() = 0L
+
+    companion object {
+      @JvmStatic
+      fun `getRed-impl`(impl: Long) = 0.1f
+
+      @JvmStatic
+      fun `getGreen-impl`(impl: Long) = 0.2f
+
+      @JvmStatic
+      fun `getBlue-impl`(impl: Long) = 0.3f
+
+      @JvmStatic
+      fun `getAlpha-impl`(impl: Long) = 0.4f
+    }
+  }
+
+  @Test
+  fun parseColor() {
+    val composeUnit = ComposeUnit.Color.create(ValidColor())
+    assertNotNull(composeUnit)
+    assertEquals(0.1f, composeUnit.component1);
+    assertEquals(0.2f, composeUnit.component2);
+    assertEquals(0.3f, composeUnit.component3);
+    assertEquals(0.4f, composeUnit.component4);
+    assertEquals("red ( 0.1 , _ , _ , _ )", composeUnit.toString(0))
+    assertEquals("green ( _ , 0.2 , _ , _ )", composeUnit.toString(1))
+    assertEquals("blue ( _ , _ , 0.3 , _ )", composeUnit.toString(2))
+    assertEquals("alpha ( _ , _ , _ , 0.4 )", composeUnit.toString(3))
+    assertEquals("( 0.1 , 0.2 , 0.3 , 0.4 )", composeUnit.toString())
+    assertEquals(listOf(0.1f, 0.2f, 0.3f, 0.4f), composeUnit.components);
+    assertNotNull(composeUnit.color)
+  }
+
+
   @Test
   fun parseInvalidDp() {
     @Suppress("unused") // Methods are called via reflection by tests.

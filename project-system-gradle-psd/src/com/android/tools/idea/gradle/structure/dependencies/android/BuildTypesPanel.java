@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.ui.SideBorder.RIGHT;
+
 import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
@@ -24,14 +27,12 @@ import com.intellij.openapi.Disposable;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.List;
-
-import static com.intellij.ui.SideBorder.BOTTOM;
-import static com.intellij.ui.SideBorder.RIGHT;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import org.jetbrains.annotations.NotNull;
 
 class BuildTypesPanel extends JPanel {
   @NotNull private final PsCheckBoxList<PsBuildType> myBuildTypesList;

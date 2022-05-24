@@ -16,12 +16,15 @@
 
 package com.android.tools.idea.run;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.AvdManagerUtils;
+import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ModalityState;
@@ -31,25 +34,21 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import javax.swing.DefaultComboBoxModel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myAddEmptyElement;
@@ -79,7 +78,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
       }
     });
 
-    setMinimumSize(new Dimension(JBUI.scale(100), getMinimumSize().height));
+    setMinimumSize(new Dimension(JBUIScale.scale(100), getMinimumSize().height));
   }
 
 

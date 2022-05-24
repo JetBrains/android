@@ -16,8 +16,8 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import javax.swing.JComponent
 import com.intellij.ui.layout.panel
+import javax.swing.JComponent
 
 /**
  * Step to show a message that the SDK is missing.

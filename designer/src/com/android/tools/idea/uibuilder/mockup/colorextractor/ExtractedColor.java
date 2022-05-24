@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains some information about a color extracted by {@link ColorExtractor}.

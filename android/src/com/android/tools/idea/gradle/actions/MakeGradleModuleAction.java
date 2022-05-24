@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -24,8 +26,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
 
 public class MakeGradleModuleAction extends AndroidStudioGradleAction {
   public MakeGradleModuleAction() {

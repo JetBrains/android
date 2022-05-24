@@ -55,7 +55,6 @@ import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
-import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
@@ -109,7 +108,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -161,7 +159,7 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          true, (surface) -> new SinglePositionableContentLayoutManager(),
+          (surface) -> new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
@@ -186,7 +184,7 @@ public class NavDesignSurface extends DesignSurface {
     //  re-inflate the NlModel ...", we should implement NavSceneManager#requestLayoutAndRender() and call it because
     //  SceneManager#requestRender() doesn't re-inflate the NlModel.
     SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    return manager != null ? manager.requestRender() : CompletableFuture.completedFuture(null);
+    return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
   }
 
   @Override
@@ -610,12 +608,6 @@ public class NavDesignSurface extends DesignSurface {
       }
     }
     super.notifyComponentActivate(component);
-  }
-
-  @NotNull
-  @Override
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
   @UiThread

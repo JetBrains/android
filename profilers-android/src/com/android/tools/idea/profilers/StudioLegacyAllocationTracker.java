@@ -17,13 +17,14 @@ package com.android.tools.idea.profilers;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Since older releases of Android and uninstrumented apps will not have JVMTI allocation tracking, we therefore need to support the older

@@ -20,13 +20,15 @@ import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * ImageComponent is a Swing component that displays an image. The image is scaled to fit inside the component bounds, which are set
@@ -46,7 +48,7 @@ public class ImageComponent extends OpaquePanel {
   protected void paintChildren(@NotNull Graphics g) {
     if (myIcon == null) return;
     Image image = IconLoader.toImage(myIcon, ScaleContext.create((Graphics2D)g));
-    UIUtil.drawImage(g, image, new Rectangle(getWidth(), getHeight()), new Rectangle(image.getWidth(null), image.getHeight(null)), null);
+    StartupUiUtil.drawImage(g, image, new Rectangle(getWidth(), getHeight()), new Rectangle(image.getWidth(null), image.getHeight(null)), null);
   }
 
   public void setIcon(@Nullable Icon icon) {

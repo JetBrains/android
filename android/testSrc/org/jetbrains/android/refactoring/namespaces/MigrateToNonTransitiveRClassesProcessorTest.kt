@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.ProjectFiles
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.FIND_USAGES
@@ -32,12 +33,19 @@ import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.N
 import com.intellij.codeInspection.unusedImport.UnusedImportInspection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.command.impl.UndoManagerImpl
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.usageView.UsageInfo
+import com.intellij.usages.UsageGroup
+import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageTarget
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -47,6 +55,12 @@ import org.jetbrains.kotlin.idea.inspections.KotlinUnusedImportInspection
 class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
   private val myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
+  private val TestUsageTracker.relevantUsages: List<AndroidStudioEvent>
+    get() {
+      return usages
+        .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
+        .map { it.studioEvent }
+    }
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -942,13 +956,52 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       .map { it.studioEvent }
     assertThat(usages).hasSize(3)
 
-    val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
+    val findUsagesEvent = myUsageTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
     assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(32)
 
-    val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
+    val executesEvent = myUsageTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
     assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(32)
 
-    val syncEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
-    assertThat(syncEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
+    val syncSkippedEvent = myUsageTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
+    assertThat(syncSkippedEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
+
+    val textEditor = TextEditorProvider.getInstance().getTextEditor(myFixture.editor)
+    UndoManagerImpl.ourNeverAskUser = true
+    val undoManager = UndoManager.getInstance(myFixture.project)
+
+    // Undo the migration and assert that sync was triggered again
+    undoManager.undo(textEditor)
+
+    val syncSkippedEvents = myUsageTracker.relevantUsages.filter { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
+    assertThat(syncSkippedEvents).hasSize(2)
+
+    // Redo the migration and assert that sync was triggered again
+    undoManager.redo(textEditor)
+
+    val syncSkippedEventsAfterRedo = myUsageTracker.relevantUsages.filter { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
+    assertThat(syncSkippedEventsAfterRedo).hasSize(3)
+  }
+
+  /**
+   * Test for [ResourcePackageGroupingRuleProvider], checks that the relevant UsageGroupingRules are included.
+   */
+  fun testWholeProjectGroupingRules() {
+    val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project,
+                                                                                        GradleVersion.tryParse("7.0.0")!!)
+    // gradle.properties only shows up as a usage when the file exists before the refactoring.
+    myFixture.addFileToProject("gradle.properties", "")
+
+    val usageInfo = refactoringProcessor.findUsages().toList()
+    val usageTypeTexts = usageInfo.map { getUsageGroup(it).presentableGroupText }
+    assertThat(usageTypeTexts).containsAllOf("References to resources defined in com.example.lib",
+                                             "References to resources defined in com.example.sublib",
+                                             "Properties flag to be added: android.nonTransitiveRClass")
+  }
+
+  private fun getUsageGroup(usageInfo: UsageInfo): UsageGroup {
+    val groupingRules = ResourcePackageGroupingRuleProvider().getActiveRules(myFixture.project)
+    val groups = groupingRules.map { it.getParentGroupsFor(UsageInfo2UsageAdapter(usageInfo), UsageTarget.EMPTY_ARRAY) }.flatten()
+    assertThat(groups).hasSize(1)
+    return groups[0]
   }
 }

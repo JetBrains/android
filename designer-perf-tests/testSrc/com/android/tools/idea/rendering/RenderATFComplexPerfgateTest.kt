@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.validator.LayoutValidator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -39,6 +40,10 @@ class RenderATFComplexPerfgateTest {
   @Before
   fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
+    // Enabling this will retrieve text character locations from TextView to improve the
+    // accuracy of TextContrastCheck in ATF. However, it can burden the render time quite alot
+    // specially if the view contains a long text.
+    LayoutValidator.setObtainCharacterLocations(false)
 
     val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
     gradleRule.fixture.testDataPath = baseTestPath.toString()

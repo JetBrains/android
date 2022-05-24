@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.splitter;
 
+import java.awt.Dimension;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Utilities for {@link com.intellij.openapi.ui.ThreeComponentsSplitter}.

@@ -19,11 +19,11 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import org.fest.swing.timing.Wait
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import org.fest.swing.timing.Wait
 
 internal fun prepareAdbInstall(adbPath: String, vararg apkFiles: File) =
   ProcessBuilder(listOf(adbPath, "install-multiple", "-t", "-r", "--ephemeral") + apkFiles.map { it.absolutePath })

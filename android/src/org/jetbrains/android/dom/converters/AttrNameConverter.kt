@@ -40,7 +40,6 @@ import org.jetbrains.android.resourceManagers.FrameworkResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.NonNls
 import java.util.ArrayDeque
-import java.util.HashSet
 
 /**
  * This converter deals with the name attribute in a [StyleItem] or [Attr] tag.

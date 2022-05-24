@@ -46,9 +46,6 @@ public class DeleteCustomFieldAction extends AnAction {
   public void update(@NotNull AnActionEvent event) {
     boolean enabled = myLineModel != null && !myLineModel.getTableModel().getItems().isEmpty();
     event.getPresentation().setEnabled(enabled);
-
-    // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
-    getTemplatePresentation().setEnabled(enabled);
   }
 
   @Override

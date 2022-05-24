@@ -20,16 +20,15 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.util.Key;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AndroidProcessText {
-  private static final Key<AndroidProcessText> KEY = new Key<AndroidProcessText>("ANDROID_PROCESS_TEXT");
+  private static final Key<AndroidProcessText> KEY = new Key<>("ANDROID_PROCESS_TEXT");
 
-  private final List<MyFragment> myFragments = new ArrayList<MyFragment>();
+  private final List<MyFragment> myFragments = new ArrayList<>();
 
   private AndroidProcessText(@NotNull ProcessHandler processHandler) {
     processHandler.addProcessListener(new ProcessAdapter() {

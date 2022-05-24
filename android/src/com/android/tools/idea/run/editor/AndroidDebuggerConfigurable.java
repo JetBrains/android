@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.run.editor;
 
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class AndroidDebuggerConfigurable<S> {
   @Nullable

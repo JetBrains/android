@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profilers.ProfilerColors.NETWORK_RECEIVING_COLOR;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_RECEIVING_SELECTED_COLOR;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_SENDING_COLOR;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
+
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.EnumColors;
@@ -24,15 +29,12 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.profilers.ProfilerColors.*;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
@@ -86,7 +88,7 @@ public final class ConnectionsStateChart {
       series.add(data.getConnectionEndTimeUs(), NetworkState.NONE);
     }
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-    StateChart<NetworkState> chart = new StateChart<>(stateModel, new StateChartColorProvider<NetworkState>() {
+    StateChart<NetworkState> chart = new StateChart<>(stateModel, new StateChartColorProvider<>() {
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull NetworkState value) {

@@ -19,9 +19,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import perfetto.protos.PerfettoTrace
 
 class SystemTraceCpuCaptureBuilderTest {
 
@@ -55,7 +57,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
     assertThat(systemTraceData.getCpuThreadSliceInfoStates(0).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
@@ -90,10 +92,10 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
-    assertThat(systemTraceData.getCpuUtilizationSeries().map { "${it.x}-${it.value}" })
+    assertThat(systemTraceData.cpuUtilizationSeries.map { "${it.x}-${it.value}" })
       .containsExactly("0-30", "50000-20").inOrder() // First bucket = 30% utilization, Second bucket = 20% utilization.
   }
 
@@ -129,11 +131,11 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
-    assertThat(systemTraceData.getCpuCounters()[0]).containsExactly(
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
+    assertThat(systemTraceData.cpuCounters[0]).containsExactly(
       "cpufreq", listOf(SeriesData(1, 0L), SeriesData(2, 1000L)),
       "cpuidle", listOf(SeriesData(2, 0L), SeriesData(3, 4294967295L)))
-    assertThat(systemTraceData.getCpuCounters()[1]).containsExactly(
+    assertThat(systemTraceData.cpuCounters[1]).containsExactly(
       "cpufreq", listOf(SeriesData(10, 2000L)),
       "cpuidle", listOf(SeriesData(20, 0L)))
   }
@@ -159,8 +161,8 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getMemoryCounters()).hasSize(2)
-    assertThat(systemTraceData.getMemoryCounters()).containsExactly(
+    assertThat(systemTraceData.memoryCounters).hasSize(2)
+    assertThat(systemTraceData.memoryCounters).containsExactly(
       "mem.locked", listOf(
       SeriesData(1, 1L),
       SeriesData(4, 2L),
@@ -171,7 +173,7 @@ class SystemTraceCpuCaptureBuilderTest {
       SeriesData(7, 4L)))
       .inOrder()
 
-    assertThat(systemTraceData.getMemoryCounters()).doesNotContainKey("non-memory")
+    assertThat(systemTraceData.memoryCounters).doesNotContainKey("non-memory")
   }
 
   @Test
@@ -187,7 +189,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getBufferQueueCounterValues()).containsExactly(
+    assertThat(systemTraceData.bufferQueueCounterValues).containsExactly(
       SeriesData(1, 1L),
       SeriesData(4, 2L),
       SeriesData(7, 3L)
@@ -210,10 +212,54 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(capture.timeline.viewRange.max).isEqualTo(2.0)
   }
 
+  @Test
+  fun `trace gives right render events for frame`() {
+    val mainThread = ThreadModel(1, 1, "main",
+                                 listOf(TraceEventModel("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 42", 0, 500, 500, listOf()),
+                                 TraceEventModel("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 43", 5000, 5500, 500, listOf())),
+                                 listOf())
+    val renderThread = ThreadModel(2, 2, CpuThreadInfo.RENDER_THREAD_NAME,
+                                   listOf(TraceEventModel("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 42", 500, 1500, 1000, listOf()),
+                                          TraceEventModel("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 43", 5500, 6500, 1000, listOf())),
+                                   listOf())
+    val gpuThread = ThreadModel(3, 3, CpuThreadInfo.GPU_THREAD_NAME,
+                                listOf(TraceEventModel("${SystemTraceCpuCapture.GPU_THREAD_EVENT_PREFIX} 123", 1500, 2000, 500, listOf())),
+                                listOf())
+    val processes = mapOf(1 to ProcessModel(
+      1, "Process",
+      mapOf(1 to mainThread, 2 to renderThread, 3 to gpuThread),
+      mapOf()
+    ))
+    val frame1 = AndroidFrameTimelineEvent(42, 42, 0, 1500, 2000,
+                                           "layer",
+                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+                                           false, false, 0)
+    val frame2 = AndroidFrameTimelineEvent(43, 43, 5000, 6500, 7500,
+                                           "layer",
+                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+                                           false, false, 0)
+    val model = TestModel(processes, mapOf(), listOf(), timelineEvents = listOf(frame1, frame2))
+    val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 7000.0))
+
+    capture.frameRenderSequence(frame1).let { (mainEvent, renderEvent, gpuEvent) ->
+      assertThat(mainEvent!!.data.nameWithSuffix).isEqualTo("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 42")
+      assertThat(renderEvent!!.data.nameWithSuffix).isEqualTo("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 42")
+      assertThat(gpuEvent!!.data.nameWithSuffix).isEqualTo("${SystemTraceCpuCapture.GPU_THREAD_EVENT_PREFIX} 123")
+    }
+    capture.frameRenderSequence(frame2).let { (mainEvent, renderEvent, gpuEvent) ->
+      assertThat(mainEvent!!.data.nameWithSuffix).isEqualTo("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 43")
+      assertThat(renderEvent!!.data.nameWithSuffix).isEqualTo("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 43")
+      assertThat(gpuEvent).isNull()
+    }
+  }
+
   private class TestModel(
     private val processes: Map<Int, ProcessModel>,
     private val danglingThreads: Map<Int, ThreadModel>,
-    private val cpuCores: List<CpuCoreModel>) : SystemTraceModelAdapter {
+    private val cpuCores: List<CpuCoreModel>,
+    private val timelineEvents: List<AndroidFrameTimelineEvent> = listOf()) : SystemTraceModelAdapter {
 
     override fun getCaptureStartTimestampUs() = 0L
     override fun getCaptureEndTimestampUs() = 200L
@@ -225,6 +271,6 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
-    override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = emptyList()
+    override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = timelineEvents
   }
 }

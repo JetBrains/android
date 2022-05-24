@@ -15,21 +15,14 @@
  */
 package com.android.tools.idea.run.util;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.UsedFeatureRawText;
-import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.idea.run.activity.DefaultActivityLocator.ActivityWrapper;
-import com.android.utils.XmlUtils;
 import com.intellij.execution.Executor;
 import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -46,18 +39,14 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Element;
 
 public class LaunchUtils {
   /**
@@ -78,53 +67,9 @@ public class LaunchUtils {
   }
 
   /**
-   * Returns whether the given module corresponds to a watch face app.
-   * A module is considered to be a watch face app if there are no activities, and a single service with
-   * a specific intent filter. This definition is likely stricter than it needs to be to but we are only
-   * interested in matching the watch face template application.
-   */
-  public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
-    if (AndroidFacet.getInstance(facet.getModule()) == null) {
-      Logger.getInstance(LaunchUtils.class).warn("calling isWatchFaceApp when facet is not ready yet");
-      return false;
-    }
-
-    MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
-    List<ActivityWrapper> activities =
-      ActivityWrapper.get(info.getActivities(), info.getActivityAliases());
-    boolean foundExportedActivity = activities.stream().anyMatch((activity) -> activity.isLogicallyExported());
-    if (foundExportedActivity) {
-      return false;
-    }
-
-    final List<Element> services = info.getServices();
-    if (services.size() != 1) {
-      return false;
-    }
-
-    Element service = services.get(0);
-    Element subTag = XmlUtils.getFirstSubTag(service);
-    while (subTag != null) {
-      if (ActivityLocatorUtils.containsAction(subTag, AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
-          ActivityLocatorUtils.containsCategory(subTag, AndroidUtils.WATCHFACE_CATEGORY_NAME)) {
-        return true;
-      }
-      subTag = XmlUtils.getNextTag(subTag);
-    }
-    return false;
-  }
-
-  /**
    * Returns whether the watch hardware feature is required for the given facet.
-   *
-   * First, we try to query from {@link AndroidManifestIndex}. And we fall back to {@link MergedManifestSnapshot}
-   * if necessary.
    */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    if (!AndroidManifestIndex.indexEnabled()) {
-      return isWatchFeatureRequiredFromSnapshot(facet);
-    }
-
     Project project = facet.getModule().getProject();
     Collection<UsedFeatureRawText> usedFeatures =
       DumbService.getInstance(project).runReadActionInSmartMode(() -> queryUsedFeaturesFromManifestIndex(facet));
@@ -132,22 +77,6 @@ public class LaunchUtils {
     return usedFeatures.stream()
       .anyMatch(feature -> UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName()) &&
                            (feature.getRequired() == null || VALUE_TRUE.equals(feature.getRequired())));
-  }
-
-  private static boolean isWatchFeatureRequiredFromSnapshot(@NotNull AndroidFacet facet) {
-    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
-    Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-
-    if (feature == null) {
-      return false;
-    }
-
-    Attr requiredNode = feature.getAttributeNodeNS(ANDROID_URI, "required");
-    if (requiredNode == null) { // unspecified => required
-      return true;
-    }
-
-    return VALUE_TRUE.equals(requiredNode.getValue());
   }
 
   public static void showNotification(@NotNull final Project project,
@@ -173,7 +102,7 @@ public class LaunchUtils {
         final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
 
         NotificationGroup group = getNotificationGroup(toolWindowId);
-        group.createNotification("", notificationMessage, type, new NotificationListener() {
+        group.createNotification(notificationMessage, type).setListener(new NotificationListener() {
           @Override
           public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
             boolean handled = false;

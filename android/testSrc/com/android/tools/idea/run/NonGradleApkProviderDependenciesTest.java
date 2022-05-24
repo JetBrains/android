@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import java.util.*;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 /**
  * Additional tests for {@link NonGradleApkProvider} that require a project setup with
@@ -81,7 +83,7 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
     assertEquals(3, apks.size());
     // Sort the apks to keep test consistent.
     List<ApkInfo> apkList = new ArrayList<>(apks);
-    Collections.sort(apkList, new Comparator<ApkInfo>() {
+    apkList.sort(new Comparator<>() {
       @Override
       public int compare(ApkInfo a, ApkInfo b) {
         return a.getApplicationId().compareTo(b.getApplicationId());

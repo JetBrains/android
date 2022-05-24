@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.computeUserDataIfAbsent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -29,28 +28,25 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
-import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * [PsiElementFinder] that provides light Manifest classes.
  *
- * This class is a project service, but it's not declared as [PsiElementFinder.EP_NAME] extension. The reason for that is that it's up to
+ * This class is a project service, but it's not declared as [PsiElementFinder.EP] extension. The reason for that is that it's up to
  * the project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
-class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFinder() {
+class AndroidManifestClassPsiElementFinder(private val project: Project) : PsiElementFinder() {
 
   companion object {
     private const val SUFFIX = "." + SdkConstants.FN_MANIFEST_BASE
     private val MODULE_MANIFEST_CLASS = Key<PsiClass>(AndroidManifestClassPsiElementFinder::class.qualifiedName!! + ".MODULE_MANIFEST_CLASS")
 
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, AndroidManifestClassPsiElementFinder::class.java)!!
-
+    fun getInstance(project: Project) = project.getService(AndroidManifestClassPsiElementFinder::class.java)!!
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()
@@ -99,7 +95,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
 
     val result = mutableListOf<PsiClass>()
     getManifestClassForFacet(androidFacet)?.let(result::add)
-    for (dependency in AndroidUtils.getAllAndroidDependencies(module, false)) {
+    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
       getManifestClassForFacet(dependency)?.let(result::add)
     }
 

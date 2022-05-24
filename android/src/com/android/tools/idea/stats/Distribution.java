@@ -16,7 +16,6 @@
 package com.android.tools.idea.stats;
 
 import com.android.repository.Revision;
-
 import java.util.List;
 
 /**

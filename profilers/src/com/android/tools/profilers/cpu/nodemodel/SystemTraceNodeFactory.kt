@@ -15,44 +15,22 @@
  */
 package com.android.tools.profilers.cpu.nodemodel
 
-import java.util.regex.Pattern
-
 /**
  * This Factory returns instances of {@link SystemTraceNodeModel}s, guaranteeing that nodes that
  * represents a same object would be mapped to a single instance.
  */
 class SystemTraceNodeFactory {
-
-  // We have two possible levels of caching, based on the raw name and based on the computed one from the regex below.
-  // regex can get very expensive and become a hotspot, so we use nameMap to avoid it if we can.
-  private val canonicalMap = mutableMapOf<String, CanonicalNodeId>()
   private val nodeMap = mutableMapOf<String, SystemTraceNodeModel>()
 
-  companion object {
-    // Pattern to match names with the format Letters Number. Eg: Frame 1234, Choreographer#doFrame 1234.
-    private val ID_GROUP = Pattern.compile("^([A-Za-z\\s#]*)(\\d+)")
-  }
-
   fun getNode(name: String): SystemTraceNodeModel {
-    val (id, convertedName) = canonicalMap.getOrPut(name) { computeCanonicalId(name) }
-    return nodeMap.getOrPut(id) { SystemTraceNodeModel(id, convertedName) }
-  }
-
-  private fun computeCanonicalId(name: String): CanonicalNodeId {
-    // We match the numbers at the end of a tag so the UI can group elements that have an incrementing number at the end as the same thing.
-    // This means that "Frame 1", and "Frame 2" will appear as a single element "Frame ###". This allows us to collect the stats, and
-    // colorize these elements as if they represent the same thing.
-    val matches = ID_GROUP.matcher(name)
-
-    // If we have a group 0 that is not the name then something went wrong. Fallback to the name.
-    if (matches.matches() && matches.group(0) == name) {
-      // If we find numbers in the group then instead of using the numbers use "###"
-      return CanonicalNodeId(matches.group(1), "${matches.group(1)}###")
-    }
-    else {
-      return CanonicalNodeId(name, name)
+    return nodeMap.getOrPut(name) {
+      val canonicalName = NUMBER_SUFFIX_PATTERN.replace(name, "")
+      SystemTraceNodeModel(canonicalName, name)
     }
   }
 
-  private data class CanonicalNodeId(val id: String, val name: String)
+  companion object {
+    // Pattern to match names ending with space+number. Eg: Frame 1234, Choreographer#doFrame 1234.
+    private val NUMBER_SUFFIX_PATTERN = Regex(" (\\d)+$")
+  }
 }

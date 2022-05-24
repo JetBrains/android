@@ -54,7 +54,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Computable
-import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
@@ -62,6 +62,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import java.awt.Component
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.ItemListener
@@ -69,6 +70,7 @@ import javax.swing.Action
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JSeparator
 
 /**
  * Shows an [AddActionDialog] and then updates the corresponding model.
@@ -340,26 +342,34 @@ open class AddActionDialog(
 
 
   private fun setUpComponents(model: NlModel) {
-    val sourceRenderer = object : ListCellRendererWrapper<NlComponent>() {
-      override fun customize(list: JList<*>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        if (value == null) {
-          setText("None")
-        }
-        else {
-          setText(value.uiName)
-        }
+    val sourceRenderer = object : SimpleListCellRenderer<NlComponent>() {
+      override fun customize(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        text = value?.uiName ?: "None"
       }
     }
 
     dialog.myFromComboBox.renderer = sourceRenderer
     dialog.myFromComboBox.isEnabled = false
 
-    val destinationRenderer = object : ListCellRendererWrapper<DestinationListEntry>() {
-      override fun customize(list: JList<*>, value: DestinationListEntry?, index: Int, selected: Boolean, hasFocus: Boolean) {
+    val destinationRenderer = object : SimpleListCellRenderer<DestinationListEntry>() {
+      val separator = JSeparator()
+      override fun getListCellRendererComponent(list: JList<out DestinationListEntry>,
+                                                value: DestinationListEntry?,
+                                                index: Int,
+                                                isSelected: Boolean,
+                                                cellHasFocus: Boolean): Component {
+        if (value?.isSeparator == true) return separator;
+        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+      }
+
+      override fun customize(list: JList<out DestinationListEntry>,
+                             value: DestinationListEntry?,
+                             index: Int,
+                             selected: Boolean,
+                             hasFocus: Boolean) {
         when {
           value == null -> setText("None")
           value.isReturnToSource -> setText("↵ Source")
-          value.isSeparator -> setSeparator()
           else -> {
             val component = value.component
             var text = if (component?.parent == null) "Root" else component.uiName

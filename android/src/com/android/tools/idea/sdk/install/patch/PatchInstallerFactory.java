@@ -27,7 +27,7 @@ import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.io.FileUtilKt;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;

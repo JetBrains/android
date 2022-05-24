@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -57,7 +58,6 @@ import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.resolveDependency
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -191,15 +191,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.applyPluginIfNone(plugin)
 
     if (revision != null) {
-      // Check if pluginManagement.plugins block is declared
-      val settingsPluginsModel = projectSettingsModel?.pluginManagement()?.plugins()?.also { it.psiElement ?: return } ?: return
+      val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
+                                              ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
+                                              ?: return
 
       val pluginCoordinate =  "$plugin:$plugin.gradle.plugin:$revision"
       val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).version?.toString() ?: revision
-      val targetPluginModel = settingsPluginsModel.plugins().firstOrNull { it.name().toString() == plugin }
+      val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
       if (targetPluginModel == null) {
-        settingsPluginsModel.applyPlugin(plugin, resolvedVersion)
+        pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
       }
       else {
         val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
@@ -211,9 +212,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
-    if (projectSettingsModel?.pluginManagement()?.plugins()?.psiElement != null) {
-      return // If plugins are being declared on Settings, we skip this since all work is handled in [applyPlugin]
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
+    if (!forceAdding && (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null)) {
+      // If plugins are being declared on Settings or using plugins block in top-level build.gradle,
+      // we skip this since all work is handled in [applyPlugin]
+      return
     }
 
     val resolvedCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
@@ -239,6 +242,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         targetDependencyModel.version().setValue(toBeAddedDependency.version ?: "")
       }
     }
+  }
+
+  private fun maybeGetPluginsFromSettings(): PluginsModel? {
+    return projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
+  }
+
+  private fun maybeGetPluginsFromProject(): PluginsModel? {
+    return projectGradleBuildModel?.takeIf { it.pluginsPsiElement != null }
   }
 
   /**
@@ -597,12 +608,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     else
       readTextFromDocument(project, file)
 
-  private fun readTextFile(vFile: VirtualFile): String? =
-    if (moduleTemplateData?.isNewModule != false)
-      readTextFromDisk(vFile.toIoFile())
-    else
-      readTextFromDocument(project, vFile)
-
   /**
    * Shorten all fully qualified Layout names that belong to the same package as the manifest's package attribute value.
    *
@@ -652,7 +657,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (fileType.isBinary)
       this.contentsToByteArray() contentEquals targetFile.readBytes()
     else
-      ComparisonManager.getInstance().isEquals(readTextFile(this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
+      ComparisonManager.getInstance().isEquals(readTextFromDocument(project, this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
 
   private infix fun File.contentEquals(content: String): Boolean =
     ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)

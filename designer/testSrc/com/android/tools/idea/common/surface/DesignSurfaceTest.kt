@@ -18,7 +18,6 @@ package com.android.tools.idea.common.surface
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
@@ -32,7 +31,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import junit.framework.TestCase
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -41,8 +39,6 @@ import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import javax.swing.JComponent
 
 class DesignSurfaceTest : LayoutTestCase() {
 
@@ -302,15 +298,12 @@ class TestDesignSurface(project: Project, disposible: Disposable)
                   disposible,
                   java.util.function.Function { ModelBuilder.TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
-                  true,
                   java.util.function.Function { TestLayoutManager(it) },
                   java.util.function.Function { TestActionHandler(it) },
                   ZoomControlsPolicy.VISIBLE) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
-
-  override fun getComponentRegistrar() = Consumer<NlComponent> {}
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 

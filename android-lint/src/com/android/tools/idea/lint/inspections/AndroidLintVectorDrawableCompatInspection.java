@@ -19,10 +19,10 @@ import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_SRC_COMPAT;
 import static com.android.SdkConstants.AUTO_URI;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.RenameAttributeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.lint.checks.VectorDrawableCompatDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;

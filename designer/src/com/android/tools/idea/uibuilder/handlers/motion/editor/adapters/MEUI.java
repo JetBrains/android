@@ -23,8 +23,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
@@ -55,7 +57,7 @@ public class MEUI {
   public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xCCCCCC);
 
   public static int scale(int i) {
-    return JBUI.scale(i);
+    return JBUIScale.scale(i);
   }
 
   public static Dimension size(int width, int height) {
@@ -73,7 +75,7 @@ public class MEUI {
   public static Insets dialogBottomButtonInsets() { return MEUI.insets(12, 12, 12, 12); }
 
   public static MEComboBox<String> makeComboBox(String[] a) {
-    return new MEComboBox<String>(a);
+    return new MEComboBox<>(a);
   }
 
   public static void invokeLater(Runnable runnable) {
@@ -94,8 +96,8 @@ public class MEUI {
 
   static boolean dark = false;
 
-  public static final int ourLeftColumnWidth = JBUI.scale(150);
-  public static final int ourHeaderHeight = JBUI.scale(30);
+  public static final int ourLeftColumnWidth = JBUIScale.scale(150);
+  public static final int ourHeaderHeight = JBUIScale.scale(30);
   public static final int ourGraphHeight = scale(60);
 
   public static final Color ourErrorColor = makeColor("UIDesigner.motion.Error.foreground", 0x8f831b, 0xffa31b);
@@ -121,11 +123,31 @@ public class MEUI {
   public static final Color ourAddConstraintColor = makeColor("UIDesigner.motion.AddConstraintColor", 0xff838383, 0xff666666);
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
-  public static final Color ourInteractiveBackgroundColor = makeColor("UIDesigner.Interactive.Preview.background", 0xaaaaaa, 0xaaaaaa);
+  public static final Color ourInteractiveBackgroundColor = makeColor("UIDesigner.Interactive.Preview.background", 0xCBD2D9, 0x46454D);
 
   public static BufferedImage createImage(int w, int h, int type) {
     return ImageUtil.createImage(w, h, type);
   }
+
+  private static double alpha = 0.7;
+  /** List of colors for graphs. */
+  public static JBColor[] graphColors = {
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xa6bcc9, 0x8da9ba), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xaee3fe, 0x86d5fe), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xf8a981, 0xf68f5b), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x89e69a, 0x67df7d), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xb39bde, 0x9c7cd4), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xea85aa, 0xe46391), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x6de9d6, 0x49e4cd), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xe3d2ab, 0xd9c28c), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x0ab4ff, 0x0095d6), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x1bb6a2, 0x138173), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x9363e3, 0x7b40dd), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xe26b27, 0xc1571a), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x4070bf, 0x335a99), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xc6c54e, 0xadac38), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0xcb53a3, 0xb8388e), alpha),
+    (JBColor) ColorUtil.withAlpha(new JBColor(0x3d8eff, 0x1477ff), alpha)};
 
   /**
    * TODO: support intellij copy paste
@@ -186,6 +208,7 @@ public class MEUI {
 
   public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
   public static final Color ourConstraintSet = new JBColor(0xF0F1F0, 0xF0F1F0);
+  public static final Color ourDashedLineColor = new JBColor(0xA0A0A0, 0xBBBBBB);
 
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;

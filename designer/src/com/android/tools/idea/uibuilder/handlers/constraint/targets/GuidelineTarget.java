@@ -33,12 +33,11 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalG
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
+import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.List;
 
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline

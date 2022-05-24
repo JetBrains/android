@@ -104,7 +104,7 @@ class GradleBuildOutputUtilTest {
     val outputFile = tempDir.newFile("output.json")
     writeToFile(outputFile, singleAPKOutputFileText)
     val expectedFile = File(tempDir.root, "app-debug.apk")
-    assertEquals(listOf(expectedFile), getOutputFilesFromListingFile(outputFile.path))
+    assertEquals(listOf(expectedFile), getOutputFilesFromListingFileOrLogError(outputFile.path))
   }
 
   @Test
@@ -113,7 +113,7 @@ class GradleBuildOutputUtilTest {
     writeToFile(outputFile, multiAPKsOutputFileText)
     val expectedFile1 = File(tempDir.root, "app-x86-debug.apk")
     val expectedFile2 = File(tempDir.root, "app-hdpiX86-debug.apk")
-    assertEquals(listOf(expectedFile1, expectedFile2), getOutputFilesFromListingFile(outputFile.path))
+    assertEquals(listOf(expectedFile1, expectedFile2), getOutputFilesFromListingFileOrLogError(outputFile.path))
   }
 
   @Test

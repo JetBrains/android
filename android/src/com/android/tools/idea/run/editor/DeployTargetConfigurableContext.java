@@ -16,10 +16,9 @@
 package com.android.tools.idea.run.editor;
 
 import com.intellij.openapi.module.Module;
+import java.awt.event.ActionListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.event.ActionListener;
 
 public interface DeployTargetConfigurableContext {
   @Nullable

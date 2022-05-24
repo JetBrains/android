@@ -15,19 +15,4 @@
  */
 package com.android.tools.adtui.model.trackgroup
 
-class StringSelectable(val value: String) : SelectableTrackModel {
-  override fun isCompatibleWith(otherObj: SelectableTrackModel): Boolean {
-    return otherObj is StringSelectable
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (other is StringSelectable) {
-      return value == other.value
-    }
-    return false
-  }
-
-  override fun hashCode(): Int {
-    return value.hashCode()
-  }
-}
+data class StringSelectable(val value: String)

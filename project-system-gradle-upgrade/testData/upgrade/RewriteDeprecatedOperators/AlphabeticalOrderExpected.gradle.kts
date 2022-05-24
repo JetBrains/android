@@ -1,14 +1,14 @@
 android {
   buildToolsVersion = "1.2.3"
-  compileSdk = 30
+  compileSdkVersion(30)
   flavorDimensions += listOf("paid", "country")
   defaultConfig {
     manifestPlaceholders += mapOf("a" to "b")
     matchingFallbacks += listOf("demo", "trial")
-    maxSdk = 30
-    minSdk = 28
+    maxSdkVersion(30)
+    minSdkVersion(28)
     resourceConfigurations += setOf("en", "fr")
-    targetSdk = 29
+    targetSdkVersion(29)
     testFunctionalTest = true
     testHandleProfiling = false
     testInstrumentationRunnerArguments += mapOf("one" to "two")
@@ -24,10 +24,10 @@ android {
       dimension = "paid"
       manifestPlaceholders += mapOf("e" to "f", "g" to "h")
       matchingFallbacks += listOf("trial")
-      maxSdk = 29
-      minSdk = 27
+      maxSdkVersion(29)
+      minSdkVersion(27)
       resourceConfigurations += setOf("uk")
-      targetSdk = 28
+      targetSdkVersion(28)
       testFunctionalTest = false
       testHandleProfiling = true
       testInstrumentationRunnerArguments += mapOf("three" to "four", "five" to "six")

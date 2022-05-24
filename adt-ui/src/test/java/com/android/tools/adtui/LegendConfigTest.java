@@ -15,16 +15,15 @@
  */
 package com.android.tools.adtui;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.intellij.icons.AllIcons;
+import java.awt.Color;
 import java.util.function.Function;
 import javax.swing.Icon;
 import org.junit.Test;
-
-import java.awt.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class LegendConfigTest {
 

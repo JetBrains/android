@@ -17,9 +17,8 @@ package org.jetbrains.android.dom.transition;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.SubTagList;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 /**
  * Relevant code in the framework: TransitionInflater#createTransitionsFromXml

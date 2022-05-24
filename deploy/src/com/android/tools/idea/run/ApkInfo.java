@@ -19,11 +19,10 @@ import com.android.sdklib.AndroidVersion;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The list of files to install for a given application ID.

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -33,7 +33,6 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -63,7 +62,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
     myService = new AndroidModuleDataService(validatorFactory);
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
   }
 
   @Override
@@ -87,7 +86,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     assertNotNull(androidModel);
 
     ExternalProjectInfo externalInfo =
@@ -97,7 +96,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     assertNotNull("No project structure was found", projectStructure);
 
     //noinspection unchecked
-    DataNode<AndroidModuleModel> androidModelNode = (DataNode<AndroidModuleModel>)ExternalSystemApiUtil
+    DataNode<GradleAndroidModel> androidModelNode = (DataNode<GradleAndroidModel>)ExternalSystemApiUtil
       .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
     Project project = getProject();
 
@@ -112,7 +111,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
   public void testImportDataWithoutModels() {
     Module appModule = ProjectFiles.createModule(getProject(), "app");
     FacetManager.getInstance(appModule).createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
 
     myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
     assertNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));

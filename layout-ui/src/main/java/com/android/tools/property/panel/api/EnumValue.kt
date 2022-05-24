@@ -16,7 +16,13 @@
 package com.android.tools.property.panel.api
 
 import com.android.tools.adtui.model.stdui.CommonElementSelectability
-import com.android.tools.property.panel.impl.support.*
+import com.android.tools.property.panel.impl.support.AnActionEnumValue
+import com.android.tools.property.panel.impl.support.BaseActionEnumValue
+import com.android.tools.property.panel.impl.support.EmptyDisplayEnumValue
+import com.android.tools.property.panel.impl.support.IndentedItemEnumValue
+import com.android.tools.property.panel.impl.support.IndentedItemWithDisplayEnumValue
+import com.android.tools.property.panel.impl.support.ItemEnumValue
+import com.android.tools.property.panel.impl.support.ItemWithDisplayEnumValue
 import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataKey
@@ -93,6 +99,7 @@ interface EnumValue {
     fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
     fun header(header: String): EnumValue = HeaderEnumValue(header)
     fun header(header: String, icon: Icon?): EnumValue = HeaderEnumValue(header, icon)
+    fun empty(display: String) = EmptyDisplayEnumValue(display)
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}

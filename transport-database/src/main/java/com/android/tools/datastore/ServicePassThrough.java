@@ -16,10 +16,9 @@
 package com.android.tools.datastore;
 
 import io.grpc.ServerServiceDefinition;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for a class that wraps a grpc service. Once connected to the service, you will need to

@@ -40,8 +40,8 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
 import org.mockito.InOrder
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.Mockito.`when`
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics2D

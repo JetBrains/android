@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ATTR_CHECKED;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TEXT_OFF;
+import static com.android.SdkConstants.ATTR_TEXT_ON;
+
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 public class ToggleButtonHandler extends TextViewHandler {
   @Override

@@ -18,12 +18,11 @@ package com.android.tools.swingp;
 import com.android.tools.swingp.json.IncludeMethodsSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 @JsonAdapter(IncludeMethodsSerializer.class)
 public class PaintChildrenMethodStat extends MethodStat {

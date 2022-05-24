@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Network.NetworkHttpConnectionData;
@@ -25,7 +26,6 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;

@@ -73,7 +73,7 @@ class PluginData(pluginType: PluginType, val idName: String) {
    * Normally there should only be a single name used in all sub-projects but otherwise select the first one.
    */
   val displayName: String
-    get() = displayNames().minBy { it.length } ?: idName.takeIf { it.isNotBlank() } ?: "Unknown plugin"
+    get() = displayNames().minByOrNull { it.length } ?: idName.takeIf { it.isNotBlank() } ?: "Unknown plugin"
 
 
   fun isJavaPlugin(): Boolean {

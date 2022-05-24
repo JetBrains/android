@@ -15,9 +15,9 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.intellij.util.containers.IntArrayList
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -62,7 +62,7 @@ class InspectorLayoutManager: LayoutManager2 {
       val component = container.getComponent(index)
       if (component.isVisible) {
         val placement = placementMap.getOrDefault(component, Placement.LINE)
-        val height = if (rowIndex < rowHeights.size()) rowHeights.getQuick(rowIndex) else component.preferredSize.height
+        val height = if (rowIndex < rowHeights.size) rowHeights.getInt(rowIndex) else component.preferredSize.height
         when (placement) {
           Placement.LEFT -> component.setBounds(leftMargin, y, left, height)
           Placement.RIGHT -> component.setBounds(leftMargin + left, y, right, height)
@@ -126,8 +126,7 @@ class InspectorLayoutManager: LayoutManager2 {
    */
   private fun otherComponentHeight(component: Component): Int {
     val container = component.parent
-    val placement = placementMap.getOrDefault(component, Placement.LINE)
-    return when (placement) {
+    return when (placementMap.getOrDefault(component, Placement.LINE)) {
       Placement.LINE -> -1
       Placement.LEFT -> {
         val index = indexOf(container, component)

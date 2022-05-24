@@ -17,10 +17,9 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public interface SplitApkDeployTaskContext {
   /**

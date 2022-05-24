@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.resources;
 
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
-
 import java.util.List;
 
 public interface DeclareStyleable extends ResourceElement {

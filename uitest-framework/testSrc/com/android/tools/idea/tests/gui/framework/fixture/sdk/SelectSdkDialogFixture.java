@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.sdk;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
+import java.awt.Component;
+import java.io.File;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
 
 public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
   @NotNull

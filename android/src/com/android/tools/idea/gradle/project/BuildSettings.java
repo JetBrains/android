@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -32,7 +31,7 @@ public class BuildSettings {
 
   @NotNull
   public static BuildSettings getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildSettings.class);
+    return project.getService(BuildSettings.class);
   }
 
   public BuildSettings(@NotNull Project project) {

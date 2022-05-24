@@ -22,12 +22,12 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.intellij.ui.ColorUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
@@ -257,7 +257,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       }
     }
 
-    private static final StateChartColorProvider<TestState> TEST_STATE_COLORS = new StateChartColorProvider<TestState>() {
+    private static final StateChartColorProvider<TestState> TEST_STATE_COLORS = new StateChartColorProvider<>() {
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull TestState value) {

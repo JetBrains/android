@@ -17,18 +17,26 @@ package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
+import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.intellij.openapi.module.Module
+import org.jetbrains.android.facet.AndroidRootUtil
+import java.io.File
+
+private const val minRev = "1.1.0-beta04"
+private const val exampleBenchmarkName = "ExampleStartupBenchmark"
 
 fun RecipeExecutor.generateMacrobenchmarkModule(
   moduleData: ModuleTemplateData,
@@ -46,9 +54,13 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   if (this is DefaultRecipeExecutor) {
     benchmarkBuildTypeName = generateUniqueBenchmarkBuildTypeName(targetModule = targetModule)
     targetModule.addBuildType(name = benchmarkBuildTypeName, debuggable = false)
+    addProfileableToTargetManifest(targetModule)
   }
 
-  val targetPackageName = AndroidModuleInfo.getInstance(targetModule)?.`package` ?: ""
+  val targetApplicationId =
+    AndroidModel.get(targetModule)?.applicationId?.takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
+    ?: "com.example.application"
+
 
   addIncludeToSettings(moduleData.name)
 
@@ -70,20 +82,21 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addDependency("androidx.test.ext:junit:+", "implementation")
   addDependency("androidx.test.espresso:espresso-core:3.+", "implementation")
   addDependency("androidx.test.uiautomator:uiautomator:2.+", "implementation")
-  addDependency("androidx.benchmark:benchmark-macro-junit4:+", configuration = "implementation", minRev = "1.1.0-alpha02")
+  addDependency("androidx.benchmark:benchmark-macro-junit4:+", "implementation", minRev)
 
-  save(androidManifestXml(packageName, targetPackageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
+  save(androidManifestXml(packageName, targetApplicationId), moduleOut.resolve("src/main/AndroidManifest.xml"))
+  save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
-    save(exampleMacrobenchmarkKt(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.kt"))
-    open(srcOut.resolve("ExampleStartupBenchmark.kt"))
+    save(exampleMacrobenchmarkKt(exampleBenchmarkName, packageName, targetApplicationId), srcOut.resolve("$exampleBenchmarkName.kt"))
+    open(srcOut.resolve("$exampleBenchmarkName.kt"))
   }
   else {
-    save(exampleMacrobenchmarkJava(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.java"))
-    open(srcOut.resolve("ExampleStartupBenchmark.java"))
+    save(exampleMacrobenchmarkJava(exampleBenchmarkName, packageName, targetApplicationId), srcOut.resolve("$exampleBenchmarkName.java"))
+    open(srcOut.resolve("$exampleBenchmarkName.java"))
   }
 
-  addKotlinIfNeeded(projectData, noKtx = true)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
 }
 
 /**
@@ -105,15 +118,42 @@ private fun generateUniqueBenchmarkBuildTypeName(targetModule: Module): String {
   return benchmarkBuildTypeName
 }
 
+private fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
+  val androidModel = AndroidModel.get(targetModule) ?: return
+  val androidFacet = targetModule.androidFacet ?: return
+  val targetModuleRootDir = AndroidRootUtil.getModuleDirPath(targetModule) ?: return
+  val targetModuleManifest = File(targetModuleRootDir, androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH)
+  if (!targetModuleManifest.exists()) return
+
+  // if it's older API, add targetApi flag to the manifest
+  val needsTargetFlag = !androidModel.minSdkVersion.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)
+
+  mergeXml(appAndroidManifest(needsTargetFlag), targetModuleManifest)
+}
+
 private fun Module.addBuildType(name: String, debuggable: Boolean) {
   val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
   val androidBuildModel = projectBuildModel.getModuleBuildModel(this)?.android() ?: return
 
   val benchmarkBuildType = androidBuildModel.addBuildType(name)
-  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().first { it.name() == "debug" } ?: return
 
-  val benchmarkSigningConfigModel = benchmarkBuildType.signingConfig()
-  benchmarkSigningConfigModel.setValue(ReferenceTo(debugSignConfigBuildModel, benchmarkSigningConfigModel))
+  // apply debug signingConfig
+  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().firstOrNull { it.name() == "debug" }
+  debugSignConfigBuildModel?.let {
+    val benchmarkSigningConfigModel = benchmarkBuildType.signingConfig()
+    benchmarkSigningConfigModel.setValue(ReferenceTo(debugSignConfigBuildModel, benchmarkSigningConfigModel))
+  }
+
+  // add matchingFallback to release to allow building benchmark buildType in multi-module setup
+  val existingMatchingFallbacks = benchmarkBuildType.matchingFallbacks().toList()
+  val hasReleaseFallback = existingMatchingFallbacks?.any { it.valueAsString() == "release" } ?: false
+  if (!hasReleaseFallback) {
+    val fallback = benchmarkBuildType.matchingFallbacks().addListValue()
+    fallback.setValue("release")
+  }
+
+  // set debuggable
   benchmarkBuildType.debuggable().setValue(debuggable)
+
   projectBuildModel.applyChanges()
 }

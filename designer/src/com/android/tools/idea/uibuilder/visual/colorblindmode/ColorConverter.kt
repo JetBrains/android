@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual.colorblindmode
 import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
-import java.lang.StringBuilder
 import java.util.function.Function
 import kotlin.math.pow
 

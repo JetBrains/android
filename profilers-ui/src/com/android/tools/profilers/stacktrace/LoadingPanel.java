@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import java.awt.Component;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 public interface LoadingPanel {
   @NotNull

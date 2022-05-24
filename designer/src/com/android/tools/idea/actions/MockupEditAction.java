@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -25,12 +29,9 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Shows the popup for editing the mockup of the selected component

@@ -1,6 +1,6 @@
 PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructureTest
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : corretto-<JAVA_VERSION>
+        Version                       : Amazon Corretto version <JDK_VERSION>
     MODULE                        : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         LinkedProjectId               : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         LinkedProjectPath             : <PROJECT>
@@ -27,7 +27,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -51,6 +50,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/custom [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug/java [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug/kotlin [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug/ml [-]
@@ -63,6 +63,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/ml [-]
@@ -75,7 +76,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     RUN_CONFIGURATION             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         *class*                       : AndroidRunConfiguration

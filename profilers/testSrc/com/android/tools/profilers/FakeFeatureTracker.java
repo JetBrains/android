@@ -538,6 +538,15 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackSelectBox(long durationUs, int trackCount) { }
 
   @Override
+  public void trackFrameSelectionPerTrace(int count) { }
+
+  @Override
+  public void trackAllFrameTogglingPerTrace(int count) { }
+
+  @Override
+  public void trackLifecycleTogglingPerTrace(int count) { }
+
+  @Override
   public void trackNetworkMigrationDialogSelected() { }
 
   @NotNull

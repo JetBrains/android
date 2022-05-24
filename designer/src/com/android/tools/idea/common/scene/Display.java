@@ -17,9 +17,8 @@ package com.android.tools.idea.common.scene;
 
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
+import java.awt.Graphics2D;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Display a layout Scene

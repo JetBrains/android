@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.gradle.project.importing.ProjectFolder.ProjectFolderImpl;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link ProjectFolderImpl}.

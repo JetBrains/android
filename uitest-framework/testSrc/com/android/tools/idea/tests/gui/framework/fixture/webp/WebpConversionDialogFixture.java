@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.webp;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.rendering.webp.WebpConversionDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.ui.components.JBCheckBox;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JRadioButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class WebpConversionDialogFixture extends IdeaDialogFixture<WebpConversionDialog> {
 

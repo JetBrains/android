@@ -16,6 +16,37 @@
 
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_PACKAGE;
+import static com.android.SdkConstants.DOT_AIDL;
+import static com.android.SdkConstants.DOT_FS;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_JSON;
+import static com.android.SdkConstants.DOT_KT;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.DOT_PROPERTIES;
+import static com.android.SdkConstants.DOT_RS;
+import static com.android.SdkConstants.DOT_RSH;
+import static com.android.SdkConstants.DOT_TXT;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_NAME;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -29,37 +60,40 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ImportUtil;
-import com.android.tools.idea.util.PropertiesFiles;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
-import static com.google.common.base.Charsets.UTF_8;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
 
 /**
  * Importer which can generate Android Gradle projects.
@@ -120,8 +154,8 @@ public class GradleImport {
    * than in each module
    */
   private static final String WORKSPACE_PROPERTY = "android.eclipseWorkspace";
-  private final List<String> myWarnings = Lists.newArrayList();
-  private final List<String> myErrors = Lists.newArrayList();
+  private final List<String> myWarnings = new ArrayList<>();
+  private final List<String> myErrors = new ArrayList<>();
   private List<? extends ImportModule> myRootModules;
   private Set<ImportModule> myModules;
   private ImportSummary mySummary;
@@ -129,7 +163,7 @@ public class GradleImport {
   private boolean myCreateGradleWrapper = false;
   private File mySdkLocation;
   private File myNdkLocation;
-  private Set<String> myHandledJars = Sets.newHashSet();
+  private Set<String> myHandledJars = new HashSet<>();
   private Map<String, File> myWorkspaceProjects;
   /**
    * Whether we should convert project names to lowercase module names
@@ -160,7 +194,7 @@ public class GradleImport {
   private Map<File, String> mySelectedModules;
   private boolean myDefaultEncodingInitialized;
   private Charset myDefaultEncoding;
-  private Map<File, EclipseProject> myProjectMap = Maps.newHashMap();
+  private Map<File, EclipseProject> myProjectMap = new HashMap<>();
 
   public GradleImport() {
     String workspace = System.getProperty(WORKSPACE_PROPERTY);
@@ -307,9 +341,9 @@ public class GradleImport {
    */
   private static void copyTextFileWithEncoding(@NonNull File source, @NonNull File dest, @NonNull Charset sourceEncoding)
     throws IOException {
-    if (!UTF_8.equals(sourceEncoding)) {
+    if (!StandardCharsets.UTF_8.equals(sourceEncoding)) {
       String text = Files.asCharSource(source, sourceEncoding).read();
-      Files.asCharSink(dest, UTF_8).write(text);
+      Files.asCharSink(dest, StandardCharsets.UTF_8).write(text);
     }
     else {
       // Already using the right encoding
@@ -383,7 +417,7 @@ public class GradleImport {
     myErrors.clear();
     myWorkspaceProjects = null;
     myRootModules = Collections.emptyList();
-    myModules = Sets.newHashSet();
+    myModules = new HashSet<>();
 
     for (File file : projectDirs) {
       if (file.isFile()) {
@@ -689,7 +723,7 @@ public class GradleImport {
       // Other files may be in other file systems, mapped by a .location link in the
       // workspace metadata
       if (myWorkspaceProjects == null) {
-        myWorkspaceProjects = Maps.newHashMap();
+        myWorkspaceProjects = new HashMap<>();
         File projectDir = new File(myWorkspaceLocation, ".metadata" +
                                                         separator +
                                                         ".plugins" +
@@ -715,7 +749,7 @@ public class GradleImport {
                   }
                   try {
                     int length = end - start;
-                    String s = new String(bytes, start, length, UTF_8);
+                    String s = new String(bytes, start, length, StandardCharsets.UTF_8);
                     s = s.substring(5); // skip URI//
                     File file = SdkUtils.urlToFile(s);
                     if (file.exists()) {
@@ -817,7 +851,7 @@ public class GradleImport {
 
   @Deprecated
   public void setModulesToImport(Map<String, File> modules) {
-    mySelectedModules = Maps.newHashMap();
+    mySelectedModules = new HashMap<>();
     for (File module : modules.values()) {
       mySelectedModules.put(module, null);
     }
@@ -1074,7 +1108,7 @@ public class GradleImport {
       assert false : module;
     }
 
-    Files.asCharSink(file, UTF_8).write(sb.toString());
+    Files.asCharSink(file, StandardCharsets.UTF_8).write(sb.toString());
   }
 
   String getBuildToolsVersion() {
@@ -1100,7 +1134,7 @@ public class GradleImport {
                 "        " + MAVEN_REPOSITORY + NL +
                 "    }" + NL +
                 "}" + NL;
-    Files.asCharSink(file, UTF_8).write(sb);
+    Files.asCharSink(file, StandardCharsets.UTF_8).write(sb);
   }
 
   private void exportSettingsGradle(@NonNull File file, boolean append) throws IOException {
@@ -1112,7 +1146,7 @@ public class GradleImport {
       else {
         // Ensure that the new include statements are separate code statements, not
         // for example inserted at the end of a // line comment
-        String existing = Files.asCharSource(file, UTF_8).read();
+        String existing = Files.asCharSource(file, StandardCharsets.UTF_8).read();
         if (!existing.endsWith(NL)) {
           sb.append(NL);
         }
@@ -1128,10 +1162,10 @@ public class GradleImport {
 
     String code = sb.toString();
     if (append) {
-      Files.asCharSink(file, UTF_8, FileWriteMode.APPEND).write(code);
+      Files.asCharSink(file, StandardCharsets.UTF_8, FileWriteMode.APPEND).write(code);
     }
     else {
-      Files.asCharSink(file, UTF_8).write(code);
+      Files.asCharSink(file, StandardCharsets.UTF_8).write(code);
     }
   }
 
@@ -1312,7 +1346,7 @@ public class GradleImport {
 
   @Nullable
   Document getXmlDocument(File file, boolean namespaceAware) throws IOException {
-    String xml = Files.asCharSource(file, UTF_8).read();
+    String xml = Files.asCharSource(file, StandardCharsets.UTF_8).read();
     try {
       return XmlUtils.parseDocument(xml, namespaceAware);
     }
@@ -1443,7 +1477,7 @@ public class GradleImport {
         }
       }
 
-      Files.asCharSink(dest, UTF_8).write(xml);
+      Files.asCharSink(dest, StandardCharsets.UTF_8).write(xml);
     }
     else if (encoding != null) {
       copyTextFileWithEncoding(source, dest, encoding);

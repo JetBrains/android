@@ -19,7 +19,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 class StubTestAppInspectorMessenger : AppInspectorMessenger {

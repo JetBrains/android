@@ -37,6 +37,14 @@ class IllegalIdentifierInspectionTest : AndroidGradleTestCase() {
     val highlightInfo = myFixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(highlightInfo).isNotEmpty()
     assertThat(highlightInfo.any { it.description == "Identifier not allowed in Android projects" }).isTrue()
+
+    // 208842981: Allow spaces in method names via backticks
+    // The lib module in the project sets minSdkVersion to 30, where the inspection no longer applies.
+    val file2 = project.guessProjectDir()!!
+      .findFileByRelativePath("lib/src/main/java/com/google/studio/android/test/Test2.kt")!!
+    myFixture.openFileInEditor(file2)
+    val highlightInfo2 = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(highlightInfo2).isEmpty()
   }
 
   fun testInspectionInBuildKtsFile() {

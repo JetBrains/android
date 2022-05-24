@@ -17,12 +17,11 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.intellij.ui.components.JBTextField;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.text.JTextComponent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.function.IntSupplier;
+import javax.swing.text.JTextComponent;
+import org.jetbrains.annotations.NotNull;
 
 final class TranslationsEditorTextField extends JBTextField {
   TranslationsEditorTextField(@NotNull StringResourceTable table, int column) {

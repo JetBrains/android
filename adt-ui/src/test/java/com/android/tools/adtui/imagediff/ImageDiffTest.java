@@ -15,12 +15,11 @@
  */
 package com.android.tools.adtui.imagediff;
 
+import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.List;
 
 /**
  * Parametrized test class that runs all the tests of {@link com.android.tools.adtui.imagediff}.

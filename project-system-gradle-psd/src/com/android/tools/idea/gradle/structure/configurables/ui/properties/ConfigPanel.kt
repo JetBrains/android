@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
 import com.android.tools.idea.gradle.structure.configurables.ui.PROPERTY_PLACE_NAME
@@ -24,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
@@ -88,8 +86,7 @@ open class ConfigPanel<in ModelT>(
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     val propertyDescription = place?.getPath(PROPERTY_PLACE_NAME) ?: ActionCallback.REJECTED
     if (requestFocus) {
-      val editor = editors.firstOrNull { it.property.description == propertyDescription }
-      when (editor) {
+      when (val editor = editors.firstOrNull { it.property.description == propertyDescription }) {
         is CollectionPropertyEditor<*, *> -> {
           editor.component.scrollRectToVisible(editor.component.bounds)
           editor.component.requestFocus()

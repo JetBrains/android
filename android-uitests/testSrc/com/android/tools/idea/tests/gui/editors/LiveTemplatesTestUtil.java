@@ -19,12 +19,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.components.JBList;
+import java.util.regex.Pattern;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JListItemFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.regex.Pattern;
 
 public class LiveTemplatesTestUtil {
 

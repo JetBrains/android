@@ -16,9 +16,8 @@
 package com.android.tools.adtui.chart.statechart;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * This class helps map between values specified in {@link StateChart} components to the element color.

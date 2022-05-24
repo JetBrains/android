@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
-import com.android.tools.idea.wizard.template.MaterialColor.*
+import com.android.tools.idea.wizard.template.MaterialColor.BLACK
+import com.android.tools.idea.wizard.template.MaterialColor.PURPLE_500
+import com.android.tools.idea.wizard.template.MaterialColor.PURPLE_700
+import com.android.tools.idea.wizard.template.MaterialColor.TEAL_200
+import com.android.tools.idea.wizard.template.MaterialColor.TEAL_700
+import com.android.tools.idea.wizard.template.MaterialColor.WHITE
 
 const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
 const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"
 
 fun androidModuleThemesMaterial3(themeName: String) =
+  // When the contents are modified, need to modify
+  // com.android.tools.idea.wizard.template.impl.activities.common.generateMaterial3Themes
   """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
   <style name="Base.${themeName}" parent="Theme.Material3.DayNight.NoActionBar">
@@ -35,7 +42,7 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
   if (useAndroidX)
     """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
-  <style name="${themeName}" parent="$DARK_ACTION_BAR_MATERIAL_COMPONENTS">
+  <style name="$themeName" parent="$DARK_ACTION_BAR_MATERIAL_COMPONENTS">
       <!-- Primary brand color. -->
       <item name="colorPrimary">@color/${PURPLE_500.colorName}</item>
       <item name="colorPrimaryVariant">@color/${PURPLE_700.colorName}</item>
@@ -52,7 +59,7 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
   else
     """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
-  <style name="${themeName}" parent="$DARK_ACTION_BAR_APPCOMPAT">
+  <style name="$themeName" parent="$DARK_ACTION_BAR_APPCOMPAT">
       <!-- Primary brand color. -->
       <item name="colorPrimary">@color/${PURPLE_500.colorName}</item>
       <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>

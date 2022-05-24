@@ -23,17 +23,19 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.fest.swing.core.KeyPressInfo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.awt.event.KeyEvent;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * Test that applies random actions on the layout editor. This test is meant to be ran manually to discover issues that can be

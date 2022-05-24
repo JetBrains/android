@@ -16,14 +16,10 @@
 package com.android.tools.idea.editors.literals.actions
 
 import com.android.tools.idea.editors.literals.LiveLiteralsService
-import com.intellij.ide.actions.ShowSettingsUtilImpl
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.keymap.KeyMapBundle
 import com.intellij.openapi.keymap.KeymapUtil
-import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil
-import com.intellij.openapi.options.newEditor.SettingsDialogFactory
 import org.jetbrains.android.util.AndroidBundle.message
 
 class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highlight.toggle.title"),

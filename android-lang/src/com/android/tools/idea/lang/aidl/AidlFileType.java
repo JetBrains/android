@@ -18,11 +18,10 @@ package com.android.tools.idea.lang.aidl;
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * File type for *.aidl files.

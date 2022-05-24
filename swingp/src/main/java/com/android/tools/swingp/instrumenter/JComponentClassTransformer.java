@@ -17,16 +17,24 @@ package com.android.tools.swingp.instrumenter;
 
 import com.android.tools.swingp.PaintChildrenMethodStat;
 import com.android.tools.swingp.PaintComponentMethodStat;
-import org.jetbrains.org.objectweb.asm.*;
-import org.jetbrains.org.objectweb.asm.Label;
-import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
-import org.jetbrains.org.objectweb.asm.commons.Method;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import javax.swing.JComponent;
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.Handle;
+import org.jetbrains.org.objectweb.asm.Label;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
+import org.jetbrains.org.objectweb.asm.TypePath;
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
+import org.jetbrains.org.objectweb.asm.commons.Method;
 
 public class JComponentClassTransformer implements ClassFileTransformer {
   private static final String JCOMPONENT_NAME = JComponent.class.getCanonicalName().replace('.', '/');

@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.expressions.Expression;
-import org.junit.Test;
-
-import java.util.List;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.expressions.Expression;
+import java.util.List;
+import org.junit.Test;
 
 public class AbstractPropertyTest {
 

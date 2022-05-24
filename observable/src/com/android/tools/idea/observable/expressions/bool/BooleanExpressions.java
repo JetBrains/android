@@ -17,9 +17,8 @@ package com.android.tools.idea.observable.expressions.bool;
 
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObservableBool;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Miscellaneous convenience methods which, when imported statically, can provide readability to

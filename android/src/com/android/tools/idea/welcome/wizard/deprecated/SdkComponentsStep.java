@@ -52,6 +52,7 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Set;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractCellEditor;
@@ -165,7 +166,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       myUserEditedPath = true;
     }
 
-    mySdkDirectoryValidationResult = PathValidator.forAndroidSdkLocation().validate(new File(path));
+    mySdkDirectoryValidationResult = PathValidator.forAndroidSdkLocation().validate(Paths.get(path));
 
     @NotNull Validator.Severity severity = mySdkDirectoryValidationResult.getSeverity();
     boolean ok = severity == Validator.Severity.OK;

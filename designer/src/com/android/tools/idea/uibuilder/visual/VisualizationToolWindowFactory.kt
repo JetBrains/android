@@ -39,7 +39,6 @@ import com.intellij.util.ui.update.Update
  * framework.
  */
 class VisualizationToolWindowFactory : ToolWindowFactory {
-
   companion object {
     // Must be same as the tool window id in designer.xml
     const val TOOL_WINDOW_ID = "Layout Validation"
@@ -60,11 +59,10 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
         override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow, event.newFile)
       }
     )
+  }
 
-    // Set up initial availability.
-    toolWindow.isAvailable = FileEditorManager.getInstance(project).selectedEditors
-      .mapNotNull { it.file }
-      .any { getFolderType(it) == ResourceFolderType.LAYOUT }
+  override fun shouldBeAvailable(project: Project): Boolean {
+    return FileEditorManager.getInstance(project).selectedEditors.any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
   }
 
   /**

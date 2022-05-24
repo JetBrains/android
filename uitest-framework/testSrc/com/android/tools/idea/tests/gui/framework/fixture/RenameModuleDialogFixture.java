@@ -20,14 +20,13 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import javax.swing.JDialog;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public class RenameModuleDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 
@@ -37,7 +36,7 @@ public class RenameModuleDialogFixture extends IdeaDialogFixture<DialogWrapper> 
   public static RenameModuleDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Rename Module").and(
-      new GenericTypeMatcher<JDialog>(JDialog.class) {
+      new GenericTypeMatcher<>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

@@ -21,26 +21,16 @@ import com.android.tools.idea.devicemanager.Resolution;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
-  static final @NotNull Comparator<@Nullable Instant> LAST_ONLINE_TIME_COMPARATOR = Comparator.nullsLast(Comparator.reverseOrder());
-
-  private static final @NotNull Comparator<@NotNull PhysicalDevice> PHYSICAL_DEVICE_COMPARATOR =
-    Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
-      .thenComparing(PhysicalDevice::getLastOnlineTime, LAST_ONLINE_TIME_COMPARATOR);
-
-  private final @Nullable Instant myLastOnlineTime;
+public final class PhysicalDevice extends Device {
   private final @NotNull String myNameOverride;
-  private final @NotNull String myApi;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
   private final @Nullable Resolution myResolution;
@@ -49,9 +39,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @Nullable StorageDevice myStorageDevice;
 
   public static final class Builder extends Device.Builder {
-    private @Nullable Instant myLastOnlineTime;
     private @NotNull String myNameOverride = "";
-    private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
     private @Nullable Resolution myResolution;
@@ -61,11 +49,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     public @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
-      return this;
-    }
-
-    @NotNull Builder setLastOnlineTime(@Nullable Instant lastOnlineTime) {
-      myLastOnlineTime = lastOnlineTime;
       return this;
     }
 
@@ -138,22 +121,13 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private PhysicalDevice(@NotNull Builder builder) {
     super(builder);
 
-    myLastOnlineTime = builder.myLastOnlineTime;
     myNameOverride = builder.myNameOverride;
-
-    assert builder.myApi != null;
-    myApi = builder.myApi;
-
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPower = builder.myPower;
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
     myAbis = ImmutableList.copyOf(builder.myAbis);
     myStorageDevice = builder.myStorageDevice;
-  }
-
-  @Nullable Instant getLastOnlineTime() {
-    return myLastOnlineTime;
   }
 
   @Override
@@ -168,10 +142,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   @Override
   public boolean isOnline() {
     return !myConnectionTypes.isEmpty();
-  }
-
-  @NotNull String getApi() {
-    return myApi;
   }
 
   @NotNull Collection<@NotNull ConnectionType> getConnectionTypes() {
@@ -202,7 +172,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   public int hashCode() {
     int hashCode = myKey.hashCode();
 
-    hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
     hashCode = 31 * hashCode + myType.hashCode();
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + myNameOverride.hashCode();
@@ -227,7 +196,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     PhysicalDevice device = (PhysicalDevice)object;
 
     return myKey.equals(device.myKey) &&
-           Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
            myType.equals(device.myType) &&
            myName.equals(device.myName) &&
            myNameOverride.equals(device.myNameOverride) &&
@@ -239,10 +207,5 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            myDensity == device.myDensity &&
            myAbis.equals(device.myAbis) &&
            Objects.equals(myStorageDevice, device.myStorageDevice);
-  }
-
-  @Override
-  public int compareTo(@NotNull PhysicalDevice device) {
-    return PHYSICAL_DEVICE_COMPARATOR.compare(this, device);
   }
 }

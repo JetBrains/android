@@ -80,6 +80,8 @@ import com.android.tools.idea.lint.inspections.AndroidLintMissingLeanbackSupport
 import com.android.tools.idea.lint.inspections.AndroidLintMissingPermissionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMissingPrefixInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMissingTvBannerInspection
+import com.android.tools.idea.lint.inspections.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintMotionSceneFileValidationErrorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNetworkSecurityConfigInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNonResizeableActivityInspection
@@ -127,6 +129,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintWifiManagerLeakInspect
 import com.android.tools.idea.lint.inspections.AndroidLintWrongCallInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongCaseInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection
+import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -157,6 +160,7 @@ import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.CommonProblemDescriptor
+import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.QuickFix
 import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
@@ -176,7 +180,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
@@ -196,6 +199,7 @@ class AndroidLintTest : AndroidTestCase() {
     setInstanceForTest(analyticsSettings)
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     myFixture.allowTreeAccessForAllFiles()
+    myFixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
   }
 
   override fun configureAdditionalModules(
@@ -1178,7 +1182,7 @@ class AndroidLintTest : AndroidTestCase() {
     val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
     // All Java8 features should be flagged as errors
     val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
-    assertThat(errors).hasSize(7)
+    assertThat(errors).hasSize(6)
 
     val errorDescriptions = errors.map { it.description }
     assertThat(
@@ -1187,7 +1191,6 @@ class AndroidLintTest : AndroidTestCase() {
                                          "Method reference requires API level 24 (current min is 16): `isEven::test`",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
-                                         "Cast to `Collector` requires API level 24 (current min is 16)",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`")
   }
 
@@ -1476,12 +1479,39 @@ class AndroidLintTest : AndroidTestCase() {
     doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
   }
 
-  private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
+  fun testCustomTagWithoutName() {
+    doTestWithFix(
+      AndroidLintMotionSceneFileValidationErrorInspection(),
+      "Set attributeName",
+      "/res/xml/customTagWithoutName.xml", "xml"
+    )
+  }
+
+  fun testCustomTagWithDuplicateName() {
+    doTestWithFix(
+      AndroidLintMotionSceneFileValidationErrorInspection(),
+      "Delete this custom attribute",
+      "/res/xml/customTagWithDuplicateName.xml", "xml"
+    )
+  }
+
+  fun testMotionLayoutWithoutLayoutDescription() {
+    doTestWithFix(
+      AndroidLintMotionLayoutInvalidSceneFileReferenceInspection(),
+      "Generate MotionScene file",
+      "/res/layout/motionLayoutWithoutLayoutDescription.xml", "xml"
+    )
+
+    val sceneFile = "${getTestName(true)}_scene.xml"
+    myFixture.checkResultByFile("res/xml/$sceneFile", "$BASE_PATH/$sceneFile", false)
+  }
+
+  private fun doGlobalInspectionTest(inspection: GlobalInspectionTool): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     myFixture.enableInspections(inspection)
     return doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
   }
 
-  private fun doGlobalInspectionWithFix(inspection: AndroidLintInspectionBase, actionLabel: String) {
+  private fun doGlobalInspectionWithFix(inspection: GlobalInspectionTool, actionLabel: String) {
     val map = doGlobalInspectionTest(inspection)
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
     for (refEntity in map.keys()) {

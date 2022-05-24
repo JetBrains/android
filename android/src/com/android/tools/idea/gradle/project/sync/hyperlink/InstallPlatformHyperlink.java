@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     for (AndroidVersion version : myAndroidVersions) {
       requested.add(DetailsTypes.getPlatformPath(version));
     }

@@ -11,12 +11,14 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
     ],
 )
 
@@ -36,7 +38,9 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:zxing-core[test]",

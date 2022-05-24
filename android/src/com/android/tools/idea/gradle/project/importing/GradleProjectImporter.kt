@@ -29,7 +29,6 @@ import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -85,26 +84,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       importProjectNoSync(Request(newProject))
       return ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
-        OpenProjectTask(
-          forceOpenInNewFrame = forceOpenInNewFrame,
-          projectToClose = projectToClose,
-          isNewProject = false,
-          useDefaultProjectAsTemplate = false,
-          project = newProject,
-          projectName = null,
-          showWelcomeScreen = true,
-          callback = null,
-          line = -1,
-          column = -1,
-          isRefreshVfsNeeded = true,
-          runConfigurators = false,
-          runConversionBeforeOpen = true,
-          projectWorkspaceId = null,
-          isProjectCreatedWithWizard = false,
-          beforeInit = null,
-          beforeOpen = null,
-          preparedToOpen = null
-        )
+        OpenProjectTask.build()
+          .withProject(newProject).withForceOpenInNewFrame(forceOpenInNewFrame)
+          .withProjectToClose(projectToClose)
       )
     }
     catch (e: Throwable) {
@@ -200,7 +182,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     private val SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup"
 
     @JvmStatic
-    fun getInstance(): GradleProjectImporter = ServiceManager.getService(GradleProjectImporter::class.java)
+    fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
 
     @VisibleForTesting
     @JvmStatic
@@ -216,7 +198,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       }
       val projectSettings = GradleProjectSettings()
       gradleSettings.setupGradleSettings()
-      @Suppress("UnstableApiUsage")
       projectSettings.setupGradleProjectSettings(newProject, File(externalProjectPath).toPath())
       // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK

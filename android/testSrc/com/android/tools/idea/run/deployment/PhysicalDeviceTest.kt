@@ -57,6 +57,7 @@ class PhysicalDeviceTest {
   fun deactivateIconLoader() {
     IconManager.deactivate()
     IconLoader.deactivate()
+    IconLoader.clearCacheInTests()
   }
 
   @Test

@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -159,7 +158,7 @@ interface GradleBuildInvoker {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GradleBuildInvoker {
-      return ServiceManager.getService(project, GradleBuildInvoker::class.java)
+      return project.getService(GradleBuildInvoker::class.java)
     }
   }
 

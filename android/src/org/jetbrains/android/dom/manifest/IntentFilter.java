@@ -16,9 +16,8 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.SubTagList;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 @Styleable("AndroidManifestIntentFilter")
 public interface IntentFilter extends ManifestElement {

@@ -27,13 +27,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -47,15 +45,18 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
@@ -66,30 +67,26 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
   private Module[] myModules;
-  private BuildSettings myBuildSettings;
-  private GradleTaskFinder myTaskFinder;
+  @Mock private BuildSettings myBuildSettings;
+  @Mock private GradleTaskFinder myTaskFinder;
+
+  AutoCloseable myCloseable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
+    myCloseable = MockitoAnnotations.openMocks(this);
   }
 
-  private GradleBuildInvoker createBuildInvoker() {
+  private GradleBuildInvoker createBuildInvoker(boolean isConfigured) {
     myModules = new Module[]{getModule()};
 
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
-    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
-
-    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
-  }
-
-  private GradleBuildInvoker createBuildInvokerForConfiguredProject() {
-    myModules = new Module[]{getModule()};
-
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
+    // If the project is configured, don't mock the GradleTaskFinder.
+    if (!isConfigured) {
+      ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleTaskFinder.class, myTaskFinder,
+                                          getTestRootDisposable());
+    }
+    ServiceContainerUtil.replaceService(myProject, BuildSettings.class, myBuildSettings, getTestRootDisposable());
 
     return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
@@ -98,21 +95,22 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   protected void tearDown() throws Exception {
     try {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT);
+      myCloseable.close();
     }
     catch (Throwable e) {
       addSuppressedException(e);
     }
     finally {
       super.tearDown();
-      myBuildSettings = null;
     }
   }
 
   public void testCleanUp() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
     // Invoke method to test.
     buildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
     // Verify task list includes clean.
     assertThat(request.getGradleTasks()).containsExactly("clean");
     assertThat(request.getCommandLineArguments()).isEmpty();
@@ -120,7 +118,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
@@ -134,7 +132,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserDoesNotTerminateSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
@@ -148,18 +146,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserCancelsBuild() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
 
-    TestDialogManager.setTestDialog(new TestDialog() {
-      @Override
-      public int show(@NotNull String message) {
-        return Messages.CANCEL;
-      }
-    });
+    TestDialogManager.setTestDialog(message -> Messages.CANCEL);
 
     buildInvoker.cleanProject();
 
@@ -174,11 +167,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
   }
 
-  @NotNull
-  private List<String> setUpTasksForSourceGeneration() {
+  private void setUpTasksForSourceGeneration() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
     when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
-    return tasks;
   }
 
   public void testCompileJava() {
@@ -188,16 +179,17 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
     buildInvoker.compileJava(
       ImmutableList.of(
-        gradleModule(myProject, ":app"),
-        gradleModule(myProject, ":lib")
+        Objects.requireNonNull(gradleModule(myProject, ":app")),
+        Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
       TestCompileType.ALL
     );
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
       ":lib:ideSetupTask1",
       ":lib:ideSetupTask2",
@@ -229,15 +221,16 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
-        gradleModule(myProject, ":app"),
-        gradleModule(myProject, ":lib")
+        Objects.requireNonNull(gradleModule(myProject, ":app")),
+        Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
       TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
     assertThat(request.getCommandLineArguments()).isEmpty();
     assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
@@ -252,22 +245,23 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
-        gradleModule(myProject, ":app"),
-        gradleModule(myProject, ":lib")
+        Objects.requireNonNull(gradleModule(myProject, ":app")),
+        Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
       TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
     assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
 
-  public void testExecuteTasksWaitForCompletionNoDispatch() throws InterruptedException {
+  public void testExecuteTasksWaitForCompletionNoDispatch() {
     File projectPath = getTempDir().createDir().toFile();
     setupTestProjectFromAndroidModel(myProject,
                                      projectPath,
@@ -275,7 +269,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
 
     GradleBuildInvoker.Request request = GradleBuildInvoker.Request.builder(
       myProject,

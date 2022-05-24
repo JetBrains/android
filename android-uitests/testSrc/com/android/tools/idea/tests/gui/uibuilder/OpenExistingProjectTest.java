@@ -65,7 +65,7 @@ public class OpenExistingProjectTest {
     guiTest.waitForBackgroundTasks();
 
     //ideFrame.getEditor().open("app/src/main/java/com/android/test/app/MainActivity.java");
-    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickOk();
     List<String> errors = ideFrame.getEditor().getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);

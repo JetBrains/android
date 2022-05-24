@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpAllVariantsSyncAndroidModuleModel
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -37,8 +35,7 @@ import java.io.File
  * The second step is to run Sync request (fetch gradle models) using GradleSyncExecutor (used in the PSD workflow), and verify that we
  * get all the gradle project's variants created.
  *
- *  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest].
  */
 class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   private var mySyncExecutor: GradleSyncExecutor? = null
@@ -54,14 +51,7 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
 
   @Test
   fun testAllVariantSyncWithV1() {
-    // Load the project and run Sync (SVS in this case).
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    runSvsAndAvsSyncAndVerifyFetchedVariants()
-  }
-
-  @Test
-  fun testAllVariantSyncWithV2() {
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     try {
       // Load the project and run Sync (SVS in this case).
       loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
@@ -71,20 +61,27 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
     }
   }
 
+  @Test
+  fun testAllVariantSyncWithV2() {
+    // Load the project and run Sync (SVS in this case).
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    runSvsAndAvsSyncAndVerifyFetchedVariants()
+  }
+
   private fun runSvsAndAvsSyncAndVerifyFetchedVariants() {
     val appModule = project.findAppModule()
-    val svsAndroidModel = AndroidModuleModel.get(appModule)
+    val svsAndroidModel = GradleAndroidModel.get(appModule)
     // Since we ran a SVS Sync, we should only have one fetched variant.
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
     val gradleModules = mySyncExecutor!!.fetchGradleModels()
-    val allVariantsSyncAndroidModel = gradleModules[0].findModel(AndroidModuleModel::class.java)
+    val allVariantsSyncAndroidModel = gradleModules[0].findModel(GradleAndroidModel::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
     Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
 
-    // Dump the AndroidModuleModel.
+    // Dump the GradleAndroidModel.
     val dumper = ProjectDumper(additionalRoots = mapOf("ROOT" to File(project.basePath!!)))
     dumper.dumpAllVariantsSyncAndroidModuleModel(allVariantsSyncAndroidModel, project.basePath!!)
     // Verify dump content matches expected snapshot files.

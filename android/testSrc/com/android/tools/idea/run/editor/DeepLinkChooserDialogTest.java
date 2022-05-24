@@ -18,9 +18,8 @@ package com.android.tools.idea.run.editor;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
 
 public class DeepLinkChooserDialogTest extends AndroidTestCase {
   private static final String BASE_PATH = "deeplink/launch/";

@@ -17,20 +17,18 @@ package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IDevice.Feature;
-import com.android.ddmlib.IDevice.HardwareFeature;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.run.DeviceStateCache;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The production implementation of Features uses a DeviceStateCache.

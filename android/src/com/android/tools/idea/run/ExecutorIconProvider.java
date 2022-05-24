@@ -17,10 +17,9 @@ package com.android.tools.idea.run;
 
 import com.intellij.execution.Executor;
 import com.intellij.openapi.project.Project;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Marker interface for a {@link Executor} to indicate that it can provide custom icons.

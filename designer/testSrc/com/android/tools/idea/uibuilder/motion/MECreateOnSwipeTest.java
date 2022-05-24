@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
 import java.awt.Dimension;
 
 public class MECreateOnSwipeTest extends BaseMotionEditorTest {

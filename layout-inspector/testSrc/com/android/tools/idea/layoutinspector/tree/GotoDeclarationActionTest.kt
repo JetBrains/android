@@ -24,8 +24,8 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.util.DemoExample
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -78,7 +78,8 @@ class GotoDeclarationActionTest {
     val stats = SessionStatistics(model, FakeTreeSettings())
     val event = createEvent(model, stats, fromShortcut = true)
     GotoDeclarationAction.actionPerformed(event)
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
+                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     checkStats(stats, keyStrokeCount = 1)
   }
 

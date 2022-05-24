@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.instantapp;
 
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.AndroidProjectTypes;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
 
@@ -70,8 +69,8 @@ public class InstantApps {
   private static Module findBaseFeature(@NotNull List<Module> featureModules) {
     Module baseFeature = null;
     for (Module module : featureModules) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null && androidModel.getAndroidProject().isBaseSplit()) {
+      AndroidModel androidModel = AndroidModel.get(module);
+      if (androidModel != null && androidModel.isBaseSplit()) {
         baseFeature = module;
         break;
       }

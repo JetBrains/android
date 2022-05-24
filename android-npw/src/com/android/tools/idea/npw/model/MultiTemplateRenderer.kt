@@ -153,7 +153,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
       Topic("Template rendering", TemplateRendererListener::class.java)
 
     fun subscribe(project: Project, listener: TemplateRendererListener): MessageBusConnection =
-      project.messageBus.connect(project).apply {
+      project.messageBus.connect().apply {
         subscribe(TEMPLATE_RENDERER_TOPIC, listener)
       }
 

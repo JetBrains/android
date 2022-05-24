@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_CONSTRAINTSET;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_REFERENCE;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.SHERPA_URI;
+
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -24,12 +33,9 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Keep references in a constraints tag up to date

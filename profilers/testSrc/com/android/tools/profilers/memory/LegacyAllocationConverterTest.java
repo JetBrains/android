@@ -15,15 +15,14 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class LegacyAllocationConverterTest {
 

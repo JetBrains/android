@@ -17,15 +17,12 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.SigningConfig;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BuildTypeStub implements BuildType {
   @NotNull private final String myName;

@@ -47,12 +47,12 @@ import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +65,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link #getDevices(GetDevicesRequest, StreamObserver)}, {@link #getProcesses(GetProcessesRequest, StreamObserver)}, etc.
  */
 public class TransportService extends TransportServiceGrpc.TransportServiceImplBase implements ServicePassThrough {
-  private final Map<Channel, DeviceProcessPoller> myLegacyPollers = Maps.newHashMap();
+  private final Map<Channel, DeviceProcessPoller> myLegacyPollers = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
@@ -75,11 +75,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
    * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
    * when channels are closed.
    */
-  private final Map<Channel, UnifiedEventsDataPoller> myUnifiedEventsPollers = Maps.newHashMap();
+  private final Map<Channel, UnifiedEventsDataPoller> myUnifiedEventsPollers = new HashMap<>();
   /**
    * A map of active channels to unified event streams. This map helps us clean up streams when a channel is closed.
    */
-  private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
+  private final Map<Channel, Stream> myChannelToStream = new HashMap<>();
   @VisibleForTesting final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public TransportService(@NotNull DataStoreService service,

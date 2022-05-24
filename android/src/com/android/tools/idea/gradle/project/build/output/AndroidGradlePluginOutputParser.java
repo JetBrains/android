@@ -20,7 +20,6 @@ import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
-import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 

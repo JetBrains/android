@@ -16,11 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import javax.swing.JList;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ChooseClassDialogFixture extends IdeaDialogFixture<ChooseClassDialog> {
   @NotNull

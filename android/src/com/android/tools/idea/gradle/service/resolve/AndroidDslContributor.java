@@ -270,6 +270,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
         builder.addParameter(new GrLightParameter("param", type, builder));
         PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
         builder.setReturnType(retType);
+        builder.setContainingClass(contributorClass);
         processor.execute(builder, state);
 
         builder.setNavigationElement(method);

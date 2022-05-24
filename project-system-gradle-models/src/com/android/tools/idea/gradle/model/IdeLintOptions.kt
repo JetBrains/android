@@ -34,6 +34,7 @@ interface IdeLintOptions {
     val isIgnoreWarnings: Boolean
     val isWarningsAsErrors: Boolean
     val isIgnoreTestSources: Boolean
+    val isIgnoreTestFixturesSources: Boolean
     val isCheckGeneratedSources: Boolean
     val isCheckReleaseBuilds: Boolean
     val isExplainIssues: Boolean
@@ -46,4 +47,23 @@ interface IdeLintOptions {
     val xmlOutput: File?
     val sarifReport: Boolean
     val sarifOutput: File?
+
+  companion object {
+    /** A severity for Lint. Corresponds to com.android.tools.lint.detector.api.Severity#FATAL */
+    const val SEVERITY_FATAL         = 1
+    /** A severity for Lint. Corresponds to com.android.tools.lint.detector.api.Severity#ERROR */
+    const val SEVERITY_ERROR         = 2
+    /** A severity for Lint. Corresponds to com.android.tools.lint.detector.api.Severity#WARNING */
+    const val SEVERITY_WARNING       = 3
+    /** A severity for Lint. Corresponds to com.android.tools.lint.detector.api.Severity#INFORMATIONAL */
+    const val SEVERITY_INFORMATIONAL = 4
+    /** A severity for Lint. Corresponds to com.android.tools.lint.detector.api.Severity#IGNORE */
+    const val SEVERITY_IGNORE        = 5
+    /**
+     * A severity for lint. This severity means that the severity should be whatever the default
+     * is for this issue (this is used when the DSL just says "enable", and Gradle doesn't know
+     * what the default severity is.)
+     */
+    const val SEVERITY_DEFAULT_ENABLED = 6
+  }
 }

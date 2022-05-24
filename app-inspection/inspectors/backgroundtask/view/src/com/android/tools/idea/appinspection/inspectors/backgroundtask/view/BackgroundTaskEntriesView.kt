@@ -240,6 +240,7 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
       add(TagsDropDownAction())
     }
     val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    leftToolbar.setTargetComponent(this)
     ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
@@ -248,6 +249,7 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
       add(GraphViewAction())
     }
     val rightToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
+    rightToolbar.setTargetComponent(this)
     ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName

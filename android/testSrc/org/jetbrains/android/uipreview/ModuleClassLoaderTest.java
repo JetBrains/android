@@ -242,7 +242,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  public void testIsSourceModifiedWithOverlay() throws IOException {
+  public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
     StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.override(true);
     setupTestProjectFromAndroidModel(
       getProject(),
@@ -257,6 +257,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
+    Files.createDirectories(overlayDir1.resolve("com/google/example"));
     ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
@@ -266,8 +267,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     javac.run(null, null, null, aClassSrc.toString());
 
-
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    // Add the compiled class to the overlay directory
+    Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
+    loader.loadClass("com.google.example.AClass");
+
     assertTrue(loader.isUserCodeUpToDateNonCached());
     // New overlay will make the code out-of-date
     ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir2);
@@ -305,6 +309,36 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
     loader.loadClass("p1.p2.R");
     ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  // Regression test for b/162056408
+  public void testDisallowLoadingAndroidDispatcherFactory() throws Exception {
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(Objects.requireNonNull(getProject().getBasePath())),
+      new AndroidModuleModelBuilder(
+        ":",
+        "debug",
+        createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)));
+
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    try {
+      try {
+        loader.loadClass("kotlinx.coroutines.android.AndroidDispatcherFactory");
+        fail("AndroidDispatcherFactory should not be allowed to load by ModuleClassLoader since it would trigger the use of Android " +
+             "coroutines instead of the host ones");
+      }
+      catch (IllegalArgumentException ignored) {
+      }
+
+      // Check we can load resources from the layoutlib-extensions.jar
+      assertNotNull(loader.getResource("META-INF/services/_layoutlib_._internal_.kotlinx.coroutines.internal.MainDispatcherFactory"));
+
+      // Verify that not existing resources return null
+      assertNull(loader.getResource("META-INF/services/does.not.exist"));
+    } finally {
+      ModuleClassLoaderManager.get().release(loader, this);
+    }
   }
 
   public void testNotUpToDate_whenDependenciesChange() throws IOException {

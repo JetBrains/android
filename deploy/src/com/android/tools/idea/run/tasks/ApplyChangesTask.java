@@ -22,6 +22,7 @@ import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +36,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
   public ApplyChangesTask(@NotNull Project project,
                           @NotNull Collection<ApkInfo> packages,
                           boolean rerunOnSwapFailure,
-                          boolean alwaysInstallWithPm) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
+                          boolean alwaysInstallWithPm,
+                          Computable<String> installPathProvider) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
   }
 
   @NotNull

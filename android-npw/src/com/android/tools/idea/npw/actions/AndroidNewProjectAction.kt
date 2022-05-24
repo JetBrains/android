@@ -22,7 +22,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard.Builder
-import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle.actionText
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,12 +29,10 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen
 import org.jetbrains.android.sdk.AndroidSdkUtils
 
-@Suppress("ComponentNotRegistered")
 class AndroidNewProjectAction @JvmOverloads constructor(text: String = actionText("NewDirectoryProject")) : AnAction(text), DumbAware {
   override fun update(e: AnActionEvent) {
     if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
-      e.presentation.icon = AllIcons.Welcome.CreateNewProjectTab
-      e.presentation.selectedIcon = AllIcons.Welcome.CreateNewProjectTabSelected
+      NewWelcomeScreen.updateNewProjectIconIfWelcomeScreen(e)
     }
   }
 

@@ -28,6 +28,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.hasErrorElementInRange
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
@@ -486,5 +487,41 @@ class LiteralsTest {
     assertEquals(
       "text='-100' location='LiteralsTest.kt (68,72)' value='-100' usages='test.app.LiteralsTest.<init>-68'",
       snapshot.modified.toDebugString())
+  }
+
+  @Test
+  fun `test parallel literal finding`() {
+    val literalsManager = LiteralsManager()
+    val files = (1..100).map {
+      val fileId = it.toString().padStart(4, '0')
+      projectRule.fixture.addFileToProject(
+        "/src/test/app/LiteralsTest$fileId.kt",
+        // language=kotlin
+        """
+        package test.app
+
+        class LiteralsTest$fileId {
+          private val SIMPLE = -120
+
+          fun testCall() {
+            method(SIMPLE)
+          }
+      }
+      """.trimIndent())
+    }
+
+    runBlocking {
+      val asyncLiterals = files.map {
+        it.name to async { literalsManager.findLiterals(it) }
+      }
+
+      asyncLiterals.forEach { (fileName, async) ->
+        val className = fileName.substringBefore(".")
+        val snapshot = async.await()
+        assertEquals(
+          "text='-120' location='$fileName (72,76)' value='-120' usages='test.app.$className.<init>-72'",
+          snapshot.all.toDebugString())
+      }
+    }
   }
 }

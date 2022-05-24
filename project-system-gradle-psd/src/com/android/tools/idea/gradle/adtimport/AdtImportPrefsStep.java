@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.adtimport;
 
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.projectImport.ProjectImportWizardStep;
-
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 /** Panel where you configure ADT import preferences */
 class AdtImportPrefsStep extends ProjectImportWizardStep {

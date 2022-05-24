@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.android.tools.profilers.network.details.TabUiUtils.SECTION_TITLE_HEADERS;
+
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
@@ -22,12 +24,10 @@ import com.android.tools.profilers.network.details.HttpDataComponentFactory.Conn
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.network.details.TabUiUtils.SECTION_TITLE_HEADERS;
 
 /**
  * Tab which shows a response's headers and payload.

@@ -46,6 +46,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -87,7 +88,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module, test]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
@@ -98,6 +98,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
     ],
 )
@@ -123,10 +124,10 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
-        "@maven//:androidx.compose.compiler.compiler_1.0.1",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.0.1",
-        "@maven//:androidx.compose.ui.ui-tooling_1.0.1",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
+        "@maven//:androidx.compose.compiler.compiler_1.1.0-beta01",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.1.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
@@ -134,6 +135,7 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.3.0",
         "@maven//:androidx.core.core-ktx_1.3.2",
         "@maven//:androidx.core.core-ktx_1.6.0",
+        "@maven//:androidx.core.core-ktx_1.7.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.fragment.fragment_1.3.0",
@@ -172,7 +174,7 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-gass_20.0.0",
         "@maven//:com.google.android.gms.play-services-maps_17.0.1",
         "@maven//:com.google.android.gms.play-services-wearable_17.1.0",
-        "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_1.3.0",
+        "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.0",
         "@maven//:com.google.android.material.material_1.1.0",
         "@maven//:com.google.android.material.material_1.3.0",
         "@maven//:com.google.android.material.material_1.4.0",
@@ -195,6 +197,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.30",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.5.21",
@@ -588,7 +591,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "ui_test",
-        "very_flaky",  # b/201104220
+        "very_flaky",  # b/203243180
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -753,7 +756,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "ui_test",
-        "very_flaky",  # b/201104220
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -834,7 +836,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
         "ui_test",
-        "very_flaky",  # b/201104220
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1009,7 +1010,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
-        "very_flaky",  # b/201104220
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1028,7 +1028,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
-        "very_flaky",  # b/201104220
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1345,7 +1344,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
-        "very_flaky",  # b/201104220
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2498,6 +2496,22 @@ java_test(
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ToastLiveTemplateTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fat test
+java_test(
+    name = "ImportMlModelTest",
+    data = COMMON_DATA + [
+        "//prebuilts/tools/common/mlkit/testData",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.mlmodels.ImportMlModelTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],

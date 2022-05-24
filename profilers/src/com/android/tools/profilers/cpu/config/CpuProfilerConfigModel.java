@@ -18,21 +18,16 @@ package com.android.tools.profilers.cpu.config;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.google.common.collect.Iterables;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between

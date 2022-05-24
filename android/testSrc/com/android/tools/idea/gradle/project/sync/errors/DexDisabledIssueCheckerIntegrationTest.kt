@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
@@ -30,8 +29,8 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker.Companion.getKnownIssuesCheckList
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.any
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 

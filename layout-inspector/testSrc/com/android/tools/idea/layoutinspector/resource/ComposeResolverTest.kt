@@ -20,8 +20,8 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -51,7 +51,8 @@ class ComposeResolverTest {
     val resolver = ComposeResolver(projectRule.project)
     val navigatable = resolver.findComposableNavigatable(composable)
     navigatable!!.navigate(true)
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
+                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
   }
 
   @RunsInEdt

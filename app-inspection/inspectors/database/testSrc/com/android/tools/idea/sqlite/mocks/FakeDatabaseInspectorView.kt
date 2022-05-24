@@ -22,7 +22,6 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import org.mockito.Mockito.mock
-import java.util.ArrayList
 import javax.swing.Icon
 import javax.swing.JComponent
 

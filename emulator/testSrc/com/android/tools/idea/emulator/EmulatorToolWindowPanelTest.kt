@@ -23,7 +23,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -63,9 +63,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -130,8 +130,8 @@ class EmulatorToolWindowPanelTest {
   fun testAppearanceAndToolbarActions() {
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
 
-    val panel = createWindowPanel()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary toolbars to be rendered.
+    val panel = createWindowPanelForPhone()
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -139,10 +139,10 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     // Check appearance.
-    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
+    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
@@ -206,16 +206,51 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testChangeDisplayMode() {
+    val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.root)
+    val panel = createWindowPanel(avdFolder)
+    panel.zoomToolbarVisible = false
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val project = projectRule.project
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    panel.size = Dimension(400, 600)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+    var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 571")
+    assertAppearance(ui, "ChangeDisplayMode1", 0.08)
+
+    // Set the tablet display mode.
+    executeEmulatorAction("android.emulator.display.mode.tablet", emulatorView, project)
+    val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
+    panel.waitForFrame(++frameNumber, 2, TimeUnit.SECONDS)
+    assertAppearance(ui, "ChangeDisplayMode2", 0.08)
+
+    panel.size = Dimension(500, 600)
+    ui.layoutAndDispatchEvents()
+    streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
+  }
+
+  @Test
   fun testZoom() {
-    val panel = createWindowPanel()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary toolbars to be rendered.
+    val panel = createWindowPanelForPhone()
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
     var emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
-    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
@@ -251,8 +286,8 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testMultipleDisplays() {
-    val panel = createWindowPanel()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary toolbars to be rendered.
+    val panel = createWindowPanelForPhone()
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -260,7 +295,6 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     // Check appearance.
-    panel.zoomToolbarVisible = true
     val frameNumbers = intArrayOf(emulatorView.frameNumber, 0, 0)
     assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0)
     panel.size = Dimension(400, 600)
@@ -300,7 +334,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testVirtualSceneCamera() {
-    val panel = createWindowPanel()
+    val panel = createWindowPanelForPhone()
     val ui = FakeUi(panel)
 
     assertThat(panel.primaryEmulatorView).isNull()
@@ -452,7 +486,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun createDropTarget(): DnDTarget {
-    val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
+    val adb = TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
       Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
@@ -466,7 +500,7 @@ class EmulatorToolWindowPanelTest {
     }
     ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
 
-    val panel = createWindowPanel()
+    val panel = createWindowPanelForPhone()
     panel.createContent(false)
     Disposer.register(testRootDisposable) { panel.destroyContent() }
 
@@ -515,11 +549,15 @@ class EmulatorToolWindowPanelTest {
     return call
   }
 
-  private fun createWindowPanel(): EmulatorToolWindowPanel {
-    val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+  private fun createWindowPanelForPhone(): EmulatorToolWindowPanel {
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.root)
+    return createWindowPanel(avdFolder)
+  }
+
+  private fun createWindowPanel(avdFolder: Path): EmulatorToolWindowPanel {
+    emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
+    val catalog = RunningEmulatorCatalog.getInstance()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
@@ -530,6 +568,7 @@ class EmulatorToolWindowPanelTest {
       }
       emulator.stop()
     }
+    panel.zoomToolbarVisible = true
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel
   }
@@ -568,7 +607,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("$TEST_DATA_PATH/golden/${name}.png")
+    return TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
 

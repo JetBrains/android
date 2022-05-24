@@ -17,7 +17,13 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonBorderModel
 import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel
-import com.android.tools.adtui.stdui.StandardColors.*
+import com.android.tools.adtui.stdui.StandardColors.DISABLED_INNER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.ERROR_INNER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.ERROR_OUTER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.FOCUSED_INNER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.FOCUSED_OUTER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.INNER_BORDER_COLOR
+import com.android.tools.adtui.stdui.StandardColors.PLACEHOLDER_INNER_BORDER_COLOR
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
@@ -25,7 +31,14 @@ import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
 import com.intellij.ui.JreHiDpiUtil
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.UIUtil
-import java.awt.*
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Component
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Insets
+import java.awt.RenderingHints
+import java.awt.Shape
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import javax.swing.border.Border

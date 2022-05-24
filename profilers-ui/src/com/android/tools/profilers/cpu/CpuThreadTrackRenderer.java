@@ -30,22 +30,26 @@ import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
+import com.android.tools.profilers.cpu.systemtrace.RenderSequence;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,17 +75,16 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     traceEventChart.setBackground(UIUtil.TRANSPARENT_COLOR);
     traceEventChart.setDrawDebugInfo(
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
-    MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
-    multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-      List<CpuAnalyzable> selection = multiSelectionModel.getSelection();
-      if (!selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel) {
-        // A trace event is selected, possibly in another thread track.
-        // Update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
-        traceEventChart.setSelectedNode(((CaptureNodeAnalysisModel)selection.get(0)).getNode());
-      }
-      else {
-        // No trace event is selected. Reset all tracks' selection so they render the trace events in their default state.
+    MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
+    multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, () -> {
+      Object selection = multiSelectionModel.getActiveSelectionKey();
+      if (selection == null) {
+        // If no trace event is selected, reset all tracks' selection so they render the trace events in their default state.
         traceEventChart.setSelectedNode(null);
+      } else if (selection instanceof CaptureNode) {
+        // If a trace event is selected, possibly in another thread track,
+        // update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
+        traceEventChart.setSelectedNode((CaptureNode)selection);
       }
     });
 
@@ -135,10 +138,10 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             // Trace events only support single-selection.
             if (node != null) {
               multiSelectionModel.setSelection(
+                node,
                 Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
-            }
-            else {
-              multiSelectionModel.clearSelection();
+            } else {
+              multiSelectionModel.deselect();
             }
             traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }
@@ -147,11 +150,33 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     }
 
     CpuSystemTraceData data = trackModel.getDataModel().getCapture().getSystemTraceData();
-    return data == null ? panel :
-           VsyncPanel.of(panel,
-                         trackModel.getDataModel().getTimeline().getViewRange(),
-                         data.getVsyncCounterValues(),
-                         myVsyncEnabler);
+    CpuThreadInfo info = trackModel.getDataModel().getThreadInfo();
+    Range viewRange = trackModel.getDataModel().getTimeline().getViewRange();
+    return data == null
+           ? panel
+           : VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(
+                             panel, viewRange, multiSelectionModel,
+                             grayOutModeForThread(info, data),
+                             true),
+                           viewRange,
+                           data.getVsyncCounterValues(),
+                           myVsyncEnabler);
+  }
+
+  private static GrayOutMode grayOutModeForThread(CpuThreadInfo thread, CpuSystemTraceData data) {
+    Function1<AndroidFrameTimelineEvent, RenderSequence> renderSequenceGetter =
+      data instanceof SystemTraceCpuCapture ? ((SystemTraceCpuCapture)data).getFrameRenderSequence() : null;
+    return renderSequenceGetter == null ? GrayOutMode.None.INSTANCE :
+           thread.isMainThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getMainEvent())) :
+           thread.isRenderThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getRenderEvent())) :
+           thread.isGpuThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getGpuEvent())) :
+           GrayOutMode.All.INSTANCE;
+  }
+
+  private static Range eventRange(@Nullable CaptureNode threadEvent) {
+    return threadEvent == null
+           ? new Range() // if we can't find the event, don't highlight anything
+           : new Range(threadEvent.getStartGlobal(), threadEvent.getEndGlobal());
   }
 
   @Nullable

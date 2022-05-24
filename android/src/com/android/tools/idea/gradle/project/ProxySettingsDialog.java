@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.gradle.util.ParametersListUtil.COMMA_LINE_JOINER;
+import static com.android.tools.idea.gradle.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWithPipesAndClean;
 import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithCommasAndClean;
-import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
-import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
@@ -80,7 +80,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessageTextLabel);
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getProductName());
+    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName());
     myMessageTextLabel.setText(text);
 
     myHttpProxyHostTextField.setText(httpProxySettings.getHost());

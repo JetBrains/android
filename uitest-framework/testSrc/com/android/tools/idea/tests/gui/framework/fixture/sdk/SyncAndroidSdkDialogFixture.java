@@ -19,10 +19,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
+import javax.swing.JDialog;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class SyncAndroidSdkDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 

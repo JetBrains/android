@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
@@ -22,12 +24,11 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBEmptyBorder;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 public final class MemoryCaptureView extends AspectObserver {
   private static Logger getLogger() {

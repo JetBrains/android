@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.gradle
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -34,7 +34,7 @@ import org.junit.runners.model.Statement
 /**
  * Default Kotlin version used for Compose projects using this rule.
  */
-const val DEFAULT_KOTLIN_VERSION = "1.5.21"
+const val DEFAULT_KOTLIN_VERSION = "1.5.31"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
@@ -82,6 +82,6 @@ class ComposeGradleProjectRule(projectPath: String,
 
   override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 
-  fun clean() = GradleProjectBuilder.getInstance(project).clean()
+  fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
   fun build() = projectRule.invokeTasks("assembleDebug")
 }

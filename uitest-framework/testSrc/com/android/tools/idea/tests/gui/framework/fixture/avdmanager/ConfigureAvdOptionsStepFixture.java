@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.diagnostic.Logger;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JComboBoxFixture;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.JButton;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfigureAvdOptionsStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture, W> {

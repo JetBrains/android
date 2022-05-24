@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.moduleSystem
 
-import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.api.toGradleCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver

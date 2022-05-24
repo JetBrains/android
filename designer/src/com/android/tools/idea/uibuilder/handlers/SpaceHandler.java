@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ATTR_STYLE;
+
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.ATTR_STYLE;
+import org.jetbrains.annotations.NotNull;
 
 public class SpaceHandler extends ViewHandler {
   @Override

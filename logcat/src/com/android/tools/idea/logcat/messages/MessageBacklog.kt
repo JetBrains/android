@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.logcat.LogCatMessage
+import java.util.Collections
 
 /**
  * Manages a cyclic collection of [LogCatMessage]s that is limited by the size in bytes of the payload.
@@ -32,24 +33,45 @@ import com.android.ddmlib.logcat.LogCatMessage
  */
 internal class MessageBacklog(private val maxSize: Int) {
 
-  val messages = ArrayDeque<LogCatMessage>()
+  // The internal messages collection is exposed as a read-only list
+  private val _messages = ArrayDeque<LogCatMessage>()
+  val messages: List<LogCatMessage>
+    get() = Collections.unmodifiableList(_messages)
+
   private var size = 0
 
   init {
     assert(maxSize > 0)
   }
 
-  fun addAll(collection: Collection<LogCatMessage>) {
+  fun addAll(collection: List<LogCatMessage>) {
     val addedSize = collection.sumOf { it.message.length }
+
+    // We split into 2 flows.
+    //  If the new messages are larger than maxSize already, we clear the backlog and only add the messages that will fit using a sublist.
+    //  Otherwise, we first remove the messages that would overflow and then add the new ones.
+    // It would be simpler to just add the messages and then remove the overflowing ones but this way is slightly more efficient in terms of
+    // memory thrashing.
     if (addedSize >= maxSize) {
-      messages.clear()
-      size = 0
+      _messages.clear()
+      size = addedSize
+      val i = collection.indexOfFirst {
+        size -= it.message.length
+        size <= maxSize
+      }
+      _messages.addAll(collection.subList(i + 1, collection.size))
     }
-    size += addedSize
-    messages.addAll(collection)
-    while (size > maxSize) {
-      val first = messages.removeFirst()
-      size -= first.message.length
+    else {
+      size += addedSize
+      while (size > maxSize) {
+        size -= _messages.removeFirst().message.length
+      }
+      _messages.addAll(collection)
     }
+  }
+
+  fun clear() {
+    _messages.clear()
+    size = 0
   }
 }

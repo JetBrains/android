@@ -35,7 +35,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
 import java.util.WeakHashMap

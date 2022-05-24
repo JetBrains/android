@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 /**
  * Tests for {@link NamedModuleTemplate}.
@@ -66,6 +64,7 @@ public class NamedModuleTemplateTest {
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
     assertThat(sourceProvider.getShadersDirectories()).isEmpty();
     assertThat(sourceProvider.getMlModelsDirectories()).isEmpty();
+    assertThat(sourceProvider.getCustomDirectories()).isEmpty();
   }
 
   @Test
@@ -94,5 +93,6 @@ public class NamedModuleTemplateTest {
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
     assertThat(sourceProvider.getShadersDirectories()).isEmpty();
     assertThat(sourceProvider.getMlModelsDirectories()).isEmpty();
+    assertThat(sourceProvider.getCustomDirectories()).isEmpty();
   }
 }

@@ -31,7 +31,6 @@ import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConvert
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -55,6 +54,7 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessAdapter;
@@ -90,19 +90,29 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   @NotNull
   @Override
-  public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module.getProject(), launchOptions, AndroidProfilerToolWindow.getModuleName(module));
+  public LaunchTask getTask(@NotNull String applicationId, @NotNull AndroidRunConfigurationBase configuration,
+                            @NotNull IDevice device, @NotNull Executor executor) {
+    Module module = configuration.getConfigurationModule().getModule();
+    assert module != null;
+    return new AndroidProfilerToolWindowLaunchTask(configuration.getProject(), applicationId);
   }
 
-  @NotNull
-  public static String getAmStartOptions(@NotNull Project project, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
-                                         @NotNull IDevice device) {
-    if (!isProfilerLaunch(launchOptions)) {
+  @Override
+  public @NotNull String getAmStartOptions(@NotNull String applicationId,
+                                           @NotNull AndroidRunConfigurationBase configuration,
+                                           @NotNull IDevice device,
+                                           @NotNull Executor executor) {
+    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId, configuration.getProfilerState(), device, executor);
+  }
+
+  // Used only for Bazel. We need to write better mechanism of reusing AndroidLaunchTaskContributor for Blaze.
+  public static String getAmStartOptions(@NotNull Project project, @NotNull String applicationId, @Nullable ProfilerState profilerState,
+                                         @NotNull IDevice device, @NotNull Executor executor) {
+    if (!isProfilerLaunch(executor)) {
       // Not a profile action
       return "";
     }
 
-    ProfilerState profilerState = getProfilerStateFromCurrentRun(launchOptions, project);
     if (profilerState == null) {
       // Profiler settings not present
       return "";
@@ -130,13 +140,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
     String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
     return String.format("%s %s", agentArgs, startupProfilingResult);
-  }
-
-  @NotNull
-  @Override
-  public String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
-                                  @NotNull IDevice device) {
-    return getAmStartOptions(module.getProject(), applicationId, launchOptions, device);
   }
 
   private static void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
@@ -311,26 +314,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return device.getVersion().getFeatureLevel() >= version;
   }
 
-  /**
-   * Returns {@link ProfilerState} of the current run session.
-   * <p>
-   * Profiler state can come from two sources. For android gradle run configurations, {@link ProfilerState} is attached to the selected
-   * run configuration.  For non-gradle projects, {@link ProfilerState} can be passed using {@link LaunchOptions#getExtraOption(String)}.
-   * This method first checks if the configuration is an android gradle run configuration and falls back to extra launch options.
-   */
-  @Nullable
-  private static ProfilerState getProfilerStateFromCurrentRun(@NotNull LaunchOptions launchOptions, Project project) {
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
-    if (runConfig != null) {
-      return runConfig.getProfilerState();
-    }
-
-    Object stateFromExtraOptions = launchOptions.getExtraOption(ProfilerState.ANDROID_PROFILER_STATE_ID);
-    if (stateFromExtraOptions instanceof ProfilerState) {
-      return (ProfilerState)stateFromExtraOptions;
-    }
-    return null;
-  }
 
   @Nullable
   private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
@@ -398,7 +381,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                           @NotNull String fileName) {
     File dir;
     if (StudioPathManager.isRunningFromSources()) {
-      dir = new File(StudioPathManager.getSourcesRoot(), devDir);
+      dir = new File(StudioPathManager.resolveDevPath(devDir));
     } else {
       dir = new File(PathManager.getHomePath(), releaseDir);
     }
@@ -414,22 +397,18 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   /**
    * @return true if the launch is initiated by the {@link ProfileRunExecutor}. False otherwise.
    */
-  public static boolean isProfilerLaunch(@NotNull LaunchOptions options) {
-    Object launchValue = options.getExtraOption(ProfileRunExecutor.PROFILER_LAUNCH_OPTION_KEY);
-    return launchValue instanceof Boolean && (Boolean)launchValue;
+  public static boolean isProfilerLaunch(@NotNull Executor executor) {
+    return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId());
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
     private static final String ID = "PROFILER_TOOLWINDOW";
     @NotNull private final Project myProject;
-    @NotNull private final LaunchOptions myLaunchOptions;
     @Nullable private final String myTargetProcessName;
 
     public AndroidProfilerToolWindowLaunchTask(@NotNull Project project,
-                                               @NotNull LaunchOptions launchOptions,
                                                @Nullable String targetProcessName) {
       myProject = project;
-      myLaunchOptions = launchOptions;
       myTargetProcessName = targetProcessName;
     }
 
@@ -452,7 +431,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       // Otherwise, the profiler can start profiling for a brief moment, then the new process launches and the profiler switches
       // immediately to the new process, leaving a short-lived session behind. We do this only if the user launches explicit with the
       // profile option, as we need to not impact the run/debug workflow.
-      long currentDeviceTimeNs = isProfilerLaunch(myLaunchOptions) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
+      long currentDeviceTimeNs = isProfilerLaunch(launchContext.getExecutor()) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
 
       // There are two scenarios here:
       // 1. If the profiler window is opened, we only profile the process that is launched and detected by the profilers after the current
@@ -514,7 +493,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
      * Attempt to get the current time of the device.
      */
     private long getCurrentDeviceTime(@NotNull IDevice device) {
-      assert isProfilerLaunch(myLaunchOptions);
 
       long startTimeNs = Long.MIN_VALUE;
       TransportService transportService = TransportService.getInstance();

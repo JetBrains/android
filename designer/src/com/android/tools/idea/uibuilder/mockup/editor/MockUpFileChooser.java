@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,16 +31,12 @@ import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
-
-import static com.android.SdkConstants.ATTR_MOCKUP;
-import static com.android.SdkConstants.TOOLS_URI;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * File chooser for MockUps

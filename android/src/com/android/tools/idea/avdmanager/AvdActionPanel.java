@@ -19,11 +19,12 @@ import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPh
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.devicemanager.virtualtab.ViewDetailsAction;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -134,7 +135,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
     add(myOverflowMenuButton);
     myVisibleComponents.add(myOverflowMenuButton);
-    myOverflowMenuButton.addHyperlinkListener(event -> showPopup(myOverflowMenuButton, JBUI.scale(28), JBUI.scale(10)));
+    myOverflowMenuButton.addHyperlinkListener(event -> showPopup(myOverflowMenuButton, JBUIScale.scale(28), JBUIScale.scale(10)));
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -154,13 +155,6 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new EditAvdAction(this, logDeviceManagerEvents));
-
-    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
-      actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
-      actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
-      actionList.add(new Separator(this));
-    }
-
     actionList.add(new DuplicateAvdAction(this, logDeviceManagerEvents));
     actionList.add(new WipeAvdDataAction(this, logDeviceManagerEvents));
 
@@ -171,12 +165,14 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new ShowAvdOnDiskAction(this, logDeviceManagerEvents));
+    actionList.add(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? new ViewDetailsAction(this) : new AvdSummaryAction(this));
+    actionList.add(new Separator(this));
 
-    if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
-      actionList.add(new AvdSummaryAction(this));
+    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
+      actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
+      actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
     }
 
-    actionList.add(new Separator(this));
     actionList.add(new DeleteAvdAction(this, logDeviceManagerEvents));
 
     if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {

@@ -57,6 +57,9 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     try {
       myGradleProjectInfo = null;
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }

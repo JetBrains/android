@@ -61,7 +61,6 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.util.Pair;
@@ -231,7 +230,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     myTimeline = new StreamingTimeline(myUpdater);
 
-    myProcesses = Maps.newHashMap();
+    myProcesses = new HashMap<>();
     myDevice = null;
     myProcess = null;
 

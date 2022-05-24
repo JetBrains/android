@@ -1,0 +1,144 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.example.publishedLib",
+    "module": "publishedLib",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "publishedLib-1.0.aar",
+          "url": "publishedLib-1.0.aar",
+          "size": 2284,
+          "sha512": "76de81b94d1ff8a3977c811ab3e7f8d74f0d30993d181525c9135e7da5aee248c893bbebfb3bccba396a717a961232e37990c9c3c478ec1dada7c9a4e17df1bc",
+          "sha256": "b9bbd7772bb89a463b5119ff52543fb3f957a2195c03f872d40550470db3ea64",
+          "sha1": "7a84edbfebcc174302fbec220ab8367335ebace6",
+          "md5": "b415173f8214450b68508768a7de837a"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "publishedLib-1.0.aar",
+          "url": "publishedLib-1.0.aar",
+          "size": 2284,
+          "sha512": "76de81b94d1ff8a3977c811ab3e7f8d74f0d30993d181525c9135e7da5aee248c893bbebfb3bccba396a717a961232e37990c9c3c478ec1dada7c9a4e17df1bc",
+          "sha256": "b9bbd7772bb89a463b5119ff52543fb3f957a2195c03f872d40550470db3ea64",
+          "sha1": "7a84edbfebcc174302fbec220ab8367335ebace6",
+          "md5": "b415173f8214450b68508768a7de837a"
+        }
+      ]
+    },
+    {
+      "name": "releaseTestFixturesVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.example.publishedLib",
+          "module": "publishedLib",
+          "version": {
+            "requires": "1.0"
+          }
+        },
+        {
+          "group": "com.google.truth",
+          "module": "truth",
+          "version": {
+            "requires": "0.44"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "publishedLib-1.0-test-fixtures.aar",
+          "url": "publishedLib-1.0-test-fixtures.aar",
+          "size": 1929,
+          "sha512": "3576a5e840f9cbbebc5cd5c903820de79515bcc173d0a2eee6e3011ef8867f1db72c05e79f35a6ba4c986f1ff51b0807fc4583490550dd5b737cf0b0b5d882ef",
+          "sha256": "ce10c959428ad55b6337a4fecaad31c9b05d049e3ba51d4b3588e330a0550846",
+          "sha1": "f972481bbf2d1e320fc1683f0da397f6157fe7a3",
+          "md5": "600155717a04abf1282d2ac7631ac42b"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.publishedLib",
+          "name": "publishedLib-test-fixtures",
+          "version": "unspecified"
+        }
+      ]
+    },
+    {
+      "name": "releaseTestFixturesVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.example.publishedLib",
+          "module": "publishedLib",
+          "version": {
+            "requires": "1.0"
+          }
+        },
+        {
+          "group": "com.google.truth",
+          "module": "truth",
+          "version": {
+            "requires": "0.44"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "publishedLib-1.0-test-fixtures.aar",
+          "url": "publishedLib-1.0-test-fixtures.aar",
+          "size": 1929,
+          "sha512": "3576a5e840f9cbbebc5cd5c903820de79515bcc173d0a2eee6e3011ef8867f1db72c05e79f35a6ba4c986f1ff51b0807fc4583490550dd5b737cf0b0b5d882ef",
+          "sha256": "ce10c959428ad55b6337a4fecaad31c9b05d049e3ba51d4b3588e330a0550846",
+          "sha1": "f972481bbf2d1e320fc1683f0da397f6157fe7a3",
+          "md5": "600155717a04abf1282d2ac7631ac42b"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.publishedLib",
+          "name": "publishedLib-test-fixtures",
+          "version": "unspecified"
+        }
+      ]
+    }
+  ]
+}

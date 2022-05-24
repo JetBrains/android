@@ -30,6 +30,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,13 +72,14 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void uiFreezeStarted() {
+  public void uiFreezeStarted(@NotNull File reportDir) {
     LOG.info("uiFreezeStarted");
     if (myBuilder != null) {
       return;
     }
     final ReportContext context = new ReportContext();
     myContext = context;
+    // TODO: probably could initialize myThreadDumpPath from the reportDir here
 
     // Unfortunately, current API does not give us exact value how long the UI was frozen before uiFreezeStarted()
     // event is triggered. This is the best approximation of that value.
@@ -124,7 +126,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
         if (localReportPath != null) {
           if (Files.exists(localReportPath)) {
             try {
-              Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(), StandardOpenOption.APPEND);
+              Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
             }
             catch (IOException e) {
               // Non fatal exception

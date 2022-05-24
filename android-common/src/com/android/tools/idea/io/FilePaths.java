@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.io;
 
+import static com.android.SdkConstants.EXT_JAR;
+import static com.android.SdkConstants.EXT_ZIP;
+import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.EXT_JAR;
-import static com.android.SdkConstants.EXT_ZIP;
-import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
   private FilePaths() {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
+
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
 
 public final class TranslatableRowFilter extends StringResourceTableRowFilter {
   @Override

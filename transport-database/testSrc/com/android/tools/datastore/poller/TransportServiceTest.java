@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +24,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.TransportService;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
@@ -38,7 +39,6 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
 import java.util.Map;

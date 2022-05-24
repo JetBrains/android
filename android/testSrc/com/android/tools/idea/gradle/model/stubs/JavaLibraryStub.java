@@ -19,8 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
-import com.google.common.collect.Lists;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,7 +29,7 @@ public class JavaLibraryStub extends LibraryStub implements JavaLibrary {
     @NonNull private final List<JavaLibrary> myDependencies;
 
     public JavaLibraryStub() {
-        this(new File("jarFile"), Lists.newArrayList());
+        this(new File("jarFile"), new ArrayList<>());
     }
 
     public JavaLibraryStub(@NonNull File jarFile, @NonNull List<JavaLibrary> dependencies) {

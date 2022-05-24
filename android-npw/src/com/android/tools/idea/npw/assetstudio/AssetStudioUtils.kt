@@ -21,20 +21,12 @@
 
 package com.android.tools.idea.npw.assetstudio
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.util.AssetUtil
-import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceType
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.base.CaseFormat
-import com.google.common.collect.Iterables
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage

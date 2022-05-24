@@ -36,7 +36,6 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,7 +122,7 @@ public class DistributionService extends DownloadService {
   @Override
   public void loadFromFile(@NotNull URL url) {
     try {
-      String jsonString = ResourceUtil.loadText(url);
+      String jsonString = ResourceUtil.loadText(URLUtil.openStream(url));
       List<Distribution> distributions = loadDistributionsFromJson(jsonString);
       myDistributions = distributions != null ? ImmutableList.copyOf(distributions) : null;
     }

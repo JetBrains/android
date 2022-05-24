@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_VISIBILITY;
+
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ChronometerHandler extends ViewHandler {
   @Override

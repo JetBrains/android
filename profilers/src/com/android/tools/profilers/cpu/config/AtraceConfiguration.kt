@@ -41,6 +41,6 @@ open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
   }
 
   override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.N;
+    return AndroidVersion.VersionCodes.N
   }
 }

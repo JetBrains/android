@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
-import java.lang.StringBuilder
 
 class ConfigurationSetMenuActionTest : AndroidTestCase() {
 

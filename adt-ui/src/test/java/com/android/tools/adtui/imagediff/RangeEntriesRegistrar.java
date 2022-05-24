@@ -20,18 +20,19 @@ import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorS
 
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.swing.BorderFactory;
 
 class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 

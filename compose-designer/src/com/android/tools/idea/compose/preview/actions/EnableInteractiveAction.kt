@@ -16,19 +16,19 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
+import kotlinx.coroutines.launch
 import javax.swing.JComponent
 
 /**
@@ -42,7 +42,6 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled
     // Disable the action while refreshing.
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
   }
@@ -52,7 +51,9 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
 
-    manager.interactivePreviewElementInstance = instanceId
+    AndroidCoroutineScope(manager).launch {
+      manager.startInteractivePreview(instanceId)
+    }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {

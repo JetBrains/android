@@ -26,6 +26,7 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.emulator.actions.showExtendedControls
 import com.android.tools.idea.emulator.actions.showManageSnapshotsDialog
+import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
@@ -35,10 +36,9 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -185,6 +185,9 @@ class EmulatorToolWindowPanel(
       val emulatorView = primaryDisplayPanel.emulatorView
       primaryEmulatorView = emulatorView
       mainToolbar.setTargetComponent(emulatorView)
+      emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
+        mainToolbar.updateActionsImmediately()
+      }
       installFileDropHandler(this, emulatorView, project)
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
       emulatorView.addDisplayConfigurationListener(displayConfigurator)
@@ -199,7 +202,7 @@ class EmulatorToolWindowPanel(
           displayConfigurator.buildLayout(multiDisplayState)
         }
         catch (e: RuntimeException) {
-          thisLogger().error("Corrupted multi-display state", e)
+          LOG.error("Corrupted multi-display state", e)
           // Corrupted multi-display state. Start with a single display.
           centerPanel.addToCenter(primaryDisplayPanel)
         }
@@ -300,6 +303,7 @@ class EmulatorToolWindowPanel(
     fun refreshDisplayConfiguration() {
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
         override fun onNext(response: DisplayConfigurations) {
+          LOG.debug("Display configurations: " + shortDebugString(response))
           EventQueue.invokeLater {
             displayConfigurationReceived(response.displaysList)
           }
@@ -496,7 +500,7 @@ class EmulatorToolWindowPanel(
     companion object {
       @JvmStatic
       fun getInstance(project: Project): MultiDisplayStateStorage {
-        return ServiceManager.getService(project, MultiDisplayStateStorage::class.java)
+        return project.getService(MultiDisplayStateStorage::class.java)
       }
     }
   }
@@ -504,3 +508,4 @@ class EmulatorToolWindowPanel(
 
 private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 private const val isToolbarHorizontal = true
+private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)

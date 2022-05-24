@@ -56,7 +56,6 @@ import com.android.builder.model.Variant
 import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
-import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
@@ -81,6 +80,7 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -133,6 +133,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
@@ -169,7 +170,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       myJniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
       myShadersDirectories = copy(provider::getShadersDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
       myMlModelsDirectories =
-      if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList()
+      if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList(),
+      myCustomSourceDirectories = emptyList(),
     )
   }
 
@@ -257,7 +259,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     return IdeProductFlavorContainerImpl(
       productFlavor = copyModel(container.productFlavor, ::productFlavorFrom),
-      sourceProvider = copyModel(container.sourceProvider, mlModelBindingEnabled, ::sourceProviderFrom),
+      sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
     )
   }
@@ -293,22 +295,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     return IdeBuildTypeContainerImpl(
       buildType = copyModel(container.buildType, ::buildTypeFrom),
-      sourceProvider = copyModel(container.sourceProvider, mlModelBindingEnabled, ::sourceProviderFrom),
+      sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
     )
-  }
-
-  /** Indicates whether the given library is a module wrapping an AAR file.  */
-  fun isLocalAarModule(androidLibrary: AndroidLibrary): Boolean {
-    val projectPath = androidLibrary.project ?: return false
-    val buildFolderPath = buildFolderPaths.findBuildFolderPath(
-      projectPath,
-      copyNewProperty(androidLibrary::getBuildId)
-    )
-    // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
-    return (buildFolderPath != null &&
-            // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
-            !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
   }
 
   fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeLibrary {
@@ -316,7 +305,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
-      lintJar = copyNewProperty(library::getLintJar)?.path
+      lintJar = copyNewProperty(library::getLintJar)?.path,
+      sourceSet = IdeModuleSourceSet.MAIN,
+      artifact = null
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -326,7 +317,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = null,
-      lintJar = null
+      lintJar = null,
+      sourceSet = IdeModuleSourceSet.MAIN,
+      artifact = null
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -435,7 +428,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // Identify such case with the location of aar bundle.
     // If the aar bundle is inside of build directory of sub-module, then it's regular library module dependency, otherwise it's a wrapped aar module.
     val projectPath = androidLibrary.project
-    return if (projectPath != null && !isLocalAarModule(androidLibrary)) {
+    return if (projectPath != null && !isLocalAarModule(buildFolderPaths, androidLibrary)) {
       createIdeModuleLibrary(androidLibrary, projectPath)
     }
     else {
@@ -498,7 +491,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = buildId,
       projectPath = projectPath,
       variant = variantName,
-      lintJar = null
+      lintJar = null,
+      sourceSet = IdeModuleSourceSet.MAIN,
+      artifact = null
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -704,16 +699,15 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = artifact.classesFolder,
-      javaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder),
+      classesFolder = listOf(listOf(artifact.classesFolder), artifact.additionalClassesFolders).flatten(),
       ideSetupTaskNames = copyNewPropertyWithDefault(artifact::getIdeSetupTaskNames,
                                                      defaultValue = { setOf(artifact.sourceGenTaskName) }).toList(),
       mutableGeneratedSourceFolders = copy(artifact::getGeneratedSourceFolders,
                                            ::deduplicateFile).distinct().toMutableList(), // The source model can contain duplicates.
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      additionalClassesFolders = copy(artifact::getAdditionalClassesFolders, ::deduplicateFile).toList(),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      unresolvedDependencies = emptyList(),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
@@ -734,7 +728,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
       ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
-      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST
+      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST,
+      modelSyncFiles = listOf()
     )
   }
 
@@ -750,14 +745,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = artifact.classesFolder,
-      javaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder),
+      classesFolder = listOf(artifact.classesFolder) + artifact.additionalClassesFolders,
       ideSetupTaskNames = copy(artifact::getIdeSetupTaskNames, ::deduplicateString).toList(),
       mutableGeneratedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      additionalClassesFolders = copy(artifact::getAdditionalClassesFolders, ::deduplicateFile).toList(),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
     )
@@ -825,7 +819,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       targetSdkVersion = mergedFlavor.targetSdkVersion,
       maxSdkVersion = mergedFlavor.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
-      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix },
+      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
       instantAppCompatible = (modelVersion != null &&
                               modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&
@@ -904,7 +898,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl {
+  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl {
+    val defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, "")
     return IdeNativeAndroidProjectImpl(
       modelVersion = project.modelVersion,
       apiVersion = project.apiVersion,
@@ -915,8 +910,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       toolChains = copy(project::getToolChains, ::nativeToolchainFrom),
       settings = copy(project::getSettings, ::nativeSettingsFrom),
       fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
-      defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, ""),
-      ndkVersion = ndkVersion,
+      defaultNdkVersion = defaultNdkVersion,
+      ndkVersion = ndkVersion ?: defaultNdkVersion,
       buildSystems = copy(project::getBuildSystems, ::deduplicateString)
     )
   }
@@ -970,6 +965,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     isIgnoreWarnings = copyNewProperty({ options.isIgnoreWarnings }, false),
     isWarningsAsErrors = copyNewProperty({ options.isWarningsAsErrors }, false),
     isIgnoreTestSources = copyNewProperty({ options.isIgnoreTestSources }, false),
+    isIgnoreTestFixturesSources = false, // testFixtures are not supported in model v1
     isCheckGeneratedSources = copyNewProperty({ options.isCheckGeneratedSources }, false),
     isExplainIssues = copyNewProperty({ options.isExplainIssues }, true),
     isShowAll = copyNewProperty({ options.isShowAll }, false),
@@ -1128,7 +1124,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         createIdeAndroidGradlePluginProjectFlagsImpl()
       }
     return IdeAndroidProjectImpl(
-      modelVersion = project.modelVersion,
+      agpVersion = project.modelVersion,
       name = project.name,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
@@ -1166,10 +1162,15 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,
-      basicVariant: BasicVariant,
+      basicVariant: com.android.builder.model.v2.ide.BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      modelVersion: GradleVersion?,
+      modelVersion: GradleVersion?
+    ): IdeVariantImpl = throw UnsupportedOperationException()
+
+    override fun variantFrom(
+      variant: IdeVariantImpl,
       variantDependencies: VariantDependencies,
+      getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver,
       buildNameMap: Map<String, File>
     ): IdeVariantImpl = throw UnsupportedOperationException()
 
@@ -1186,12 +1187,19 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl = nativeVariantAbiFrom(variantAbi)
     override fun nativeAndroidProjectFrom(
       project: NativeAndroidProject,
-      ndkVersion: String
+      ndkVersion: String?
     ): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project, ndkVersion)
   }
 }
 
 val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
+
+private inline fun <T> safeGet(original: () -> T, default: T): T = try {
+  original()
+}
+catch (ignored: UnsupportedOperationException) {
+  default
+}
 
 private inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defaultValue: () -> T): T {
   return try {
@@ -1248,4 +1256,60 @@ private inline fun <T : Collection<*>?> copyNewProperty(propertyInvoker: () -> T
 private inline fun <T : Map<*, *>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
 
 private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
+
+private inline fun <K, V : Any> copyNewModel(
+  getter: () -> K?,
+  mapper: (K) -> V
+): V? {
+  return try {
+    val key: K? = getter()
+    if (key != null) mapper(key) else null
+  }
+  catch (ignored: UnsupportedOperationException) {
+    null
+  }
+}
+
+private inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
+
+@JvmName("copyModelNullable")
+private inline fun <K : Any, V> copyModel(key: K?, mappingFunction: (K) -> V): V? = key?.let(mappingFunction)
+
+private inline fun <K, V> copy(original: () -> Collection<K>, mapper: (K) -> V): List<V> =
+  safeGet(original, listOf()).map(mapper)
+
+private inline fun <K, V> copy(original: () -> Set<K>, mapper: (K) -> V): Set<V> =
+  safeGet(original, setOf()).map(mapper).toSet()
+
+private inline fun <K, V, R> copy(original: () -> Map<K, V>, mapper: (V) -> R): Map<K, R> =
+  safeGet(original, mapOf()).mapValues { (_, v) -> mapper(v) }
+
+internal inline fun <K : Any, R : Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+private inline fun <T : Any?> copyNewProperty(propertyInvoker: () -> T?): T? {
+  return try {
+    propertyInvoker()
+  }
+  catch (ignored: UnsupportedOperationException) {
+    null
+  }
+}
+
+/** Indicates whether the given library is a module wrapping an AAR file.  */
+@VisibleForTesting
+fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: AndroidLibrary): Boolean {
+  val projectPath = androidLibrary.project ?: return false
+  val buildFolderPath = buildFolderPaths.findBuildFolderPath(
+    projectPath,
+    copyNewProperty(androidLibrary::getBuildId)
+  )
+  // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
+  return (buildFolderPath != null &&
+          // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
+          !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
+}
 

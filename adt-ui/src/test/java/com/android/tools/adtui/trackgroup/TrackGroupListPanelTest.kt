@@ -31,10 +31,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.SwingUtilities
 
 @RunsInEdt
 class TrackGroupListPanelTest {
@@ -93,7 +91,8 @@ class TrackGroupListPanelTest {
     val multiSectionModel = MultiSelectionModel<StringSelectable>()
     val trackGroupListPanel = TrackGroupListPanel(TRACK_RENDERER_FACTORY)
     // Group 1 is multi-selectable.
-    val trackGroupModel1 = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
+    val trackGroupModel1 = TrackGroupModel.newBuilder().setTitle("Group1")
+      .setSelector(TrackGroupModel.makeBatchSelector("tag1")).build()
     trackGroupModel1.addTrackModel(
       TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1"))
     trackGroupModel1.addTrackModel(
@@ -102,30 +101,35 @@ class TrackGroupListPanelTest {
     val trackGroupModel2 = TrackGroupModel.newBuilder().setTitle("Group2").build()
     trackGroupModel2.addTrackModel(TrackModel.newBuilder("Bar1", TestTrackRendererType.STRING, "Group2 - Bar1"))
     // Group 3 is multi-selectable but contains a different type.
-    val trackGroupModel3 = TrackGroupModel.newBuilder().setTitle("Group3").setTrackSelectable(true).build()
+    val trackGroupModel3 = TrackGroupModel.newBuilder().setTitle("Group3")
+      .setSelector(TrackGroupModel.makeBatchSelector("tag3")).build()
     trackGroupModel3.addTrackModel(
       TrackModel.newBuilder(BooleanSelectable(true), TestTrackRendererType.BOOLEAN_SELECTABLE, "Group3 - Bar1"))
 
     trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel1, trackGroupModel2, trackGroupModel3))
     trackGroupListPanel.registerMultiSelectionModel(multiSectionModel)
 
+    fun selectionBy(tag: String) = multiSectionModel.selections.find { it.key == tag }?.value
+
     // Selecting items should update the multi-selection model.
     trackGroupListPanel.trackGroups[0].trackList.selectedIndices = intArrayOf(0, 1)
-    assertThat(multiSectionModel.selection).containsExactly(StringSelectable("Bar1"), StringSelectable("Bar2"))
+    assertThat(selectionBy("tag1")).containsExactly(StringSelectable("Bar1"), StringSelectable("Bar2"))
+    assertThat(selectionBy("tag2")).isNull()
+    assertThat(selectionBy("tag3")).isNull()
 
     // Selecting an unselectable track group should not update the multi-selection model.
     multiSectionModel.clearSelection()
     trackGroupListPanel.trackGroups[1].trackList.selectedIndex = 0
-    assertThat(multiSectionModel.selection).isEmpty()
+    assertThat(selectionBy("tag1")).isNull()
+    assertThat(selectionBy("tag2")).isNull()
+    assertThat(selectionBy("tag3")).isNull()
 
-    // Selecting a different selectable type will clear current selection before adding the new item.
+    // Selecting a different selectable type
     trackGroupListPanel.trackGroups[0].trackList.selectedIndex = 0
     trackGroupListPanel.trackGroups[2].trackList.selectedIndex = 0
-    assertThat(multiSectionModel.selection).containsExactly(BooleanSelectable(true))
-    // The previously selected track group should clear its selection.
-    assertThat(trackGroupListPanel.trackGroups[0].trackList.isSelectionEmpty).isTrue()
-    // The newly selected track should keep its selection.
-    assertThat(trackGroupListPanel.trackGroups[2].trackList.selectedIndex).isEqualTo(0)
+    assertThat(selectionBy("tag1")).containsExactly(StringSelectable("Bar1"))
+    assertThat(selectionBy("tag2")).isNull()
+    assertThat(selectionBy("tag3")).containsExactly(BooleanSelectable(true))
   }
 
   @Test

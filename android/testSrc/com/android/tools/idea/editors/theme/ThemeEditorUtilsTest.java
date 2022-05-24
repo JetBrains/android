@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-
 import java.util.Arrays;
 import java.util.Collections;
 import org.jetbrains.android.AndroidTestCase;
@@ -29,11 +27,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   @Override
   protected boolean providesCustomManifest() {
     return true;
-  }
-
-  public void testMinApiLevel() {
-    myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", FN_ANDROID_MANIFEST_XML);
-    assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
   }
 
   public void testGenerateWordEnumeration() {

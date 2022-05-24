@@ -19,8 +19,8 @@ package org.jetbrains.kotlin.android.quickfix
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import java.io.File
 
 

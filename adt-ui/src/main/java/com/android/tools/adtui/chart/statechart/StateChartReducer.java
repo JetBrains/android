@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.chart.statechart;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface is used by {@link StateChart} to reduce its rectangles before drawing to achieve better performance.

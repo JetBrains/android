@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import static com.android.testutils.file.InMemoryFileSystems.getPlatformSpecificPath;
-
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.testframework.FakeProgressIndicator;
-import com.android.repository.testframework.MockFileOp;
+import com.android.testutils.file.InMemoryFileSystems;
 import java.awt.Component;
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import junit.framework.TestCase;
 
@@ -29,21 +27,22 @@ import junit.framework.TestCase;
  * Tests for {@link PatchInstallerFactory}.
  */
 public class PatchInstallerTest extends TestCase {
-  private static MockFileOp ourFileOp;
+  private static Path ourSdkRoot;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ourFileOp = new MockFileOp();
+    ourSdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
   }
 
   public void testRunInstaller() {
     FakeProgressIndicator progress = new FakeProgressIndicator(true);
-    Path sourceFile = ourFileOp.toPath(getPlatformSpecificPath("/sdk/pkg/sourceFile"));
-    ourFileOp.recordExistingFile(sourceFile, 0, "the source to which the diff will be applied".getBytes());
-    Path patchFile = ourFileOp.toPath(getPlatformSpecificPath("/patchfile"));
-    ourFileOp.recordExistingFile(patchFile, 0, "the patch contents".getBytes());
-    PatchRunner runner = new PatchRunner(ourFileOp.toPath("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
+    Path sourceFile = ourSdkRoot.resolve("pkg/sourceFile");
+    InMemoryFileSystems.recordExistingFile(sourceFile, "the source to which the diff will be applied");
+    Path patchFile = ourSdkRoot.getRoot().resolve("patchfile");
+    InMemoryFileSystems.recordExistingFile(patchFile, "the patch contents");
+    PatchRunner runner = new PatchRunner(ourSdkRoot.getRoot().resolve("dummy'"), FakeRunner.class, FakeUIBase.class, FakeUI.class,
+                                         FakeGenerator.class);
     boolean result = runner.run(sourceFile.getParent(), patchFile, progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
@@ -60,8 +59,8 @@ public class PatchInstallerTest extends TestCase {
 
     @SuppressWarnings("unused") // invoked by reflection
     public static boolean doInstall(String patchPath, FakeUIBase ui, String sourcePath) {
-      assertEquals(ourFileOp.getPlatformSpecificPath("/patchfile"), patchPath);
-      assertTrue(ourFileOp.exists(new File(sourcePath, "sourceFile")));
+      assertEquals(ourSdkRoot.getRoot().resolve("patchfile").toString(), patchPath);
+      assertTrue(Files.exists(ourSdkRoot.getRoot().resolve(sourcePath).resolve("sourceFile")));
       assertTrue(ui instanceof FakeUI);
       ourDidRun = true;
       return ourLoggerInitted;

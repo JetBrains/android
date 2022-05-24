@@ -22,9 +22,9 @@ import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class ProjectBuildModelHandlerTest : AndroidTestCase() {
   @Mock lateinit var projectBuildModel: ProjectBuildModel

@@ -1,18 +1,4 @@
-/*
- * Copyright 2010-2017 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.kotlin.android
 
@@ -35,15 +21,36 @@ import org.jetbrains.kotlin.idea.search.usagesSearch.propertyDescriptor
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtConstructor
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtSuperExpression
+import org.jetbrains.kotlin.psi.KtSuperTypeList
+import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.createPrimaryConstructorIfAbsent
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 
-private val CREATOR_NAME = "CREATOR"
-private val PARCEL_NAME = "parcel"
+private const val CREATOR_NAME = "CREATOR"
+private const val PARCEL_NAME = "parcel"
 private val CREATOR_TEXT =
         "companion object $CREATOR_NAME : android.os.Parcelable.Creator<%1\$s> {\n" +
         "    override fun createFromParcel($PARCEL_NAME: $CLASS_PARCEL): %1\$s {\n" +
@@ -57,7 +64,7 @@ private val WRITE_TO_PARCEL_TEXT = "override fun writeToParcel($PARCEL_NAME: $CL
 private val WRITE_TO_PARCEL_SUPER_CALL_TEXT = "super.writeToParcel($PARCEL_NAME, flags)"
 private val WRITE_TO_PARCEL_WITH_SUPER_TEXT =
         "override fun writeToParcel($PARCEL_NAME: $CLASS_PARCEL, flags: Int) {\n$WRITE_TO_PARCEL_SUPER_CALL_TEXT\n}"
-private val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int {\nreturn 0\n}"
+private const val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int {\nreturn 0\n}"
 private val CONSTRUCTOR_TEXT = "constructor($PARCEL_NAME: $CLASS_PARCEL)"
 
 private val PARCELIZE_FQNAME = FqName("kotlinx.parcelize.Parcelize")
@@ -76,11 +83,11 @@ fun KtClass.canAddParcelable(): Boolean =
 fun KtClass.canRedoParcelable(): Boolean = canRemoveParcelable()
 
 fun KtClass.canRemoveParcelable(): Boolean =
-        findParcelableSupertype()?.takeIf { it.typeReference?.isParcelableReference() ?: false }
-        ?: findCreator()
-        ?: findConstructorFromParcel()
-        ?: findWriteToParcel()
-        ?: findDescribeContents() != null
+    (findParcelableSupertype()?.takeIf { it.typeReference?.isParcelableReference() ?: false }
+     ?: findCreator()
+     ?: findConstructorFromParcel()
+     ?: findWriteToParcel()
+     ?: findDescribeContents()) != null
 
 fun KtClass.implementParcelable() {
     val factory = KtPsiFactory(this)

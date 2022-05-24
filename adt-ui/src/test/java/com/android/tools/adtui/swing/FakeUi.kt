@@ -29,8 +29,8 @@ import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration

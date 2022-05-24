@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.GradleResolver
@@ -34,7 +35,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.PSDEvent

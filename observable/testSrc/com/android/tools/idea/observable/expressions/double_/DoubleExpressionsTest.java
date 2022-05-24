@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.observable.expressions.double_;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.DoubleValueProperty;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class DoubleExpressionsTest {
   @Test

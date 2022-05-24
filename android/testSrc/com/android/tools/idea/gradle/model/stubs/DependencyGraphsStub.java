@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GraphItem;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ public final class DependencyGraphsStub extends BaseStub implements DependencyGr
 
     public DependencyGraphsStub() {
         this(
-                Lists.newArrayList(),
+                new ArrayList<>(),
                 Lists.newArrayList(new GraphItemStub()),
                 Lists.newArrayList("provided"),
                 Lists.newArrayList("skipped"));

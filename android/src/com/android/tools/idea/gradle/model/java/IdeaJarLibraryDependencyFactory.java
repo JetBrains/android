@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import java.io.File;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /*
  * Create {@link JarLibraryDependency} from IdeaSingleEntryLibraryDependency returned by JetBrain's Plugin.

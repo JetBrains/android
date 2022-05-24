@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.logcat.output;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SimpleConfigurable;
 import com.intellij.xdebugger.settings.DebuggerConfigurableProvider;
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory;
+import java.util.Collection;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.Collection;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class LogcatOutputConfigurableProviderTest extends AndroidTestCase {
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.model
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import java.awt.geom.Point2D;
 import org.jetbrains.annotations.NotNull;
 

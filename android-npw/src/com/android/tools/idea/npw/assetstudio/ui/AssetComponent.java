@@ -17,9 +17,8 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Simple interface for UI elements that provide a reference to some {@link BaseAsset}, allow its

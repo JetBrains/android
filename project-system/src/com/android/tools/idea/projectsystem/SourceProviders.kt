@@ -25,7 +25,6 @@ import com.intellij.facet.FacetManagerAdapter
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -61,6 +60,26 @@ interface SourceProviders {
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
    */
   val testFixturesSources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all production sources in the currently selected variant in the overlay order.
+   */
+  val generatedSources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all unit test sources in the currently selected variant in the overlay order.
+   */
+  val generatedUnitTestSources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
+   */
+  val generatedAndroidTestSources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
+   */
+  val generatedTestFixturesSources: IdeaSourceProvider
 
   /**
    * The first in the overlay order [NamedIdeaSourceProvider].
@@ -157,6 +176,14 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
+        override val generatedSources: IdeaSourceProvider =
+          createMergedSourceProvider(ScopeType.MAIN, emptyList())
+        override val generatedUnitTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedAndroidTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedTestFixturesSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
@@ -193,6 +220,14 @@ interface SourceProviders {
         override val androidTestSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedUnitTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedAndroidTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val generatedTestFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -254,7 +289,7 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
 
     // Temporarily subscribe the component to notifications when the ProjectSystemService is available only.  Many tests are still
     // configured to run without ProjectSystemService.
-    if (ServiceManager.getService(project, ProjectSystemService::class.java) != null) {
+    if (project.getService(ProjectSystemService::class.java) != null) {
       connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
         override fun facetConfigurationChanged(facet: Facet<*>) {
           if (facet is AndroidFacet) {
@@ -296,8 +331,43 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
       override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
       override val shadersDirectoryUrls get() = providers.asSequence().map { it.shadersDirectoryUrls.asSequence() }.flatten()
       override val mlModelsDirectoryUrls get() = providers.asSequence().map { it.mlModelsDirectoryUrls.asSequence() }.flatten()
+      override val customSourceDirectories: Map<String, Sequence<String>> =
+        providers.asSequence().flatMap { it.custom.keys }.toSet().associateWith { customKey ->
+          providers.asSequence().map { it.custom[customKey]!!.directoryUrls.asSequence() }.flatten()
+        }
     }
   )
+}
+
+fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
+  return object : IdeaSourceProvider {
+    override val scopeType: ScopeType = scopeType
+    override val manifestFileUrls: Iterable<String> = emptyList()
+    override val manifestDirectoryUrls: Iterable<String> = emptyList()
+    override val javaDirectoryUrls: Iterable<String> = emptyList()
+    override val kotlinDirectoryUrls: Iterable<String> = emptyList()
+    override val resourcesDirectoryUrls: Iterable<String> = emptyList()
+    override val aidlDirectoryUrls: Iterable<String> = emptyList()
+    override val renderscriptDirectoryUrls: Iterable<String> = emptyList()
+    override val jniLibsDirectoryUrls: Iterable<String> = emptyList()
+    override val resDirectoryUrls: Iterable<String> = emptyList()
+    override val assetsDirectoryUrls: Iterable<String> = emptyList()
+    override val shadersDirectoryUrls: Iterable<String> = emptyList()
+    override val mlModelsDirectoryUrls: Iterable<String> = emptyList()
+    override val manifestFiles: Iterable<VirtualFile> = emptyList()
+    override val manifestDirectories: Iterable<VirtualFile> = emptyList()
+    override val javaDirectories: Iterable<VirtualFile> = emptyList()
+    override val kotlinDirectories: Iterable<VirtualFile> = emptyList()
+    override val resourcesDirectories: Iterable<VirtualFile> = emptyList()
+    override val aidlDirectories: Iterable<VirtualFile> = emptyList()
+    override val renderscriptDirectories: Iterable<VirtualFile> = emptyList()
+    override val jniLibsDirectories: Iterable<VirtualFile> = emptyList()
+    override val resDirectories: Iterable<VirtualFile> = emptyList()
+    override val assetsDirectories: Iterable<VirtualFile> = emptyList()
+    override val shadersDirectories: Iterable<VirtualFile> = emptyList()
+    override val mlModelsDirectories: Iterable<VirtualFile> = emptyList()
+    override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
+  }
 }
 
 /**

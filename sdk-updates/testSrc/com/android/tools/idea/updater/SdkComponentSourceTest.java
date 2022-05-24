@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2016-2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,10 @@ import com.android.repository.testframework.FakeDownloader;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepositorySourceProvider;
 import com.android.repository.testframework.FakeSettingsController;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
-import com.google.common.base.Charsets;
+import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
@@ -59,6 +57,9 @@ import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -83,7 +84,7 @@ public class SdkComponentSourceTest {
   private static final Comparator<? super UpdatableExternalComponent> COMPONENT_COMPARATOR = Comparator.comparing(o -> o.getName());
   private SdkComponentSource myTestComponentSource;
   private int myChannelId;
-  private MockFileOp myFileOp;
+  private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
   @ClassRule
   public static final ApplicationRule myApplicationRule = new ApplicationRule();
@@ -108,22 +109,21 @@ public class SdkComponentSourceTest {
       UpdateChecker.INSTANCE.toString();
     }
 
-    myFileOp = new MockFileOp();
-    myFileOp.recordExistingFile("/sdk/noRemote/package.xml", getLocalRepoXml("noRemote", new Revision(1)));
-    myFileOp.recordExistingFile("/sdk/newerRemote/package.xml", getLocalRepoXml("newerRemote", new Revision(1)));
-    myFileOp.recordExistingFile("/sdk/sameRemote/package.xml", getLocalRepoXml("sameRemote", new Revision(1)));
-    myFileOp.recordExistingFile("/sdk/olderRemote/package.xml", getLocalRepoXml("olderRemote", new Revision(1, 2)));
-    myFileOp.recordExistingFile("/sdk/hasPreview/package.xml", getLocalRepoXml("hasPreview", new Revision(1)));
-    myFileOp.recordExistingFile("/sdk/newerPreview/package.xml", getLocalRepoXml("newerPreview", new Revision(1, 0, 0, 1)));
-    myFileOp.recordExistingFile("/sdk/samePreview/package.xml", getLocalRepoXml("samePreview", new Revision(1, 0, 0, 1)));
-    myFileOp.recordExistingFile("/sdk/olderPreview/package.xml", getLocalRepoXml("olderPreview", new Revision(2)));
-    myFileOp.recordExistingFile("/sdk/zNewerInBeta/package.xml", getLocalRepoXml("zNewerInBeta", new Revision(1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("noRemote/package.xml"), getLocalRepoXml("noRemote", new Revision(1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("newerRemote/package.xml"), getLocalRepoXml("newerRemote", new Revision(1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("sameRemote/package.xml"), getLocalRepoXml("sameRemote", new Revision(1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("olderRemote/package.xml"), getLocalRepoXml("olderRemote", new Revision(1, 2)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("hasPreview/package.xml"), getLocalRepoXml("hasPreview", new Revision(1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("newerPreview/package.xml"), getLocalRepoXml("newerPreview", new Revision(1, 0, 0, 1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("samePreview/package.xml"), getLocalRepoXml("samePreview", new Revision(1, 0, 0, 1)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("olderPreview/package.xml"), getLocalRepoXml("olderPreview", new Revision(2)));
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("zNewerInBeta/package.xml"), getLocalRepoXml("zNewerInBeta", new Revision(1)));
 
-    final FakeDownloader downloader = new FakeDownloader(myFileOp);
+    final FakeDownloader downloader = new FakeDownloader(sdkRoot.getRoot().resolve("tmp"));
 
-    List<String> remotePaths = Lists.newArrayList();
-    List<Revision> remoteRevisions = Lists.newArrayList();
-    List<Integer> remoteChannels = Lists.newArrayList();
+    List<String> remotePaths = new ArrayList<>();
+    List<Revision> remoteRevisions = new ArrayList<>();
+    List<Integer> remoteChannels = new ArrayList<>();
 
     remotePaths.add("newerRemote");
     remoteRevisions.add(new Revision(1, 1));
@@ -162,10 +162,10 @@ public class SdkComponentSourceTest {
     remoteChannels.add(1);
 
     String url = "http://example.com/repo";
-    downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(Charsets.UTF_8));
+    downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(StandardCharsets.UTF_8));
 
     final RepoManager mgr = new RepoManagerImpl();
-    mgr.setLocalPath(myFileOp.toPath("/sdk"));
+    mgr.setLocalPath(sdkRoot);
     mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
     mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
     mgr.registerSourceProvider(new FakeRepositorySourceProvider(
@@ -315,7 +315,7 @@ public class SdkComponentSourceTest {
 
   @Test
   public void testStatuses() {
-    myFileOp.recordExistingFile("/sdk/platforms/android-23/package.xml",
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("platforms/android-23/package.xml"),
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                                 "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
                                 "                xmlns:ns5=\"http://schemas.android.com/repository/android/generic/01\" " +
@@ -330,7 +330,7 @@ public class SdkComponentSourceTest {
                                 "        <display-name>Android SDK Platform 23, rev 2</display-name>" +
                                 "    </localPackage>" +
                                 "</ns2:repository>");
-    myFileOp.recordExistingFile("/sdk/platforms/android-20/package.xml",
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("platforms/android-20/package.xml"),
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                                 "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
                                 "                xmlns:ns5=\"http://schemas.android.com/repository/android/generic/01\" " +

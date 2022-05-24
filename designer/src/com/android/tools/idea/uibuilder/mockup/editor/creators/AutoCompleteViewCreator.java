@@ -16,18 +16,17 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Creator that displays a popup with a Auto completion field to choose the tag name of the created view

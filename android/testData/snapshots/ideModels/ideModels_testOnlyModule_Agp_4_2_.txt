@@ -2,7 +2,7 @@ MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -20,6 +20,7 @@ MODULE                        : project.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -41,7 +42,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -49,13 +50,14 @@ MODULE                        : project.app
         IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
+            Name                          : main
             ApplicationId                 : com.example.android.app
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -98,6 +100,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -144,6 +147,7 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -220,20 +224,25 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             DeprecatedPreMergedApplicationId        : com.example.android.app
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -251,14 +260,14 @@ MODULE                        : project.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -280,11 +289,11 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     JavaLibraries
                         JavaLibrary                   : junit:junit:4.12
@@ -301,10 +310,13 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.test
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/test/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -322,6 +334,7 @@ MODULE                        : project.test
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -342,18 +355,19 @@ MODULE                        : project.test
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     VariantNames                  : debug
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             TestApplicationId             : com.example.android.app.testmodule
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -370,6 +384,7 @@ MODULE                        : project.test
         ExtraSourceProviders
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -405,21 +420,26 @@ MODULE                        : project.test
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             TestApplicationId             : com.example.android.app.testmodule
             DeprecatedPreMergedApplicationId        : com.example.android.app.testmodule
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/test/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/test/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -1056,10 +1076,11 @@ MODULE                        : project.test
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+MODULE                        : project.test.main
 MODULE                        : project.test2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/test2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1077,6 +1098,7 @@ MODULE                        : project.test2
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -1097,17 +1119,18 @@ MODULE                        : project.test2
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     VariantNames                  : debug
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1124,6 +1147,7 @@ MODULE                        : project.test2
         ExtraSourceProviders
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -1159,20 +1183,25 @@ MODULE                        : project.test2
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             DeprecatedPreMergedApplicationId        : com.example.android.test2
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/test2/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/test2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test2/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/test2/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/test2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test2/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/test2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/test2/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/test2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/test2/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -1809,3 +1838,4 @@ MODULE                        : project.test2
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+MODULE                        : project.test2.main

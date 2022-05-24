@@ -17,14 +17,18 @@ package com.android.tools.idea.lint.quickFixes;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
-public class InefficientWeightQuickFix implements LintIdeQuickFix {
+public class InefficientWeightQuickFix extends DefaultLintQuickFix {
+
+  public InefficientWeightQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.replace.with.zero.dp"));
+  }
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
@@ -58,11 +62,5 @@ public class InefficientWeightQuickFix implements LintIdeQuickFix {
       return false;
     }
     return tag.getParentTag() != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.replace.with.zero.dp");
   }
 }

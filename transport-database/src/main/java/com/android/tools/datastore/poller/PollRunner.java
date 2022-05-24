@@ -16,7 +16,6 @@
 package com.android.tools.datastore.poller;
 
 import io.grpc.StatusRuntimeException;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;

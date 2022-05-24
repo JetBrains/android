@@ -17,6 +17,7 @@ package org.jetbrains.android.dom
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.res.isResourceFile
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
@@ -27,7 +28,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlText
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.isResourceFile
 
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {

@@ -21,10 +21,9 @@ import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleOutputParser implements PatternAwareOutputParser {
   private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");

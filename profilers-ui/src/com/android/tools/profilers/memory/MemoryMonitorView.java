@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LEGEND_RIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
+
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
@@ -26,12 +31,11 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
+import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 

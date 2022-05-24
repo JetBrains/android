@@ -96,7 +96,7 @@ public class BaseCreateKey extends BaseCreatePanel {
   }
 
   void populateTags(String[] layoutViewNames) {
-    mViewList.setModel(new DefaultComboBoxModel<String>(layoutViewNames));
+    mViewList.setModel(new DefaultComboBoxModel<>(layoutViewNames));
   }
 
   public String getMotionTarget() {

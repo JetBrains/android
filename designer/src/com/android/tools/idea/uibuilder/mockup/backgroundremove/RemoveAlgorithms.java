@@ -16,8 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.backgroundremove;
 
 import com.intellij.openapi.diagnostic.Logger;
-
-import java.awt.*;
+import java.awt.CompositeContext;
 import java.awt.image.Raster;
 import java.awt.image.RasterFormatException;
 import java.awt.image.WritableRaster;

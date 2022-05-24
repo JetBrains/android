@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.observable.expressions.list;
 
-import com.android.tools.idea.observable.expressions.integer.IntExpression;
 import com.android.tools.idea.observable.collections.ObservableList;
+import com.android.tools.idea.observable.expressions.integer.IntExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**

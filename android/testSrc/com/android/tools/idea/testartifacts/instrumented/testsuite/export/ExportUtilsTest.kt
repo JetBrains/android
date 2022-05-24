@@ -19,13 +19,13 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.util.toIoFile
 import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat

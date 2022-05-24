@@ -23,7 +23,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.installer.SdkInstallListenerFactory;
 import com.android.tools.idea.welcome.install.Gvm;
 import com.android.tools.idea.welcome.install.Haxm;
-import com.android.tools.idea.welcome.install.VmType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 

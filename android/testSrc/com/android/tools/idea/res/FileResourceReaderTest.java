@@ -24,7 +24,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
 

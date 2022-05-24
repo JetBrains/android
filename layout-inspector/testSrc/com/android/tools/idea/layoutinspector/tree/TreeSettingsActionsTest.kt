@@ -48,9 +48,9 @@ import com.intellij.ui.treeStructure.Tree
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import javax.swing.JPanel
 
 class TreeSettingsActionsTest {

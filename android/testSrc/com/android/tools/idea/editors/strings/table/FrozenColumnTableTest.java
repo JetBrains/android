@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.testing.AndroidProjectRule;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-
-import static org.junit.Assert.assertEquals;
 
 public final class FrozenColumnTableTest {
   @Rule

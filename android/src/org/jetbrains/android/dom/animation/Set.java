@@ -17,9 +17,8 @@ package org.jetbrains.android.dom.animation;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.SubTagList;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 /**
  * See AnimationSet(Context, AttributeSet) constructor in the framework for used attributes

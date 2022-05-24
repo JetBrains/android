@@ -33,9 +33,6 @@ import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -49,7 +46,6 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -57,7 +53,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -72,15 +67,12 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -89,8 +81,9 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -101,8 +94,8 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,7 +116,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -220,7 +212,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
     JEditorPane details = new JEditorPane();
     details.setMargin(JBUI.insets(5));
-    details.setEditorKit(UIUtil.getHTMLEditorKit());
+    details.setEditorKit(HTMLEditorKitBuilder.simple());
     details.setEditable(false);
     details.setFont(myDefaultFont);
     details.setBackground(myBackgroundColor);
@@ -364,7 +356,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     // make sure that the selected manifest is always the first color
     myFiles.add(VfsUtilCore.virtualToIoFile(selectedManifest));
-    Set<File> referenced = Sets.newHashSet();
+    Set<File> referenced = new HashSet<>();
     if (root != null) {
       recordLocationReferences(root, referenced);
     }
@@ -379,8 +371,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         }
       }
     }
-    Collections.sort(myFiles, MANIFEST_SORTER);
-    Collections.sort(myOtherFiles, MANIFEST_SORTER);
+    myFiles.sort(MANIFEST_SORTER);
+    myOtherFiles.sort(MANIFEST_SORTER);
 
     // Build.gradle - injected
     if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
@@ -555,7 +547,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private void prepareReportHeader(@NotNull HtmlBuilder sb) {
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");
@@ -692,8 +684,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                                    currentlyOpenFile));
       }
       else if ("remove".equals(action)) {
-        sb.addHtml(getErrorRemoveHtml(facet, message, position, htmlLinkManager,
-                                   currentlyOpenFile));
+        sb.add(message);
       }
     }
     else {
@@ -865,131 +856,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return sb.getHtml();
   }
 
-  @NotNull
-  private static String getErrorRemoveHtml(final @NotNull AndroidFacet facet,
-                                           @NotNull String message,
-                                           @NotNull final SourceFilePosition position,
-                                           @NotNull HtmlLinkManager htmlLinkManager,
-                                           final @Nullable VirtualFile currentlyOpenFile) {
-    /*
-    Example Input:
-    ERROR Overlay manifest:package attribute declared at AndroidManifest.xml:3:5-49
-    value=(com.foo.manifestapplication.debug) has a different value=(com.foo.manifestapplication)
-    declared in main manifest at AndroidManifest.xml:5:5-43 Suggestion: remove the overlay
-    declaration at AndroidManifest.xml and place it in the build.gradle: flavorName
-    { applicationId = "com.foo.manifestapplication.debug" } AndroidManifest.xml (debug)
-     */
-    HtmlBuilder sb = new HtmlBuilder();
-    int start = message.indexOf('{');
-    int end = message.indexOf('}', start + 1);
-    final String declaration = message.substring(start + 1, end).trim();
-    if (!declaration.startsWith("applicationId")) {
-      throw new IllegalArgumentException("unexpected remove suggestion format " + message);
-    }
-    Runnable link = null;
-
-    final String applicationId = declaration.substring(declaration.indexOf('"') + 1, declaration.lastIndexOf('"'));
-    final File manifestOverlayFile = position.getFile().getSourceFile();
-    assert manifestOverlayFile != null;
-    VirtualFile manifestOverlayVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(manifestOverlayFile);
-    assert manifestOverlayVirtualFile != null;
-
-    NamedIdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
-    assert sourceProvider != null;
-    final String name = sourceProvider.getName();
-
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
-    assert androidModuleModel != null;
-
-    final XmlFile manifestOverlayPsiFile =
-      (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
-    assert manifestOverlayPsiFile != null;
-
-
-    if (androidModuleModel.getBuildTypeNames().contains(name)) {
-      final String packageName = AndroidManifestUtils.getPackageName(facet);
-      assert packageName != null;
-      if (applicationId.startsWith(packageName)) {
-        final String applicationIdSuffix = applicationId.substring(packageName.length());
-        link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, true, applicationIdSuffix);
-      }
-    }
-    else if (androidModuleModel.getProductFlavorNames().contains(name)) {
-      link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, false, applicationId);
-    }
-
-    if (link != null) {
-      sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(link));
-      sb.add(message.substring(end + 1));
-    }
-    else {
-      sb.add(message);
-    }
-    return sb.getHtml();
-  }
-
-  /**
-   * Creates a link action to remove the package id from the manifest and write the given applicationIdOrSuffix to the Gradle build files.
-   *
-   * @param facet the facet that we are editing
-   * @param manifestOverlayPsiFile the manifest file to remove the package from
-   * @param name the name of the build type or product flavor to add the applicationId and applicationIdSuffix to
-   * @param currentlyOpenFile the currently open file that is marked as part of the command action
-   * @param isBuildType whether or not to edit the build type of a product flavour
-   * @param applicationIdOrSuffix either the applicationIdSuffix for build types or applicationId for product flavours
-   * @return the link the performs the action
-   */
-  @NotNull
-  private static Runnable createLinkAction(final @NotNull AndroidFacet facet,
-                                           final XmlFile manifestOverlayPsiFile,
-                                           String name,
-                                           final @Nullable VirtualFile currentlyOpenFile,
-                                           boolean isBuildType,
-                                           final @NotNull String applicationIdOrSuffix) {
-    return () -> writeCommandAction(facet.getModule().getProject(), manifestOverlayPsiFile).withName("Apply manifest suggestion").run(() -> {
-      ProjectBuildModel projectBuildModel = ProjectBuildModel.get(facet.getModule().getProject());
-      GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.getModule());
-      if (gradleBuildModel == null) {
-        String errorMessage =
-          "Could not edit build file for '" + facet.getHolderModule().getName() + "' please apply the suggestion manually";
-        ApplicationManager.getApplication()
-          .invokeLater(() -> Messages.showErrorDialog(facet.getModule().getProject(), errorMessage, "Apply Manifest Suggestion"));
-        return;
-      }
-
-      if (currentlyOpenFile != null) {
-        // We mark this action as affecting the currently open file and build file, so the Undo is available in this editor
-        CommandProcessor.getInstance()
-          .addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile, gradleBuildModel.getVirtualFile());
-      }
-      removePackageAttribute(manifestOverlayPsiFile);
-
-      if (isBuildType) {
-        BuildTypeModel buildTypeModel = gradleBuildModel.android().buildTypes().stream().filter(type -> type.name().equals(name)).findFirst()
-          .orElse(gradleBuildModel.android().addBuildType(name));
-        buildTypeModel.applicationIdSuffix().setValue(applicationIdOrSuffix);
-      } else {
-        ProductFlavorModel flavorModel = gradleBuildModel.android().productFlavors().stream().filter(type -> type.name().equals(name)).findFirst()
-          .orElse(gradleBuildModel.android().addProductFlavor(name));
-        flavorModel.applicationId().setValue(applicationIdOrSuffix);
-      }
-
-      projectBuildModel.applyChanges();
-
-      requestSync(facet.getModule().getProject());
-    });
-  }
-
-
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-  }
-
-  private static void removePackageAttribute(XmlFile manifestFile) {
-    XmlTag tag = manifestFile.getRootTag();
-    assert tag != null;
-    tag.setAttribute("package", null);
   }
 
   static void addToolsAttribute(final @NotNull XmlFile file,

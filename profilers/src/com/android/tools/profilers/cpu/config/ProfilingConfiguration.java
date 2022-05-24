@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu.config;
 
-import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
+import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import org.jetbrains.annotations.NotNull;

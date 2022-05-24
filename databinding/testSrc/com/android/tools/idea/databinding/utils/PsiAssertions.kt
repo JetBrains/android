@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.utils
 
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.openapi.project.Project

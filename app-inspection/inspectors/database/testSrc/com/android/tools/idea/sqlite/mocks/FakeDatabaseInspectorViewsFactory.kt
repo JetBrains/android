@@ -27,8 +27,8 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {

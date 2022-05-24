@@ -22,14 +22,13 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
   @NotNull Supplier<@Nullable Module> myDebuggeeModuleProvider = () -> null;

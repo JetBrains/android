@@ -16,7 +16,9 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
+import com.android.tools.idea.avdmanager.CpuVendor
 import com.android.tools.idea.observable.core.IntValueProperty
+import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep
 import com.android.tools.idea.welcome.wizard.deprecated.GvmInstallInfoStep

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -23,11 +25,8 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveSdkFrom
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import org.jetbrains.annotations.NotNull;
 
 public class RemoveSdkFromManifestHyperlink extends NotificationHyperlink {
   @NotNull private final Collection<Module> myModules;

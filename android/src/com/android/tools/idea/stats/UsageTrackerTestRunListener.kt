@@ -18,9 +18,9 @@ package com.android.tools.idea.stats
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeTestOptions.Execution
-import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun
 
@@ -32,8 +32,6 @@ fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
 
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
- *
- * @see AnalyticsTestRunnerEventsListener for how we track unit test runs.
  */
 class UsageTrackerTestRunListener constructor(
     private val artifact: IdeAndroidArtifact?,

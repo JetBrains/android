@@ -24,11 +24,8 @@ import com.android.tools.idea.diagnostics.hprof.util.FileBackedUByteList
 import com.android.tools.idea.diagnostics.hprof.util.FileBackedUShortList
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.sectionHeader
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
-import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.ListProvider
 import com.android.tools.idea.diagnostics.hprof.util.PartialProgressIndicator
-import com.android.tools.idea.diagnostics.hprof.util.UByteList
-import com.android.tools.idea.diagnostics.hprof.util.UShortList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.progress.ProgressIndicator

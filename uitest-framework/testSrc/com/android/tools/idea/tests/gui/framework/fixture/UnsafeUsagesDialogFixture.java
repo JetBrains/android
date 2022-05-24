@@ -18,11 +18,9 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.refactoring.safeDelete.UnsafeUsagesDialog;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class UnsafeUsagesDialogFixture extends IdeaDialogFixture<UnsafeUsagesDialog> {
 
@@ -36,7 +34,7 @@ public class UnsafeUsagesDialogFixture extends IdeaDialogFixture<UnsafeUsagesDia
   @NotNull
   public static UnsafeUsagesDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
     JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(), Matchers.byTitle(JDialog.class, "Usages Detected").and(
-      new GenericTypeMatcher<JDialog>(JDialog.class) {
+      new GenericTypeMatcher<>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, UnsafeUsagesDialog.class) != null;

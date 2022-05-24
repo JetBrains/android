@@ -27,26 +27,26 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -58,8 +58,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -119,7 +121,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       myCompletedCalls = 0;
     }
     myIndicator.onRefreshStart("Refreshing...");
-    final List<SystemImageDescription> items = Lists.newArrayList();
+    final List<SystemImageDescription> items = new ArrayList<>();
     RepoManager.RepoLoadedListener localComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
@@ -162,7 +164,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   private List<SystemImageDescription> getLocalImages() {
     SystemImageManager systemImageManager = mySdkHandler.getSystemImageManager(LOGGER);
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
 
     for (ISystemImage image : systemImageManager.getImages()) {
       SystemImageDescription desc = new SystemImageDescription(image);
@@ -173,7 +175,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   @Nullable
   private static List<SystemImageDescription> getRemoteImages(@NotNull RepositoryPackages packages) {
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
     Set<RemotePackage> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {
@@ -223,14 +225,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return Comparator.comparing(SystemImageDescription::getVersion);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
+    new SystemImageColumnInfo("API Level", JBUIScale.scale(100)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUIScale.scale(100)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
@@ -312,7 +314,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           panel.setForeground(table.getForeground());
         }
         panel.setOpaque(true);
-        Font labelFont = UIUtil.getLabelFont();
+        Font labelFont = StartupUiUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }
@@ -346,7 +348,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           link.setForeground(JBColor.BLUE);
           Font font = link.getFont();
           if (isSelected) {
-            Map<TextAttribute, Integer> attrs = Maps.newHashMap();
+            Map<TextAttribute, Integer> attrs = new HashMap<>();
             attrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
             font = font.deriveFont(attrs);
           }
@@ -391,8 +393,9 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     @Nullable
     @Override
     public Comparator<SystemImageDescription> getComparator() {
-      return new Comparator<SystemImageDescription>() {
+      return new Comparator<>() {
         ApiLevelComparator myComparator = new ApiLevelComparator();
+
         @Override
         public int compare(SystemImageDescription o1, SystemImageDescription o2) {
           int res = myComparator.compare(valueOf(o1), valueOf(o2));
@@ -400,7 +403,6 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
             return o1.getTag().compareTo(o2.getTag());
           }
           return res;
-
         }
       };
     }

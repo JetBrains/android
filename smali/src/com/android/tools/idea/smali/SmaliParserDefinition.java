@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.smali;
 
+import static com.android.tools.idea.smali.SmaliTokenSets.COMMENT_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.STRING_TOKENS;
+import static com.intellij.lang.ParserDefinition.SpaceRequirements.MAY;
+
 import com.android.tools.idea.smali.parser.SmaliParser;
 import com.android.tools.idea.smali.psi.SmaliFile;
 import com.android.tools.idea.smali.psi.SmaliTypes;
@@ -30,10 +34,6 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.smali.SmaliTokenSets.COMMENT_TOKENS;
-import static com.android.tools.idea.smali.SmaliTokenSets.STRING_TOKENS;
-import static com.intellij.lang.ParserDefinition.SpaceRequirements.MAY;
 
 public class SmaliParserDefinition implements ParserDefinition {
   private static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);
@@ -84,7 +84,7 @@ public class SmaliParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public PsiFile createFile(FileViewProvider viewProvider) {
+  public PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new SmaliFile(viewProvider);
   }
 

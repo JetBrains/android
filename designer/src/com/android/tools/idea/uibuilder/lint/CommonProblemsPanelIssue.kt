@@ -18,14 +18,10 @@ package com.android.tools.idea.uibuilder.lint
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.error.NlComponentIssueSource
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.xml.XmlChildRole
 import org.jsoup.Jsoup
 
 typealias CommonPanelIssueSet = MutableSet<CommonProblemsPanelIssue>

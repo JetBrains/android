@@ -21,8 +21,6 @@ import com.intellij.testFramework.TestActionEvent
 import junit.framework.TestCase
 import org.jetbrains.kotlin.psi.KtClass
 import java.io.File
-import java.util.ArrayList
-import java.util.HashSet
 
 /**
  * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.

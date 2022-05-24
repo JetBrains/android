@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.testutils.MockitoKt
+import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
 import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener.Companion.baseId
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -23,9 +25,14 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.testFramework.replaceService
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -124,5 +131,71 @@ class GradleJvmNotificationExtensionTest {
     verify(spyData, never()).setListener(Mockito.any(), Mockito.any())
     assertThat(notificationData.message).isEqualTo(originalMessage)
     assertThat(notificationData.registeredListenerIds).hasSize(0)
+  }
+
+  @Test
+  fun `customize with invalid JDK reason`() {
+    val originalMessage = "Invalid Gradle JDK configuration found."
+    val invalidReason = "Generating invalid JDK reason for Test."
+    val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
+    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath!!.toAbsolutePath().toString()
+    val expectedMessage = "$originalMessage $invalidReason\n" +
+                          "<a href=\"${baseId()}.embedded\">Use Embedded JDK ($embeddedPath)</a>\n" +
+                          "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
+    assertThat(notificationData.registeredListenerIds).isEmpty()
+
+    val spyIdeSdks = spy(IdeSdks.getInstance())
+    Mockito.doReturn(invalidReason).`when`(spyIdeSdks).generateInvalidJdkReason(Mockito.any())
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, gradleProjectRule.fixture.projectDisposable)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    assertThat(notificationData.message).isEqualTo(expectedMessage)
+    val newListeners = notificationData.registeredListenerIds
+    assertThat(newListeners).contains("${baseId()}.embedded")
+    assertThat(newListeners).contains(OpenProjectJdkLocationListener.ID)
+  }
+
+  @Test
+  fun `null path generates invalid JDK error`() {
+    val mockJdk = Mockito.mock(Sdk::class.java)
+    Mockito.`when`(mockJdk.homePath).thenReturn(null)
+    val spyProjectJdkTable = spy(ProjectJdkTable.getInstance())
+    Mockito.`when`(spyProjectJdkTable.findJdk(MockitoKt.any(), MockitoKt.any())).thenReturn(mockJdk)
+    val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
+    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(null)
+
+    val project = gradleProjectRule.project
+    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
+    ApplicationManager.getApplication().replaceService(ProjectJdkTable::class.java, spyProjectJdkTable, project)
+
+    val actualMessage = getInvalidJdkReason(gradleProjectRule.project)
+    assertThat(actualMessage).isNotNull()
+  }
+
+  @Test
+  fun `invalid JDK path generates error`() {
+    val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
+    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn("/path/to/invalid/jdk/")
+
+    val project = gradleProjectRule.project
+    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
+
+    val actualMessage = getInvalidJdkReason(project)
+    assertThat(actualMessage).isNotNull()
+  }
+
+  @Test
+  fun `valid path does not generate error`() {
+    val jdk = IdeSdks.getInstance().jdk
+    assertThat(jdk).isNotNull()
+    val jdkPath = jdk!!.homePath
+    assertThat(jdkPath).isNotEmpty()
+
+    val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
+    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(jdkPath)
+
+    val project = gradleProjectRule.project
+    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
+    val actualMessage = getInvalidJdkReason(project)
+    assertThat(actualMessage).isNull()
   }
 }

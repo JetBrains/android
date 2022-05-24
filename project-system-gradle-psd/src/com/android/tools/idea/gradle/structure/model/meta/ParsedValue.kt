@@ -103,8 +103,7 @@ sealed class DslText {
 fun <PropertyT : Any> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
   is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
-    val dsl = dslText
-    when (dsl) {
+    when (val dsl = dslText) {
       DslText.Literal -> value?.formatValue() ?: ""
       is DslText.Reference -> "\$${dsl.text}"
       is DslText.OtherUnparsedDslText -> "\$${dsl.text}"
@@ -133,7 +132,7 @@ fun <T : Any> makeParsedValue(parsed: T?, dslText: DslText?): ParsedValue<T> = w
 }
 
 private val notSetAnnotated = Annotated(ParsedValue.NotSet)
-@Suppress("unused")
+@Suppress("UnusedReceiverParameter")
 fun ParsedValue.NotSet.annotated() = notSetAnnotated
 fun <T> T.annotated() = annotateWith(null)
 fun <T> T.annotateWith(annotation: ValueAnnotation?) = Annotated(this, annotation)

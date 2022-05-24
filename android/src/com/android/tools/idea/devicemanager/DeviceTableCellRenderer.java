@@ -18,6 +18,8 @@ package com.android.tools.idea.devicemanager;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -28,6 +30,7 @@ import com.intellij.util.ui.UIUtil.FontSize;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
+import java.util.Optional;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
@@ -41,6 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
+  private final @NotNull Class<@NotNull D> myValueClass;
+  private final @NotNull WearPairingManager myManager;
+
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myOnlineLabel;
@@ -48,9 +54,15 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
 
-  private final @NotNull Class<@NotNull D> myValueClass;
-
   protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
+    this(valueClass, WearPairingManager.INSTANCE);
+  }
+
+  @VisibleForTesting
+  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull WearPairingManager manager) {
+    myValueClass = valueClass;
+    myManager = manager;
+
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myOnlineLabel = new JBLabel();
@@ -88,8 +100,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     layout.setVerticalGroup(verticalGroup);
 
     myPanel.setLayout(layout);
-
-    myValueClass = valueClass;
   }
 
   @Override
@@ -118,9 +128,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myPairedLabel.setForeground(foreground);
 
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      boolean paired = WearPairingManager.INSTANCE.isPaired(device.getKey().toString());
-      setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
-      myPairedLabel.setVisible(paired);
+      Optional<Icon> icon = getPairedLabelIcon(device);
+
+      setIcon(myPairedLabel, icon.orElse(null), selected);
+      myPairedLabel.setVisible(icon.isPresent());
     }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
@@ -155,6 +166,20 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     int blue = Math.min(color.getBlue() + 50, 255);
 
     return new JBColor(new Color(red, green, blue), color.darker());
+  }
+
+  private @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+    PhoneWearPair pair = myManager.getPairedDevices(device.getKey().toString());
+
+    if (pair == null) {
+      return Optional.empty();
+    }
+
+    if (pair.getPairingStatus().equals(PairingState.CONNECTED)) {
+      return Optional.of(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED);
+    }
+
+    return Optional.of(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN);
   }
 
   @VisibleForTesting

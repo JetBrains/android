@@ -25,9 +25,10 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
-import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -43,6 +44,7 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
@@ -55,15 +57,13 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
@@ -78,9 +78,11 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -599,7 +601,7 @@ public class NlModelTest extends LayoutTestCase {
 
     // Manually construct the view hierarchy
     // Assert that component identity is preserved
-    List<ViewInfo> views = Lists.newArrayList();
+    List<ViewInfo> views = new ArrayList<>();
     XmlTag newRoot = model.getFile().getRootTag();
     assertThat(newRoot).isNotNull();
     XmlTag[] newRootSubTags = newRoot.getSubTags();
@@ -630,7 +632,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testThemeSelection() {
+  public void testThemeSelection() throws Exception {
     myFixture.addFileToProject("res/values/styles.xml",
                                "<resources>" +
                                "  <style name=\"Theme.MyTheme\"></style>" +
@@ -663,10 +665,12 @@ public class NlModelTest extends LayoutTestCase {
     model.deactivate(this);
     configuration.setTheme("@style/InvalidTheme");
     model.activate(this);
+    waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
     model.deactivate(this);
     configuration.setTheme("@android:style/InvalidTheme");
     model.activate(this);
+    waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@android:style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
   }
 
@@ -890,8 +894,10 @@ public class NlModelTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModel(XmlFile modelXml) {
     DesignSurface surface = createSurface(NlDesignSurface.class);
-    when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
-    return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    SyncNlModel model = SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE,
+                                           null, null, myFacet, modelXml.getVirtualFile());
+    model.setDesignSurface(surface);
+    return model;
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {
@@ -923,8 +929,7 @@ public class NlModelTest extends LayoutTestCase {
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight();
-    NlModel model = NlModelBuilderUtil.model(secondFacet, myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root)
-      .build();
+    NlModel model = NlModelBuilderUtil.model(secondFacet, myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root).build();
     AtomicInteger modelActivations = new AtomicInteger(0);
     model.addListener(new ModelListener() {
       @Override

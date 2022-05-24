@@ -16,13 +16,13 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.intellij.ui.JreHiDpiUtil
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyFloat
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.argThat
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.InOrder
 import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyFloat
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.times
 import java.awt.BasicStroke
 import java.awt.Color

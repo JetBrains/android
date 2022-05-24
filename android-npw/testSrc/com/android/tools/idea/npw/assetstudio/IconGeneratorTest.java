@@ -20,12 +20,6 @@ import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
-import com.android.tools.idea.npw.assetstudio.AnnotatedImage;
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
-import com.android.tools.idea.npw.assetstudio.IconCategory;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.util.Disposer;

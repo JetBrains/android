@@ -13,6 +13,9 @@
 // limitations under the License.
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
+
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.intellij.psi.PsiClass;
@@ -20,9 +23,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.annotations.NotNull;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
 
 public class CustomViewHandlerTest extends AndroidTestCase {
   private static final String MY_TEXT_VIEW = "p1.p2.MyTextView";

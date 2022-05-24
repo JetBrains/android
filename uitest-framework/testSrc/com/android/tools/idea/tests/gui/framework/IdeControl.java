@@ -19,9 +19,9 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.client.JUnitClient;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
-import com.intellij.testGuiFramework.remote.transport.TransportMessage;
+import java.awt.Frame;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -29,9 +29,6 @@ import org.fest.swing.finder.WindowFinder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 public class IdeControl extends TestWatcher {
 
@@ -51,7 +48,7 @@ public class IdeControl extends TestWatcher {
     Robot robot = robotSupplier.get();
     GuiActionRunner.executeInEDT(false);
     try {
-      WindowFinder.findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
+      WindowFinder.findFrame(new GenericTypeMatcher<>(Frame.class) {
         @Override
         protected boolean isMatching(@NotNull Frame frame) {
           return (frame instanceof IdeFrame && frame.isShowing());

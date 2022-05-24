@@ -36,7 +36,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.impl.ModuleEx
@@ -46,15 +45,16 @@ import com.intellij.psi.PsiManager
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.ArrayList
 
 private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
 @ThreadSafe
 class LayoutBindingModuleCache(private val module: Module) {
   companion object {
+    // We are using facet.mainModule as a temporary workaround. This is needed because main, unitTest and androidTest modules
+    // all access the same resources (all the resources). Ideally, they should only access their own resources.
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.module.getService(LayoutBindingModuleCache::class.java)!!
+    fun getInstance(facet: AndroidFacet) = facet.mainModule.getService(LayoutBindingModuleCache::class.java)!!
   }
 
   private val lock = Any()

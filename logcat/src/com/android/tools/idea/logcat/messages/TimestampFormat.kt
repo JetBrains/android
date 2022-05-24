@@ -28,20 +28,22 @@ import java.util.Locale
  * Provides formatting for the timestamp
  */
 internal data class TimestampFormat(val style: Style = DATETIME, val enabled: Boolean = true) {
-  enum class Style(val formatter: DateTimeFormatter) {
+  enum class Style(val formatter: DateTimeFormatter, val width: Int) {
     /**
      * 1970-01-01 04:00:01.000
      */
-    DATETIME(DATE_TIME_FORMATTER),
+    DATETIME(DATE_TIME_FORMATTER, "1970-01-01 04:00:01.000 ".length),
 
     /**
      * 04:00:01.000
      */
-    TIME(TIME_FORMATTER),
+    TIME(TIME_FORMATTER, "04:00:01.000 ".length),
   }
 
   fun format(instant: Instant, zoneId: ZoneId): String =
     if (enabled) style.formatter.format(LocalDateTime.ofInstant(instant, zoneId)) else ""
+
+  fun width() = if (enabled) style.width else 0
 }
 
 private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()

@@ -21,10 +21,12 @@ import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
@@ -48,6 +50,11 @@ class SplittingTabsContextMenuActionTest {
       })
       toolWindow.contentManager.addContent(it)
     }
+  }
+
+  @After
+  fun tearDown(){
+    Disposer.dispose(project)
   }
 
   @Test
@@ -105,6 +112,7 @@ class SplittingTabsContextMenuActionTest {
   fun actionPerformed_nullContentManager_doesNotPerformAction() {
     // A content that hasn't been added has a null manager.
     val content = toolWindow.contentManager.factory.createContent(null, "Content", false).also {
+      Disposer.register(project, it)
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
       })

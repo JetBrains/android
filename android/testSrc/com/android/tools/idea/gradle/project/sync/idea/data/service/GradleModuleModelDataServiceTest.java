@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
-import org.gradle.tooling.model.GradleProject;
-import org.mockito.Mock;
-
-import java.util.Collection;
-import java.util.Collections;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
+import java.util.Collection;
+import java.util.Collections;
+import org.gradle.tooling.model.GradleProject;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleModuleModelDataService}.
@@ -49,7 +48,7 @@ public class GradleModuleModelDataServiceTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     myDataService = new GradleModuleModelDataService(myModuleSetup);
   }
 

@@ -26,7 +26,6 @@ import com.android.tools.idea.emulator.readKeyValueFile
 import com.android.tools.idea.emulator.updateKeyValueFile
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.diagnostic.thisLogger
-import org.jetbrains.kotlin.konan.file.use
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException

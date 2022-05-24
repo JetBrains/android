@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;

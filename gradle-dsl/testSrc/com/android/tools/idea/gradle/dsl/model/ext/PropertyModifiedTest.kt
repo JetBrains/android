@@ -252,7 +252,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val storePassword = buildModel.android().signingConfigs()[1]!!.storePassword()
-    assertFalse(storePassword.isModified);
+    assertFalse(storePassword.isModified)
 
     storePassword.setValue("nice")
     assertTrue(storePassword.isModified)

@@ -39,7 +39,6 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -56,11 +55,11 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
@@ -99,15 +98,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
+  private final Computable<String> myInstallPathProvider;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   public AbstractDeployTask(
-      @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
+      @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
+                            Computable<String> installPathProvider) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
+    myInstallPathProvider = installPathProvider;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -215,14 +217,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
                                              @NotNull Canceller canceller) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.getAbsolutePath();
+    return myInstallPathProvider.compute();
   }
 
   protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {

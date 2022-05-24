@@ -15,24 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
-import com.android.SdkConstants.*
-import com.android.tools.property.panel.api.ControlType
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CLICKABLE
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_PADDING_BOTTOM
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.ide.common.rendering.api.ResourceNamespace
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 @RunsInEdt
 class ControlTypeProviderImplTest {

@@ -100,7 +100,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
   @Override
   public boolean isAvailable(final PsiFile file) {
     if (file instanceof XmlFile) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      return ApplicationManager.getApplication().runReadAction(new Computable<>() {
         @Override
         public Boolean compute() {
           if (AndroidFacet.getInstance(file) != null) {

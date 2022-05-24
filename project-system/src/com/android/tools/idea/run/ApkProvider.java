@@ -16,10 +16,9 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An interface for providing information about the APKs to install on devices and/or emulators

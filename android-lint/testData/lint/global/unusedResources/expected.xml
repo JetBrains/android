@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+
+  <!-- 3 matches; this matches what get when we run the same project via AGP which produces this XML report
+       (note that you have to add android.lint.checkDependencies true first)
+
+      <issue
+        id="UnusedResources"
+        message="The resource `R.string.APP_KEY` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.newstring` appears to be unused"
+        errorLine1="    &lt;string name=&quot;newstring&quot;>@string/usedlib&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="4"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.unusedlib` appears to be unused"
+        errorLine1="    &lt;string name=&quot;unusedlib&quot;>Unused string in library&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="mylibrary/src/main/res/values/values.xml"
+            line="3"
+            column="13"/>
+    </issue>
+  -->
+
+  <problem>
+    <file>build.gradle</file>
+    <line>1</line>
+    <module>testUnusedResources.app</module>
+    <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+    <hints />
+    <description>&lt;html&gt;The resource &lt;code&gt;R.string.APP_KEY&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+    <highlighted_element>apply plugin: 'com.android.application' android { compileSdkVersion 32 buildToolsVersion '30.0....</highlighted_element>
+    <language>Groovy</language>
+    <offset>0</offset>
+    <length>863</length>
+  </problem>
+
+
+  <problem>
+    <file>values.xml</file>
+    <line>3</line>
+    <module>testUnusedResources.app.mylibrary.main</module>
+    <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+    <hints />
+    <description>&lt;html&gt;The resource &lt;code&gt;R.string.unusedlib&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+    <highlighted_element>name=&quot;unusedlib&quot;</highlighted_element>
+    <language>XML</language>
+    <offset>12</offset>
+    <length>16</length>
+  </problem>
+
+  <problem>
+    <file>strings.xml</file>
+    <line>4</line>
+    <module>testUnusedResources.app.main</module>
+    <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+    <hints />
+    <description>&lt;html&gt;The resource &lt;code&gt;R.string.newstring&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+    <highlighted_element>name=&quot;newstring&quot;</highlighted_element>
+    <language>XML</language>
+    <offset>12</offset>
+    <length>16</length>
+  </problem>
+
+</problems>

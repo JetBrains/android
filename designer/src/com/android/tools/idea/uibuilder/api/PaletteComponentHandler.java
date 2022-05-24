@@ -15,15 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import static com.android.SdkConstants.ADS_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_PKG;
+import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_PKG;
+import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_PKG;
+import static com.android.SdkConstants.ANDROIDX_COORDINATOR_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_COORDINATOR_LAYOUT_PKG;
+import static com.android.SdkConstants.ANDROIDX_CORE_PKG;
+import static com.android.SdkConstants.ANDROIDX_GRID_LAYOUT_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_GRID_LAYOUT_PKG;
+import static com.android.SdkConstants.ANDROIDX_LEANBACK_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_LEANBACK_PKG;
+import static com.android.SdkConstants.ANDROIDX_MATERIAL_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_PKG;
+import static com.android.SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_VIEWPAGER_PKG;
+import static com.android.SdkConstants.ANDROIDX_VIEW_PAGER_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_DESIGN_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_LEANBACK_V17_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_V4_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_V7_PKG;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_PKG;
+import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
+import static com.android.SdkConstants.GOOGLE_PLAY_SERVICES_ADS_PKG;
+import static com.android.SdkConstants.GOOGLE_PLAY_SERVICES_MAPS_PKG;
+import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+import static com.android.SdkConstants.MAPS_ARTIFACT;
+import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A handler for a component on the component Palette.

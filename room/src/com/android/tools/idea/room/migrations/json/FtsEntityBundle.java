@@ -44,8 +44,8 @@ public class FtsEntityBundle extends EntityBundle {
     String ftsVersion,
     FtsOptionsBundle ftsOptions,
     List<String> contentSyncSqlTriggers) {
-    super(tableName, createSql, fields, primaryKey, Collections.<IndexBundle>emptyList(),
-          Collections.<ForeignKeyBundle>emptyList());
+    super(tableName, createSql, fields, primaryKey, Collections.emptyList(),
+          Collections.emptyList());
     mFtsVersion = ftsVersion;
     mFtsOptions = ftsOptions;
     mContentSyncSqlTriggers = contentSyncSqlTriggers;

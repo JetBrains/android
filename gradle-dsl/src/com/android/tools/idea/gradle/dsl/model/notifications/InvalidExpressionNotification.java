@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.notifications;
 
-import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
-import org.jetbrains.annotations.NotNull;
+import static com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.INVALID_EXPRESSION;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.INVALID_EXPRESSION;
+import org.jetbrains.annotations.NotNull;
 
 public class InvalidExpressionNotification implements BuildModelNotification {
   @NotNull

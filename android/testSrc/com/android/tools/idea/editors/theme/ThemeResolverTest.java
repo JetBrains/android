@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.GradleVersion;

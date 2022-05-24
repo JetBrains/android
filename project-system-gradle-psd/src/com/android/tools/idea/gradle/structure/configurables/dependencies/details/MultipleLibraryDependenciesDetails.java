@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import javax.swing.JPanel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class MultipleLibraryDependenciesDetails implements DependencyDetails {
   private JPanel myMainPanel;

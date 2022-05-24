@@ -15,14 +15,13 @@
  */
 package com.android.tools.adtui.common;
 
-import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A color group is a mapping of enum types to one (or more) corresponding colors each. This is
@@ -43,7 +42,7 @@ public final class EnumColors<E extends Enum<E>> {
    * per type, use a {@link Builder} instead.
    */
   public EnumColors(@NotNull Map<E, Color> colors) {
-    myColors = Maps.newHashMap();
+    myColors = new HashMap<>();
     colors.forEach((e, c) -> myColors.put(e, Collections.singletonList(c)));
   }
 
@@ -74,7 +73,7 @@ public final class EnumColors<E extends Enum<E>> {
    */
   public static final class Builder<E extends Enum<E>> {
     private final int myNumColorsPerType;
-    private Map<E, List<Color>> myColors = Maps.newHashMap();
+    private Map<E, List<Color>> myColors = new HashMap<>();
 
     public Builder(int numColorsPerType) {
       myNumColorsPerType = numColorsPerType;

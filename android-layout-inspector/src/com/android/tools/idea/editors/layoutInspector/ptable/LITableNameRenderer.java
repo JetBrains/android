@@ -16,19 +16,21 @@
 package com.android.tools.idea.editors.layoutInspector.ptable;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.android.tools.property.ptable.PNameRenderer;
 import com.android.tools.property.ptable.PTable;
 import com.android.tools.property.ptable.PTableCellRenderer;
 import com.android.tools.property.ptable.PTableItem;
-import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 public class LITableNameRenderer implements PNameRenderer {
   private final JPanel myPanel;

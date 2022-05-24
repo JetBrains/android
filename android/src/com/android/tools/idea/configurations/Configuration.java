@@ -30,7 +30,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
-import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -64,8 +63,8 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

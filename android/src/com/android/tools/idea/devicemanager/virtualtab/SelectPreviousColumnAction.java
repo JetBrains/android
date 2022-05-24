@@ -15,39 +15,39 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
-import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectPreviousColumnAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    JTable table = (JTable)event.getSource();
+    VirtualDeviceTable table = (VirtualDeviceTable)event.getSource();
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
+    AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
 
-    switch (viewColumnIndex) {
-      case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
-        AvdActionPanel panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+    switch (table.convertColumnIndexToModel(viewColumnIndex)) {
+      case VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX:
+        AvdActionPanel panel = ((ActionsTableCell)table.getCellEditor()).getComponent(device);
 
         if (panel.getFocusedComponent() != 0) {
           AvdActionPanels.selectPreviousComponent(panel);
         }
         else {
           table.removeEditor();
-          model.setLeadSelectionIndex(VirtualTableView.SIZE_ON_DISK_VIEW_COLUMN_INDEX);
+          model.setLeadSelectionIndex(table.sizeOnDiskViewColumnIndex());
         }
 
         break;
-      case VirtualTableView.SIZE_ON_DISK_VIEW_COLUMN_INDEX:
-      case VirtualTableView.API_VIEW_COLUMN_INDEX:
+      case VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+      case VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX:
         model.setLeadSelectionIndex(viewColumnIndex - 1);
         break;
-      case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
+      case VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX:
         break;
       default:
         assert false;

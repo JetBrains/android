@@ -27,6 +27,7 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_COUNT;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_DEFAULTS;
@@ -73,8 +74,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -105,7 +106,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
@@ -124,6 +124,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -162,8 +163,8 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static final Map<Path, AvdManagerConnection> ourAvdCache = ContainerUtil.createWeakMap();
-  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = ContainerUtil.createWeakMap();
+  private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
+  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
   private static long ourMemorySize = -1;
 
   private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =
@@ -368,7 +369,7 @@ public class AvdManagerConnection {
    */
   @NotNull
   public List<String> getSystemImageUpdates() {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
     if (dependencies == null) {
       return requested;
@@ -894,7 +895,7 @@ public class AvdManagerConnection {
     Path avdFolder;
     try {
       if (currentInfo != null) {
-        avdFolder = mySdkHandler.toCompatiblePath(currentInfo.getDataFolderPath());
+        avdFolder = currentInfo.getDataFolderPath();
       }
       else {
         assert myAvdManager != null;
@@ -973,6 +974,9 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_RESIZE_2_AT_POSTURE, "2");
       hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
+    }
+    if (device.getId().equals("resizable")) {
+      hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;
@@ -1096,16 +1100,15 @@ public class AvdManagerConnection {
     }
     assert mySdkHandler != null;
     // Delete the current user data file
-    File userdataImage = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_QEMU_IMG);
-    Path path = mySdkHandler.toCompatiblePath(userdataImage);
+    Path path = avdInfo.getDataFolderPath().resolve(AvdManager.USERDATA_QEMU_IMG);
     if (Files.exists(path)) {
       if (!FileOpUtils.deleteFileOrFolder(path)) {
         return false;
       }
     }
     // Delete the snapshots directory
-    File snapshotDirectory = new File(avdInfo.getDataFolderPath(), AvdManager.SNAPSHOTS_DIRECTORY);
-    FileOpUtils.deleteFileOrFolder(mySdkHandler.toCompatiblePath(snapshotDirectory));
+    Path snapshotDirectory = avdInfo.getDataFolderPath().resolve(AvdManager.SNAPSHOTS_DIRECTORY);
+    FileOpUtils.deleteFileOrFolder(snapshotDirectory);
 
     return true;
   }

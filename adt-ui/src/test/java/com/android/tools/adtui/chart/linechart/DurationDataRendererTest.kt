@@ -25,8 +25,8 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
@@ -250,7 +250,7 @@ class DurationDataRendererTest {
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
     durationData.setAttachPredicate { data -> data.x == 6L }
     val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setBackgroundClickable(
-      true).setClickHander { clicked = true }.build()
+      true).setClickHandler { clicked = true }.build()
     val underneathComponent = JPanel()
     val overlayComponent = OverlayComponent(underneathComponent)
     overlayComponent.bounds = Rectangle(0, 0, 200, 50)
@@ -258,6 +258,10 @@ class DurationDataRendererTest {
 
     durationData.update(1) // Forces duration data renderer to update
     val fakeUi = FakeUi(overlayComponent)
+    // Right-click shouldn't trigger the click handler.
+    fakeUi.mouse.rightClick(100, 0)
+    assertThat(clicked).isFalse()
+    // Left-click should trigger the click handler.
     fakeUi.mouse.click(100, 0)
     assertThat(clicked).isTrue()
   }

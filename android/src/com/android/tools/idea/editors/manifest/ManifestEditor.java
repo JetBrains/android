@@ -24,12 +24,10 @@ import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -133,7 +131,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       // Otherwise, the best we can do is to throw up a loading spinner.
       myManifestPanel.startLoading();
     }
-    Futures.addCallback(mergedManifest, new FutureCallback<MergedManifestSnapshot>() {
+    Futures.addCallback(mergedManifest, new FutureCallback<>() {
       @Override
       public void onSuccess(MergedManifestSnapshot result) {
         showFreshManifest(result);
@@ -251,20 +249,13 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
   @Nullable
   @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
+  }
+
+  @Override
+  public @NotNull VirtualFile getFile() {
+    return mySelectedFile;
   }
 
   @Override

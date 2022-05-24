@@ -19,23 +19,27 @@ import static com.android.tools.idea.ui.wizard.WizardUtils.toHtmlString;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
 import java.util.List;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Panel for setting up individual module import.
@@ -47,13 +51,13 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
   private final JLabel myStatusMessage = new JBLabel();
   private final JCheckBox myImportModule = new JCheckBox("Import");
   private final JLabel mySourcePath = new JLabel();
-  private final List<ActionListener> myListenerList = Lists.newLinkedList();
+  private final List<ActionListener> myListenerList = new LinkedList<>();
   private int componentNumber = 0;
 
   public ModuleImportSettingsPane() {
     setLayout(new GridLayoutManager(2, COLUMN_COUNT, UIUtil.PANEL_REGULAR_INSETS, -1, -1));
     addToGrid(new JLabel("Source location:"), false, 1);
-    mySourcePath.setPreferredSize(new Dimension(JBUI.scale(20), -1));
+    mySourcePath.setPreferredSize(new Dimension(JBUIScale.scale(20), -1));
     addToGrid(mySourcePath, true, 2);
     GridConstraints checkBoxConstraints = createGridConstraints(false, 1);
     checkBoxConstraints.setAnchor(GridConstraints.ANCHOR_EAST);
@@ -65,7 +69,7 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
     moduleNameConstraint.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     myModuleName.setColumns(15);
     add(myModuleName, moduleNameConstraint);
-    myStatusMessage.setPreferredSize(new Dimension(JBUI.scale(20), -1));
+    myStatusMessage.setPreferredSize(new Dimension(JBUIScale.scale(20), -1));
     addToGrid(myStatusMessage, true, 2);
 
     myModuleName.getDocument().addDocumentListener(new DocumentAdapter() {

@@ -15,10 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import org.junit.Test;
-
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_LEANBACK_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_MATERIAL_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.CARD_VIEW;
+import static com.android.SdkConstants.CLASS_BROWSE_FRAGMENT;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.SdkConstants.CLASS_FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
+import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+import static com.android.SdkConstants.NESTED_SCROLL_VIEW;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.TOOLBAR_V7;
 import static com.google.common.truth.Truth.assertThat;
+
+import org.junit.Test;
 
 public class PaletteComponentHandlerTest {
 

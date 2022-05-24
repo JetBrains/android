@@ -33,7 +33,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinStatementSurroundDescriptor
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.HashSet
 
 /**
  * Intention action that includes [ComposeSurroundWithBoxAction], [ComposeSurroundWithRowAction], [ComposeSurroundWithColumnAction].

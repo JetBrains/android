@@ -48,9 +48,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.awt.Color
+import org.mockito.Mockito.`when`
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 

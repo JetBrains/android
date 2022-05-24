@@ -28,12 +28,11 @@ import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.relative.draw.RelativeLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link SceneDecoratorFactory} for layout editor components.

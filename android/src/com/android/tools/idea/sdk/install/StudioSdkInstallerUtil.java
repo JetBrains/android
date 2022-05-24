@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.SettingsController;
@@ -23,6 +22,7 @@ import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerFactory;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 /**

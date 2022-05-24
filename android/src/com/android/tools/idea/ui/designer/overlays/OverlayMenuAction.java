@@ -136,22 +136,16 @@ public class OverlayMenuAction extends DropDownAction {
               overlayConfiguration.removeOverlayFromList(myOverlayEntry);
               Notifications.Bus.notify(
                 new Notification("Manage Overlays",
-                                 null,
                                  "Error fetching overlay",
-                                 null,
                                  "The overlay you requested does not exist anymore.",
-                                 NotificationType.ERROR,
-                                 null));
+                                 NotificationType.ERROR));
             }
             else {
               Notifications.Bus.notify(
                 new Notification("Manage Overlays",
-                                 null,
                                  "Error fetching overlay",
-                                 null,
                                  "There was an error fetching the overlay. Please try again.",
-                                 NotificationType.ERROR,
-                                 null));
+                                 NotificationType.ERROR));
             }
           }
         });
@@ -190,12 +184,9 @@ public class OverlayMenuAction extends DropDownAction {
       else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
-                           null,
                            "Error toggling overlay",
-                           null,
                            "There was no overlay to be toggled. Please select an overlay first.",
-                           NotificationType.WARNING,
-                           null));
+                           NotificationType.WARNING));
       }
     }
   }
@@ -229,12 +220,9 @@ public class OverlayMenuAction extends DropDownAction {
           overlayConfiguration.hidePlaceholder();
           Notifications.Bus.notify(
             new Notification("Manage Overlays",
-                             null,
                              "Error fetching overlay",
-                             null,
                              "There was an error fetching the overlay. Please try again.",
-                             NotificationType.ERROR,
-                             null));
+                             NotificationType.ERROR));
         }
       });
     }
@@ -277,22 +265,16 @@ public class OverlayMenuAction extends DropDownAction {
               overlayConfiguration.removeOverlayFromList(currentOverlay);
               Notifications.Bus.notify(
                 new Notification("Manage Overlays",
-                                 null,
                                  "Error fetching overlay",
-                                 null,
                                  "The overlay you requested does not exist anymore.",
-                                 NotificationType.ERROR,
-                                 null));
+                                 NotificationType.ERROR));
             }
             else {
               Notifications.Bus.notify(
                 new Notification("Manage Overlays",
-                                 null,
                                  "Error fetching overlay",
-                                 null,
                                  "There was an error fetching the overlay. Please try again.",
-                                 NotificationType.ERROR,
-                                 null));
+                                 NotificationType.ERROR));
             }
           }
         });
@@ -300,12 +282,9 @@ public class OverlayMenuAction extends DropDownAction {
       else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
-                           null,
                            "Update error",
-                           null,
                            "There is no overlay to be updated. Please select an overlay before trying to update it.",
-                           NotificationType.WARNING,
-                           null));
+                           NotificationType.WARNING));
       }
     }
   }
@@ -380,12 +359,9 @@ public class OverlayMenuAction extends DropDownAction {
       else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
-                           null,
                            "Error cancelling overlay action",
-                           null,
                            "There is no overlay action to be cancelled.",
-                           NotificationType.WARNING,
-                           null));
+                           NotificationType.WARNING));
       }
     }
   }

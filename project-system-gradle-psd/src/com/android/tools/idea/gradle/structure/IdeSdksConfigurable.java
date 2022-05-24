@@ -41,13 +41,13 @@ import com.android.tools.idea.gradle.ui.SdkUiUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
@@ -103,6 +103,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -297,7 +298,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myJdkMovedLabel.setTextWithHyperlink(JDK_MOVED_TEXT);
     myJdkMovedLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         if (myProject != null) {
           showGradleSettings(myProject);
         }
@@ -446,7 +447,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myNdkDownloadHyperlinkLabel.setHyperlinkText("", "Download", " Android NDK.");
     myNdkDownloadHyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         if (validateAndroidSdkPath() != null) {
           Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
           return;
@@ -484,7 +485,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @Override
   public String getDisplayName() {
-    return "SDK Location";
+    return AndroidBundle.message("configurable.IdeSdksConfigurable.display.name");
   }
 
   @Override
@@ -597,8 +598,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   @Override
-  @NotNull
-  public JComponent getPreferredFocusedComponent() {
+  public @Nullable JComponent getPreferredFocusedComponent() {
     Component toFocus = myComponentsById.get(mySelectedComponentId);
     return toFocus instanceof JComponent ? (JComponent)toFocus : mySdkLocationTextField.getTextField();
   }
@@ -641,7 +641,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(getSdkLocation());
+    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(getSdkLocation().toPath());
     Validator.Severity severity = result.getSeverity();
     if (severity == ERROR) {
       return result.getMessage();

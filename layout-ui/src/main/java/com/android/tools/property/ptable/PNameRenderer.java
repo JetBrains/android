@@ -16,9 +16,8 @@
 package com.android.tools.property.ptable;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 public interface PNameRenderer extends TableCellRenderer {
 

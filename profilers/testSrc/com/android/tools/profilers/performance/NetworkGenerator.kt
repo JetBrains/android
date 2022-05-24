@@ -17,9 +17,7 @@ package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.NetworkTable
 import com.android.tools.profiler.proto.NetworkProfiler
-
 import java.sql.Connection
-import java.util.Random
 
 class NetworkGenerator(connection: Connection) : DataGenerator(connection) {
 

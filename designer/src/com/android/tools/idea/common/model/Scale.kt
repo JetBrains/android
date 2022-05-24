@@ -27,7 +27,8 @@ import java.awt.Dimension
  * SwingLength / Scale = AndroidLength
  */
 
-inline class Scale(val value: Double) {
+@JvmInline
+value class Scale(val value: Double) {
   operator fun times(length: AndroidLength): SwingLength = SwingLength(value.toFloat() * length.value)
 }
 

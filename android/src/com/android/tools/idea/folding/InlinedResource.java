@@ -17,17 +17,16 @@ package com.android.tools.idea.folding;
 
 import static com.android.SdkConstants.STRING_PREFIX;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.lang.folding.FoldingDescriptor;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
@@ -37,99 +36,101 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.android.AndroidAnnotatorUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** A resource referenced in code (Java or XML) */
-class InlinedResource implements ModificationTracker {
-  static final InlinedResource NONE = new InlinedResource(ResourceType.STRING, "", null, null, null, null);
+/**
+ * A resource referenced in code (Java or XML)
+ */
+class InlinedResource {
   private static final int FOLD_MAX_LENGTH = 60;
 
-  /** Resource type, typically a string or dimension */
-  private final ResourceType myType;
+  /**
+   * Reference to the resource being folded.
+   */
+  @NotNull private final ResourceReference myResourceReference;
 
-  /** The string key, such as "foo" in {@code @string/foo} or {@code R.string.foo} */
-  @NotNull private String myKey;
+  /**
+   * Relevant resource repository that contains the resource to be folded, picked based on the resource namespace.
+   */
+  @NotNull private final ResourceRepository myResourceRepository;
 
   /**
    * The element absorbed by this string reference. For a parameter it might be just
    * {@code R.string.foo}, but in Java code it can sometimes also include a whole
    * string lookup call, such as {@code getResources().getString(R.string.foo, foo)}
-   * */
-  @Nullable private PsiElement myElement;
+   */
+  @NotNull private final PsiElement myElement;
 
-  /** The associated folding descriptor */
-  @Nullable private FoldingDescriptor myDescriptor;
+  /**
+   * The associated folding descriptor
+   */
+  @NotNull private final FoldingDescriptor myDescriptor;
 
-  /** The app resources for looking up resource strings lazily. */
-  @Nullable private final LocalResourceRepository myResourceRepository;
-  /** The framework resources for looking up resource strings lazily. */
-  @Nullable private final ResourceRepository myFrameworkResourceRepository;
-
-  InlinedResource(@NotNull ResourceType type,
-                  @NotNull String key,
-                  @Nullable LocalResourceRepository resources,
-                  @Nullable ResourceRepository frameworkResources,
-                  @Nullable FoldingDescriptor descriptor,
-                  @Nullable PsiElement element) {
-    myType = type;
-    myKey = key;
-    myResourceRepository = resources;
-    myFrameworkResourceRepository = frameworkResources;
+  InlinedResource(@NotNull ResourceReference resourceReference,
+                  @NotNull ResourceRepository resourceRepository,
+                  @NotNull FoldingDescriptor descriptor,
+                  @NotNull PsiElement element) {
+    myResourceRepository = resourceRepository;
+    myResourceReference = resourceReference;
     myDescriptor = descriptor;
     myElement = element;
   }
 
-  @Nullable
+  @NotNull
   FoldingDescriptor getDescriptor() {
     return myDescriptor;
   }
 
-  @Override
-  public long getModificationCount() {
-    // Return the project resource generation count; this ensures that when the project
-    // resources are updated, the folding text is refreshed
-    return myResourceRepository != null ? myResourceRepository.getModificationCount() : 0;
-  }
-
   @Nullable
   public String getResolvedString() {
-    if (myResourceRepository != null && myFrameworkResourceRepository != null) {
-      if (myResourceRepository.hasResources(ResourceNamespace.TODO(), myType, myKey)) {
-        FolderConfiguration referenceConfig = new FolderConfiguration();
-        // Nonexistent language qualifier: trick it to fall back to the default locale
-        referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));
-        ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, myType, myKey, referenceConfig);
-        if (value != null) {
-          ResourceItemResolver resolver =
-              new ResourceItemResolver(referenceConfig, myFrameworkResourceRepository, myResourceRepository, null);
-          value = resolver.resolveResValue(value);
-          String text = value.getValue();
-          if (text != null) {
-            if (myElement instanceof PsiMethodCallExpression) {
-              text = insertArguments((PsiMethodCallExpression)myElement, text);
-            }
-            if (myType == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
-              String name = text.substring(STRING_PREFIX.length());
-              value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, ResourceType.STRING, name, referenceConfig);
+    AndroidFacet facet = AndroidFacet.getInstance(myElement);
+    if (facet == null) {
+      return null;
+    }
+    if (myResourceRepository.hasResources(myResourceReference.getNamespace(), myResourceReference.getResourceType(),
+                                          myResourceReference.getName())) {
+      FolderConfiguration referenceConfig = new FolderConfiguration();
+      // Nonexistent language qualifier: trick it to fall back to the default locale
+      referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));
+      Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(myElement.getContainingFile(), facet);
+      if (configuration == null) {
+        return null;
+      }
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      ResourceValue value = resourceResolver.getResolvedResource(myResourceReference);
+      if (value != null) {
+        String text = value.getValue();
+        if (text != null) {
+          if (myElement instanceof PsiMethodCallExpression) {
+            text = insertArguments((PsiMethodCallExpression)myElement, text);
+          }
+          if (myResourceReference.getResourceType() == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
+            String name = text.substring(STRING_PREFIX.length());
+            value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, ResourceType.STRING, name, referenceConfig);
+            if (value != null) {
+              value = resourceResolver.resolveResValue(value);
               if (value != null) {
-                value = resolver.resolveResValue(value);
                 text = value.getValue();
                 if (text != null) {
                   return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
                 }
               }
             }
-            if (myType == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
-              return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
-            } else if (text.length() <= 1) {
-              // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
-              // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
-              // This is similar to how IntelliJ 14 handles call parameters
-              return myKey + ": " + text;
-            } else {
-              return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0);
-            }
+          }
+          if (myResourceReference.getResourceType() == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
+            return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+          }
+          else if (text.length() <= 1) {
+            // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
+            // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
+            // This is similar to how IntelliJ 14 handles call parameters
+            return myResourceReference.getName() + ": " + text;
+          }
+          else {
+            return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0);
           }
         }
       }

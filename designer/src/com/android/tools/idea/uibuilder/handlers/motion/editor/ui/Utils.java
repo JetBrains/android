@@ -22,7 +22,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
 /**
  * Small static functions used across the system

@@ -51,6 +51,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     model.selectedWearDevice.value = wearDevice
 
     BatchInvoker.setOverrideStrategy(invokeStrategy)
+    WearPairingManager.setDataProviders({ emptyList() }, { emptyList() })
   }
 
   override fun tearDown() {
@@ -79,7 +80,17 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
 
     val fakeUi = createNewConnectionAlertStepUi()
-    fakeUi.waitForText("Disconnecting existing devices")
+    fakeUi.waitForText("Shutting down other Wear virtual device")
+  }
+
+  @Test
+  fun shouldShowIfWearMayNeedFactoryReset() {
+    val previousPairedPhone = phoneDevice.copy(deviceID = "id4")
+    val iDevice = Mockito.mock(IDevice::class.java)
+    runBlocking { WearPairingManager.createPairedDeviceBridge(previousPairedPhone, iDevice, wearDevice, iDevice, connect = false) }
+
+    val fakeUi = createNewConnectionAlertStepUi()
+    fakeUi.waitForText("Wear OS Factory Reset")
   }
 
   private fun createNewConnectionAlertStepUi(): FakeUi {

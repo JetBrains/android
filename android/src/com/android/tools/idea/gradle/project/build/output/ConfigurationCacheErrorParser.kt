@@ -24,7 +24,6 @@ import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
 import java.util.function.Consumer
 
 class ConfigurationCacheErrorParser : BuildOutputParser {

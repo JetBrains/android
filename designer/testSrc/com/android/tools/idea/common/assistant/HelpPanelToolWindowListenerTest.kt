@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.assistant
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito

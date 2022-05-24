@@ -18,6 +18,8 @@ package org.jetbrains.kotlin.android.inspection
 
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.ALL_VALUE_RESOURCE_TYPES
+import com.android.tools.idea.res.getReferredResourceOrManifestField
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.openapi.module.ModuleUtil
@@ -25,8 +27,6 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
-import com.android.tools.idea.res.ALL_VALUE_RESOURCE_TYPES
-import com.android.tools.idea.res.getReferredResourceOrManifestField
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 
 

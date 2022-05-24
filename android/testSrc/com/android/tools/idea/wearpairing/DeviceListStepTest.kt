@@ -18,6 +18,7 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.IDevice
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.observable.BatchInvoker
@@ -30,7 +31,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -42,6 +42,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseEvent
+import java.util.function.BooleanSupplier
 import javax.swing.JEditorPane
 import javax.swing.JMenuItem
 import javax.swing.Popup
@@ -113,8 +114,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     assertThat(fakeUi.getPhoneEmptyComponent().isVisible).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
-    assertThat(usageTracker.usages.last()!!.studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
   }
 
   @Test
@@ -162,7 +163,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(firstComponent).isNotNull()
       assertThat(secondComponent).isNull()
     }
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION)
   }
 
   @Test
@@ -175,7 +176,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
   }
 
-  @Suppress("UnstableApiUsage")
   @Test
   fun listItemShowPlayStoreIcon() {
     val fakeUi = createDeviceListStepUi()
@@ -186,8 +186,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val cellListFakeUi = FakeUi(cellList)
 
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
-    val topLabelIcon = topLabel.icon as IconLoader.CachedImageIcon
-    assertThat(topLabelIcon.originalPath!!).contains("device-play-store.svg")
+    val topLabelIcon = topLabel!!.icon.toString()
+    assertThat(topLabelIcon).contains("device-play-store.svg")
   }
 
   @Test
@@ -264,10 +264,21 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val phoneList = fakeUi.getPhoneList()
 
     fun getListItemTooltip(index: Int): String? {
-      val cellRect = phoneList.getCellBounds(index, index)
-      val p = Point(cellRect.width / 2, cellRect.y + cellRect.height / 2)
-      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, p.x, p.y, 0, false, 0)
-      return phoneList.getToolTipText(mouseEvent)
+      val rect = phoneList.getCellBounds(index, index)
+      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, rect.width / 2, rect.y + rect.height / 2, 0, false, 0)
+      phoneList.mouseListeners.forEach { it.mouseEntered(mouseEvent) } // Simulate mouse enter
+      phoneList.mouseListeners.forEach { it.mousePressed(mouseEvent) } // Fix javax.swing.ToolTipManager memory/focus leak
+      val installed = phoneList.getClientProperty("JComponent.helpTooltip") // HelpTooltip.TOOLTIP_PROPERTY is private
+      installed.javaClass.superclass.getDeclaredField("masterPopupOpenCondition").apply { // "description" is private, use reflection
+        isAccessible = true
+        if (!(get(installed) as BooleanSupplier).asBoolean) {
+          return null
+        }
+      }
+      installed.javaClass.superclass.getDeclaredField("description").apply { // "description" is private, use reflection
+        isAccessible = true
+        return get(installed)?.toString()
+      }
     }
 
     assertThat(getListItemTooltip(0)).contains("Wear pairing requires API level >= 30")
@@ -280,6 +291,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val deviceListStep = DeviceListStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceListStep).build()
     Disposer.register(testRootDisposable, modelWizard)
+    Disposer.register(testRootDisposable, deviceListStep)
     invokeStrategy.updateAllSteps()
 
     modelWizard.contentPanel.size = Dimension(600, 400)
@@ -297,6 +309,9 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   private fun FakeUi.getLabelWithText(text: String) = getComponent<JBLabel> { it.text == text }
 
   private fun FakeUi.getSplitter() = getComponent<Splitter> { true }
+
+  private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
+    usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING }
 
   private class TestPopupFactory : PopupFactory() {
     var popupContents: Component? = null

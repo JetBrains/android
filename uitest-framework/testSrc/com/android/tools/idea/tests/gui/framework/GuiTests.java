@@ -23,7 +23,6 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +34,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.PerformanceWatcher;
@@ -72,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -312,7 +309,7 @@ public final class GuiTests {
     }
     String testDir = System.getenv("TEST_TMPDIR");
     if (testDir == null) {
-      testDir = toSystemDependentName(PathManager.getHomePath());
+      testDir = FileUtilRt.toSystemDependentName(PathManager.getHomePath());
     }
     assertThat(testDir).isNotEmpty();
     File rootDirPath = new File(testDir, join("androidStudio", "gui-tests"));
@@ -341,7 +338,7 @@ public final class GuiTests {
   @NotNull
   public static File getTestProjectsRootDirPath() {
     String testDataPath =
-      toCanonicalPath(toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
+      toCanonicalPath(FileUtilRt.toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
     return new File(testDataPath, "testData");
   }
 
@@ -352,7 +349,7 @@ public final class GuiTests {
    * Waits until an IDE popup is shown and returns it.
    */
   public static JBList waitForPopup(@NotNull Robot robot) {
-    return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
@@ -362,11 +359,11 @@ public final class GuiTests {
   }
 
   public static SimpleTree waitTreeForPopup(@NotNull Robot robot) {
-    return waitUntilFound(robot, null, new GenericTypeMatcher<SimpleTree>(SimpleTree.class) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<>(SimpleTree.class) {
       @Override
       protected boolean isMatching(@NotNull SimpleTree tree) {
         Container container = tree.getParent();
-        while (container != null){
+        while (container != null) {
           if (container.getClass().getName().contains("WizardPopup")) return true;
           container = container.getParent();
         }
@@ -390,7 +387,7 @@ public final class GuiTests {
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
     JPopupMenu menu = GuiQuery.get(robot::findActivePopupMenu);
     if (menu != null) {
-      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<>(JMenuItem.class) {
         @Override
         protected boolean isMatching(@NotNull JMenuItem component) {
           return predicate.test(component.getText());
@@ -407,7 +404,7 @@ public final class GuiTests {
     Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<JBList>(JBList.class) {
+    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
@@ -418,7 +415,7 @@ public final class GuiTests {
     // We can't use the normal JListFixture method to click by label since the ListModel items are
     // ActionItems whose toString does not reflect the text, so search through the model items instead:
     ListPopupModel model = (ListPopupModel)list.getModel();
-    java.util.List<String> items = Lists.newArrayList();
+    List<String> items = new ArrayList<>();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
       String s;
@@ -663,7 +660,7 @@ public final class GuiTests {
     Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
     return progressIndicators.stream()
       .map(ProgressIndicator::getText)
-      .filter(Objects::nonNull)
+      .filter(text -> isNotEmpty(text))
       .collect(Collectors.joining(","));
   }
 

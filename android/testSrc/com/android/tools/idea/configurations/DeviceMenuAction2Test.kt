@@ -17,14 +17,13 @@ package com.android.tools.idea.configurations
 
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.flags.StudioFlags
-import org.mockito.Mockito
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.AnAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.ApplicationManager
@@ -34,6 +33,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class DeviceMenuAction2Test {
 
@@ -66,7 +66,7 @@ class DeviceMenuAction2Test {
     Mockito.`when`(configuration.module).thenReturn(projectRule.projectRule.module)
     Mockito.`when`(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     val holder = ConfigurationHolder { configuration }
-    val menuAction = DeviceMenuAction2(holder)
+    val menuAction = DeviceMenuAction2(holder) { _, _ -> }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {
@@ -102,7 +102,10 @@ class DeviceMenuAction2Test {
         Nexus 5X (411 × 731 dp, 420dpi)
     ------------------------------------------------------
     Wear
-    Wear OS Round Chin (240 × 218 dp, hdpi)
+    Wear OS Small Round (192 × 192 dp, xhdpi)
+    Wear OS Rectangular (201 × 238 dp, xhdpi)
+    Wear OS Square (180 × 180 dp, xhdpi)
+    Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------
     TV
     Android TV (4K) (960 × 540 dp, xhdpi)
@@ -128,18 +131,14 @@ class DeviceMenuAction2Test {
         4.7" WXGA (640 × 360 dp, xhdpi)
         5.1" WVGA (480 × 800 dp, mdpi)
         5.4" FWVGA (480 × 854 dp, mdpi)
-        Phone (411 × 891 dp, xxhdpi)
+        Resizable (411 × 891 dp, xxhdpi)
         6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
-        Foldable (674 × 841 dp, xxhdpi)
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
-        Resizable (674 × 841 dp, xxhdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)
         7.6" Fold-in with outer display (674 × 841 dp, xxhdpi)
         8" Fold-out (838 × 945 dp, xxhdpi)
-        Tablet (1280 × 800 dp, xxhdpi)
         10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
         13.5" Freeform (1707 × 960 dp, hdpi)
-        Desktop (1920 × 1080 dp, xxhdpi)
     Add Device Definition
 """
     Truth.assertThat(actual).isEqualTo(expected)

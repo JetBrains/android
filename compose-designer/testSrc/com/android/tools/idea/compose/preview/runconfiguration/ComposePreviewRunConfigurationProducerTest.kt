@@ -36,7 +36,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
-    StudioFlags.COMPOSE_PREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
@@ -58,7 +57,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   override fun tearDown() {
     super.tearDown()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW.clearOverride()
   }
 
   override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,

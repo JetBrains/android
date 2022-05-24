@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.logcat.output;
 
-import com.intellij.testFramework.LightPlatformTestCase;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import com.intellij.testFramework.LightPlatformTestCase;
 
 public class LogcatOutputSettingsTest extends LightPlatformTestCase {
   @Override

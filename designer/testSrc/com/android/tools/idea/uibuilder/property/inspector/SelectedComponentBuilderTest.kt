@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants
-import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt

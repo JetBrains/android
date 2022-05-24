@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_X;
+import static com.android.SdkConstants.ATTR_LAYOUT_Y;
+import static com.android.SdkConstants.VALUE_N_DP;
+
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
 
 public class AbsoluteDragTarget extends DragBaseTarget {
 

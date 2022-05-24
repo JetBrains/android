@@ -16,18 +16,18 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -39,10 +39,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class ProjectStructure {
   @NotNull private final Project myProject;
@@ -67,7 +71,7 @@ public class ProjectStructure {
 
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectStructure.class);
+    return project.getService(ProjectStructure.class);
   }
 
   private ProjectStructure(@NotNull Project project) {
@@ -81,11 +85,24 @@ public class ProjectStructure {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     Module[] modules = moduleManager.getModules();
-    Queue<Module> leafModules = new ConcurrentLinkedQueue<>(Arrays.asList(modules));
-
     ModuleFinder moduleFinder = new ModuleFinder(myProject);
+    List<Module> mainModules = Arrays.stream(moduleManager.getModules())
+      .filter(ProjectStructure::isAndroidOrJavaMainSourceSetModuleBySourceSetName)
+      .collect(Collectors.toList());
+
+    Set<Module> mainModulesAccessibleFromMainModules = mainModules.stream()
+      .flatMap(it -> Arrays.stream(ModuleRootManager.getInstance(it).getDependencies()))
+      .filter(ProjectStructure::isAndroidOrJavaMainSourceSetModuleBySourceSetName)
+      .collect(Collectors.toSet());
+
+    List<Module> leafHolderModules =
+      mainModules.stream()
+        .filter(it -> !mainModulesAccessibleFromMainModules.contains(it) || isAppOrFeature(it))
+        .map(ProjectStructure::getHolder)
+        .collect(Collectors.toList());
 
     for (Module module : modules) {
+      if (getHolderModule(module) != module) continue;
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
@@ -98,20 +115,6 @@ public class ProjectStructure {
             appModules.add(module);
           }
         }
-        else {
-          JavaFacet javaFacet = JavaFacet.getInstance(module);
-          if (javaFacet != null && !javaFacet.getConfiguration().BUILDABLE) {
-            // Remove module not "buildable" from "leaf" modules.
-            leafModules.remove(module);
-          }
-        }
-        ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        // Remove all dependencies, except 'app' or 'dynamic-feature' modules
-        leafModules.removeAll(Arrays.stream(rootManager.getDependencies()).filter(m -> !isAppOrFeature(m)).collect(Collectors.toList()));
-      }
-      else {
-        // Remove non-Gradle modules from "leaf" modules.
-        leafModules.remove(module);
       }
     }
 
@@ -120,7 +123,7 @@ public class ProjectStructure {
 
       // "Leaf" modules include app modules and the non-app modules that no other modules depend on.
       myLeafModules.clear();
-      myLeafModules.addAll(leafModules);
+      myLeafModules.addAll(leafHolderModules);
 
       myAppModules.clear();
       myAppModules.addAll(appModules);
@@ -149,7 +152,7 @@ public class ProjectStructure {
   }
 
   @NotNull
-  public ImmutableList<Module> getAppModules() {
+  public ImmutableList<Module> getAppHolderModules() {
     synchronized (myLock) {
       return ImmutableList.copyOf(myAppModules);
     }
@@ -181,6 +184,29 @@ public class ProjectStructure {
     }
   }
 
+  @Nullable
+  private static Module getHolder(@NotNull Module module) {
+    if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return null;
+    if (GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY.equals(ExternalSystemApiUtil.getExternalModuleType(module))) {
+      String moduleName = module.getName();
+      int lastDot  = moduleName.lastIndexOf('.');
+      if (lastDot > 0) {
+        String holderModuleName = moduleName.substring(0, lastDot);
+        Module holder = ModuleManager.getInstance(module.getProject()).findModuleByName(holderModuleName);
+        if (holder != null) return holder;
+      }
+    }
+    return module;
+  }
+
+  private static boolean isAndroidOrJavaMainSourceSetModuleBySourceSetName(@NotNull Module module) {
+    if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return false;
+    if (!GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY.equals(ExternalSystemApiUtil.getExternalModuleType(module))) return false;
+    String moduleId = ExternalSystemApiUtil.getExternalProjectId(module);
+    if (moduleId == null) return false;
+    return "main".equals(StringsKt.substringAfterLast(moduleId, ":", ""));
+  }
+
   public static class AndroidPluginVersionsInProject {
     @NotNull private final Map<String, GradleVersion> myAgpVersionsPerModule = new HashMap<>();
 
@@ -189,7 +215,7 @@ public class ProjectStructure {
     }
 
     void add(@NotNull String gradlePath, @NotNull AndroidModuleModel androidModel) {
-      GradleVersion modelVersion = androidModel.getModelVersion();
+      GradleVersion modelVersion = androidModel.getAgpVersion();
       if (modelVersion != null) {
         add(gradlePath, modelVersion);
       }
@@ -223,7 +249,7 @@ public class ProjectStructure {
 
     @NotNull
     public List<GradleVersion> getAllVersions() {
-      return new ArrayList<>(myAgpVersionsPerModule.values());
+      return myAgpVersionsPerModule.values().stream().distinct().collect(Collectors.toList());
     }
 
     boolean isEmpty() {

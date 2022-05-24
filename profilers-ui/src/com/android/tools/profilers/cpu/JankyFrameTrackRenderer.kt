@@ -15,70 +15,89 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.chart.statechart.Renderer
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.common.fadedGoodFrame
 import com.android.tools.adtui.common.fadedMissedDeadlineJank
 import com.android.tools.adtui.common.fadedOtherJank
+import com.android.tools.adtui.common.goodFrame
 import com.android.tools.adtui.common.missedDeadlineJank
 import com.android.tools.adtui.common.otherJank
+import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
+import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel
-import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
+import com.intellij.util.ui.JBUI
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
-import java.awt.FontMetrics
-import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
+import kotlin.math.min
 
-class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<JankyFrameModel> {
-  override fun render(trackModel: TrackModel<JankyFrameModel, *>) =
-    StateChart(trackModel.dataModel, ::renderJankyFrame).apply {
+class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<AndroidFrameTimelineModel> {
+  override fun render(trackModel: TrackModel<AndroidFrameTimelineModel, *>) =
+    StateChart(trackModel.dataModel, renderJankyFrame(trackModel.dataModel.multiSelectionModel)).apply {
       addRowIndexChangeListener {
         trackModel.dataModel.activeSeriesIndex = it
       }
-    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
-
-  private fun renderJankyFrame(g: Graphics2D,
-                               rect: Rectangle2D.Float,
-                               fontMetrics: FontMetrics,
-                               hovered: Boolean,
-                               event: AndroidFrameTimelineEvent?) {
-    if (event != null) {
-      val duration = event.actualEndUs - event.expectedStartUs
-      val nonJankPortion = (event.expectedEndUs - event.expectedStartUs) / duration.toFloat()
-      val borderY = 1
-      val borderX = 1
-      val textPadding = borderX + 1
-
-      // draw entire frame
-      g.color = when (event.appJankType) {
-        JankType.JANK_APP_DEADLINE_MISSED -> if (hovered) missedDeadlineJank else fadedMissedDeadlineJank
-        JankType.JANK_BUFFER_STUFFING, JankType.JANK_UNSPECIFIED -> if (hovered) otherJank else fadedOtherJank
-        else -> UIUtil.TRANSPARENT_COLOR
+      addItemClickedListener {
+        it?.let {
+          trackModel.dataModel.multiSelectionModel.setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture)))
+        }
       }
-      g.fill(rect)
+    }.let { VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(it, trackModel.dataModel.viewRange,
+                                                                trackModel.dataModel.multiSelectionModel,
+                                                                GrayOutMode.None, true),
+                          trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
-      // draw non-jank portion
-      val expectedFrameWidth = rect.width * nonJankPortion
-      g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
-      g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
-                               expectedFrameWidth - 2 * borderX, rect.height - 2 * borderY - 1))
+  private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =
+    { g, rect, fontMetrics, hovered, event ->
+      if (event != null) {
+        val borderY = 1
+        val borderX = 1
+        val textPadding = borderX + 1
+        val active = hovered || multiSelectionModel.activeSelectionKey === event
+        val duration = event.actualDurationUs
+        val blankRectWidth = rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
 
-      // draw text
-      val availableTextSpace = expectedFrameWidth - textPadding * 2
-      if (availableTextSpace > 1) {
-        val fullText = "Frame ${event.surfaceFrameToken}: ${duration / 1000}ms"
-        val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
-        if (text.isNotEmpty()) {
-          g.color = if (hovered) JBColor.DARK_GRAY else JBColor.LIGHT_GRAY
-          val textOffset = rect.y + (rect.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
-          g.drawString(text, rect.x + textPadding, textOffset)
+        // draw entire frame
+        g.color = if (active) event.getActiveColor() else event.getPassiveColor()
+        g.fill(rect)
+
+        // draw non-jank portion
+        g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
+        g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
+                                 blankRectWidth - 2 * borderX, rect.height - 2 * borderY - 1))
+
+        // draw text
+        val availableTextSpace = blankRectWidth - textPadding * 2
+        if (availableTextSpace > 1) {
+          val fullText = "${event.surfaceFrameToken}: ${TimeFormatter.getSingleUnitDurationString(duration)}"
+          val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
+          if (text.isNotEmpty()) {
+            g.color = if (active) JBUI.CurrentTheme.Label.foreground() else JBUI.CurrentTheme.Label.disabledForeground()
+            val textOffset = rect.y + (rect.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
+            g.drawString(text, rect.x + textPadding, textOffset)
+          }
         }
       }
     }
-  }
+}
+
+fun AndroidFrameTimelineEvent.getActiveColor() = when (appJankType) {
+  JankType.JANK_APP_DEADLINE_MISSED -> missedDeadlineJank
+  JankType.JANK_NONE -> goodFrame
+  else -> otherJank
+}
+
+fun AndroidFrameTimelineEvent.getPassiveColor() = when (appJankType) {
+  JankType.JANK_APP_DEADLINE_MISSED -> fadedMissedDeadlineJank
+  JankType.JANK_NONE -> fadedGoodFrame
+  else -> fadedOtherJank
 }

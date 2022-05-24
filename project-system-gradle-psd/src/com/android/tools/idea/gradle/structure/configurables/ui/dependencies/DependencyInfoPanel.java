@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 
 class DependencyInfoPanel {
   private JPanel myMainPanel;

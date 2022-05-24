@@ -35,9 +35,6 @@ import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.junit.Assert
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.LinkedHashSet
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 /**

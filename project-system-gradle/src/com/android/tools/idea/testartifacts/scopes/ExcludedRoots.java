@@ -21,17 +21,15 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -51,7 +49,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class ExcludedRoots {
+public class ExcludedRoots {
   @NotNull private final ExcludedModules myExcludedModules;
   private final boolean myAndroidTest;
 
@@ -92,12 +90,6 @@ class ExcludedRoots {
           myExcludedRoots.add(urlToFilePath(url));
         }
       }
-
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel != null) {
-        IdeAndroidArtifact artifact = androidModuleModel.getMainArtifact();
-        myExcludedRoots.addAll(getAdditionalClasspathFolders(artifact));
-      }
     }
   }
 
@@ -123,7 +115,7 @@ class ExcludedRoots {
   }
 
   private void addModuleIfNecessary(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
       IdeBaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
@@ -143,9 +135,11 @@ class ExcludedRoots {
   }
 
   private static void processFolders(@NotNull IdeBaseArtifact artifact,
-                                     @NotNull AndroidModuleModel androidModel,
+                                     @NotNull GradleAndroidModel androidModel,
                                      @NotNull Consumer<File> action) {
-    action.accept(artifact.getClassesFolder());
+    for (File file : artifact.getClassesFolder()) {
+      action.accept(file);
+    }
     for (File file : artifact.getGeneratedSourceFolders()) {
       action.accept(file);
     }
@@ -157,18 +151,6 @@ class ExcludedRoots {
         action.accept(file);
       }
     }
-  }
-
-  /**
-   * Returns folders which are used for unit testing and stored in the model, but not represented in the IntelliJ project structure.
-   */
-  public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
-    ImmutableList.Builder<File> builder = ImmutableList.<File>builder()
-      .addAll(artifact.getAdditionalClassesFolders());
-    if (artifact.getJavaResourcesFolder() != null) {
-      builder.add(artifact.getJavaResourcesFolder());
-    }
-    return builder.build();
   }
 
   private void addLibraryPaths(@NotNull DependencySet dependencies) {
@@ -196,7 +178,7 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
+    GradleAndroidModel model = GradleAndroidModel.get(module);
     if (model != null) {
       IdeVariant variant = model.getSelectedVariant();
       IdeBaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();

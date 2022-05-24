@@ -26,7 +26,7 @@ import javax.swing.table.DefaultTableCellRenderer
 /**
  * Renders duration in microseconds in human readable format.
  */
-internal class DurationRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
+internal open class DurationRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     val duration = value as Long
     text = TimeFormatter.getSingleUnitDurationString(duration)

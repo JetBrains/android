@@ -15,26 +15,31 @@
  */
 package com.android.tools.adtui.common;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.TreeWalker;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.treeStructure.Tree;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.MouseEvent;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.plaf.TreeUI;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class ColumnTreeBuilderTest {

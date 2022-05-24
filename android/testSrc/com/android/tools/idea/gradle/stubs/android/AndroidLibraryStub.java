@@ -19,17 +19,16 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLibraryStub implements AndroidLibrary {
-  @NotNull private final List<File> myLocalJars = Lists.newArrayList();
+  @NotNull private final List<File> myLocalJars = new ArrayList<>();
 
   @NotNull private final File myBundle;
   @NotNull private final File myJarFile;

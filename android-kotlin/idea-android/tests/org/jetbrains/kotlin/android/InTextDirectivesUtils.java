@@ -16,9 +16,8 @@
 package org.jetbrains.kotlin.android;
 
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -53,7 +52,7 @@ public final class InTextDirectivesUtils {
 
   @NotNull
   public static String[] findArrayWithPrefixes(@NotNull String fileText, @NotNull String... prefixes) {
-    return ArrayUtil.toStringArray(findListWithPrefixes(fileText, prefixes));
+    return ArrayUtilRt.toStringArray(findListWithPrefixes(fileText, prefixes));
   }
 
   @NotNull
@@ -162,7 +161,7 @@ public final class InTextDirectivesUtils {
   }
 
   private static List<String> cleanDirectivesFromComments(Collection<String> prefixes) {
-    List<String> resultPrefixes = Lists.newArrayList();
+    List<String> resultPrefixes = new ArrayList<>();
 
     for (String prefix : prefixes) {
       if (prefix.startsWith("//") || prefix.startsWith("##")) {

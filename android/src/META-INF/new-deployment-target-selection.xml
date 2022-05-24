@@ -16,16 +16,15 @@
 <idea-plugin>
   <actions>
     <!--suppress PluginXmlCapitalization -->
-    <action id="RunningDevices" class="com.android.tools.idea.run.deployment.Heading" text="Running devices"/>
+    <action id="RunningDevices" class="com.android.tools.idea.run.deployment.Heading"/>
 
     <!--suppress PluginXmlCapitalization -->
-    <action id="AvailableDevices" class="com.android.tools.idea.run.deployment.Heading" text="Available devices"/>
+    <action id="AvailableDevices" class="com.android.tools.idea.run.deployment.Heading"/>
 
     <action id="SelectMultipleDevices" class="com.android.tools.idea.run.deployment.SelectMultipleDevicesAction"
-            text="Select Multiple Devices..." icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
+            icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
 
-    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
-            text="Select Device">
+    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction">
       <add-to-group group-id="RunMenu" relative-to-action="editRunConfigurations" anchor="after"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
 

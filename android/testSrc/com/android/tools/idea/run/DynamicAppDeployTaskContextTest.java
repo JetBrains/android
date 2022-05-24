@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext;
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class DynamicAppDeployTaskContextTest {
   @Test

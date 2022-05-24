@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
@@ -35,11 +34,12 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -73,7 +73,7 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.gradle.config.GradleFileType;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
@@ -110,7 +110,7 @@ public class GradleFiles {
 
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleFiles.class);
+    return project.getService(GradleFiles.class);
   }
 
   private GradleFiles(@NotNull Project project) {
@@ -230,9 +230,11 @@ public class GradleFiles {
    */
   @Nullable
   private static Integer computeHash(@NotNull VirtualFile file) {
-    if (!file.isValid()) return null;
-    Document document = FileDocumentManager.getInstance().getDocument(file);
-    return document == null ? null : document.getText().hashCode();
+    return ReadAction.compute(() -> {
+      if (!file.isValid()) return null;
+      Document document = FileDocumentManager.getInstance().getDocument(file);
+      return document == null ? null : document.getText().hashCode();
+    });
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -423,12 +425,14 @@ public class GradleFiles {
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || psiFile.getFileType().getName().equals("Kotlin")) {
-      if (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
-        return true;
-      }
+    if (GradleFileType.isGradleFile(psiFile)) {
+      return true;
     }
-    if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
+    FileType fileType = psiFile.getFileType();
+    if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
+      return true;
+    }
+    if (fileType == PropertiesFileType.INSTANCE) {
       if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
         return true;
       }

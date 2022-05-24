@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.module;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetup;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidRunConfigurations;
@@ -42,7 +42,7 @@ import org.mockito.Mock;
  */
 public class ModuleSetupTest extends PlatformTestCase {
   @Mock private AndroidRunConfigurations myRunConfigurations;
-  @Mock private AndroidModuleModel myAndroidModuleModel;
+  @Mock private GradleAndroidModel myAndroidModuleModel;
 
   @Override
   protected void setUp() throws Exception {

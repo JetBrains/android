@@ -16,12 +16,12 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.isAndroidEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
-import org.jetbrains.android.util.AndroidUtils.hasAndroidFacets
 
 /**
  * [ToolWindowFactory] implementation for the Emulator tool window.
@@ -37,15 +37,14 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
     toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
   }
 
-  override fun shouldBeAvailable(project: Project): Boolean {
-    val available = canLaunchEmulator()
+  override fun isApplicable(project: Project): Boolean {
+    val available = isAndroidEnvironment(project) && canLaunchEmulator()
     if (available) {
       EmulatorToolWindowManager.initializeForProject(project)
     }
     return available
   }
 
-  private fun canLaunchEmulator(): Boolean {
-    return !isChromeOSAndIsNotHWAccelerated()
-  }
+  private fun canLaunchEmulator(): Boolean =
+    !isChromeOSAndIsNotHWAccelerated()
 }

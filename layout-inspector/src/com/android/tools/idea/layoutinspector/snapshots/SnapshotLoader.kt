@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.intellij.openapi.vfs.VirtualFile
 import java.io.ObjectInputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -76,6 +75,8 @@ interface SnapshotLoader {
   }
 }
 
+class SnapshotLoaderException(reason: String) : Exception(reason)
+
 enum class ProtocolVersion(val value: String) {
   Version1("1"), // Legacy layout inspector
   Version2("2"), // Legacy version that was never implemented
@@ -104,7 +105,12 @@ class LayoutInspectorCaptureOptions(
 
   fun parse(json: String) {
     val obj = JsonParser().parse(json).asJsonObject
-    version = ProtocolVersion.valueOf("Version${obj.get(VERSION).asString}")
+    try {
+      version = ProtocolVersion.valueOf("Version${obj.get(VERSION).asString}")
+    }
+    catch (exception: IllegalArgumentException) {
+      throw SnapshotLoaderException("This version of Studio doesn't support version ${obj.get(VERSION).asString} snapshots.")
+    }
     title = obj.get(TITLE).asString
   }
 }

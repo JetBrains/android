@@ -16,10 +16,13 @@
 package org.jetbrains.android.util;
 
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstract external tool for compiler.
@@ -31,7 +34,7 @@ public final class AndroidExecutionUtil {
 
   @NotNull
     public static Map<AndroidCompilerMessageKind, List<String>> doExecute(String... argv) throws IOException {
-    return doExecute(argv, Collections.<String, String>emptyMap());
+    return doExecute(argv, Collections.emptyMap());
   }
 
   @NotNull
@@ -92,10 +95,10 @@ public final class AndroidExecutionUtil {
 
     public ProcessResult(List<String> information, List<String> error, int exitCode) {
       myExitCode = exitCode;
-      myMessages = new HashMap<AndroidCompilerMessageKind, List<String>>(2);
+      myMessages = new HashMap<>(2);
       myMessages.put(AndroidCompilerMessageKind.INFORMATION, information);
       myMessages.put(AndroidCompilerMessageKind.ERROR, error);
-      myMessages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
+      myMessages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<>());
     }
 
     public Map<AndroidCompilerMessageKind, List<String>> getMessages() {
@@ -111,7 +114,7 @@ public final class AndroidExecutionUtil {
     for (Map.Entry<T, List<String>> entry : toAdd.entrySet()) {
       List<String> list = messages.get(entry.getKey());
       if (list == null) {
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
         messages.put(entry.getKey(), list);
       }
       list.addAll(entry.getValue());

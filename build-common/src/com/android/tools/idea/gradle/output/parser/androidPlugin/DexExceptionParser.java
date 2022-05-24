@@ -24,11 +24,10 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.ide.common.blame.parser.util.ParserUtil;
 import com.android.utils.ILogger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A parser for exceptions thrown by dex. They are of the form:

@@ -16,7 +16,10 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQNS;
+import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
+import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -66,6 +69,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -100,9 +104,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
-import org.jetbrains.android.uipreview.ModuleClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -145,12 +149,13 @@ public class RenderTask {
   /**
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
-  private static final int DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
+  private static final int DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
 
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
-  private static final ExecutorService ourDisposeService =
+  @VisibleForTesting
+  static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
@@ -161,6 +166,7 @@ public class RenderTask {
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
   private final float myDefaultQuality;
+  private final long myDownScaledImageMaxBytes;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   private boolean mySetTransparentBackground = false;
@@ -184,6 +190,11 @@ public class RenderTask {
   @Nullable private XmlFile myXmlFile;
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
+
+  /**
+   * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
+   */
+  private final boolean reportOutOfDateUserClasses;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -210,8 +221,10 @@ public class RenderTask {
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
-             @NotNull Collection<String> classesToPreload) {
+             @NotNull Collection<String> classesToPreload,
+             boolean reportOutOfDateUserClasses) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
+    this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
     if (!isSecurityManagerEnabled) {
       LOG.debug("Security manager was disabled");
@@ -252,7 +265,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
-    ModuleClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
+    ClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -267,6 +280,21 @@ public class RenderTask {
                                     moduleInfo,
                                     renderService.getPlatform(facet));
       myDefaultQuality = quality;
+      // Some devices need more memory to avoid the blur when rendering. These are special cases.
+      // The image looks acceptable after dividing both width and height to half. So we divide memory usage by 4 for these devices.
+      if (DEVICE_CLASS_DESKTOP_ID.equals(device.getId())) {
+        // Desktop device is 1920dp * 1080dp with XXHDPI density, it needs roughly 6K * 3K * 32 (ARGB) / 8 = 72 MB.
+        // We divide it by 4, which is 18 MB.
+        myDownScaledImageMaxBytes = 18_000_000L;
+      }
+      else if (DEVICE_CLASS_TABLET_ID.equals(device.getId())) {
+        // Desktop device is 1280dp * 800dp with XXHDPI density, it needs roughly (1280 * 3) * (800 * 3) * 32 (ARGB) / 8 = 36 MB.
+        // We divide it by 4, which is 9 MB.
+        myDownScaledImageMaxBytes = 9_000_000L;
+      }
+      else {
+        myDownScaledImageMaxBytes = DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES;
+      }
       restoreDefaultQuality();
       myManifestProvider = manifestProvider;
 
@@ -284,7 +312,7 @@ public class RenderTask {
     }
 
     float actualSamplingFactor = MIN_DOWNSCALING_FACTOR + Math.max(Math.min(quality, 1f), 0f) * (1f - MIN_DOWNSCALING_FACTOR);
-    long maxSize = (long)((float)DOWNSCALED_IMAGE_MAX_BYTES * actualSamplingFactor);
+    long maxSize = (long)((float)myDownScaledImageMaxBytes * actualSamplingFactor);
     myCachingImageFactory = new CachingImageFactory(((width, height) -> {
       int downscaleWidth = width;
       int downscaleHeight = height;
@@ -1022,6 +1050,13 @@ public class RenderTask {
             reportException(renderResult.getException());
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
+          if (reportOutOfDateUserClasses && !myModuleClassLoader.isUserCodeUpToDate()) {
+            RenderProblem.Html problem = RenderProblem.create(WARNING);
+            HtmlBuilder builder = problem.getHtmlBuilder();
+            builder.addLink("The project has been edited more recently than the last build: ", "Build", " the project.",
+                            myLogger.getLinkManager().createBuildProjectUrl());
+            myLogger.addMessage(problem);
+          }
           return result;
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
@@ -1327,6 +1362,27 @@ public class RenderTask {
       myLogger.error(null, t.getLocalizedMessage(), t, null, null);
       throw t;
     }
+  }
+
+  /**
+   * Similar to {@link #runAsyncRenderAction(Callable)} but executes it under a {@link RenderSession}. This allows the
+   * given block to access resources since they are setup before executing it.
+   * @return A {@link CompletableFuture} that completes when the block finalizes.
+   */
+  @NotNull
+  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block) {
+    if (isDisposed.get()) {
+      return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+    }
+    RenderSession renderSession = myRenderSession;
+    if (renderSession == null) {
+      return immediateFailedFuture(new IllegalStateException("No RenderSession available"));
+    }
+    return runAsyncRenderAction(() -> {
+      renderSession.execute(block);
+
+      return null;
+    });
   }
 
   @VisibleForTesting

@@ -15,86 +15,108 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
+import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
+class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
 
-  override fun setUp() {
-    super.setUp()
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+  private val project: Project get() = projectRule.project
+  private val myFixture: CodeInsightTestFixture get() = projectRule.fixture
 
+  @Before
+  fun setUp() {
     MockitoAnnotations.initMocks(this)
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     // MultiRepresentationPreview keeps a reference to a project, so it should get disposed before.
     Disposer.dispose(multiPreview)
-
-    super.tearDown()
   }
 
   private class UpdatableMultiRepresentationPreview(psiFile: PsiFile,
                                                     editor: Editor,
                                                     providers: List<PreviewRepresentationProvider>,
-                                                    initialState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState()) :
-    MultiRepresentationPreview(psiFile, editor, providers) {
-
-    init {
-      onInit()
-      // Simulate initial initialization by IntelliJ of the state loaded from disk
-      setState(initialState)
-      // Do the activation since this is not embedded within an actual editor.
-      onActivate()
-    }
+                                                    scope: CoroutineScope) :
+    MultiRepresentationPreview(psiFile, editor, providers, scope) {
 
     val currentState: MultiRepresentationPreviewFileEditorState get() = getState(FileEditorStateLevel.FULL)
+  }
 
-    fun forceUpdateRepresentations() {
-      super.updateRepresentations()
+  private suspend fun createMultiRepresentation(psiFile: PsiFile,
+                                                editor: Editor,
+                                                providers: List<PreviewRepresentationProvider>,
+                                                initialState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState()) =
+    UpdatableMultiRepresentationPreview(psiFile, editor, providers, AndroidCoroutineScope(projectRule.testRootDisposable)).apply {
+      onInit()
+      // Simulate initial initialization by IntelliJ of the state loaded from disk
+      setStateAndUpdateRepresentations(initialState)
+      onActivate()
+      awaitForRepresentationsUpdated()
     }
-  }
 
-  fun testNoProviders_noHistory() {
+  @Test
+  fun testNoProviders_noHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf())
+    multiPreview = createMultiRepresentation(sampleFile, myFixture.editor, listOf())
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
   }
 
-  fun testNoProviders_someHistory() {
+  @Test
+  fun testNoProviders_someHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(sampleFile,
-                                                       myFixture.editor,
-                                                       listOf(),
-                                                       MultiRepresentationPreviewFileEditorState("for"))
+    multiPreview = createMultiRepresentation(sampleFile,
+                                             myFixture.editor,
+                                             listOf(),
+                                             MultiRepresentationPreviewFileEditorState("for"))
 
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -103,11 +125,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testSingleAcceptingProvider_noHistory() {
+  @Test
+  fun testSingleAcceptingProvider_noHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)))
@@ -131,11 +154,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testSingleAcceptingProvider_validHistory() {
+  @Test
+  fun testSingleAcceptingProvider_validHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
@@ -150,11 +174,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting", multiPreview.currentRepresentationName)
   }
 
-  fun testSingleAcceptingProvider_invalidHistory() {
+  @Test
+  fun testSingleAcceptingProvider_invalidHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
@@ -165,11 +190,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testSingleNonAcceptingProvider_noHistory() {
+  @Test
+  fun testSingleNonAcceptingProvider_noHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("NonAccepting", false)))
@@ -178,7 +204,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -186,11 +212,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testMultipleProviders_noHistory() {
+  @Test
+  fun testMultipleProviders_noHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -210,11 +237,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting2", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testMultipleProviders_validHistory() {
+  @Test
+  fun testMultipleProviders_validHistory() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -223,7 +251,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         TestPreviewRepresentationProvider("NonAccepting", false)),
       MultiRepresentationPreviewFileEditorState("Accepting2"))
 
-    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
     assertEquals("Accepting2", multiPreview.currentRepresentationName)
@@ -235,13 +262,14 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting1", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testMultipleProviders_conditionallyAccepting() {
+  @Test
+  fun testMultipleProviders_conditionallyAccepting() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    val conditionallyAccepting = TestPreviewRepresentationProvider ("ConditionallyAccepting", false)
+    val conditionallyAccepting = TestPreviewRepresentationProvider("ConditionallyAccepting", false)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -259,7 +287,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = true
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting", "ConditionallyAccepting")
 
@@ -269,7 +297,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("ConditionallyAccepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = false
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
@@ -277,7 +305,8 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
-  fun testPreviewRepresentationShortcutsRegistered() {
+  @Test
+  fun testPreviewRepresentationShortcutsRegistered() = runBlocking {
     val shortcutsApplicableComponent = Mockito.mock(JComponent::class.java)
 
     val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
@@ -287,19 +316,19 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     val laterAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
     Mockito.`when`(laterAcceptedRepresentation.component).thenReturn(JPanel())
-    val laterAcceptingProvider = TestPreviewRepresentationProvider ("laterRepresentation", false, laterAcceptedRepresentation)
+    val laterAcceptingProvider = TestPreviewRepresentationProvider("laterRepresentation", false, laterAcceptedRepresentation)
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
         initiallyAcceptingProvider,
         laterAcceptingProvider),
       MultiRepresentationPreviewFileEditorState("initialRepresentation"))
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     Mockito.verify(initiallyAcceptedRepresentation, never()).registerShortcuts(any())
     Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
@@ -310,13 +339,14 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
 
     laterAcceptingProvider.isAccept = true
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
     Mockito.verify(initiallyAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
     Mockito.verify(laterAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
   }
 
-  fun testUpdateNotificationsPropagated() {
+  @Test
+  fun testUpdateNotificationsPropagated() = runBlocking {
     val representation1 = Mockito.mock(PreviewRepresentation::class.java)
     Mockito.`when`(representation1.component).thenReturn(JPanel())
 
@@ -329,11 +359,11 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
-        TestPreviewRepresentationProvider("Accepting1" , true, representation1),
+        TestPreviewRepresentationProvider("Accepting1", true, representation1),
         TestPreviewRepresentationProvider("Accepting2", true, representation2),
         TestPreviewRepresentationProvider("NonAccepting", false, representation3)
       ))
@@ -345,13 +375,14 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     Mockito.verify(representation3, never()).updateNotifications(any())
   }
 
-  fun testVerifyStateIsCorrectlyLoaded() {
+  @Test
+  fun testVerifyStateIsCorrectlyLoaded() = runBlocking {
     val state1 = mapOf("id" to "state1")
     val state3 = mapOf("id" to "state3")
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -362,23 +393,24 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         Representation("Accepting1", state1),
         Representation("Accepting3", state3)
       )))
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
     assertNull((multiPreview.currentRepresentation as TestPreviewRepresentation).state)
     multiPreview.currentRepresentationName = "Accepting1"
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
     assertEquals(state1, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
     multiPreview.currentRepresentationName = "Accepting3"
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
     assertEquals(state3, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
   }
 
-  fun testActivationDeactivation() {
+  @Test
+  fun testActivationDeactivation() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     val representation1 = TestPreviewRepresentation()
     val representation2 = TestPreviewRepresentation()
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -396,7 +428,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(1, representation1.nActivations)
     assertEquals(0, representation2.nActivations)
     multiPreview.currentRepresentationName = "Representation2"
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
     // Previous representation should be de-activated, new one activated
     assertEquals(0, representation1.nActivations)
     assertEquals(1, representation2.nActivations)
@@ -408,12 +440,13 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(0, representation2.nActivations)
   }
 
-  fun testMultiRepresentationReactivateHandlesRepresentationActivation() {
+  @Test
+  fun testMultiRepresentationReactivateHandlesRepresentationActivation() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     val representation1 = TestPreviewRepresentation()
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
@@ -429,7 +462,8 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(1, representation1.nActivations)
   }
 
-  fun testCaretNotification() {
+  @Test
+  fun testCaretNotification() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", """
       // Line 1
       // Line 2
@@ -438,45 +472,48 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     """.trimIndent())
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     val representation1 = TestPreviewRepresentation()
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(
         TestPreviewRepresentationProvider("Representation1", true, representation1)
       ),
       MultiRepresentationPreviewFileEditorState("Representation1"))
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
 
-    assertEquals(0, representation1.nCaretNotifications)
-    myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertEquals(1, representation1.nCaretNotifications)
-    myFixture.editor.caretModel.moveCaretRelatively(0, -1, false, false, false)
-    assertEquals(2, representation1.nCaretNotifications)
+    withContext(uiThread) {
+      assertEquals(0, representation1.nCaretNotifications)
+      myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertEquals(1, representation1.nCaretNotifications)
+      myFixture.editor.caretModel.moveCaretRelatively(0, -1, false, false, false)
+      assertEquals(2, representation1.nCaretNotifications)
 
-    WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.editor.insertText("Hello world")
+      WriteCommandAction.runWriteCommandAction(project) {
+        myFixture.editor.insertText("Hello world")
+      }
+      // insertText does not move the caret so we need to manually do it
+      myFixture.editor.caretModel.moveCaretRelatively(11, 0, false, false, false)
+      // No notification expected from a file modification
+      assertEquals(2, representation1.nCaretNotifications)
+
+      // This change will be picked up again
+      myFixture.editor.caretModel.moveCaretRelatively(-11, 0, false, false, false)
+      assertEquals(3, representation1.nCaretNotifications)
+
+      multiPreview.onDeactivate()
+      myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+      assertEquals(3, representation1.nCaretNotifications)
     }
-    // insertText does not move the caret so we need to manually do it
-    myFixture.editor.caretModel.moveCaretRelatively(11, 0, false, false, false)
-    // No notification expected from a file modification
-    assertEquals(2, representation1.nCaretNotifications)
-
-    // This change will be picked up again
-    myFixture.editor.caretModel.moveCaretRelatively(-11, 0, false, false, false)
-    assertEquals(3, representation1.nCaretNotifications)
-
-    multiPreview.onDeactivate()
-    myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertEquals(3, representation1.nCaretNotifications)
   }
 
-  fun testRepresentationsUpdatedWhenDeactivated() {
+  @Test
+  fun testRepresentationsUpdatedWhenDeactivated() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
     val conditionalProvider = TestPreviewRepresentationProvider("Representation1", true)
 
-    multiPreview = UpdatableMultiRepresentationPreview(
+    multiPreview = createMultiRepresentation(
       sampleFile,
       myFixture.editor,
       listOf(conditionalProvider),
@@ -489,7 +526,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Emulate code change that removed representations and deactivates the preview
     conditionalProvider.isAccept = false
-    multiPreview.forceUpdateRepresentations()
+    multiPreview.updateRepresentations().join()
     multiPreview.onDeactivate()
 
     assertNull(multiPreview.currentRepresentation)
@@ -497,30 +534,36 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Emulate the code change that re-enables the preview
     conditionalProvider.isAccept = true
-    multiPreview.forceUpdateRepresentations() // This could reactivate the preview
+    multiPreview.updateRepresentations().join() // This could reactivate the preview
 
     assertNotNull(multiPreview.currentRepresentation)
     assertNotEmpty(multiPreview.representationNames)
   }
 
   // Regression test for http://b/176468484
-  fun testInitializationDuringDumbMode() {
+  @Test
+  fun testInitializationDuringDumbMode() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    DumbServiceImpl.getInstance(project).isDumb = true
+    invokeAndWaitIfNeeded {
+      DumbServiceImpl.getInstance(project).isDumb = true
+    }
     val provider = TestPreviewRepresentationProvider("Accepting", false)
-    multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile,
-      myFixture.editor,
-      listOf(provider))
+    val futureMultiPreview = async {
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(provider))
+    }
 
-    assertNull(multiPreview.currentRepresentation)
-    assertTrue("Initialization done during dumb mode would not be able to find 'Accepting'",
-               multiPreview.representationNames.isEmpty())
-    provider.isAccept = true
-    DumbServiceImpl.getInstance(project).isDumb = false
+    invokeAndWaitIfNeeded {
+      provider.isAccept = true
+      DumbServiceImpl.getInstance(project).isDumb = false
+    }
 
+    multiPreview = futureMultiPreview.await()
+    multiPreview.awaitForRepresentationsUpdated()
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     assertEquals("Accepting", multiPreview.currentRepresentationName)
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)

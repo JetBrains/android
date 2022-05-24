@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
-import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS;
-import static com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
-import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 
@@ -37,34 +33,25 @@ import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
-import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl;
-import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
-import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
-import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -75,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -113,6 +101,28 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     return new ArrayList<>(PluginModelImpl.deduplicatePlugins(plugins).values());
   }
 
+  @Override
+  public @NotNull List<PluginModel> appliedPlugins() {
+    Predicate<PluginModel> appliedPredicate = (plugin) -> {
+      ResolvedPropertyModel apply = plugin.apply();
+      ValueType valueType = apply.getValueType();
+      if (valueType == NONE) {
+        // Plugin declarations in build files default to `apply true`, which is also the correct meaning for syntactic forms
+        // which cannot express an apply property, such as `apply plugin: 'foo'`.
+        return true;
+      }
+      else if (valueType == BOOLEAN) {
+        return apply.getValue(BOOLEAN_TYPE);
+      }
+      else {
+        // not understood: default to not applied.
+        return false;
+      }
+    };
+    return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
+  }
+
+
   @NotNull
   @Override
   public PluginModel applyPlugin(@NotNull String plugin) {
@@ -140,7 +150,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       applyMap.setNewElement(literal);
       applyDslElement.setNewElement(applyMap);
 
-      return new PluginModelImpl(applyMap, literal);
+      return new PluginModelImpl(applyMap);
     }
 
     Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(pluginsDslElement));
@@ -160,7 +170,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     literal.setValue(plugin.trim());
     pluginsDslElement.setNewElement(literal);
 
-    return new PluginModelImpl(literal, literal);
+    return new PluginModelImpl(literal);
   }
 
   @Override
@@ -177,7 +187,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
 
     // id '<plugin>'
-    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin);
+    expression.setNewLiteral(ID, plugin);
     // ... version '<version>'
     expression.setNewLiteral(VERSION, version);
     // ... apply <boolean>
@@ -187,7 +197,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // link everything up
     pluginsElement.setNewElement(expression);
 
-    return new PluginModelImpl(expression, idLiteral);
+    return new PluginModelImpl(expression);
   }
 
   @Override
@@ -203,7 +213,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     if (applyDslElement != null) {
       PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
     }
-
   }
 
   @Nullable
@@ -225,66 +234,54 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public AndroidModel android() {
-    AndroidDslElement androidDslElement = myGradleDslFile.ensurePropertyElement(ANDROID);
-    return new AndroidModelImpl(androidDslElement);
+    return getModel(AndroidModel.class);
   }
 
   @NotNull
   @Override
   public BuildScriptModel buildscript() {
-    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.ensurePropertyElementAt(BUILDSCRIPT, 0);
-    return new BuildScriptModelImpl(buildScriptDslElement);
+    return getModel(BuildScriptModel.class);
   }
 
   @NotNull
   @Override
   public ConfigurationsModel configurations() {
-    ConfigurationsDslElement configurationsDslElement =
-      myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS, DependenciesDslElement.class);
-    return new ConfigurationsModelImpl(configurationsDslElement);
+    return getModel(ConfigurationsModel.class);
   }
 
   @NotNull
   @Override
   public CrashlyticsModel crashlytics() {
-    CrashlyticsDslElement crashlyticsDslElement = myGradleDslFile.ensurePropertyElement(CRASHLYTICS);
-    return new CrashlyticsModelImpl(crashlyticsDslElement);
+    return getModel(CrashlyticsModel.class);
   }
 
   @NotNull
   @Override
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myGradleDslFile.ensurePropertyElement(DEPENDENCIES);
-    return new DependenciesModelImpl(dependenciesDslElement);
+    return getModel(DependenciesModel.class);
   }
 
   @Override
   @NotNull
   public ExtModel ext() {
-    int at = 0;
-    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
-    for (GradleDslElement element : elements) {
-      if (!(element instanceof ApplyDslElement || element instanceof PluginsDslElement || element instanceof BuildScriptDslElement)) {
-        break;
-      }
-      at += 1;
-    }
-    ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
-    return new ExtModelImpl(extDslElement);
+    return getModel(ExtModel.class);
   }
 
   @NotNull
   @Override
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.ensurePropertyElement(JAVA);
-    return new JavaModelImpl(javaDslElement);
+    return getModel(JavaModel.class);
   }
 
   @NotNull
   @Override
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.ensurePropertyElement(REPOSITORIES);
-    return new RepositoriesModelImpl(repositoriesDslElement);
+    return getModel(RepositoriesModel.class);
+  }
+
+  @Override
+  public <T extends GradleDslModel> @NotNull T getModel(Class<T> klass) {
+    return GradleBlockModelMap.get(myGradleDslFile, GradleBuildModel.class, klass);
   }
 
   @Override
@@ -335,12 +332,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // Add all parent dsl files.
     files.addAll(getParentFiles());
 
-    List<GradleBuildFile> currentFiles = new ArrayList<>();
+    List<GradleScriptFile> currentFiles = new ArrayList<>();
     currentFiles.add(myGradleBuildFile);
     // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
     // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
     while (!currentFiles.isEmpty()) {
-      GradleDslFile currentFile = currentFiles.remove(0);
+      GradleScriptFile currentFile = currentFiles.remove(0);
       files.addAll(currentFile.getApplyDslElement());
       currentFiles.addAll(currentFile.getApplyDslElement());
     }

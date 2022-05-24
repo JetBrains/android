@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import static com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -256,7 +255,7 @@ public class MockupTest extends MockupTestCase {
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
         @NotNull
         @Override
-        public CompletableFuture<Void> requestRender() {
+        public CompletableFuture<Void> requestRenderAsync() {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }
@@ -289,7 +288,7 @@ public class MockupTest extends MockupTestCase {
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
         @NotNull
         @Override
-        public CompletableFuture<Void> requestRender() {
+        public CompletableFuture<Void> requestRenderAsync() {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }

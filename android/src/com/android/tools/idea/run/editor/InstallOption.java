@@ -16,9 +16,8 @@
 package com.android.tools.idea.run.editor;
 
 import com.intellij.ui.ColoredListCellRenderer;
+import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public enum InstallOption {
   DEFAULT_APK("Default APK"),

@@ -21,13 +21,15 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.CollectionComboBoxModel;
+import java.awt.BorderLayout;
+import java.util.List;
 import java.util.Locale;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
 
 public class AndroidModularizeDialog extends RefactoringDialog {
 

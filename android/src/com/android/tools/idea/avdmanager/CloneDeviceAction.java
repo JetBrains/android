@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Clone the given {@link com.android.sdklib.devices.Device}

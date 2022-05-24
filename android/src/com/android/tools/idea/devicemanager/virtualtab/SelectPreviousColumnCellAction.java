@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
-import com.intellij.ui.table.JBTable;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectPreviousColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    JBTable table = (JBTable)event.getSource();
+    VirtualDeviceTable table = (VirtualDeviceTable)event.getSource();
 
     if (table.isEmpty()) {
       return;
@@ -36,10 +34,11 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
 
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
+    int actionsViewColumnIndex = table.actionsViewColumnIndex();
 
     AvdActionPanel panel;
 
-    switch (viewColumnIndex) {
+    switch (table.convertColumnIndexToModel(viewColumnIndex)) {
       case -1:
         int lastViewRowIndex = table.getRowCount() - 1;
         int lastViewColumnIndex = table.getColumnCount() - 1;
@@ -49,37 +48,39 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
 
         setFocusedActionComponentToLast(table, lastViewRowIndex, lastViewColumnIndex);
         break;
-      case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
-        panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+      case VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX:
+        panel = ((ActionsTableCell)table.getCellEditor()).getComponent(table.getSelectedDevice().orElseThrow(AssertionError::new));
 
         if (panel.getFocusedComponent() != 0) {
           AvdActionPanels.selectPreviousComponent(panel);
         }
         else {
           table.removeEditor();
-          model.setLeadSelectionIndex(VirtualTableView.SIZE_ON_DISK_VIEW_COLUMN_INDEX);
+          model.setLeadSelectionIndex(table.sizeOnDiskViewColumnIndex());
         }
 
         break;
-      case VirtualTableView.SIZE_ON_DISK_VIEW_COLUMN_INDEX:
-      case VirtualTableView.API_VIEW_COLUMN_INDEX:
+      case VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+      case VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX:
         model.setLeadSelectionIndex(viewColumnIndex - 1);
         break;
-      case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
+      case VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX:
         Tables.selectPreviousOrLastRow(table);
-        model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
+        model.setLeadSelectionIndex(actionsViewColumnIndex);
 
-        setFocusedActionComponentToLast(table, table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
+        setFocusedActionComponentToLast(table, table.getSelectedRow(), actionsViewColumnIndex);
         break;
       default:
         assert false;
     }
   }
 
-  private static void setFocusedActionComponentToLast(@NotNull JTable table, int viewRowIndex, int viewColumnIndex) {
+  private static void setFocusedActionComponentToLast(@NotNull VirtualDeviceTable table, int viewRowIndex, int viewColumnIndex) {
     table.editCellAt(viewRowIndex, viewColumnIndex);
 
-    AvdActionPanel panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+    AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+    AvdActionPanel panel = ((ActionsTableCell)table.getCellEditor()).getComponent(device);
+
     panel.setFocusedComponent(panel.getVisibleComponentCount() - 1);
   }
 }

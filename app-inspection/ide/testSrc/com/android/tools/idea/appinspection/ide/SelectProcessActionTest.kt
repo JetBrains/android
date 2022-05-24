@@ -24,8 +24,8 @@ import com.intellij.openapi.actionSystem.Separator
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 

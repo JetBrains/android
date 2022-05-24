@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ide.common.util.PathString;
 import com.android.testutils.TestResources;
 import com.android.tools.apk.analyzer.ArchiveContext;
@@ -23,13 +26,9 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.GzipSizeCalculator;
 import com.android.utils.StdLogger;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class ApkParserTest {
   /**

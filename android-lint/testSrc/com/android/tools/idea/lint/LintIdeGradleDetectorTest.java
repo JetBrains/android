@@ -40,6 +40,12 @@ import org.jetbrains.annotations.Nullable;
 public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "gradle/";
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+  }
+
   public void testDependencies() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);

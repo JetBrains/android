@@ -17,10 +17,10 @@ package com.android.tools.idea.lint.inspections;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 
-import com.android.tools.idea.lint.quickFixes.UpgradeAppCompatV7Fix;
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.quickFixes.UpgradeAppCompatV7Fix;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class LibraryFixture {
   @NotNull private final Library myLibrary;

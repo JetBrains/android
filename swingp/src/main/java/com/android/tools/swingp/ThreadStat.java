@@ -19,14 +19,13 @@ import com.android.tools.swingp.json.IncludeMethodsSerializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Root of every call tree. As in, all {@link MethodStat} call trees are rooted at a {@link ThreadStat}.

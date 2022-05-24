@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
 
 /**
  * A tutorial consists of a relatively small number of instructions to
@@ -83,4 +82,10 @@ public interface TutorialData {
    * Returns true if the tutorial does not need to be loaded initially.
    */
   boolean shouldLoadLazily();
+
+  /**
+   * The class to use when loading resources referenced by the tutorial.
+   */
+  @NotNull
+  Class<?> getResourceClass();
 }

@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.Futures;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -47,6 +46,6 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Future<List<PhysicalDevice>> devicesFuture = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), devicesFuture.get(256, TimeUnit.MILLISECONDS));
+    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), DeviceManagerFutures.get(devicesFuture));
   }
 }

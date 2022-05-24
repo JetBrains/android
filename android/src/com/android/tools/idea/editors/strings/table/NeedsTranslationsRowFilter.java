@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.stream.IntStream;
-
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
+
+import com.intellij.openapi.actionSystem.Presentation;
+import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 public final class NeedsTranslationsRowFilter extends StringResourceTableRowFilter {
   @Override

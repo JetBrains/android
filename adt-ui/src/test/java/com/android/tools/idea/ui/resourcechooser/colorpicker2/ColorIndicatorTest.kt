@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.util.ui.ImageUtil
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage

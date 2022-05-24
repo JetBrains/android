@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import java.awt.Component;
+import java.awt.Dialog;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import java.awt.Component;
-import java.awt.Dialog;
-
 public class RefactoringDialogFixture extends DialogFixture {
   @NotNull
   public static RefactoringDialogFixture find(@NotNull Robot robot, @NotNull String dialogTitle) {
-    Component dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class, true) {
+    Component dialog = robot.finder().find(new GenericTypeMatcher<>(JDialog.class, true) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return dialogTitle.equals(component.getTitle());
@@ -44,7 +43,7 @@ public class RefactoringDialogFixture extends DialogFixture {
 
   @NotNull
   public JButtonFixture getPreviewButton() {
-    return button(new GenericTypeMatcher<JButton>(JButton.class) {
+    return button(new GenericTypeMatcher<>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton component) {
         return "Preview".equals(component.getText());

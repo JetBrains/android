@@ -15,16 +15,15 @@
  */
 package org.jetbrains.android;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidDocumentationProviderTest extends AndroidTestCase {
   private String readTestFile(String path) throws IOException {

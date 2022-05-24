@@ -68,7 +68,7 @@ public abstract class ClassifierSet implements MemoryObject {
   protected int myFilterMatchCount = 0;
 
   private final CachedFunction<CaptureObjectInstanceFilter, Integer> myInstanceFilterMatchCounter =
-    new CachedFunction<>(this::countInstanceFilterMatch, new IdentityHashMap<>());
+    new CachedFunction<>(new IdentityHashMap<>(), this::countInstanceFilterMatch);
 
   protected boolean myIsFiltered;
   // FIXME: `myIsMatched` should be `true` initially, as "no filter" means "trivially matched".

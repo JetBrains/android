@@ -115,6 +115,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public void deactivateIconLoader()  {
     IconManager.deactivate();
     IconLoader.deactivate();
+    IconLoader.clearCacheInTests();
   }
 
   @Test

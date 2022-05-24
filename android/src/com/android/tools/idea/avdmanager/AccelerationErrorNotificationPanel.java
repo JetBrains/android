@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
 /**
  * This {@link EditorNotificationPanel} will display problems described by a {@link AccelerationErrorCode}.

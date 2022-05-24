@@ -16,15 +16,13 @@
 package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-
-import javax.swing.*
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
 
 abstract class PsDaemon protected constructor(protected val parentDisposable: Disposable) : Disposable {
   protected abstract val mainQueue: MergingUpdateQueue

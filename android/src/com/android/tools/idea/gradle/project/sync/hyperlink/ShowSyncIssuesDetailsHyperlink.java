@@ -20,10 +20,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.WindowManager;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Window;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ShowSyncIssuesDetailsHyperlink extends NotificationHyperlink {
   @NotNull private final String myMessage;

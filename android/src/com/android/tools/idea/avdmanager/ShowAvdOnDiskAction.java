@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.RevealFileAction;
 import java.awt.event.ActionEvent;
-import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,7 +32,7 @@ public class ShowAvdOnDiskAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
 
   ShowAvdOnDiskAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
-    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
+    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.MenuOpen);
     myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
@@ -54,7 +54,7 @@ public class ShowAvdOnDiskAction extends AvdUiAction {
     if (info == null) {
       return;
     }
-    File dataFolder = new File(info.getDataFolderPath());
+    Path dataFolder = info.getDataFolderPath();
     RevealFileAction.openDirectory(dataFolder);
   }
 

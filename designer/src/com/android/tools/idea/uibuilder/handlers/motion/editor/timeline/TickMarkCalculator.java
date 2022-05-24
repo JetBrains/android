@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
-
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.text.DecimalFormat;

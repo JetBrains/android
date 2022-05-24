@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.DefaultActionState;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.awt.event.ActionListener;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jetbrains.android.AndroidTestCase;
 
 public class StatefulButtonTest extends AndroidTestCase {
   private ActionListener myListener;

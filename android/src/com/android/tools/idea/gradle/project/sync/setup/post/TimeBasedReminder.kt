@@ -41,7 +41,7 @@ open class TimeBasedReminder(
     get() =  PropertiesComponent.getInstance(project).getBoolean(doNotAskForProjectPropertyString, false)
     set(value) = PropertiesComponent.getInstance(project).setValue(doNotAskForProjectPropertyString, value)
   var lastTimeStamp: Long
-    get() =  PropertiesComponent.getInstance(project).getOrInitLong("$settingsPropertyRoot.last.time.stamp", 0L)
+    get() =  PropertiesComponent.getInstance(project).getLong("$settingsPropertyRoot.last.time.stamp",0L)
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.last.time.stamp", value.toString())
 
   /**

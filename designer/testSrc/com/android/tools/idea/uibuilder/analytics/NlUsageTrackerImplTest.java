@@ -80,6 +80,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -361,7 +362,8 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private static Palette getPalette(@NotNull Project project) throws Exception {
     String id = LayoutFileType.INSTANCE.getPaletteId();
     assertNotNull(id);
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)))) {
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)),
+                                               StandardCharsets.UTF_8)) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }

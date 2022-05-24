@@ -58,8 +58,7 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
     cleanup()
 
     val node = value as DefaultMutableTreeNode
-    val userObj = node.userObject
-    when (userObj) {
+    when (val userObj = node.userObject) {
       is TasksTreePresentableNodeDescriptor -> customize(userObj.presentation, selected, hasFocus)
       is WarningsTreePresentableNodeDescriptor -> customize(userObj.presentation, selected, hasFocus)
       else -> super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)

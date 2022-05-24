@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.Pannable
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
 import com.android.tools.idea.common.surface.InteractionInputEvent

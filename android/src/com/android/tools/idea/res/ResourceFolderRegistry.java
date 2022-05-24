@@ -29,7 +29,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -80,7 +79,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   @NotNull
   public static ResourceFolderRegistry getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ResourceFolderRegistry.class);
+    return project.getService(ResourceFolderRegistry.class);
   }
 
   @NotNull
@@ -178,8 +177,13 @@ public class ResourceFolderRegistry implements Disposable {
     @NotNull private final Project myProject;
 
     public PopulateCachesTask(@NotNull Project project) {
-      super(project);
       myProject = project;
+    }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof PopulateCachesTask && ((PopulateCachesTask)taskFromQueue).myProject.equals(myProject)) return this;
+      return null;
     }
 
     @Override
@@ -241,7 +245,7 @@ public class ResourceFolderRegistry implements Disposable {
     }
   }
 
-  public static class CachedRepositories {
+  public static final class CachedRepositories {
     @Nullable
     public final ResourceFolderRepository namespaced;
 

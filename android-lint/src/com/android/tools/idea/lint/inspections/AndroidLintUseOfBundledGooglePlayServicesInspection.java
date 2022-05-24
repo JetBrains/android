@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.quickFixes.OpenFirebaseAssistantQuickFix;
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.quickFixes.OpenFirebaseAssistantQuickFix;
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.annotations.NotNull;
 

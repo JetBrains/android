@@ -15,6 +15,25 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.BIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.DUP;
+import static org.jetbrains.org.objectweb.asm.Opcodes.IASTORE;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
+import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.NEWARRAY;
+import static org.jetbrains.org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
+import static org.jetbrains.org.objectweb.asm.Opcodes.SIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.T_INT;
+import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -23,23 +42,22 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import gnu.trove.TIntArrayList;
 import gnu.trove.TObjectIntHashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Type;
-
-import java.util.*;
-
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
-import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**
  * The {@linkplain ResourceClassGenerator} can generate R classes on the fly for a given resource repository.
@@ -134,14 +152,14 @@ public class ResourceClassGenerator {
       cw.visitInnerClass(className, className.substring(0, index), typeName, ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
       long currentIdGeneration = myIdProvider.getGeneration();
       if (myIdGeneratorGeneration != currentIdGeneration || myCache == null) {
-        myCache = Maps.newHashMap();
+        myCache = new HashMap<>();
         myStyleableCache = null;
         myIdGeneratorGeneration = currentIdGeneration;
       }
       if (type == ResourceType.STYLEABLE) {
         if (myStyleableCache == null) {
           myCache.put(ResourceType.STYLEABLE, new TObjectIntHashMap<>());
-          myStyleableCache = Maps.newHashMap();
+          myStyleableCache = new HashMap<>();
           generateStyleable(cw, className);
         }
         else {

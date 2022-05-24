@@ -16,17 +16,16 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -50,7 +49,7 @@ public class ImportDevicesAction extends DeviceUiAction {
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
     VirtualFile[] files =
       FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(parent, null);
-    List<Device> importedDevices = Lists.newArrayList();
+    List<Device> importedDevices = new ArrayList<>();
     for (VirtualFile vf : files) {
       for (Device d : DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf))) {
         importedDevices.add(d);

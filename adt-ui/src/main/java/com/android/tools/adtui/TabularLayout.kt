@@ -24,7 +24,6 @@ import java.awt.Dimension
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.LayoutManager2
-import javax.swing.SwingUtilities
 import kotlin.math.roundToInt
 
 /**

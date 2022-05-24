@@ -16,10 +16,10 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.IMPORT_DIALOG_TITLE
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterPresenter
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterView
@@ -107,7 +107,8 @@ class SketchImporter : ResourceImporter {
     val notificationContent = "$generalInfo<br/>$versionInfo"
     val notificationTitle = "Invalid sketch file"
 
-    Notification(INVALID_SKETCH_FILE_ID, null, notificationTitle, fileName, notificationContent, NotificationType.ERROR, null)
+    Notification(INVALID_SKETCH_FILE_ID, notificationTitle, notificationContent, NotificationType.ERROR)
+      .setSubtitle(fileName)
       .notify(project)
   }
 }

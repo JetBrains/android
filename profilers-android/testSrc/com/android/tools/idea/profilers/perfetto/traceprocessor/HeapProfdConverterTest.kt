@@ -18,8 +18,6 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
-import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
-import com.google.common.collect.Maps.newHashMap
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.Base64
 import org.junit.Before

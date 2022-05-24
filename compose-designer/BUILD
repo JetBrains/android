@@ -58,6 +58,7 @@ iml_module(
         "//tools/adt/idea/compose-designer/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
+        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
@@ -95,6 +96,14 @@ iml_module(
     ],
 )
 
+filegroup(
+    name = "kotlin-compiler-daemon-libs",
+    # We only include the 1.1.0 version as part of the distribution as it is the only one needed
+    # for tests and canary.
+    srcs = ["lib/kotlin-compiler-daemon-1.1.0-fallback.jar"],
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 java_import(
     name = "ui-animation-tooling-internal",
@@ -108,8 +117,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.compose.compiler.compiler_1.0.1",
-        "@maven//:androidx.compose.ui.ui-tooling_1.0.1",
+        "@maven//:androidx.compose.compiler.compiler_1.1.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",
@@ -123,13 +132,13 @@ maven_repository(
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.30",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.30",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.5.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.5.30",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.5.30",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.30",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

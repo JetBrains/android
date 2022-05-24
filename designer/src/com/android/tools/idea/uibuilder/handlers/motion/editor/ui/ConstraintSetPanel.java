@@ -542,7 +542,7 @@ class ConstraintSetPanel extends JPanel {
     else {
       String mask = "";
       for (MTag child : children) {
-        mask += (mask.equals("") ? "" : "|") + child.getTagName();
+        mask += (mask.isEmpty() ? "" : "|") + child.getTagName();
       }
       return mask;
     }
@@ -613,7 +613,7 @@ class ConstraintSetPanel extends JPanel {
         }
       }
     }
-    return new ArrayList<MTag>();
+    return new ArrayList<>();
   }
 
   public void setListeners(MotionEditorSelector listeners) {

@@ -51,14 +51,13 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.InputEvent;
@@ -91,7 +90,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
-  private static final int DRAG_THRESHOLD = JBUI.scale(10);
+  private static final int DRAG_THRESHOLD = JBUIScale.scale(10);
   private static final String PREFERENCE_KEY_PREFIX = "ScenePreference";
   private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
   private static Boolean SHOW_TOOLTIP_VALUE = null;
@@ -137,7 +136,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -163,7 +162,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
 
-    myIsLiveRenderingEnabled = useLiveRendering;
+    myIsLiveRenderingEnabled = false;
 
     Disposer.register(sceneManager, this);
   }
@@ -944,10 +943,10 @@ public class Scene implements SelectionListener, Disposable {
 
       // TODO: b/180067858 Clean up the render path. Currently mNeedsLayout is never ANIMATED_LAYOUT.
       if (myIsLiveRenderingEnabled) {
-        manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
+        manager.requestLayoutAndRenderAsync(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
-        manager.requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
+        manager.requestLayoutAsync(mNeedsLayout == ANIMATED_LAYOUT);
       }
     }
   }
@@ -1100,7 +1099,7 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int y,
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
-    List<SceneComponent> within = Lists.newArrayList();
+    List<SceneComponent> within = new ArrayList<>();
     if (getRoot() != null) {
       addWithin(within, getRoot(), x, y, width, height);
     }

@@ -21,10 +21,10 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 @RunWith(JUnit4::class)
 class BenchmarkOutputTest {

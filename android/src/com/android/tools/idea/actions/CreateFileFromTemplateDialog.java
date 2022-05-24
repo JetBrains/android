@@ -104,7 +104,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private final JavaCodeFragmentFactory myFragmentFactory;
   private final PsiDocumentManager myPsiDocumentManager;
 
-  private final Map<String, String> myCreationOptions = new HashMap<String, String>();
+  private final Map<String, String> myCreationOptions = new HashMap<>();
 
   protected CreateFileFromTemplateDialog(@NotNull Project project, @NotNull PsiDirectory defaultDirectory) {
     super(project);
@@ -270,7 +270,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    List<String> imports = new ArrayList<String>();
+    List<String> imports = new ArrayList<>();
     String localPackage = getPackage();
     String superclassAsString = getSuperclass();
     if (!superclassAsString.isEmpty()) {
@@ -284,7 +284,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       myCreationOptions.put(ATTRIBUTE_SUPERCLASS, "");
     }
 
-    List<String> interfacesToUse = new ArrayList<String>();
+    List<String> interfacesToUse = new ArrayList<>();
     for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
       Type interfaceAsType = Type.newType(interfaceAsString, myProject);
       interfacesToUse.add(interfaceAsType.getClassWithNesting());
@@ -345,14 +345,14 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     final Ref<PsiClass> ref = Ref.create(null);
     myCreator = new ElementCreator(myProject, JavaBundle.message("title.cannot.create.class")) {
       @Override
-      protected PsiElement[] create(String newName) throws Exception {
+      protected PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
         PsiClass element = creator.createFile(getName(), myCreationOptions, myKindCombo.getSelectedName());
         ref.set(element);
         return element == null ? PsiElement.EMPTY_ARRAY : new PsiElement[]{element};
       }
 
       @Override
-      protected String getActionName(String newName) {
+      protected @NotNull String getActionName(@NotNull String newName) {
         return creator.getActionName(newName, myKindCombo.getSelectedName());
       }
 
@@ -492,7 +492,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       }
 
       String classToImport = null;
-      Deque<String> containingClasses = new ArrayDeque<String>();
+      Deque<String> containingClasses = new ArrayDeque<>();
       for (PsiClass psiClass = myPsiClass; psiClass != null; psiClass = psiClass.getContainingClass()) {
         classToImport = psiClass.getName();
         containingClasses.addFirst(psiClass.getName());

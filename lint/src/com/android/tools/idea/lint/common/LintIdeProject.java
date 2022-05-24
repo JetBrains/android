@@ -21,7 +21,6 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.model.LintModelModule;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.DependencyScope;
@@ -38,6 +37,7 @@ import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -62,10 +62,10 @@ public class LintIdeProject extends Project {
    */
   @NonNull
   static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
-    List<Project> projects = Lists.newArrayList();
+    List<Project> projects = new ArrayList<>();
 
-    Map<Project, Module> projectMap = Maps.newHashMap();
-    Map<Module, Project> moduleMap = Maps.newHashMap();
+    Map<Project, Module> projectMap = new HashMap<>();
+    Map<Module, Project> moduleMap = new HashMap<>();
     if (files != null && !files.isEmpty()) {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
@@ -106,7 +106,7 @@ public class LintIdeProject extends Project {
     // other than the metadata necessary for this file's type
     LintModuleProject project = createModuleProject(client, module);
     LintModuleProject main = null;
-    Map<Project, Module> projectMap = Maps.newHashMap();
+    Map<Project, Module> projectMap = new HashMap<>();
     if (project != null) {
       project.setDirectLibraries(Collections.emptyList());
       if (file != null) {
@@ -152,7 +152,7 @@ public class LintIdeProject extends Project {
       return;
     }
 
-    List<Project> dependencies = Lists.newArrayList();
+    List<Project> dependencies = new ArrayList<>();
     OrderEntry[] entries = ModuleRootManager.getInstance(module).getOrderEntries();
     // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place.
@@ -359,7 +359,7 @@ public class LintIdeProject extends Project {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (LintIdeClient.SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
-          javaLibraries = Lists.newArrayList();
+          javaLibraries = new ArrayList<>();
 
           final OrderEntry[] entries = ModuleRootManager.getInstance(myModule).getOrderEntries();
           // loop in the inverse order to resolve dependencies on the libraries, so that if a library

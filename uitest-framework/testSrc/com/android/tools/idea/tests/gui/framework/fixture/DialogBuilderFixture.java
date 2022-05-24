@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class DialogBuilderFixture extends IdeaDialogFixture<DialogWrapper> {
 
@@ -38,7 +37,7 @@ public class DialogBuilderFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static DialogBuilderFixture find(@NotNull Robot robot) {
     Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

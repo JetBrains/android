@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.res.isAccessibleInXml
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.*
+import java.util.ArrayDeque
 
 typealias StyleFilter = (StyleResourceValue) -> Boolean
 typealias StyleOrder = (StyleResourceValue) -> Comparable<*>

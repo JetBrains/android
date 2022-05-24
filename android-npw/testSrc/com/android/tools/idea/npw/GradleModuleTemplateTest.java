@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
-
 import java.io.File;
-
-import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public final class GradleModuleTemplateTest {
 

@@ -19,7 +19,11 @@ package trebuchet.extractors.html
 import trebuchet.extractors.Extractor
 import trebuchet.extractors.ExtractorFactory
 import trebuchet.importers.ImportFeedback
-import trebuchet.io.*
+import trebuchet.io.BufferProducer
+import trebuchet.io.DataSlice
+import trebuchet.io.GenericByteBuffer
+import trebuchet.io.Pipe
+import trebuchet.io.StreamingReader
 import trebuchet.util.contains
 import trebuchet.util.searchFor
 

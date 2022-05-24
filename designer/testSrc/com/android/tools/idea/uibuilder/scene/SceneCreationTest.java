@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.EDIT_TEXT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
@@ -107,7 +112,9 @@ public class SceneCreationTest extends SceneTest {
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
-    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile.getVirtualFile());
+    SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,
+                                           null, null, myFacet, xmlFile.getVirtualFile());
+    model.setDesignSurface(surface);
 
     // Setting the model on the surface registers the listener
     surface.setModel(model);

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
-import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.common.fixtures.ModelBuilder
 import junit.framework.TestCase
 
 class SceneDisplayListWithSelectionTest : SceneTest() {

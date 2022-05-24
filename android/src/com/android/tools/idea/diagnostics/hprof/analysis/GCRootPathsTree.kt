@@ -27,7 +27,6 @@ import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
 import gnu.trove.TIntObjectHashMap
 import java.util.ArrayDeque
-import java.util.HashMap
 
 class GCRootPathsTree(
   private val context: AnalysisContext,

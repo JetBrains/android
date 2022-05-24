@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics

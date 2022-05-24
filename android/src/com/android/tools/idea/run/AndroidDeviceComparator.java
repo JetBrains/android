@@ -16,9 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.android.sdklib.AndroidVersion;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidDeviceComparator implements Comparator<AndroidDevice> {
   @Override

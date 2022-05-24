@@ -17,10 +17,9 @@
 package com.android.tools.adtui.model.updater;
 
 import com.android.tools.adtui.model.StopwatchTimer;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.LinkedList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An auxiliary object that synchronizes a group of {@link Updatable} via a simple update loop

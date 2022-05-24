@@ -6,19 +6,18 @@ import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.util.AndroidBundle;
-
-import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import org.jetbrains.android.util.AndroidBundle;
 
 class ImportDependenciesDialog extends DialogWrapper {
-  private final CheckBoxList myCheckBoxList = new CheckBoxList();
+  private final CheckBoxList<?> myCheckBoxList = new CheckBoxList<>();
   private final List<ImportDependenciesTask> myTasks;
-  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<ImportDependenciesTask, JCheckBox>();
+  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<>();
 
   protected ImportDependenciesDialog(Project project, List<ImportDependenciesTask> tasks) {
     super(project, false);
@@ -36,7 +35,7 @@ class ImportDependenciesDialog extends DialogWrapper {
       myTask2Checkbox.put(task, checkBox);
     }
 
-    myCheckBoxList.setModel(new CollectionListModel(checkBoxes));
+    myCheckBoxList.setModel(new CollectionListModel<>(checkBoxes));
 
     init();
   }
@@ -49,7 +48,7 @@ class ImportDependenciesDialog extends DialogWrapper {
   }
 
   public List<ImportDependenciesTask> getSelectedTasks() {
-    final List<ImportDependenciesTask> result = new ArrayList<ImportDependenciesTask>();
+    final List<ImportDependenciesTask> result = new ArrayList<>();
     for (ImportDependenciesTask task : myTasks) {
       if (myTask2Checkbox.get(task).isSelected()) {
         result.add(task);

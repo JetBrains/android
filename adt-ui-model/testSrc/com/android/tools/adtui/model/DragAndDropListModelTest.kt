@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.model
 
-import org.junit.Test
-
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.NotNull
+import org.junit.Test
 
 class DragAndDropListModelTest {
   private val FIRST = SimpleListModelElement("First")
@@ -42,7 +41,7 @@ class DragAndDropListModelTest {
     val finalArray = arrayOf(THIRD, FIRST, SECOND)
     val model = DragAndDropListModel<SimpleListModelElement>()
     addElements(model, initialArray)
-    model.moveElementTo(THIRD, 0);
+    model.moveElementTo(THIRD, 0)
     validateOrder(model, finalArray)
   }
 

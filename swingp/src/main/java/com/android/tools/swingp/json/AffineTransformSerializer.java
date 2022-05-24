@@ -18,7 +18,6 @@ package com.android.tools.swingp.json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.Type;
 

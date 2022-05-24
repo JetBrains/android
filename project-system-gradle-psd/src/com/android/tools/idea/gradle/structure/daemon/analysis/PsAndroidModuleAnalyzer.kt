@@ -137,8 +137,7 @@ fun createIssueFrom(syncIssue: IdeSyncIssue, path: PsPath): PsIssue {
 }
 
 private fun getSeverity(issue: IdeSyncIssue): PsIssue.Severity {
-  val severity = issue.severity
-  when (severity) {
+  when (issue.severity) {
     IdeSyncIssue.SEVERITY_ERROR -> return ERROR
     IdeSyncIssue.SEVERITY_WARNING -> return WARNING
   }

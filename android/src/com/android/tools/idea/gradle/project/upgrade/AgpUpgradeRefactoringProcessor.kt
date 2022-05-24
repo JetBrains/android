@@ -28,8 +28,13 @@ import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
@@ -39,6 +44,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
@@ -54,8 +61,10 @@ import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -64,6 +73,7 @@ import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.pluralize
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.FakePsiElement
@@ -113,6 +123,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   val project: Project
   val projectBuildModel: ProjectBuildModel
 
+  val otherAffectedFiles = mutableSetOf<PsiFile>()
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
   var foundUsages: Boolean = false
@@ -123,6 +134,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     usages.forEach {
       if (it is GradleBuildModelUsageInfo) {
         it.performRefactoringFor(this)
+        otherAffectedFiles.addAll(it.otherAffectedFiles)
       }
     }
   }
@@ -130,6 +142,20 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   override fun performPsiSpoilingRefactoring() {
     LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
     projectBuildModel.applyChanges()
+
+    if (otherAffectedFiles.isNotEmpty()) {
+      val documentManager = PsiDocumentManager.getInstance(project)
+      otherAffectedFiles.forEach psiFile@{ psiFile ->
+        val document = documentManager.getDocument(psiFile) ?: return@psiFile
+        if (documentManager.isDocumentBlockedByPsi(document)) {
+          documentManager.doPostponedOperationsAndUnblockDocument(document)
+        }
+        FileDocumentManager.getInstance().saveDocument(document)
+        if (!documentManager.isCommitted(document)) {
+          documentManager.commitDocument(document)
+        }
+      }
+    }
 
     if (psiSpoilingUsageInfos.isNotEmpty()) {
       projectBuildModel.reparse()
@@ -181,6 +207,14 @@ abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo
    * deletions but will not be in general for additions.
    */
   open fun getDiscriminatingValues(): List<Any> = listOf()
+
+  /**
+   * Most actions taken by a [GradleBuildModelUsageInfo] in its [performBuildModelRefactoring] method affect project files through the
+   * build model, which takes responsibility for making sure that documents are saved and psi is not blocking.  Some actions affect
+   * files outside that model, however, and any such actions are responsible for adding those files to this set so that they can be
+   * accumulated for handling alongside the build model files.
+   */
+  val otherAffectedFiles = mutableSetOf<PsiFile>()
 
   final override fun equals(other: Any?) = super.equals(other) && when(other) {
     is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
@@ -242,6 +276,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
     RedundantPropertiesRefactoringProcessor(this),
+    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -517,12 +552,11 @@ class AgpUpgradeRefactoringProcessor(
         trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
       override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
     }
-    // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
-    // sure why.
-    //
-    // FIXME(b/169838158): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
-    //  if the refactoring action is undone.
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED), listener)
+    UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
+      override fun undo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
+      override fun redo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)
+    })
   }
 
   var myCommandName: String = AndroidBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
@@ -557,6 +591,10 @@ class AgpUpgradeRefactoringProcessor(
             total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
           }
         }
+        // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
+        // done on the EDT).
+        classpathRefactoringProcessor.initializeComponentCaches()
+        componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
       },
       commandName, true, project)
   }
@@ -584,7 +622,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  */
 internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
   DumbService.getInstance(project).smartInvokeLater {
-    val contentManager = ServiceManager.getService(project, ContentManager::class.java)
+    val contentManager = project.getService(ContentManager::class.java)
     contentManager.showContent(new)
   }
 }
@@ -708,6 +746,13 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       return _isAlwaysNoOpForProject!!
     }
 
+  internal fun initializeComponentCaches() {
+    runReadAction {
+      _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
+      _cachedUsages = findComponentUsages().toList()
+    }
+  }
+
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
     this.new = new
@@ -724,6 +769,10 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
+  private var _cachedUsages = listOf<UsageInfo>()
+  internal val cachedUsages
+    get() = _cachedUsages
+
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!hasParentProcessor) {
       projectBuildModel.reparse()
@@ -734,6 +783,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       return UsageInfo.EMPTY_ARRAY
     }
     val usages = findComponentUsages()
+    _cachedUsages = usages.toList()
     val size = usages.size
     trackComponentUsage(FIND_USAGES, size, projectBuildModel.context.allRequestedFiles.size)
     LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")

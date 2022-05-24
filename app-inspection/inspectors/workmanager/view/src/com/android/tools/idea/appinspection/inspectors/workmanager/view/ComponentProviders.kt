@@ -244,9 +244,10 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
           add(pairPanel)
         }
       }
-      HideablePanel(HideablePanel.Builder("Data", panel)
-                      .setPanelBorder(JBUI.Borders.empty())
-                      .setContentBorder(JBUI.Borders.empty(0, 20, 0, 0)))
+      HideablePanel.Builder("Data", panel)
+        .setPanelBorder(JBUI.Borders.empty())
+        .setContentBorder(JBUI.Borders.empty(0, 20, 0, 0))
+        .build()
     }
     else {
       val state = workInfo.state

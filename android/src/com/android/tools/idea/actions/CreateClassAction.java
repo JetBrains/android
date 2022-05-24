@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -32,10 +31,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -52,12 +52,8 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.util.IncorrectOperationException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +77,7 @@ public final class CreateClassAction extends AnAction {
       return;
     }
 
-    Module module = LangDataKeys.MODULE.getData(context);
+    Module module = PlatformCoreDataKeys.MODULE.getData(context);
 
     if (module == null) {
       return;
@@ -296,11 +292,10 @@ public final class CreateClassAction extends AnAction {
     assert project != null;
 
     Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
-    if (editor instanceof EditorEx) {
-      EditorEx editorEx = (EditorEx)editor;
+    if (editor != null) {
       AnActionEvent newEvent =
-        new AnActionEvent(event.getInputEvent(), editorEx.getDataContext(), ActionPlaces.UNKNOWN, event.getPresentation(),
-                          event.getActionManager(), 0);
+        new AnActionEvent(event.getInputEvent(), EditorUtil.getEditorDataContext(editor),
+                          ActionPlaces.UNKNOWN, event.getPresentation(), event.getActionManager(), 0);
       ActionManager.getInstance().getAction("OverrideMethods").actionPerformed(newEvent);
     }
   }

@@ -1,5 +1,9 @@
 package com.android.tools.idea.gradle.project.build;
 
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
@@ -14,21 +18,23 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.task.*;
-import one.util.streamex.StreamEx;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.task.ModuleBuildTask;
+import com.intellij.task.ProjectTask;
+import com.intellij.task.ProjectTaskContext;
+import com.intellij.task.ProjectTaskNotification;
+import com.intellij.task.ProjectTaskResult;
+import com.intellij.task.ProjectTaskRunner;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
-import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import one.util.streamex.StreamEx;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidProjectTaskRunner extends ProjectTaskRunner {
   @Override
@@ -50,8 +56,13 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
   public boolean canRun(@NotNull ProjectTask projectTask) {
     if (projectTask instanceof ModuleBuildTask) {
       Module module = ((ModuleBuildTask)projectTask).getModule();
-      if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null/* || AndroidModuleModel.get(module) != null*/) {
-        return true;
+      if (Registry.is("android.task.runner.restricted")){
+        assert !IdeInfo.getInstance().isAndroidStudio() : "This code is not expected to be executed in Android Studio";
+        return AndroidFacet.getInstance(module) != null;
+      } else {
+        if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null/* || AndroidModuleModel.get(module) != null*/) {
+          return true;
+        }
       }
     }
     return false;

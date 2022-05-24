@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.android.inspection
 
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
@@ -28,7 +29,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.io.OSAgnosticPathUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
@@ -69,6 +70,12 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
 
                 if (!isValidDalvikIdentifier(unquotedName) && checkAndroidFacet(element)) {
                     if (element.isInUnitTests() || element.isInBuildKtsFile()) {
+                        return
+                    }
+
+                    val facet = AndroidFacet.getInstance(element)
+                    if (facet != null && !facet.isDisposed && AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= 30) {
+                        // As of Android 30 this is no longer a limitation.
                         return
                     }
 
@@ -119,7 +126,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
         var path = virtualFile.path
 
         // Taken from LocalFileSystemBase.convertToIOFile
-        if (StringUtil.endsWithChar(path, ':') && path.length == 2 && SystemInfo.isWindows) {
+        if (path.length == 2 && SystemInfo.isWindows && OSAgnosticPathUtil.startsWithWindowsDrive(path)) {
             path += "/"
         }
 

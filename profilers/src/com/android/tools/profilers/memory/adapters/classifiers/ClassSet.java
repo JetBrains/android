@@ -20,13 +20,12 @@ import static com.android.tools.profilers.memory.adapters.ClassDb.INVALID_CLASS_
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Classifies {@link InstanceObject}s based on their {@link Class}.

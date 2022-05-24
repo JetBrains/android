@@ -18,8 +18,17 @@ package com.android.tools.idea.rendering.classloading.loaders
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.ClassModificationTimestamp
+import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
+import java.io.IOException
+import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
+
+private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
+                                               startsWith("javax.") ||
+                                               startsWith("kotlin.") ||
+                                               startsWith(INTERNAL_PACKAGE) ||
+                                               startsWith("sun.")
 
 /**
  * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
@@ -48,14 +57,20 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
    */
   fun findClassVirtualFile(fqcn: String): VirtualFile? {
+    // Avoid loading a few well known system prefixes for the project class loader and also classes that have failed before.
+    if (fqcn.isSystemPrefix()) {
+      return null
+    }
     val cachedVirtualFile = virtualFileCache[fqcn]
 
     if (cachedVirtualFile?.first?.isValid == true) return cachedVirtualFile.first
     val vFile = findClassVirtualFileImpl(fqcn)
-    return vFile?.let {
-      virtualFileCache[fqcn] = Pair(it, ClassModificationTimestamp.fromVirtualFile(it))
-      it
+
+    if (vFile != null) {
+      virtualFileCache[fqcn] = Pair(vFile, ClassModificationTimestamp.fromVirtualFile(vFile))
     }
+
+    return vFile
   }
 
   /**
@@ -65,11 +80,30 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
     virtualFileCache.clear()
   }
 
-  override fun loadClass(fqcn: String): ByteArray? = try {
-    findClassVirtualFile(fqcn)?.contentsToByteArray()
-  } catch (_: Throwable) {
-    null
+  /**
+   * Reads the contents of this [VirtualFile] via NIO avoiding the VFS cache. This is needed when reading files
+   * that are generated outside of Studio, like `.class` files created by the build system so we read the freshest
+   * content.
+   */
+  private fun VirtualFile.readBytesUsingNio(): ByteArray? {
+    // Files in jar files can not be read using Files NIO
+    if (!isInLocalFileSystem) return null
+
+    try {
+      return Files.readAllBytes(toNioPath())
+    }
+    catch (_: UnsupportedOperationException) {}
+    catch (_: IOException) {}
+
+    return null
   }
+
+  override fun loadClass(fqcn: String): ByteArray? = try {
+      val vFile = findClassVirtualFile(fqcn)
+      vFile?.readBytesUsingNio() ?: vFile?.contentsToByteArray()
+    } catch (_: Throwable) {
+      null
+    }
 
   /**
    * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.

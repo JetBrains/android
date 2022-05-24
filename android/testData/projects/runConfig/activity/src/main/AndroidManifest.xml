@@ -22,7 +22,10 @@
     <application
         android:allowBackup="true"
         android:label="app">
-      <activity android:name=".Main" android:label="Main" />
+      <activity
+          android:name=".Main"
+          android:exported="true"
+          android:label="Main" />
     </application>
 
     <uses-feature android:name="android.hardware.type.watch" android:required="false" />

@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;

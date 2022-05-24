@@ -24,11 +24,10 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
 import com.google.common.collect.ImmutableList;
 import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Implements the drag behaviour for ConstraintLayout Barrier

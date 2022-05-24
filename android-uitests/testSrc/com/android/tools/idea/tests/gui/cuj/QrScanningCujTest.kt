@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.cuj
 
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn

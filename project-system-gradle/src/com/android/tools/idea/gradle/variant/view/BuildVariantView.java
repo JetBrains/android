@@ -17,12 +17,11 @@ package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
-import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -44,7 +44,6 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
@@ -56,6 +55,7 @@ import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -133,7 +133,7 @@ public class BuildVariantView {
 
   @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantView.class);
+    return project.getService(BuildVariantView.class);
   }
 
   public BuildVariantView(@NotNull Project project) {
@@ -162,7 +162,7 @@ public class BuildVariantView {
    * @param toolWindow the tool window whose contents will be created.
    */
   public void createToolWindowContent(@NotNull ToolWindow toolWindow) {
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+    ContentFactory contentFactory = ContentFactory.getInstance();
     Content content = contentFactory.createContent(myToolWindowPanel, "", false);
     toolWindow.getContentManager().addContent(content);
     updateContents();
@@ -239,7 +239,7 @@ public class BuildVariantView {
    */
   @NotNull
   private List<Module> getGradleModulesWithAndroidProjects() {
-    List<Module> gradleModules = new ArrayList<>();
+    Set<Module> gradleModules = new HashSet<>();
     // Work only with holder modules here to avoid duplication on UI in MPSS mode.
     ProjectSystemUtil.getAndroidFacets(myProject).forEach(androidFacet -> {
       if (androidFacet != null && AndroidModel.isRequired(androidFacet) && AndroidModel.get(androidFacet) != null) {
@@ -252,11 +252,7 @@ public class BuildVariantView {
       }
     });
 
-    if (!gradleModules.isEmpty()) {
-      gradleModules.sort(ModuleTypeComparator.INSTANCE);
-      return gradleModules;
-    }
-    return Collections.emptyList();
+    return gradleModules.stream().sorted(ModuleTypeComparator.INSTANCE).collect(Collectors.toList());
   }
 
   @NotNull
@@ -288,7 +284,7 @@ public class BuildVariantView {
   private static Collection<String> getVariantNames(@NotNull Module module) {
     Set<String> buildVariantNames = new HashSet<>();
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       buildVariantNames.addAll(androidModel.getVariantNames());
     }
@@ -390,7 +386,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? getToolTipBackground() : color);
       setBorder(JBUI.Borders.empty(1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, scale(24)));
+      setPreferredSize(new Dimension(-1, JBUIScale.scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found");
       textLabel.setOpaque(false);
@@ -555,7 +551,7 @@ public class BuildVariantView {
             Component editorComponent = getEditorComponent();
             if (editorComponent instanceof ComboBox) {
               editorComponent.requestFocusInWindow();
-              ((ComboBox)editorComponent).showPopup();
+              ((ComboBox<?>)editorComponent).showPopup();
             }
           }
         }
@@ -589,7 +585,7 @@ public class BuildVariantView {
       myLoading = loading;
       setPaintBusy(myLoading);
       clearContents();
-      String text = myLoading ? "Loading..." : "Nothing to Show";
+      String text = myLoading ? CommonBundle.getLoadingTreeNodeText() : "Nothing to Show";
       getEmptyText().setText(text);
     }
 
@@ -912,7 +908,7 @@ public class BuildVariantView {
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = GradleUtil.getModuleIcon(module);
-          isAndriodGradleModule = AndroidModuleModel.get(module) != null;
+          isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
 

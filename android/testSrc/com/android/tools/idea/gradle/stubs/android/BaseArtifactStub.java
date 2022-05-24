@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final String myName;
@@ -38,7 +37,7 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final DependenciesStub myDependencies;
   @NotNull protected final String myBuildType;
   @NotNull protected final FileStructure myFileStructure;
-  @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
+  @NotNull private final List<File> myGeneratedSourceFolders = new ArrayList<>();
   @NotNull private final Set<File> myAdditionalClassesFolders = new HashSet<>();
 
   public BaseArtifactStub(@NotNull String name,

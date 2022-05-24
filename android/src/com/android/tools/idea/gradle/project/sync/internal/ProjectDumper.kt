@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,18 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.android.facet.AndroidFacetProperties
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.File
 import java.lang.Math.max
 import java.util.Locale
@@ -40,7 +39,7 @@ import java.util.Locale
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
-  private val devBuildHome: File = getStudioSourcesLocation(),
+  private val devBuildHome: File = File(PathManager.getCommunityHomePath()),
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val gradleCache: File = getGradleCacheLocation()
@@ -48,14 +47,14 @@ class ProjectDumper(
   private val systemHome = getSystemHomeLocation()
 
   init {
-    println("<DEV>         <== ${devBuildHome.absolutePath}")
+    println("<DEV>         <== ${devBuildHome?.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
     offlineRepos.forEach {
       println("                  ${it.absolutePath}")
     }
-    println("<HOME>        <== ${systemHome.absolutePath}")
+    println("<HOME>        <== ${systemHome?.absolutePath}")
     additionalRoots.forEach { (key, value) ->
       println("<$key>        <== ${value.absolutePath}")
     }
@@ -71,8 +70,8 @@ class ProjectDumper(
   private val gradleHashStub = "x".repeat(32)
   private val gradleLongHashStub = "x".repeat(40)
   private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length - 3},${gradleDistStub.length}}/")
-  private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
-  private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
+  private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length - 3},${gradleHashStub.length}}")
+  private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-.*${SdkConstants.GRADLE_LATEST_VERSION}")
   private val kotlinVersionPattern =
     // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
@@ -130,13 +129,37 @@ class ProjectDumper(
         val (filePath, suffix) = splitPathAndSuffix()
         val file = File(filePath)
         val existenceSuffix = if (!file.exists()) " [-]" else ""
-        (if (file.isRooted) filePath.replaceKnownPaths() else filePath) + suffix + existenceSuffix
+        val maskedPath = (if (file.isRooted) filePath.replaceKnownPaths() else filePath)
+        val maskedMavenPath = convertToMaskedMavenPath(maskedPath)
+        (if (file.isRooted) maskedMavenPath.replaceKnownPaths() else maskedMavenPath) + suffix + existenceSuffix
       }
     }
   }
 
-  fun String?.toPrintableString(): String? = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
+  @VisibleForTesting
+  fun convertToMaskedMavenPath(maskedPath: String): String {
+    var res = maskedPath
+    val gradleFilesPrefix = "<GRADLE>/caches/modules-2/files-2.1/"
+    if (res.startsWith(gradleFilesPrefix)) {
+      val parts = res.substringAfter(gradleFilesPrefix).split("/");
+
+      val pkg = parts[0]
+      val artifact = parts[1]
+      val version = parts[2]
+      // parts[3] - gradle SHA
+      val jarFile = parts[4]
+      assert(jarFile.startsWith("$artifact-$version.")) { "\"$jarFile\" should start with \"$artifact-$version.\"" }
+
+      res = "<M2>/${pkg.replace('.', '/')}/${artifact}/${version}/${jarFile}"
+    }
+    return res
+  }
+
+  fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
   else this
+
+  fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
+  fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
     this
@@ -162,7 +185,20 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
-      .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+      .let {
+        it.replaceAfter(
+          "<ANDROID_SDK>",
+          it.substringAfter("<ANDROID_SDK>", "")
+            .replaceCurrentBuildToolsVersion()
+            .replaceCurrentSdkVersion()
+        )
+      }
+      .let {
+        if (devBuildHome != null) {
+          it.replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+        }
+        else it
+      }
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
@@ -179,6 +215,10 @@ class ProjectDumper(
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
         } ?: it
+      }
+      .let {
+        if (IdeInfo.getInstance().isAndroidStudio) it
+        else it.replace("/jetified-", "/", ignoreCase = false) // flaky GradleSyncProjectComparisonTest tests in IDEA
       }
       .removeAndroidVersionsFromPath()
 
@@ -211,6 +251,7 @@ class ProjectDumper(
 
   fun String.replaceJavaVersion(): String? = replace(Regex("11|1\\.8"), "<JAVA_VERSION>")
   fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+"), "<JDK_VERSION>")
+    .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 
@@ -240,11 +281,12 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
   appendln(name.smartPad() + if (v != null) ": $v" else "")
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: System.getenv("GRADLE_USER_HOME") ?: (System.getProperty("user.home") + "/.gradle"))
 
-private fun getStudioSourcesLocation() = File(StudioPathManager.getSourcesRoot())
+private fun getStudioSourcesLocation() =
+  if (StudioPathManager.isRunningFromSources()) File(StudioPathManager.getSourcesRoot()) else null
 
-private fun getSystemHomeLocation() = getStudioSourcesLocation().toPath().parent.toFile()
+private fun getSystemHomeLocation() = getStudioSourcesLocation()?.toPath()?.parent?.toFile()
 
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
@@ -262,17 +304,3 @@ private val androidLibraryPattern =
  * Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>.
  */
 private val androidPathPattern = Regex("(?:com/android/.*/)([0-9.]+)(?:/.*-)(\\1)(?:\\.jar)")
-
-class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project!!
-    val dumper = ProjectDumper()
-    dumper.dumpProject(project)
-    val dump = dumper.toString().trimIndent()
-    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
-    outputFile.writeText(dump)
-    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
-    VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
-    println("Dumped to: file://$outputFile")
-  }
-}

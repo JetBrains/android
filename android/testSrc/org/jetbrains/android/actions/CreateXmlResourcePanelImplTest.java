@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.google.common.truth.Truth;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
 import javax.swing.JComponent;

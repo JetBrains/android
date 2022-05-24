@@ -23,27 +23,50 @@ class CachedFunctionTest {
 
   @Test
   fun `cached function computes same as uncached`() {
-    var invocationCount = 0
-    fun sinWithEffect(x: Double) = sin(x).also { invocationCount++ }
-    val cachedSin = CachedFunction(::sinWithEffect)
+    val countedSin = CountedFunction(::sin)
+    val cachedSin = CachedFunction(countedSin)
     val x = Math.random()
-    for (i in 1 .. 5) {
+    repeat(5) {
       assertThat(cachedSin(x)).isEqualTo(sin(x))
     }
-    assertThat(invocationCount).isEqualTo(1)
+    assertThat(countedSin.invocationCount).isEqualTo(1)
   }
 
   @Test
   fun `cached function recomputes when invalidated`() {
-    var invocationCount = 0
-    fun sinWithEffect(x: Double) = sin(x).also { invocationCount++ }
-    val cachedSin = CachedFunction(::sinWithEffect)
+    val countedSin = CountedFunction(::sin)
+    val cachedSin = CachedFunction(countedSin)
     val x = Math.random()
     val tries = 5
-    for (i in 1 .. tries) {
+    repeat(tries) {
       assertThat(cachedSin(x)).isEqualTo(sin(x))
       cachedSin.invalidate()
     }
-    assertThat(invocationCount).isEqualTo(tries)
+    assertThat(countedSin.invocationCount).isEqualTo(tries)
+  }
+
+  @Test
+  fun `LRU cache remembers recent items and stays within cap`() {
+    val countedInc = CountedFunction(Int::inc)
+    val cachedInc = CachedFunction(CappedLRUMap(3), countedInc)
+    for (i in 1..10) {
+      assertThat(cachedInc(i)).isEqualTo(i.inc())
+    }
+    assertThat(countedInc.invocationCount).isEqualTo(10)
+    repeat(10) {
+      cachedInc(8)
+      cachedInc(9)
+      cachedInc(10)
+    }
+    assertThat(countedInc.invocationCount).isEqualTo(10)
+    cachedInc(7)
+    assertThat(countedInc.invocationCount).isEqualTo(11)
+  }
+
+  private class CountedFunction<X, Y>(private val f: (X) -> Y) : (X) -> Y {
+    var invocationCount = 0
+      private set
+
+    override fun invoke(x: X): Y = f(x).also { invocationCount++ }
   }
 }

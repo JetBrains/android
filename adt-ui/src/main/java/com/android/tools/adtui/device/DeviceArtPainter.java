@@ -15,32 +15,44 @@
  */
 package com.android.tools.adtui.device;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.DOT_PNG;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_RENDERING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
-import com.google.common.collect.Maps;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
-import com.intellij.util.PathUtil;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.DOT_PNG;
-import static java.awt.RenderingHints.*;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A device frame painter is capable of directly painting a device frame surrounding
@@ -58,7 +70,7 @@ import static java.awt.RenderingHints.*;
 public class DeviceArtPainter {
   @NotNull private static final DeviceArtPainter ourInstance = new DeviceArtPainter();
   @Nullable private static volatile String ourSystemPath;
-  @NotNull private Map<Device,DeviceData> myDeviceData = Maps.newHashMap();
+  @NotNull private Map<Device,DeviceData> myDeviceData = new HashMap<>();
   @Nullable private List<DeviceArtDescriptor> myDescriptors;
 
   /** Use {@link #getInstance()} */
@@ -299,7 +311,7 @@ public class DeviceArtPainter {
 
     if (withRetina) {
       //noinspection ConstantConditions
-      UIUtil.drawImage(g, image, x, y, null);
+      StartupUiUtil.drawImage(g, image, x, y, null);
     } else {
       g.drawImage(image, x, y, null);
     }
@@ -565,9 +577,9 @@ public class DeviceArtPainter {
     private final FrameData myDouble;
 
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<BufferedImage>(null);
+    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<>(null);
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<BufferedImage>(null);
+    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<>(null);
 
     private boolean isPortrait() {
       return myOrientation == ScreenOrientation.PORTRAIT;
@@ -703,7 +715,7 @@ public class DeviceArtPainter {
     }
 
     private static File getThumbnailCacheDir() {
-      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
+      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = FileUtil.toCanonicalPath(PathManager.getSystemPath()));
       //noinspection HardCodedStringLiteral
       return new File(path, "android-devices" + File.separator + "v4");
     }
@@ -805,9 +817,9 @@ public class DeviceArtPainter {
 
       if (image != null) {
         if (showEffects) {
-          myEffectsImage = new SoftReference<BufferedImage>(image);
+          myEffectsImage = new SoftReference<>(image);
         } else {
-          myPlainImage = new SoftReference<BufferedImage>(image);
+          myPlainImage = new SoftReference<>(image);
         }
       }
 

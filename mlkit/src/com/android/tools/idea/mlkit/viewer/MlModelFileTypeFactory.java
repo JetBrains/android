@@ -16,7 +16,6 @@
 package com.android.tools.idea.mlkit.viewer;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;

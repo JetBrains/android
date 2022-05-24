@@ -12,6 +12,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -72,12 +73,12 @@ public class FontFileDownloader {
           final File existing = new File(targetDir, description.getDefaultFileName());
           final String url = description.getDownloadUrl();
           if (url.startsWith(LIB_SCHEMA)) {
-            final String path = FileUtil.toSystemDependentName(StringUtil.trimStart(url, LIB_SCHEMA));
+            final String path = FileUtilRt.toSystemDependentName(StringUtil.trimStart(url, LIB_SCHEMA));
             final File file = PathManager.findFileInLibDirectory(path);
             existingFiles.add(Pair.create(file, description));
           }
           else if (url.startsWith(LocalFileSystem.PROTOCOL_PREFIX)) {
-            String path = FileUtil.toSystemDependentName(StringUtil.trimStart(url, LocalFileSystem.PROTOCOL_PREFIX));
+            String path = FileUtilRt.toSystemDependentName(StringUtil.trimStart(url, LocalFileSystem.PROTOCOL_PREFIX));
             File file = new File(path);
             if (file.exists()) {
               existingFiles.add(Pair.create(file, description));
@@ -190,7 +191,7 @@ public class FontFileDownloader {
     indicator.setText2(IdeBundle.message("progress.connecting.to.download.file.text", presentableUrl));
     indicator.setIndeterminate(true);
 
-    return HttpRequests.request(description.getDownloadUrl()).gzip(compressed).connect(new HttpRequests.RequestProcessor<File>() {
+    return HttpRequests.request(description.getDownloadUrl()).gzip(compressed).connect(new HttpRequests.RequestProcessor<>() {
       @Override
       public File process(@NotNull HttpRequests.Request request) throws IOException {
         int size = request.getConnection().getContentLength();

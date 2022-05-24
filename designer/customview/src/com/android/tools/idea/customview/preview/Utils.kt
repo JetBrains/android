@@ -22,6 +22,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.InheritanceUtil
 import com.intellij.testFramework.LightVirtualFile
 
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
@@ -32,11 +33,7 @@ internal class CustomViewLightVirtualFile(name: String, content: String) : Light
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 }
 
-fun PsiClass.extendsView(): Boolean {
-  return this.qualifiedName == CLASS_VIEW || this.extendsListTypes.any {
-    it.resolve()?.extendsView() ?: false
-  }
-}
+internal fun PsiClass.extendsView(): Boolean = InheritanceUtil.isInheritor(this, CLASS_VIEW)
 
 internal fun PsiFile.containsViewSuccessor(): Boolean {
   if (DumbService.isDumb(this.project)) {

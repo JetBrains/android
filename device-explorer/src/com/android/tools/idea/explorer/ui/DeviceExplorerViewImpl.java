@@ -94,7 +94,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
                                 @NotNull DeviceFileSystemRendererFactory rendererFactory,
                                 @NotNull DeviceExplorerModel model) {
     model.addListener(new ModelListener());
-    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(project, new FutureCallback<DeviceNameProperties>() {
+    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(project, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable DeviceNameProperties result) {
         myPanel.getDeviceCombo().updateUI();
@@ -404,7 +404,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @Override
   public void showNoDeviceScreen() {
     myPanel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device",
-                             AndroidIcons.DeviceExplorer.DevicesLineup,
+                             AndroidIcons.Explorer.DevicesLineup,
                              false);
   }
 

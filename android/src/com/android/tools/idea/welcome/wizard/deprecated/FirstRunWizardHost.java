@@ -20,7 +20,6 @@ import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.LafManager;
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -49,6 +49,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -88,7 +89,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
    * Default minimum size is slightly less than 1366x768 at 200%
    */
   private final Dimension myMinimumWindowSize = JBUI.size(500, 350);
-  private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
+  private Map<Action, JButton> myActionToButtonMap = new HashMap<>();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
@@ -251,7 +252,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
-    final Insets insets = SystemInfo.isMac ? JBUI.emptyInsets() : JBUI.insetsTop(8);
+    final Insets insets = SystemInfo.isMac ? JBInsets.emptyInsets() : JBUI.insetsTop(8);
 
     if (actions.length > 0) {
       int gridX = 0;

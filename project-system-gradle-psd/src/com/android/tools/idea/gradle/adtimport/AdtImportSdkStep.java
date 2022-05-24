@@ -19,9 +19,8 @@ import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import javax.swing.JComponent;
 
 /** Panel where the user configures an SDK, if needed */
 class AdtImportSdkStep extends ProjectImportWizardStep {

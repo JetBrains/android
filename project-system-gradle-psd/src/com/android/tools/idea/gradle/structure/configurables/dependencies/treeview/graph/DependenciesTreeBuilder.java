@@ -21,13 +21,12 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.util.ActionCallback;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   public DependenciesTreeBuilder(@NotNull JTree tree,

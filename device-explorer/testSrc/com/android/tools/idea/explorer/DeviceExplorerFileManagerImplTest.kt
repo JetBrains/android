@@ -33,7 +33,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.function.Supplier
 
 class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
@@ -62,7 +61,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
     val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
-    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, Supplier<Path> { downloadPath.toPath() })
+    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, { downloadPath.toPath() })
 
     mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
     mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
@@ -79,7 +78,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     foo2Bar2Entry = foo2DirEntry.addFile("bar2")
 
     fooBar1LocalPath = Paths.get(
-      FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
+      FileUtilRt.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
     )
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
+import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.builder.model.JavaCompileOptions;

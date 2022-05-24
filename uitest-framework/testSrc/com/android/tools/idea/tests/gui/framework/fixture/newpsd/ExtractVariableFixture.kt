@@ -24,7 +24,6 @@ import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import java.awt.Container
-import javax.swing.JComponent
 import javax.swing.JDialog
 
 class ExtractVariableFixture(

@@ -25,7 +25,6 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -33,7 +32,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -45,14 +43,13 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.Toolkit
@@ -518,7 +515,7 @@ class TableViewImpl : TableView {
       table
     )
 
-    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), ActionManager.getInstance())
+    PopupHandler.installPopupMenu(table, DefaultActionGroup(copyToClipboardAction, setNullAction), "SqliteTablePopup")
   }
 
   private inner class MyTableHeaderRenderer : TableCellRenderer {

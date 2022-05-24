@@ -17,7 +17,6 @@ package com.android.tools.property.testing
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.intellij.ide.DataManager
-import com.intellij.ide.ui.UISettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.actionSystem.ActionManager

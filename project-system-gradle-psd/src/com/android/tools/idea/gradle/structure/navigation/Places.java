@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.structure.navigation;
 
 import com.google.common.base.Splitter;
 import com.intellij.ui.navigation.Place;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public final class Places {
   private Places() {

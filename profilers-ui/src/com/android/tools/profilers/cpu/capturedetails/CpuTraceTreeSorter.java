@@ -17,12 +17,14 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.profilers.cpu.CaptureNode;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.JTree;
+import javax.swing.SortOrder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultMutableTreeNode> {
 
@@ -60,7 +62,7 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
       children.add((DefaultMutableTreeNode) parent.getChildAt(i));
     }
 
-    Collections.sort(children, myComparator);
+    children.sort(myComparator);
     parent.removeAllChildren();
     for (DefaultMutableTreeNode node: children) {
       sortTree(node);

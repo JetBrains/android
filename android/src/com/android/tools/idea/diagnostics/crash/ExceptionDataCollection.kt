@@ -18,22 +18,13 @@ package com.android.tools.idea.diagnostics.crash
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException
 import com.android.tools.idea.serverflags.protos.ExceptionConfiguration
-import com.android.tools.idea.serverflags.protos.ExceptionSeverity
-import com.android.tools.idea.serverflags.protos.LogFilter
 import com.google.common.base.Throwables
 import com.google.common.collect.ImmutableList
-import com.intellij.diagnostic.DebugLogManager
-import com.intellij.diagnostic.DialogAppender
+import com.intellij.execution.filters.CompositeFilter.ApplyFilterException
 import com.intellij.idea.IdeaLogger
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import org.apache.log4j.AppenderSkeleton
-import org.apache.log4j.ConsoleAppender
-import org.apache.log4j.Layout
-import org.apache.log4j.Level
-import org.apache.log4j.LogManager
-import org.apache.log4j.RollingFileAppender
-import org.apache.log4j.spi.LoggingEvent
+import org.jetbrains.annotations.TestOnly
 import java.lang.Integer.min
 import java.nio.charset.Charset
 import java.security.MessageDigest
@@ -58,7 +49,7 @@ class ExceptionDataCollection {
 
     @JvmStatic
     fun getInstance(): ExceptionDataCollection {
-      return ServiceManager.getService(ExceptionDataCollection::class.java)
+      return ApplicationManager.getApplication().getService(ExceptionDataCollection::class.java)
     }
 
     private val LOG = Logger.getInstance(ExceptionDataCollection::class.java)
@@ -71,143 +62,15 @@ class ExceptionDataCollection {
   private var configs: Map<String, ExceptionConfiguration>
 
   private var logCache = LogCache()
-  private val layout = CustomLog4JLayout()
-
-  class CustomLog4JLayout: Layout() {
-    private val creationTimestamp = System.currentTimeMillis()
-    override fun activateOptions() = Unit
-    override fun format(event: LoggingEvent?): String {
-      if (event == null) return ""
-      val now = System.currentTimeMillis()
-      return buildString {
-        append('[')
-        append((now - creationTimestamp).toString().padStart(7))
-        append("] ")
-        val levelString = event.getLevel().toString()
-        append(levelString.substring(0, min(1, levelString.length)))
-        append(" [")
-        val category = event.loggerName
-        append(category.substring(Integer.max(0, category.length - 30), category.length))
-        append("] ")
-        val message = event.message.toString()
-        append(message.substring(0, min(200, message.length)))
-      }
-    }
-
-    override fun ignoresThrowable() = true
-  }
 
   init {
     try {
       configs = ExceptionDataConfiguration.getInstance().getConfigurations()
-      if (LOG_COLLECTION_ENABLED) {
-        initializeLog()
-      }
-    } catch (t: Throwable) {
+    }
+    catch (t: Throwable) {
       LOG.error("Cannot initialize exception log collection", t)
       configs = emptyMap()
     }
-  }
-
-  private fun initializeLog() {
-    val hasAnyLog = configs.values.any { it.action.logFilter.messageFilterCount > 0 }
-    if (!hasAnyLog) {
-      // Nothing to log
-      return
-    }
-
-    if (DebugLogManager.getInstance().getSavedCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through DebugLogManager.")
-      return
-    }
-
-    // By default, we log INFO+, there is no need to tweak existing appenders if additional tracing is also INFO+ only
-    val needsToReconfigureAppenders = configs.values.any { config ->
-      config.action.logFilter.messageFilterList.any { messageFilter ->
-        messageFilter.hasSeverity() && !severityToLevel(messageFilter.severity).isGreaterOrEqual(Level.INFO)
-      }
-    }
-
-    if (needsToReconfigureAppenders && !tryReconfigureExistingAppenders()) {
-      // Don't register appenders, if reconfiguration failed
-      return
-    }
-
-    for ((name, config) in configs) {
-      if (!config.action.hasLogFilter())
-        continue
-      registerAppenderForLogFilter(name, config.action.logFilter)
-    }
-  }
-
-  private fun registerAppenderForLogFilter(logName: String, logFilter: LogFilter) {
-    val logBuffer = logCache.getLogBufferFor(logName, logFilter.maxMessageCount)
-    logFilter.messageFilterList.forEach { filter ->
-      val logger = LogManager.getLogger(filter.loggerCategory)
-      val desiredLevel = severityToLevel(filter.severity)
-      if (!desiredLevel.isGreaterOrEqual(logger.effectiveLevel)) {
-        logger.level = desiredLevel
-      }
-      val trackingAppender = TrackingAppender(logger, layout, logBuffer)
-      trackingAppender.threshold = desiredLevel
-      logger.addAppender(trackingAppender)
-    }
-  }
-
-  class TrackingAppender(private val logger: org.apache.log4j.Logger,
-                         layout: Layout,
-                         private val logBuffer: LogBuffer) : AppenderSkeleton() {
-    init {
-      setLayout(layout)
-      activateOptions()
-    }
-
-    override fun close() = Unit
-    override fun requiresLayout(): Boolean = true
-    override fun append(event: LoggingEvent) {
-      // Log only specified logger, not its children
-      if (event.logger == logger) {
-        logBuffer.addEntry(layout.format(event))
-      }
-    }
-  }
-
-  private fun severityToLevel(severity: ExceptionSeverity) =
-    when (severity) {
-      ExceptionSeverity.TRACE -> Level.TRACE
-      ExceptionSeverity.DEBUG -> Level.DEBUG
-      ExceptionSeverity.INFO -> Level.INFO
-      ExceptionSeverity.WARNING -> Level.WARN
-      ExceptionSeverity.ERROR -> Level.ERROR
-      else -> Level.INFO
-    }
-
-  private fun tryReconfigureExistingAppenders(): Boolean {
-    if (DebugLogManager.getInstance().getSavedCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through DebugLogManager.")
-      return false
-    }
-
-    val rootLogger = LogManager.getRootLogger()
-    val rootLoggerLevel = rootLogger.level ?: Level.DEBUG
-    val allAppenders = rootLogger.allAppenders.toList()
-    // If console or dialog appender level is set to lower than root logger then we cannot register our exception collection appender.
-    // Any debug log enabled for exception collection would be added
-    val onlyAllowableAppenders = allAppenders.all { appender ->
-      (appender is ConsoleAppender && (appender.threshold == null || appender.threshold.isGreaterOrEqual(rootLoggerLevel))) ||
-      (appender is RollingFileAppender) ||
-      (appender is DialogAppender &&(appender.threshold == null ||  appender.threshold.isGreaterOrEqual(rootLoggerLevel)))
-    }
-    if (!onlyAllowableAppenders) {
-      LOG.info("Cannot register appenders: unknown appender on root logger or threshold already specified on appenders.")
-      return false
-    }
-    allAppenders.filterIsInstance<RollingFileAppender>().forEach {
-      if (it.threshold == null || !it.threshold.isGreaterOrEqual(rootLoggerLevel)) {
-        it.threshold = rootLoggerLevel
-      }
-    }
-    return true
   }
 
   fun getExceptionUploadFields(t: Throwable, forceExceptionMessage: Boolean, includeLogs: Boolean): UploadFields {
@@ -442,6 +305,11 @@ class ExceptionDataCollection {
       LOG.warn("cannot compute if exception requires confirmation", t)
       return false
     }
+  }
+
+  @TestOnly
+  fun unregisterLogAppenders() {
+
   }
 }
 

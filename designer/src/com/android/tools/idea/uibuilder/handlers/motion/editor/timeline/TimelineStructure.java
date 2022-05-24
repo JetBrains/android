@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
-
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

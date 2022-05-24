@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
+import com.android.SdkConstants.ATTR_NAV_GRAPH
+import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -25,9 +27,9 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.util.*
+import org.mockito.Mockito.`when`
+import java.util.EnumSet
 
 class FragmentHandlerTest : LayoutTestCase() {
   fun testActivateNavFragment() {
@@ -70,7 +72,7 @@ class FragmentHandlerTest : LayoutTestCase() {
     val tag = XmlElementFactory.getInstance(getProject()).createTagFromText(
         "    <fragment\n" +
         "        android:id=\"@+id/fragment\"\n" +
-        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
+        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>")
     val editor = mock(ViewEditorImpl::class.java)
     `when`(editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION))).thenReturn("@navigation/testNav")
     (model.surface.sceneManager as SyncLayoutlibSceneManager).setCustomViewEditor(editor)

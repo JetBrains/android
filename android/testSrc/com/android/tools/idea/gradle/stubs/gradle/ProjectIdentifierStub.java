@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import java.io.File;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 public class ProjectIdentifierStub implements ProjectIdentifier {
   @NotNull private final BuildIdentifierStub myBuildIdentifier;

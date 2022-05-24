@@ -29,7 +29,6 @@ import com.intellij.facet.FacetType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -47,6 +46,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.PlatformUtils
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
@@ -127,7 +127,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that uses a fixture which create the
      * project in an in memory TempFileSystem
      *
-     * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
+     * @see IdeaTestFixtureFactory.createLightFixtureBuilder(String)
      */
     @JvmStatic
     fun inMemory() = AndroidProjectRule()
@@ -216,16 +216,26 @@ class AndroidProjectRule private constructor(
   private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
     fixture = if (lightFixture) {
-      createLightFixture()
+      createLightFixture(description.displayName)
     }
     else {
       createJavaCodeInsightTestFixture(description)
     }
 
     userHome = System.getProperty("user.home")
-    val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
-    // Reset user home directory.
-    System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
+    if ("AndroidStudio" == PlatformUtils.getPlatformPrefix()) {
+      // Overriding "user.home" leads to some bad situations:
+      // 1. When running in IDEA from sources: some files in kotlin plugin in Test IDE are obtained from the local M2 repository (see
+      //    org.jetbrains.kotlin.idea.artifacts.UtilKt.findLibrary: it parses `.idea/libraries` and finds some M2 files there,
+      //    e.g. kotlin-dist-for-ide-1.5.10-release-941.jar). Using different "user.home" in Host and Test IDEs
+      //    makes these files inaccessible in Test IDE.
+      // 2. IDEA downloads and setups new wrapper in each test because .gradle is new directory in different tests. This works really SLOW.
+      // 3. `user.home` sometimes not restored if AndroidProjectRule fails during initialization.
+
+      val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
+      // Reset user home directory.
+      System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
+    }
 
     fixture.setUp()
     // Initialize an Android manifest
@@ -237,7 +247,7 @@ class AndroidProjectRule private constructor(
         println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
         AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile())
       }
-      invokeAndWaitIfNeeded {
+      ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         val basePath = File(fixture.tempDirPath)
@@ -254,10 +264,10 @@ class AndroidProjectRule private constructor(
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(settings)
   }
 
-  private fun createLightFixture(): CodeInsightTestFixture {
+  private fun createLightFixture(projectName: String): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor())
+    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor(), projectName)
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 
@@ -270,7 +280,7 @@ class AndroidProjectRule private constructor(
         AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
         AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
 
-    val name = fixtureName ?: description.testClass.simpleName
+    val name = fixtureName ?: description.className.substringAfterLast('.')
     val tempDirFixture = object: AndroidTempDirTestFixture(name) {
       private val tempRoot: String = FileUtil.createTempDirectory(UsefulTestCase.TEMP_DIR_MARKER + name, "", false).path
       override fun getRootTempDirectory(): String = tempRoot
@@ -281,7 +291,7 @@ class AndroidProjectRule private constructor(
           runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
         }
         catch (e: Throwable) {
-          addSuppressedException(e);
+          addSuppressedException(e)
         }
       }
     }

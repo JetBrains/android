@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker.messages;
 
+import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
+
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.errorTreeView.*;
+import com.intellij.ide.errorTreeView.ErrorTreeElement;
+import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
+import com.intellij.ide.errorTreeView.ErrorTreeNodeDescriptor;
+import com.intellij.ide.errorTreeView.GroupingElement;
+import com.intellij.ide.errorTreeView.NavigatableMessageElement;
+import com.intellij.ide.errorTreeView.SimpleMessageElement;
 import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.util.ui.EmptyIcon;
+import javax.swing.Icon;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 
 /**
 * Renders elements in the "Messages" window. This renderer does not add the message type as a prefix (e.g. "Information:");

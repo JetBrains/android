@@ -45,6 +45,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -275,6 +276,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
     ComboBoxButton button = new ComboBoxButton(presentation) {
+      @NotNull
       @Override
       protected JBPopup createPopup(@NotNull Runnable runnable) {
         DataContext context = getDataContext();
@@ -313,6 +315,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Project project = event.getProject();
 
     if (project == null) {
+      presentation.setVisible(false);
+      return;
+    }
+
+    if (!AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false);
       return;
     }

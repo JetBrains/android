@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -22,23 +24,20 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 public class IncludeViewTests {
 
   /*
   Get the IncludesViewNode for the given nativeIncludes setup
    */
-  static List<? extends AbstractTreeNode> getChildNodesForIncludes(@NotNull Project project, @NotNull NativeIncludes nativeIncludes) {
+  static List<? extends AbstractTreeNode<?>> getChildNodesForIncludes(@NotNull Project project, @NotNull NativeIncludes nativeIncludes) {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
     IncludesViewNode includesViewNode = new IncludesViewNode(project, nativeIncludes, settings);
     return Lists.newArrayList(includesViewNode.getChildren());
@@ -53,7 +52,7 @@ public class IncludeViewTests {
   /*
   Given a set of nodes, return all of the children that match the given type
    */
-  static <T extends AbstractTreeNode> List<T> getChildrenOfType(@NotNull Collection<? extends AbstractTreeNode> parents, @NotNull Class<T> clazz) {
+  static <T extends AbstractTreeNode> List<T> getChildrenOfType(@NotNull Collection<? extends AbstractTreeNode<?>> parents, @NotNull Class<T> clazz) {
     List<T> children = new ArrayList<>();
     appendChildrenOfType(children, parents, clazz);
     return children;
@@ -62,12 +61,12 @@ public class IncludeViewTests {
   /*
   Append children of parent matching type. Search is depth-first so that the caller can rely on ordering.
    */
-  private static <T extends AbstractTreeNode> void appendChildrenOfType(@NotNull Collection<T> appendTo,
-                                                                        @NotNull Collection<? extends AbstractTreeNode> parents,
-                                                                        @NotNull Class<T> clazz) {
-    for (AbstractTreeNode parent : parents) {
-      Collection<? extends AbstractTreeNode> children = parent.getChildren();
-      for (AbstractTreeNode child : children) {
+  private static <T extends AbstractTreeNode<?>> void appendChildrenOfType(@NotNull Collection<T> appendTo,
+                                                                           @NotNull Collection<? extends AbstractTreeNode<?>> parents,
+                                                                           @NotNull Class<T> clazz) {
+    for (AbstractTreeNode<?> parent : parents) {
+      Collection<? extends AbstractTreeNode<?>> children = parent.getChildren();
+      for (AbstractTreeNode<?> child : children) {
         if (clazz.isAssignableFrom(child.getClass())) {
           appendTo.add((T)child);
         }
@@ -76,7 +75,7 @@ public class IncludeViewTests {
     }
   }
 
-  static void assertContainsAllFilesAsChildren(@NotNull Collection<? extends AbstractTreeNode> parents, @NotNull Collection<File> children) {
+  static void assertContainsAllFilesAsChildren(@NotNull Collection<? extends AbstractTreeNode<?>> parents, @NotNull Collection<File> children) {
     for (File child : children) {
       boolean foundChild = false;
       for (AbstractTreeNode parent : parents) {
@@ -93,9 +92,9 @@ public class IncludeViewTests {
     }
   }
 
-  static void assertDoesNotContainAnyFilesAsChildren(@NotNull Collection<? extends AbstractTreeNode> parents, @NotNull Collection<File> children) {
+  static void assertDoesNotContainAnyFilesAsChildren(@NotNull Collection<? extends AbstractTreeNode<?>> parents, @NotNull Collection<File> children) {
     for (File child : children) {
-      for (AbstractTreeNode parent : parents) {
+      for (AbstractTreeNode<?> parent : parents) {
         ProjectViewNode viewNode = (ProjectViewNode)parent;
         LocalFileSystem fileSystem = LocalFileSystem.getInstance();
         VirtualFile virtualFile = fileSystem.findFileByIoFile(child);

@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -31,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -40,25 +54,22 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.*;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
-import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public abstract class GradleDslElementImpl implements GradleDslElement, ModificationAware {
   @NotNull private static final String SINGLE_QUOTES = "\'";
@@ -311,6 +322,12 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     modify();
     if (myParent != null) {
       myParent.setModified();
+      if (this instanceof DescribedGradlePropertiesDslElement && myParent instanceof GradlePropertiesDslElement) {
+        // If we modify a previously-applied internal node of the Dsl tree, in particular when adding an element to it or any of its
+        // children, we must change its state from APPLIED to reflect the fact that the new element will have a physical existence
+        // in the file, and can no longer be represented as merely the effect of transclusion.
+        ((GradlePropertiesDslElement)myParent).updateAppliedState(this);
+      }
     }
   }
 
@@ -647,7 +664,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
     // We have some index present, find the element we need to index. The first match, the property, is always the whole match.
     String elementName = indexMatcher.group(0);
-    if (elementName == null || elementName.equals("")) {
+    if (elementName == null || elementName.isEmpty()) {
       return null;
     }
     ModelPropertyDescription property = converter.modelDescriptionForParent(elementName, properties);
@@ -901,6 +918,15 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     GradleDslElement searchStartElement = this;
     GradleDslParser parser = getDslFile().getParser();
     referenceText = parser.convertReferenceText(searchStartElement, referenceText);
+
+    return resolveInternalSyntaxReference(referenceText, resolveWithOrder);
+  }
+
+  @Override
+  public @Nullable GradleDslElement resolveExternalSyntaxReference(@NotNull PsiElement psiElement, boolean resolveWithOrder) {
+    GradleDslElement searchStartElement = this;
+    GradleDslParser parser = getDslFile().getParser();
+    String referenceText = parser.convertReferencePsi(searchStartElement, psiElement);
 
     return resolveInternalSyntaxReference(referenceText, resolveWithOrder);
   }

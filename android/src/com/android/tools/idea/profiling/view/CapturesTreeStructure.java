@@ -21,19 +21,18 @@ import com.android.tools.idea.profiling.capture.CaptureType;
 import com.android.tools.idea.profiling.view.nodes.CaptureNode;
 import com.android.tools.idea.profiling.view.nodes.CaptureRootNode;
 import com.android.tools.idea.profiling.view.nodes.CaptureTypeNode;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class CapturesTreeStructure extends SimpleTreeStructure {
   @NotNull private final Project myProject;
   @NotNull CaptureRootNode myRoot;
-  @NotNull Map<Capture, CaptureNode> myCaptureNodes = Maps.newHashMap();
-  @NotNull Map<CaptureType, CaptureTypeNode> myTypeNodes = Maps.newHashMap();
+  @NotNull Map<Capture, CaptureNode> myCaptureNodes = new HashMap<>();
+  @NotNull Map<CaptureType, CaptureTypeNode> myTypeNodes = new HashMap<>();
 
 
   public CapturesTreeStructure(@NotNull Project project) {
@@ -44,7 +43,7 @@ public class CapturesTreeStructure extends SimpleTreeStructure {
   public void update() {
     CaptureService service = CaptureService.getInstance(myProject);
     myRoot.clear();
-    Map<CaptureType, CaptureTypeNode> types = Maps.newHashMap();
+    Map<CaptureType, CaptureTypeNode> types = new HashMap<>();
     for (CaptureType type : service.getTypes()) {
       CaptureTypeNode typeNode = myTypeNodes.get(type);
       if (typeNode == null) {
@@ -55,7 +54,7 @@ public class CapturesTreeStructure extends SimpleTreeStructure {
     }
     myTypeNodes = types;
 
-    Map<Capture, CaptureNode> captures = Maps.newHashMap();
+    Map<Capture, CaptureNode> captures = new HashMap<>();
     for (Map.Entry<CaptureType, Collection<Capture>> entry : service.getCapturesByType().asMap().entrySet()) {
       CaptureTypeNode typeNode = myTypeNodes.get(entry.getKey());
       typeNode.clear();

@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.webp;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.rendering.webp.WebpPreviewDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class WebpPreviewDialogFixture extends IdeaDialogFixture<WebpPreviewDialog> {
 

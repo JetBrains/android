@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -49,7 +50,6 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
@@ -167,6 +167,9 @@ public class PalettePanelTest extends LayoutTestCase {
       myPopupMenu = null;
       myPanel = null;
       myModel = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

@@ -16,11 +16,11 @@
 
 package com.android.tools.idea.logcat;
 
+import static com.intellij.execution.ui.ConsoleViewContentType.registerNewConsoleViewType;
+
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.util.Key;
-
-import static com.intellij.execution.ui.ConsoleViewContentType.registerNewConsoleViewType;
 
 public final class AndroidLogcatConstants {
   public static final TextAttributesKey VERBOSE_OUTPUT_KEY =

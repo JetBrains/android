@@ -20,7 +20,15 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.process.ProcessException;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
-import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.AaptInvoker;
+import com.android.tools.apk.analyzer.AndroidApplicationInfo;
+import com.android.tools.apk.analyzer.ApkSizeCalculator;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
+import com.android.tools.apk.analyzer.ArchiveEntry;
+import com.android.tools.apk.analyzer.ArchiveNode;
+import com.android.tools.apk.analyzer.ArchivePathEntry;
+import com.android.tools.apk.analyzer.ArchiveTreeStructure;
 import com.android.tools.apk.analyzer.internal.AppBundleArchive;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.util.concurrent.Futures;
@@ -28,10 +36,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +43,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);

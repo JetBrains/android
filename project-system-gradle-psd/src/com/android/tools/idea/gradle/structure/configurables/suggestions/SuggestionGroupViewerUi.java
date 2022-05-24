@@ -15,9 +15,9 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.panels.VerticalLayout;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class SuggestionGroupViewerUi {
   protected JPanel myView;

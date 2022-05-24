@@ -29,7 +29,6 @@ class ImportersProvider(
 
   private val typeToImporter = importers
       .flatMap { importer -> importer.getSupportedFileTypes().map { Pair(it, importer) }.toList() }
-      .asSequence()
       .groupBy({ it.first }, {it.second})
 
   /**

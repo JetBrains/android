@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
+import static com.google.common.truth.Truth.assertWithMessage;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseDeviceDefinitionStepFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests exercising the UI for hardware profile management

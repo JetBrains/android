@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixtureKt.selectModulesConfigurable;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModuleDefaultConfigFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulePropertiesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixtureKt.selectModulesConfigurable;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ChangeLibModSettingsTest {
@@ -76,7 +74,7 @@ public class ChangeLibModSettingsTest {
   @Test
   public void changeLibraryModuleSettings() {
     new NewProjectDescriptor("MyTestApp").withMinSdk(24).create(guiTest)
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()

@@ -23,10 +23,9 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentModificationDelegate;
 import com.android.utils.Pair;
 import com.intellij.psi.xml.XmlTag;
+import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
 
 /**
  * Encapsulate write operations on components

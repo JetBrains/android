@@ -2,6 +2,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.DisplayPositioning
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -82,10 +83,9 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
         CachedValueProvider.Result.createSingleDependency(
           DumbService.getInstance(project).runReadActionInSmartMode(
             Computable<Collection<PsiElement>> {
-              KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project, GlobalSearchScope.projectScope(project))
+              KotlinAnnotationsIndex.get(COMPOSE_PREVIEW_ANNOTATION_NAME, project, GlobalSearchScope.projectScope(project))
             }), PsiModificationTracker.SERVICE.getInstance(project).forLanguage(KotlinLanguage.INSTANCE))
       }.asSequence()
-
 
       val foundPreviewElementPaths: Set<String> by lazy {
         kotlinAnnotations
@@ -223,9 +223,9 @@ interface PinnedPreviewElementManager: ModificationTracker {
     @JvmStatic
     fun getPreviewElementProvider(project: Project): PreviewElementProvider<PreviewElementInstance> = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
       object : PreviewElementProvider<PreviewElementInstance> {
-        @get:Slow
-        override val previewElements: Sequence<PreviewElementInstance>
-          get() = project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
+        @Slow
+        override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+          project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
       }
     }
     else {

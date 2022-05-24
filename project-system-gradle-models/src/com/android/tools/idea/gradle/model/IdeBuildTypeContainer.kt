@@ -28,7 +28,7 @@ interface IdeBuildTypeContainer {
    *
    * @return the build type source provider.
    */
-  val sourceProvider: IdeSourceProvider
+  val sourceProvider: IdeSourceProvider?
 
   /**
    * Returns a list of ArtifactMetaData/SourceProvider association.

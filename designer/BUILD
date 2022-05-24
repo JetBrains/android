@@ -44,6 +44,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
     ],
 )
 
@@ -69,7 +70,6 @@ iml_module(
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/build-system/previous-versions:2.2.0",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_shard_count = 4,

@@ -15,63 +15,29 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
 class CpuFrameTooltipViewTest {
-
-  val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
-  private val timer = FakeTimer()
-  private lateinit var stage: CpuProfilerStage
+  private val timeline = DefaultTimeline()
   private lateinit var tooltip: CpuFrameTooltip
   private lateinit var tooltipView: FakeCpuFrameTooltipView
-  private lateinit var capture: CpuCapture
-  private val fakeTransportService = FakeTransportService(timer)
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuFrameTooltipViewTest", FakeCpuService(), fakeTransportService, FakeProfilerService(timer))
 
   @Before
   fun setUp() {
-    val device = Common.Device.newBuilder().setDeviceId(1).build()
-    fakeTransportService.addDevice(device)
-    fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    stage = CpuProfilerStage(profilers)
-    capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(resolveWorkspacePath(ATRACE_TRACE_PATH).toFile(), 0)
-    stage.capture = capture
-    timer.tick(TimeUnit.SECONDS.toNanos(1))
-    profilers.stage = stage
-    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    val stageView = view.stageView as CpuProfilerStageView
-    tooltip = CpuFrameTooltip(stage.timeline)
-    tooltipView = FakeCpuFrameTooltipView(stageView, tooltip)
-    stage.tooltip = tooltip
-    stageView.stage.timeline.apply {
-      dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
-      tooltipRange.set(1.0, 1.0)
-      viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
-    }
+    tooltip = CpuFrameTooltip(timeline)
+    tooltipView = FakeCpuFrameTooltipView(tooltip)
+    timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
+    timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
   }
 
   @Test
@@ -81,9 +47,10 @@ class CpuFrameTooltipViewTest {
     mainFrame.associatedFrame = renderFrame
     renderFrame.associatedFrame = mainFrame
 
-    val frames = mutableListOf(SeriesData(0, mainFrame), SeriesData(2, renderFrame))
-    val series = LazyDataSeries<SystemTraceFrame> { frames }
+    val frames = listOf(SeriesData(0, mainFrame), SeriesData(2, renderFrame))
+    val series = LazyDataSeries { frames }
     tooltip.setFrameSeries(series)
+    timeline.tooltipRange.set(1.0, 1.0)
     val labels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(8)
     assertThat(labels[0].text).isEqualTo("00:00.000")
@@ -105,10 +72,10 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun renderFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(
-      SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.MAIN)))
-    val series = LazyDataSeries<SystemTraceFrame> { frames }
+    val frames = listOf(SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.MAIN)))
+    val series = LazyDataSeries { frames }
     tooltip.setFrameSeries(series)
+    timeline.tooltipRange.set(1.0, 1.0)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
 
@@ -119,10 +86,10 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun mainFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(
-      SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.RENDER)))
-    val series = LazyDataSeries<SystemTraceFrame> { frames }
+    val frames = listOf(SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.RENDER)))
+    val series = LazyDataSeries { frames }
     tooltip.setFrameSeries(series)
+    timeline.tooltipRange.set(1.0, 1.0)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
 
@@ -133,8 +100,8 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun allPanelsShouldBeHidden() {
-    val frames = mutableListOf<SeriesData<SystemTraceFrame>>()
-    val series = LazyDataSeries<SystemTraceFrame> { frames }
+    val frames = emptyList<SeriesData<SystemTraceFrame>>()
+    val series = LazyDataSeries { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
@@ -144,10 +111,7 @@ class CpuFrameTooltipViewTest {
     assertThat(panels[3].isVisible).isFalse()
   }
 
-  private class FakeCpuFrameTooltipView(
-    view: CpuProfilerStageView,
-    tooltip: CpuFrameTooltip
-  ) : CpuFrameTooltipView(view.component, tooltip) {
+  private class FakeCpuFrameTooltipView(tooltip: CpuFrameTooltip) : CpuFrameTooltipView(JPanel(), tooltip) {
     val tooltipPanel = createComponent()
   }
 }

@@ -59,13 +59,13 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "  Resource reference in code (2)\n" +
-                 "   testResourceDefinedInAarUsingModuleRClass.app (1)\n" +
+                 "   testResourceDefinedInAarUsingModuleRClass.app.main (1)\n" +
                  "    com.example.google.androidx (1)\n" +
                  "     MainActivity.kt (1)\n" +
                  "      MainActivity (1)\n" +
                  "       onCreate (1)\n" +
                  "        12val color = R.color.abc_tint_default\n" +
-                 "   testResourceDefinedInAarUsingModuleRClass.library (1)\n" +
+                 "   testResourceDefinedInAarUsingModuleRClass.library.main (1)\n" +
                  "    google.mylibrary (1)\n" +
                  "     Library (1)\n" +
                  "      foo() (1)\n" +
@@ -99,7 +99,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "  Resource reference in code (4)\n" +
-                 "   testResourceDefinedInAarUsingLibRClass.app (3)\n" +
+                 "   testResourceDefinedInAarUsingLibRClass.app.main (3)\n" +
                  "    com.example.google.androidx (3)\n" +
                  "     MainActivity.kt (3)\n" +
                  "      MainActivity (3)\n" +
@@ -107,7 +107,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "        12val color = R.color.abc_tint_default\n" +
                  "        13com.example.google.androidx.R.color.abc_tint_default\n" +
                  "        14androidx.appcompat.R.color.abc_tint_default\n" +
-                 "   testResourceDefinedInAarUsingLibRClass.library (1)\n" +
+                 "   testResourceDefinedInAarUsingLibRClass.library.main (1)\n" +
                  "    google.mylibrary (1)\n" +
                  "     Library (1)\n" +
                  "      foo() (1)\n" +

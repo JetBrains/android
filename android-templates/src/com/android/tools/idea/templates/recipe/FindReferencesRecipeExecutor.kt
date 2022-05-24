@@ -54,7 +54,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
     context.classpathEntries.add(mavenCoordinate)
   }
 

@@ -192,6 +192,15 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
+
+      // When screen rotation feature is enabled, we want to rotate the image.
+      NlDesignSurface surface = myScreenView.getSurface();
+      float degree = surface.getRotateSurfaceDegree();
+      if (!Float.isNaN(degree)) {
+        // We change the graphic context with the assumption the context will be disposed right after drawing operation.
+        g.rotate(Math.toRadians(degree), myScreenView.getX() + myScreenViewSize.width / 2, myScreenView.getY() + myScreenViewSize.height / 2);
+      }
+
       StartupUiUtil.drawImage(g, cachedVisibleImage[0], myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();

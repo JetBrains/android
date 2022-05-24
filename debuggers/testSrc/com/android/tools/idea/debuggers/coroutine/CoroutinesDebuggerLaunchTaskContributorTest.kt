@@ -18,89 +18,146 @@ package com.android.tools.idea.debuggers.coroutine
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKotlinUtils
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.LaunchOptions
+import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
-import org.mockito.Mockito
+import com.intellij.testFramework.registerServiceInstance
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
+
+  private val configuration = mock<AndroidRunConfigurationBase>()
+
+  override fun setUp() {
+    super.setUp()
+    `when`(configuration.project).thenReturn(project)
+  }
+
   fun testContributorHasNoTask() {
-    val launchOptions = LaunchOptions.builder().build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val task = contributor.getTask(module, "com.test.application", launchOptions)
+    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val task = contributor.getTask( "com.test.application", configuration, device, DefaultRunExecutor.getRunExecutorInstance())
     assertNull(task)
   }
 
   fun testNoAmOptionsIfFlagIsDisabled() {
-    val launchOptions = LaunchOptions.builder().build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(false) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
 
   fun testNoAmOptionsIfNotDebuggable() {
-    val launchOptions = LaunchOptions.builder().setDebug(false).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
 
-  fun testNoAmOptionsOnAPI27AndLower() {
+  fun testNoAmOptionsIfSettingsNotEnabled() {
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
     val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+      assertEquals("", amStartOptions)
+    }
+
+    CoroutineDebuggerSettings.reset()
+  }
+
+  fun testNoAmOptionsOnAPI28AndLower() {
+    val contributor = CoroutineDebuggerLaunchTaskContributor()
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      assertEquals("", amStartOptions)
+    }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
   }
 
   fun testAmOptionsIsCorrect() {
-    val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
-
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("--attach-agent /data/data/com.test.application/code_cache/coroutine_debugger_agent.so", amStartOptions)
     }
   }
 
-  private fun runWithFlagState(flagState: Boolean, task: () -> Unit) {
-    val flagPreviousState = FlagController.isCoroutineDebuggerEnabled
-    FlagController.enableCoroutineDebugger(true)
+  fun testLaunchEventIsTracked() {
+    val fakeTracker = FakeCoroutineDebuggerAnalyticsTracker()
+    project.registerServiceInstance(CoroutineDebuggerAnalyticsTracker::class.java, fakeTracker)
 
-    task()
+    val contributor = CoroutineDebuggerLaunchTaskContributor()
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
-    FlagController.enableCoroutineDebugger(flagPreviousState)
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
+
+    runWithFlagState(true) {
+      contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+
+      assertTrue(fakeTracker.trackLaunchEventCalled)
+      assertFalse(fakeTracker.launchEventIsDisabledInSettings)
+    }
+
+    fakeTracker.reset()
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
+    runWithFlagState(true) {
+      contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+
+      assertTrue(fakeTracker.trackLaunchEventCalled)
+      assertTrue(fakeTracker.launchEventIsDisabledInSettings)
+    }
   }
 }

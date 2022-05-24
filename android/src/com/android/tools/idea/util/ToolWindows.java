@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.util;
 
+import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
 public class ToolWindows {
   public static void activateProjectView(@NotNull Project project) {

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

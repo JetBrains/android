@@ -16,11 +16,10 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-
+import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

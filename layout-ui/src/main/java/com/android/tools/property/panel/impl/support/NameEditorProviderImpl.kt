@@ -15,7 +15,9 @@
  */
 package com.android.tools.property.panel.impl.support
 
-import com.android.tools.property.panel.api.*
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.impl.model.PropertyNameEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import javax.swing.JComponent

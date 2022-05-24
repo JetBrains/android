@@ -34,7 +34,7 @@ public class DeviceExplorerViewServiceImpl implements DeviceExplorerViewService{
 
   @Override
   public void openAndShowDevice(@NotNull AvdInfo avdInfo) {
-    if (!showToolWindow()) {
+    if (!showToolWindowImpl()) {
       return;
     }
 
@@ -55,7 +55,7 @@ public class DeviceExplorerViewServiceImpl implements DeviceExplorerViewService{
 
   @Override
   public void openAndShowDevice(@NotNull String serialNumber) {
-    if (!showToolWindow()) {
+    if (!showToolWindowImpl()) {
       return;
     }
 
@@ -65,15 +65,19 @@ public class DeviceExplorerViewServiceImpl implements DeviceExplorerViewService{
     controller.selectActiveDevice(serialNumber);
   }
 
-  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private boolean showToolWindow() {
+  @Override
+  public void showToolWindow() {
+    showToolWindowImpl();
+  }
+
+  private boolean showToolWindowImpl() {
     ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
 
-    if (toolWindow == null) {
-      return false;
+    if (toolWindow != null) {
+      toolWindow.show();
+      return true;
     }
 
-    toolWindow.show();
-    return true;
+    return false;
   }
 }

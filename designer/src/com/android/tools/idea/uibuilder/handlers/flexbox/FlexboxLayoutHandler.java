@@ -16,13 +16,23 @@
 
 package com.android.tools.idea.uibuilder.handlers.flexbox;
 
+import static com.android.SdkConstants.ATTR_ALIGN_CONTENT;
+import static com.android.SdkConstants.ATTR_ALIGN_ITEMS;
+import static com.android.SdkConstants.ATTR_FLEX_DIRECTION;
+import static com.android.SdkConstants.ATTR_FLEX_WRAP;
+import static com.android.SdkConstants.ATTR_JUSTIFY_CONTENT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_SELF;
+import static com.android.SdkConstants.ATTR_LAYOUT_FLEX_BASIS_PERCENT;
+import static com.android.SdkConstants.ATTR_LAYOUT_FLEX_GROW;
+import static com.android.SdkConstants.ATTR_LAYOUT_FLEX_SHRINK;
+import static com.android.SdkConstants.ATTR_LAYOUT_ORDER;
+import static com.android.SdkConstants.ATTR_LAYOUT_WRAP_BEFORE;
+import static com.android.SdkConstants.FLEXBOX_LAYOUT_LIB_ARTIFACT;
+
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handles interactions for the FlexboxLayout.

@@ -49,6 +49,28 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
 
   override fun displayTextInToolbar(): Boolean = true
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.description = null
+
+    val surface = e.getData(DESIGN_SURFACE)
+    if (surface == null) {
+      e.presentation.isEnabledAndVisible = false
+      return
+    }
+
+    val toolbar = DataManager.getDataProvider(surface)?.let { provider -> ANIMATION_TOOLBAR.getData(provider) }
+
+    when (toolbar) {
+      null -> e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
+      is AnimatedSelectorToolbar -> {
+        e.presentation.isVisible = true
+        e.presentation.isEnabled = !toolbar.isTransitionSelected()
+        e.presentation.description = if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition" else null
+      }
+      else -> e.presentation.isEnabledAndVisible = false
+    }
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE)
     val button = e.inputEvent.component
@@ -158,22 +180,18 @@ private fun setState(surface: DesignSurface, state: State, enabled: Boolean) {
   val states = image.drawableState
   val stateValue = state.intValue
 
-  var shouldRender = false
+  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager
 
   // image.setImageState(states, true) didn't work as expected. So I'm doing it this way.
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
-      image.setImageState(ArrayUtil.append(states, stateValue), false)
-      shouldRender = true
+      sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.append(states, stateValue), false) }
+        .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
     }
   }
   else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
-    image.setImageState(ArrayUtil.remove(states, i), false)
-    shouldRender = true
-  }
-
-  if (shouldRender) {
-    surface.sceneManager?.requestRender()
+    sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
+      .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
   }
 }

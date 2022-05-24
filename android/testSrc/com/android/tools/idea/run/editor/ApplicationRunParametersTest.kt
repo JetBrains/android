@@ -22,8 +22,8 @@ import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.module.Module
 import com.intellij.ui.components.JBCheckBox
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.event.ActionEvent
 
 class ApplicationRunParametersTest : AndroidGradleTestCase() {

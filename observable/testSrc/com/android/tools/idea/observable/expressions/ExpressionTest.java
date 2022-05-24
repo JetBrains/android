@@ -24,8 +24,6 @@ import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public final class ExpressionTest {
   @Test(expected = IllegalArgumentException.class)
   public void expressionsNeedAtLeastOneObservable() throws Exception {
@@ -42,7 +40,7 @@ public final class ExpressionTest {
   @Test
   public void testSimpleExpression() throws Exception {
     final IntProperty intValue = new IntValueProperty(13);
-    final Expression<String> intToString = new Expression<String>(intValue) {
+    final Expression<String> intToString = new Expression<>(intValue) {
       @NotNull
       @Override
       public String get() {

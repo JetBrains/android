@@ -15,11 +15,29 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.structure.model.PsModel
-import com.android.tools.idea.gradle.structure.model.helpers.*
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
+import com.android.tools.idea.gradle.structure.model.helpers.formatLanguageLevel
+import com.android.tools.idea.gradle.structure.model.helpers.installedBuildTools
+import com.android.tools.idea.gradle.structure.model.helpers.installedCompiledApis
+import com.android.tools.idea.gradle.structure.model.helpers.languageLevels
+import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
+import com.android.tools.idea.gradle.structure.model.helpers.ndkVersionValues
+import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
+import com.android.tools.idea.gradle.structure.model.helpers.parseHashString
+import com.android.tools.idea.gradle.structure.model.helpers.parseLanguageLevel
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asBoolean
+import com.android.tools.idea.gradle.structure.model.meta.asLanguageLevel
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.setLanguageLevel
 import com.intellij.pom.java.LanguageLevel
 
 object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidProject, AndroidModel> {

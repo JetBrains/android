@@ -19,15 +19,14 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
-import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LifecycleTooltip implements TooltipModel {
   @NotNull private final Timeline myTimeline;

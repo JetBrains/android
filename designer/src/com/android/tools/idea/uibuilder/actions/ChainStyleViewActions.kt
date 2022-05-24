@@ -18,19 +18,17 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewAction.ChainDirection
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
-import com.android.tools.idea.uibuilder.actions.ChainStyleViewAction.ChainDirection
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainChecker
 import com.google.common.annotations.VisibleForTesting
-
 import icons.StudioIcons.LayoutEditor.Toolbar
 import javax.swing.Icon
-import kotlin.streams.toList
 
 class ChainStyleViewActions {
   companion object {

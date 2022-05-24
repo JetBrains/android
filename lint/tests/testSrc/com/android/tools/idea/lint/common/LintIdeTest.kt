@@ -488,7 +488,7 @@ class LintIdeTest : UsefulTestCase() {
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
       get() {
-        val adtPath = Paths.get(StudioPathManager.getSourcesRoot(), "tools/adt/idea", "android").normalize()
+        val adtPath = Paths.get(StudioPathManager.resolveDevPath("tools/adt/idea/android")).normalize()
         return if (Files.exists(adtPath))
           adtPath.toString()
         else

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
-import com.android.tools.adtui.workbench.*;
+import com.android.tools.adtui.workbench.AutoHide;
+import com.android.tools.adtui.workbench.Side;
+import com.android.tools.adtui.workbench.Split;
+import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;

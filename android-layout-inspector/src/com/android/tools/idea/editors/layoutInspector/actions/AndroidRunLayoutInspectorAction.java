@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorServ
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -34,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title.legacy"),
-          AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
+    super(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.title.legacy"),
+          AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
 
@@ -43,11 +42,11 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(!LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     if (isDebuggerPaused(e.getProject())) {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
+      e.getPresentation().setDescription(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description.disabled"));
       e.getPresentation().setEnabled(false);
     }
     else {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
+      e.getPresentation().setDescription(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description"));
       e.getPresentation().setEnabled(true);
     }
   }
@@ -62,7 +61,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       Client client = dialog.getClient();
       if (client != null) {
-        ServiceManager.getService(project, AndroidLayoutInspectorService.class).getTask(project, client).queue();
+        project.getService(AndroidLayoutInspectorService.class).getTask(project, client).queue();
       }
       else {
         Logger.getInstance(AndroidRunLayoutInspectorAction.class).warn("Not launching layout inspector - no client selected");

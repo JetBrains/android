@@ -16,9 +16,8 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.intellij.openapi.actionSystem.Presentation;
+import javax.swing.RowFilter;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public abstract class StringResourceTableRowFilter extends RowFilter<StringResourceTableModel, Integer> {
   public abstract void update(@NotNull Presentation presentation);

@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public interface DependencyDetails {
   @NotNull

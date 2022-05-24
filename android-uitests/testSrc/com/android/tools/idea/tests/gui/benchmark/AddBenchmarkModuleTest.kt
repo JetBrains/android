@@ -66,7 +66,7 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
@@ -117,7 +117,7 @@ class AddBenchmarkModuleTest {
   @Throws(Exception::class)
   fun addKotlinMicrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
@@ -171,7 +171,7 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
@@ -187,9 +187,6 @@ class AddBenchmarkModuleTest {
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
@@ -229,7 +226,7 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
@@ -245,9 +242,6 @@ class AddBenchmarkModuleTest {
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {

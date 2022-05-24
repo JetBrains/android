@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
@@ -22,19 +31,9 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.mockito.Mock;
-
-import java.io.File;
-
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link CompilerOutputModuleSetupStep}.

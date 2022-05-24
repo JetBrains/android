@@ -56,6 +56,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -79,7 +80,6 @@ import icons.StudioIcons
 import junit.framework.TestCase
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -89,7 +89,6 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -98,24 +97,15 @@ import javax.swing.JScrollPane
 import javax.swing.JViewport
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
-private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
-private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
   private val disposableRule = DisposableRule()
-  private val launcherExecutor = Executors.newSingleThreadExecutor()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
-    clientProvider = appInspectorRule.createInspectorClientProvider(),
-    launcherExecutor = launcherExecutor,
+    clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
     isPreferredProcess =  { it.name == MODERN_PROCESS.name }
   )
-
-  @After
-  fun tearDown() {
-    launcherExecutor.shutdownNow()
-  }
 
   @get:Rule
   val ruleChain =
@@ -124,6 +114,11 @@ class DeviceViewPanelWithFullInspectorTest {
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
   private val commands = mutableListOf<LayoutInspectorViewProtocol.Command>()
+
+  @Before
+  fun before() {
+    inspectorRule.attachDevice(MODERN_DEVICE)
+  }
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
@@ -316,6 +311,12 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLoadingPane() {
+    val latch = ReportingCountDownLatch(1)
+    inspectorRule.launchSynchronously = false
+    appInspectorRule.viewInspector.listenWhen({ true }) {
+      latch.await(20, TimeUnit.SECONDS)
+      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
+    }
     val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
                                 inspectorRule.projectRule.fixture.testRootDisposable)
@@ -325,6 +326,37 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting, loading should show
+    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+
+    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
+
+    // Release the response from the agent and wait for connection. The loading should stop.
+    latch.countDown()
+    inspectorRule.asyncLaunchLatch.await(1, TimeUnit.SECONDS)
+
+    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading && contentPanel.showEmptyText }
+  }
+
+  @Test
+  fun testLoadingPanelWithStartAndStop() {
+    val latch = ReportingCountDownLatch(1)
+    inspectorRule.launchSynchronously = false
+    appInspectorRule.viewInspector.listenWhen({ true }) {
+      latch.await(5, TimeUnit.HOURS)
+      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
+    }
+    val settings = EditorDeviceViewSettings()
+    val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
+                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
+    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    assertThat(loadingPane.isLoading).isFalse()
+    assertThat(contentPanel.showEmptyText).isTrue()
+
+    // Start connecting, loading should show
+    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(3)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
@@ -340,18 +372,9 @@ class DeviceViewPanelWithFullInspectorTest {
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
     assertThat(contentPanel.showEmptyText).isTrue()
 
-    // Start connecting again, loading should show
-    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId, pid = 2)
-
-    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
-    waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
-
-    // We get a response from the device and the model is updated. Loading should stop.
-    val newWindow = window(ROOT, ROOT) { view(VIEW1) }
-    inspectorRule.inspectorModel.update(newWindow, listOf(ROOT), 0)
-
-    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
-    assertThat(contentPanel.showEmptyText).isTrue()
+    // Release the response from the agent such that all waiting threads can complete (cleanup).
+    latch.countDown()
+    inspectorRule.asyncLaunchLatch.await(3, TimeUnit.MINUTES)
   }
 
   @Test
@@ -360,9 +383,10 @@ class DeviceViewPanelWithFullInspectorTest {
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
                                 inspectorRule.projectRule.fixture.testRootDisposable)
     val selectProcessAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectProcessAction!!
+    installCommandHandlers()
     connect(MODERN_PROCESS)
-    connect(LEGACY_PROCESS)
-    connect(OLDER_LEGACY_PROCESS)
+    inspectorRule.processNotifier.addDevice(LEGACY_DEVICE)
+    inspectorRule.processNotifier.addDevice(OLDER_LEGACY_DEVICE)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(4)
@@ -425,7 +449,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
     `when`(stats.rotation).thenReturn(mock())
@@ -469,7 +493,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
     `when`(stats.rotation).thenReturn(mock())
@@ -500,7 +524,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -538,7 +562,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -578,7 +602,7 @@ class DeviceViewPanelTest {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -673,7 +697,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   val edtRule = EdtRule()
 
   private val disposableRule = DisposableRule()
-  private val inspectorRule = LayoutInspectorRule(LegacyClientProvider(disposableRule.disposable))
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
@@ -694,6 +718,8 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
 
   @Test
   fun testLiveControlDisabledWithProcessFromModernDevice() {
+    inspectorRule.launchSynchronously = false
+    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
@@ -817,35 +843,28 @@ class MyViewportLayoutManagerTest {
     assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(0, 0))
   }
 }
+
 @RunsInEdt
 class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
-  private val launcherExecutor = Executors.newSingleThreadExecutor()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule = LayoutInspectorRule(
-    clientProvider = object: InspectorClientProvider {
-      override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient? {
+    clientProviders = listOf(InspectorClientProvider { _, _ ->
         postCreateLatch.await()
-        return null
-      }
-    },
-    launcherExecutor = launcherExecutor,
+        null
+      }),
     isPreferredProcess = { it.name == MODERN_PROCESS.name }
   )
-
-  @After
-  fun tearDown() {
-    launcherExecutor.shutdownNow()
-  }
 
   @get:Rule
   val ruleChain =
     RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(IconLoaderRule()).around(EdtRule()).around(disposableRule)!!
 
-
   @Test
   fun testLoadingPane() {
+    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
+    inspectorRule.launchSynchronously = false
     val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
                                 inspectorRule.projectRule.fixture.testRootDisposable)
@@ -860,6 +879,7 @@ class DeviceViewPanelWithNoClientsTest {
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
     postCreateLatch.countDown()
+    inspectorRule.asyncLaunchLatch.await(1, TimeUnit.SECONDS)
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { contentPanel.showEmptyText }

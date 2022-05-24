@@ -33,11 +33,11 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -52,9 +52,9 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.ui.GuiUtils;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
@@ -218,7 +218,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      GuiUtils.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
@@ -233,7 +233,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
           myUninstallRequests.clear();
         }
         myInstallationFinished.set(true);
-      }, ModalityState.any());
+      });
       return null;
     };
 

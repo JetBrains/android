@@ -16,18 +16,8 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
-import static com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw.sFont;
-
-import com.android.tools.idea.common.scene.draw.ColorSet;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Polygon;
-import java.awt.Stroke;
-import java.awt.geom.RoundRectangle2D;
 
 /**
  * Utility drawing class

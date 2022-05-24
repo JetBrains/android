@@ -17,9 +17,9 @@ package com.android.tools.idea.diagnostics
 
 import com.android.testutils.VirtualTimeDateProvider
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import junit.framework.TestCase
 import java.io.IOException
-import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import java.util.concurrent.TimeUnit
 
 class ExceptionRegistryTest : TestCase() {

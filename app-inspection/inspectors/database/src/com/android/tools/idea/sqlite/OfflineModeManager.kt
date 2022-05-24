@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.ApkFacetChecker
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.hasApkFacet
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.intellij.openapi.project.Project
-import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
@@ -140,7 +139,7 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
       packageName
     )
 
-    val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }
+    val hasApkFacet = androidFacetsForInspectedProcess.any { it.module.hasApkFacet() }
     return androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
   }
 }

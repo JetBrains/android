@@ -15,13 +15,12 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class TasksPerProject {
   @NotNull private final ListMultimap<Path, String> myTasksPerProjectMap = ArrayListMultimap.create();

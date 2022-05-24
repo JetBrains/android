@@ -53,11 +53,11 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
   }
 
   /**
-   * [Set] of all the available [PreviewGroup]s in this preview.
+   * Returns a [Set] of all the available [PreviewGroup]s in this preview.
    */
-  @get:Slow
-  val allAvailableGroups: Set<PreviewGroup>
-    get() = groupNameFilteredProvider.allAvailableGroups.map {
+  @Slow
+  suspend fun allAvailableGroups(): Set<PreviewGroup> =
+    groupNameFilteredProvider.allAvailableGroups().map {
       PreviewGroup.namedGroup(it)
     }.toSet()
 
@@ -78,8 +78,8 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
     singleElementFilteredProvider.instance = null
   }
 
-  @get:Slow
-  override val previewElements: Sequence<PreviewElementInstance>
-    get() = singleElementFilteredProvider.previewElements.filterIsInstance<PreviewElementInstance>()
+  @Slow
+  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+    singleElementFilteredProvider.previewElements()
 
 }

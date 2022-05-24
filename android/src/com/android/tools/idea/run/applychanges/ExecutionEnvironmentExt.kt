@@ -50,7 +50,7 @@ fun ExecutionEnvironment.findExistingProcessHandler(devices: DeviceFutures): Pro
     .toSet()
 
   // Find a Client that uses the same port as the debugging session.
-  return DebuggerManagerEx.getInstanceEx(project).sessions.asSequence()
+  return DebuggerManagerEx.getInstanceEx(project).sessions
     .find { session -> debuggerPortsInUse.contains(session.process.connection.address.trim()) }
     ?.process?.processHandler
 }

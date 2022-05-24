@@ -18,13 +18,12 @@ package com.android.tools.profilers.network.details;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.util.ui.JBUI;
+import java.awt.Component;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JTabbedPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 
 /**
  * Base class for all tabs shown in the {@link ConnectionDetailsView}. To use, construct

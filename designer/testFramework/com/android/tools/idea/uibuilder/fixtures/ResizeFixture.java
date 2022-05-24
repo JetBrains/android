@@ -31,13 +31,12 @@ import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MouseReleasedEvent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 
 public class ResizeFixture {
   @NotNull private ComponentFixture myComponentFixture;

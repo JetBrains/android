@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.statelist;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import android.widget.ImageView;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -28,9 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public final class ToggleStateActionTest {
   @Test

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -30,14 +31,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.List;
-import java.util.Set;
 
 public interface GradleBuildModel extends GradleFileModel, PluginsModel {
   /**
@@ -66,7 +66,7 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
    * Obtains an instance of {@link GradleBuildModel} for the given projects root build.gradle file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
    * In most cases if you want to use this method you should use {@link ProjectBuildModel} instead since it prevents files from being
-   * parsed more than once and ensures changes in applied files are mirrored by any model obtained from the it.
+   * parsed more than once and ensures changes in applied files are mirrored by any model obtained from it.
    * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
    */
   @Deprecated
@@ -129,6 +129,10 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
 
   @NotNull
   RepositoriesModel repositories();
+
+
+  @NotNull
+  <T extends GradleDslModel> T getModel(Class<T> klass);
 
   /**
    * @return the models for files that are used by this GradleBuildModel.

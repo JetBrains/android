@@ -24,10 +24,9 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
+import static com.android.testutils.TestUtils.getEmbeddedJdk8Path;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -36,10 +35,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.plugins.gradle.util.GradlePropertiesUtil.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -59,7 +57,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -75,17 +72,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
+import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -110,6 +107,7 @@ public class AndroidGradleTests {
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
+  @Nullable private static Boolean useRemoteRepositories = null;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
     waitForSourceFolderManagerToProcessUpdates(project, null);
@@ -187,20 +185,21 @@ public class AndroidGradleTests {
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
-      String contentsOrig = Files.toString(path, Charsets.UTF_8);
+      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
       String contents = contentsOrig;
       String localRepositories = getLocalRepositoriesForGroovy(localRepos);
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
-                                   pluginVersion);
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
+      contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
 
       if (kotlinVersion == null) {
         kotlinVersion = KOTLIN_VERSION_FOR_TESTS;
       }
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
+      contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
       String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
@@ -220,11 +219,11 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        Files.write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, StandardCharsets.UTF_8);
       }
     }
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
-      String contentsOrig = Files.toString(path, Charsets.UTF_8);
+      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
       String contents = contentsOrig;
       String localRepositories = getLocalRepositoriesForKotlin(localRepos);
 
@@ -235,13 +234,16 @@ public class AndroidGradleTests {
       }
 
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
-      contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
-                                   pluginVersion);
+      contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
+      contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
+
       contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
                                    kotlinVersion);
       // "implementation"(kotlin("stdlib", "1.3.61"))
       contents =
         replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", kotlinVersion);
+      contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
+
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
@@ -251,7 +253,7 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        Files.write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, StandardCharsets.UTF_8);
       }
     }
   }
@@ -301,12 +303,18 @@ public class AndroidGradleTests {
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     String debugIntegrationTest = System.getenv("DEBUG_INNER_TEST");
     String debugJvmArgs = "";
-    if (!Strings.isNullOrEmpty(debugIntegrationTest)) {
-      String serverArg = debugIntegrationTest.equalsIgnoreCase("socket-listen") ? "n" : "y";
+    if (!Strings.isNullOrEmpty(debugIntegrationTest)
+        && !debugIntegrationTest.equalsIgnoreCase("n")
+        && !(debugIntegrationTest.equalsIgnoreCase("attach-when-debugging") && System.getProperty("intellij.debug.agent") == null)
+    ) {
+      String serverArg = (debugIntegrationTest.equalsIgnoreCase("socket-listen")
+                          || debugIntegrationTest.equalsIgnoreCase("attach-when-debugging")
+                         ) ? "n" : "y";
       debugJvmArgs =
         String.format(
           "-agentlib:jdwp=transport=dt_socket,server=%s,suspend=n,address=5006 ",
           serverArg);
+      System.out.println("***DEBUGGING GRADLE** via:" + debugJvmArgs);
     }
 
     gradleProperties.setJvmArgs(Strings.nullToEmpty(gradleProperties.getJvmArgs()) + " -XX:MaxMetaspaceSize=768m " + debugJvmArgs);
@@ -315,6 +323,11 @@ public class AndroidGradleTests {
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
       gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
     }
+
+    // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
+    // to JAVA_HOME, which produces different results in different environments.
+    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getJava11Jdk().toString());
+
     gradleProperties.save();
   }
 
@@ -336,7 +349,7 @@ public class AndroidGradleTests {
   public static String getLocalRepositoriesForGroovy(File... localRepos) {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
-    return StringUtil.join(
+    String localRepositoriesStr = StringUtil.join(
       Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  url \"" + file.toURI().toString() + "\"\n" +
@@ -347,12 +360,14 @@ public class AndroidGradleTests {
               "    }\n" +
               "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
               "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
   }
 
   @NotNull
   public static String getLocalRepositoriesForKotlin(File... localRepos) {
     // Add metadataSources to work around http://b/144088459.
-    return StringUtil.join(
+    String localRepositoriesStr = StringUtil.join(
       Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  setUrl(\"" + file.toURI().toString() + "\")\n" +
@@ -361,17 +376,52 @@ public class AndroidGradleTests {
               "    artifact()\n" +
               "  }\n" +
               "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
+  }
+
+  private static String appendRemoteRepositoriesIfNeeded(@NotNull String localRepositories) {
+    if (shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio() : "In Android Studio all the tests are hermetic. Remote repositories never needed.";
+      return localRepositories + "\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/jcenter/\") } // jcenter(_)\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/dl.google.com.android.maven2/\") } // google(_)\n";
+    }
+    else {
+      return localRepositories;
+    }
+  }
+
+  public static boolean shouldUseRemoteRepositories() {
+    if (useRemoteRepositories != null){
+      return useRemoteRepositories;
+    }
+    return !IdeInfo.getInstance().isAndroidStudio();
+  }
+
+  public static <T extends Throwable> void disableRemoteRepositoriesDuring(ThrowableRunnable<T> r) throws T {
+    useRemoteRepositories = false;
+    try {
+      r.run();
+    } finally {
+      useRemoteRepositories = null;
+    }
   }
 
   @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
-    if (TestUtils.runningFromBazel()) {
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
-    }
-    else {
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
-      repositories.add(TestUtils.resolveWorkspacePath("out/repo").toFile());
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (TestUtils.runningFromBazel()) {
+        repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+      }
+      else {
+        repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+        repositories.add(TestUtils.resolveWorkspacePath("out/repo").toFile());
+      }
+    } else {
+      assert shouldUseRemoteRepositories(): "IDEA should use real remote repositories";
     }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)
@@ -435,7 +485,13 @@ public class AndroidGradleTests {
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
+    if (shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio(): "Android Studio should use local gradle distribution.";
+      return; // download gradle distribution if needed in IDEA tests
+    }
+
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    TestCase.assertNotNull("Gradle version not found in EmbeddedDistributionPaths. Version = " + gradleVersion, path);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }
@@ -552,12 +608,15 @@ public class AndroidGradleTests {
 
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
-                                                 @NotNull ThrowableConsumer<File, IOException> patcher)
+                                                 @NotNull ThrowableConsumer<? super File, ? extends IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 
     copyDir(srcRoot, projectRoot);
 
+    // patcher may use VFS (in fact, PropertiesFiles is using VFS now), need to refresh
+    // otherwise pre-populated properties files are cleared (e.g. `android.useAndroidX` property)
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
     patcher.consume(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
@@ -657,26 +716,6 @@ public class AndroidGradleTests {
   public static void restoreJdk() {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
   }
-
-  public static String getEmbeddedJdk8Path() throws IOException {
-    String sourcesRoot = getSourcesRoot();
-    String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
-    String relativePath = toSystemDependentName(jdkDevPath);
-    File jdkRootPath = new File(toCanonicalPath(relativePath));
-    if (SystemInfo.isWindows) {
-      // For JDK8 we have 32 and 64 bits versions on Windows
-      jdkRootPath = new File(jdkRootPath, "win64");
-    }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
-    }
-    else if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, "mac");
-      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
-    }
-    return jdkRootPath.getCanonicalPath();
-  }
-
 
   /**
    * Returns the main module for the Java module under the given moduleName.

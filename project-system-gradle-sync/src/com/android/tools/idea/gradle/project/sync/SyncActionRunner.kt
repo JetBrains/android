@@ -38,7 +38,7 @@ private class ParallelSyncActionRunner(private val controller: BuildController) 
       0 -> emptyList()
       1 -> listOf(runAction(actions[0]))
       else ->
-        @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
+        @Suppress("UnstableApiUsage")
         controller.run(actions.map { action -> BuildAction { action(it) } }) as List<T>
     }
   }

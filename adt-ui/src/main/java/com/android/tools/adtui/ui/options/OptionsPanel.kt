@@ -19,8 +19,8 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.options.DEFAULT_GROUP
 import com.android.tools.adtui.model.options.DEFAULT_ORDER
 import com.android.tools.adtui.model.options.OptionsBinder
-import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.OptionsProperty
+import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.PropertyInfo
 import com.android.tools.adtui.model.options.Slider
 import com.intellij.openapi.ui.VerticalFlowLayout

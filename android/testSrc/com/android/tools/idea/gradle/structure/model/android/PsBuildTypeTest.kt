@@ -16,10 +16,17 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.plugins.groovy.GroovyLanguage
@@ -155,8 +162,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
       val consumerProGuardFiles = PsBuildType.BuildTypeDescriptors.consumerProGuardFiles.bind(buildType).getValue()
       assertThat(consumerProGuardFiles.parsedValue.asTestValue(), equalTo(listOf(File("other.pro"))))
-      // TODO(b/72814329): Resolved values are not yet supported on list properties.
-      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf(File(appModule.rootDir!!,"other.pro"))))
     }
   }
 

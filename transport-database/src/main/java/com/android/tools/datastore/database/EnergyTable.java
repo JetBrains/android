@@ -15,16 +15,15 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatements> {
 

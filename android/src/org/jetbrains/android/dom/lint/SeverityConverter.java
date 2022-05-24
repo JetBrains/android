@@ -20,12 +20,11 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
 
 public class SeverityConverter extends ResolvingConverter<Severity> {
   private static final List<Severity> ALL_VALUES = ImmutableList.copyOf(Severity.values());

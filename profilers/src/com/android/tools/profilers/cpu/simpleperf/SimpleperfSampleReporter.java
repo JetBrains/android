@@ -23,15 +23,18 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.system.CpuArch;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.util.system.CpuArch;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class SimpleperfSampleReporter implements TracePreProcessor {
 
@@ -56,15 +59,22 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   @NotNull
   public ByteString preProcessTrace(@NotNull ByteString trace, @NotNull List<String> symbolDirs) {
     try {
+      if (trace.isEmpty()) {
+        getLogger().error("Simpleperf preprocessing exited unsuccessfully. Input trace is empty.");
+        return FAILURE;
+      }
+
       File processedTraceFile = FileUtil.createTempFile(
         String.format("%s%ctrace-%d", FileUtil.getTempDirectory(), File.separatorChar, System.currentTimeMillis()), ".trace", true);
 
-      Process reportSample = new ProcessBuilder(getReportSampleCommand(trace, processedTraceFile, symbolDirs)).start();
+      List<String> command = getReportSampleCommand(trace, processedTraceFile, symbolDirs);
+      getLogger().info("Running simpleperf command: " + command);
+      Process reportSample = new ProcessBuilder(command).start();
       reportSample.waitFor();
 
       boolean reportSampleSuccess = reportSample.exitValue() == 0;
       if (!reportSampleSuccess) {
-        String error = new BufferedReader(new InputStreamReader(reportSample.getErrorStream())).readLine();
+        String error = new BufferedReader(new InputStreamReader(reportSample.getErrorStream(), StandardCharsets.UTF_8)).readLine();
         getLogger().warn("simpleperf report-sample exited unsuccessfully. " + error);
         return FAILURE;
       }
@@ -108,7 +118,7 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     if (StudioPathManager.isRunningFromSources())  {
       // Running from sources, so use the prebuilts path. For example:
       // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
-      return Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", subDir, "simpleperf", binaryName).toString();
+      return Paths.get(StudioPathManager.resolveDevPath("prebuilts/tools/${subDir}/simpleperf/${binaryName}")).toString();
     } else {
       // Release build. For instance:
       // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf

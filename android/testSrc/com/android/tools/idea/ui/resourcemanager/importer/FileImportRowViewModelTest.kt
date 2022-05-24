@@ -22,7 +22,6 @@ import com.android.resources.LayoutDirection
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.CollectionParam
-import com.android.tools.idea.ui.resourcemanager.importer.FileImportRowViewModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile

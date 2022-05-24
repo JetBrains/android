@@ -17,11 +17,11 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.testing.TestProjectPathsGenerator.TestProjectPathsInfo;
 import com.intellij.openapi.util.SystemInfo;
-import junit.framework.TestCase;
-
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link TestProjectPathsGenerator}.
@@ -35,7 +35,7 @@ public class TestProjectPathsGeneratorTest extends TestCase {
 
     TestProjectPathsInfo info = TestProjectPathsGenerator.generateTestProjectPathsFile();
     String javaFilePath = info.javaFilePath.getPath();
-    String content = new String(Files.readAllBytes(Paths.get(javaFilePath)));
+    String content = new String(Files.readAllBytes(Paths.get(javaFilePath)), StandardCharsets.UTF_8);
 
     assertEquals("Please run TestProjectPathsGenerator to keep the file TestProjectPaths up to date",
                  content.trim(),

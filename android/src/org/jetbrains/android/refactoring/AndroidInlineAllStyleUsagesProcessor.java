@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -14,17 +15,15 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.containers.MultiMap;
-import org.jetbrains.android.dom.resources.ResourceNameConverter;
-import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.dom.resources.ResourceNameConverter;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   private final PsiElement myStyleElement;
@@ -75,7 +74,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected UsageInfo[] findUsages() {
-    final Set<UsageInfo> usages = new HashSet<UsageInfo>();
+    final Set<UsageInfo> usages = new HashSet<>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 
     for (PsiField field : IdeResourcesUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
@@ -87,7 +86,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
-    final List<StyleUsageData> inlineInfos = new ArrayList<StyleUsageData>();
+    final List<StyleUsageData> inlineInfos = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();
@@ -120,10 +119,10 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   }
 
   private static MultiMap<PsiElement, String> detectConflicts(UsageInfo[] usages) {
-    final List<PsiElement> nonXmlUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unsupportedUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unambiguousUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> implicitlyInherited = new ArrayList<PsiElement>();
+    final List<PsiElement> nonXmlUsages = new ArrayList<>();
+    final List<PsiElement> unsupportedUsages = new ArrayList<>();
+    final List<PsiElement> unambiguousUsages = new ArrayList<>();
+    final List<PsiElement> implicitlyInherited = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();

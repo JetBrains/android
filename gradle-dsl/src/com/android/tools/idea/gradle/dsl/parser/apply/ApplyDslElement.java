@@ -15,30 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.apply;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
   @NonNls private static final String FROM = "from";
   // The GradleDslFile that represents the virtual file that has been applied.
   // This will be set when parsing the build file we belong to.
-  @NotNull private final List<GradleBuildFile> myAppliedDslFiles = new ArrayList<>();
+  @NotNull private final List<GradleScriptFile> myAppliedDslFiles = new ArrayList<>();
 
-  public ApplyDslElement(@NotNull GradleDslElement parent) {
+  public ApplyDslElement(@NotNull GradleDslElement parent, @NotNull GradleScriptFile buildFile) {
     super(parent, null, GradleNameElement.create(APPLY_BLOCK_NAME));
-    parent.getDslFile().registerApplyElement(this);
+    buildFile.registerApplyElement(this);
   }
 
   @Override
@@ -64,6 +69,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         }
         if (file != null) {
           // Parse the file
+          // TODO(xof): settings.gradle files can also apply files, so this should be more like getOrCreateScriptFile()
           GradleBuildFile buildFile = getDslFile().getContext().getOrCreateBuildFile(file, true);
           myAppliedDslFiles.add(buildFile);
 
@@ -96,7 +102,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public List<GradleBuildFile> getAppliedDslFiles() {
+  public List<GradleScriptFile> getAppliedDslFiles() {
     return myAppliedDslFiles;
   }
 

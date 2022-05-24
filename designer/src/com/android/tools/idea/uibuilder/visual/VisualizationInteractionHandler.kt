@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
@@ -59,7 +60,13 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
                                              @SwingCoordinate y: Int,
                                              @JdkConstants.InputEventMask modifiersEx: Int) = Unit
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) = Unit
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+    val view = surface.getSceneViewAt(x, y) ?: return
+    val xDp = Coordinates.getAndroidXDip(view, x)
+    val yDp = Coordinates.getAndroidYDip(view, y)
+    val clickedComponent = view.scene.findComponent(view.context, xDp, yDp) ?: return
+    navigateToComponent(clickedComponent.nlComponent, false)
+  }
 
   override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     val view = surface.getSceneViewAt(x, y) ?: return
@@ -75,17 +82,21 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
     if (sourceFile == targetFile) {
       // Same file, just apply the config to it.
-      val configInLayoutEditor = (currentEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+      val surfaceInLayoutEditor = (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+      val configInLayoutEditor = surfaceInLayoutEditor?.models?.firstOrNull()?.configuration
       if (configInLayoutEditor != null) {
         applyConfiguration(configInLayoutEditor, view.configuration)
+        surfaceInLayoutEditor.zoomToFit()
       }
     }
     else {
       // Open another file, or switch to it if it has been open. Then, apply the config to it.
       LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) { newEditor ->
-        val configInDestinationEditor = (newEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+        val configInDestinationEditor = surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
         if (configInDestinationEditor != null) {
           applyConfiguration(configInDestinationEditor, view.configuration)
+          surfaceInDestinationEditor.zoomToFit()
         }
       }
     }

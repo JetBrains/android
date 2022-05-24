@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import org.junit.Test;
-
-import java.nio.file.Paths;
-
 import static org.junit.Assert.assertEquals;
+
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Paths;
+import org.junit.Test;
 
 public class ApkVirtualFileTest {
   @Test

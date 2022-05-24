@@ -1,2 +1,2 @@
 rootProject.name='kotlinMultiPlatform'
-include ':app', ':module2'
+include ':app', ':module2', ':module3'

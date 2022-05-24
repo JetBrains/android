@@ -152,11 +152,11 @@ public class StudioDownloaderTest {
     String headers;
 
     downloader.downloadFully(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
-    headers = new String(Files.readAllBytes(downloadResult));
+    headers = new String(Files.readAllBytes(downloadResult), StandardCharsets.UTF_8);
     assertEquals(EXPECTED_NO_CACHE_HEADERS, headers);
 
     downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
-    headers = new String(Files.readAllBytes(downloadResult));
+    headers = new String(Files.readAllBytes(downloadResult), StandardCharsets.UTF_8);
     assertEquals(EXPECTED_HEADERS_IF_CACHING_ALLOWED, headers);
   }
 
@@ -208,7 +208,7 @@ public class StudioDownloaderTest {
     assertTrue(Files.exists(downloadResult));
     assertFalse(Files.exists(interimDownload));
 
-    String downloadedContent = new String(Files.readAllBytes(downloadResult));
+    String downloadedContent = new String(Files.readAllBytes(downloadResult), StandardCharsets.UTF_8);
     assertEquals(contentBuffer.toString(), downloadedContent);
   }
 
@@ -310,7 +310,7 @@ public class StudioDownloaderTest {
     for (int i = 0; i < 105; i++) {
       try (BufferedInputStream is = new BufferedInputStream(downloader.downloadAndStream(new URL(myUrl), new FakeProgressIndicator()))) {
         assertEquals(4, is.read(bytes));
-        assertEquals("blah", new String(bytes).trim());
+        assertEquals("blah", new String(bytes, StandardCharsets.UTF_8).trim());
       }
     }
 

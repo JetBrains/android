@@ -18,19 +18,18 @@ package com.android.tools.idea.uibuilder.statelist;
 import android.view.View;
 import android.widget.ImageView;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.primitives.Ints;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.EmptyIcon;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 final class ToggleStateAction extends ToggleAction {
   private final State myState;
@@ -79,7 +78,7 @@ final class ToggleStateAction extends ToggleAction {
       return;
     }
 
-    manager.requestRender();
+    manager.requestRenderAsync();
   }
 
   @Nullable

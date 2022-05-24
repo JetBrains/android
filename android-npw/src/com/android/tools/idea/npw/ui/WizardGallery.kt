@@ -45,9 +45,8 @@ class WizardGallery<E>(
   override fun getPreferredScrollableViewportSize(): Dimension {
     val cellSize = computeCellSize()
     val heightInsets = insets.top + insets.bottom
-    val widthInsets = insets.left + insets.right
 
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
-    return Dimension(cellSize.width * 5 + widthInsets, (cellSize.height * 2.2).toInt() + heightInsets)
+    return Dimension(-1, (cellSize.height * 2.2).toInt() + heightInsets)
   }
 }

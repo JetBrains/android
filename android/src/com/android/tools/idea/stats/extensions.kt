@@ -67,6 +67,9 @@ fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioE
 }
 
 private fun getApplicationId(project: Project): String? {
+  if (project.isDisposed) {
+    return null
+  }
   val moduleManager = ModuleManager.getInstance(project)
   for (module in moduleManager.modules) {
     if (module.isDisposed) {

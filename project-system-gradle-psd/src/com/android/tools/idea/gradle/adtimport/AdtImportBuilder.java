@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.util.EditorUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -48,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.uipreview.EditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -187,7 +187,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         request.isNewProject = true;
         importer.importProjectNoSync(request);
         Path projectDir = getBaseDirPath(request.project).getAbsoluteFile().toPath();
-        ProjectManagerEx.getInstanceEx().openProject(projectDir, new OpenProjectTask(true, null, false, false, project, null, true, null, null, -1, -1, true, false, true, null, false, true, null, null, null));
+        OpenProjectTask options = OpenProjectTask.build().withProject(project).withForceOpenInNewFrame(true);
+        ProjectManagerEx.getInstanceEx().openProject(projectDir, options);
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
@@ -202,12 +203,6 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   public void readProjects() {
     myImporter.importProjects(Collections.singletonList(mySelectedProject));
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  @Override
-  public boolean validate(@Nullable Project current, Project dest) {
-    return super.validate(current, dest);
   }
 
   private static void openSummary(Project project) {

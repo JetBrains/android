@@ -15,11 +15,11 @@
  */
 package com.android.tools.datastore;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import java.util.ArrayList;
-import java.util.List;
 
 @XmlSeeAlso(GrpcCall.class)
 @XmlRootElement(name = "GrpcList")

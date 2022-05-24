@@ -18,13 +18,9 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.gradle.project.sync.setup.Facets
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
 
 class NavEditorProviderTest : AndroidTestCase() {
 

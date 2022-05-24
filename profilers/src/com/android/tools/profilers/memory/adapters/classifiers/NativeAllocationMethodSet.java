@@ -16,15 +16,7 @@
 package com.android.tools.profilers.memory.adapters.classifiers;
 
 import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Native method {@link ClassifierSet} that represents a leaf node in a heapprofd trace.

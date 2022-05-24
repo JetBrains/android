@@ -18,14 +18,12 @@ package com.android.tools.idea.project;
 import static com.android.tools.idea.apk.debugging.ApkDebugging.isMarkedAsApkDebuggingProject;
 import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggingProject;
 
+import com.android.AndroidProjectTypes;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
@@ -39,7 +37,7 @@ public class AndroidProjectInfo {
 
   @NotNull
   public static AndroidProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidProjectInfo.class);
+    return project.getService(AndroidProjectInfo.class);
   }
 
   public AndroidProjectInfo(@NotNull Project project) {
@@ -49,7 +47,7 @@ public class AndroidProjectInfo {
   /**
    * Returns all modules of a given type in the project
    *
-   * @param projectType the Project type as an integer given in {@link IdeAndroidProject}
+   * @param projectType the Project type as an integer given in {@link AndroidProjectTypes}
    * @return An array of all Modules in the project of that type
    */
   @NotNull
@@ -61,10 +59,7 @@ public class AndroidProjectInfo {
   }
 
   /**
-   * Indicates whether the given project has at least one module backed by an {@link IdeAndroidProject}. To check if a project is a
-   * "Gradle project," please use the method {@link GradleProjectInfo#isBuildWithGradle()}.
-   *
-   * @return {@code true} if the project has one or more modules backed by an {@link IdeAndroidProject}; {@code false} otherwise.
+   * Indicates whether the given project has at least one module backed by build models.
    */
   public boolean requiresAndroidModel() {
     List<AndroidFacet> androidFacets = ProjectSystemUtil.getAndroidFacets(myProject);

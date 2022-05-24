@@ -17,11 +17,10 @@ package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public final class StyleableDefinitionImpl implements StyleableDefinition {
   @NotNull private final ResourceReference myStyleable;

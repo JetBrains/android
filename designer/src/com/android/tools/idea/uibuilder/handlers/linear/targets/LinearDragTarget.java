@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import com.android.tools.idea.common.model.NlAttributesHolder;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.DragBaseTarget;
-import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.target.DragBaseTarget;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Target to handle the drag of LinearLayout's children

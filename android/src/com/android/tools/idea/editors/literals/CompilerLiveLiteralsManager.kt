@@ -20,13 +20,11 @@ import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
-import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.org.objectweb.asm.ClassReader

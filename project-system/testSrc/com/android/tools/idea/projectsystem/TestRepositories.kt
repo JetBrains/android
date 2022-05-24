@@ -17,7 +17,13 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.*
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.FLEXBOX_LAYOUT
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES_ADS
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES_MAPS
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES_WEARABLE
 
 /**
  * A collection of repos for dependencies used during testing.

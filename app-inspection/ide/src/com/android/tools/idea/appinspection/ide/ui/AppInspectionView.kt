@@ -65,6 +65,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.onClosed
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -118,7 +119,7 @@ class AppInspectionView @VisibleForTesting constructor(
   val tabsChangedFlow: Flow<Unit> =
     callbackFlow {
       tabsChangedListener = {
-        offer(Unit)
+        trySend(Unit).onClosed { throw IllegalStateException(it) }
       }
       awaitClose { tabsChangedListener = null }
     }

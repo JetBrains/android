@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
-import org.jetbrains.kotlin.android.InTextDirectivesUtils
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 object DirectiveBasedActionUtils {

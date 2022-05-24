@@ -222,7 +222,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * caches for projects that have been bumped out of the queue. This helps limit the storage
    * used to be up to only N projects at a time.
    */
-  static class ManageLruProjectFilesTask extends DumbModeTask {
+  static final class ManageLruProjectFilesTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     private final static Object PROJECT_LRU_LOCK = new Object();
@@ -231,8 +231,15 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     private static final int MAX_PROJECT_CACHES = 12;
 
     ManageLruProjectFilesTask(@NotNull Project project) {
-      super(project);
       myProject = project;
+    }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof ManageLruProjectFilesTask && ((ManageLruProjectFilesTask)taskFromQueue).myProject.equals(myProject)) {
+        return this;
+      }
+      return null;
     }
 
     @Override
@@ -328,11 +335,10 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * Task that prunes unused resource directory caches within a given Project (which may come about
    * e.g., if one has moved a resource directory from one module to another).
    */
-  static class PruneTask extends DumbModeTask {
+  static final class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     PruneTask(@NotNull Project project) {
-      super(project);
       myProject = project;
     }
 
@@ -367,6 +373,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         getLogger().error("Failed to prune cache files from " + projectCacheBase);
       }
     }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof PruneTask && ((PruneTask)taskFromQueue).myProject.equals(myProject)) return this;
+      return null;
+    }
   }
 
   /**
@@ -384,7 +396,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * - prunes unused module caches from the current project
    * - trims and limit caches to only cover a certain number of projects
    */
-  public static class MaintenanceActivity implements StartupActivity.DumbAware {
+  static final class MaintenanceActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
@@ -393,11 +405,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);
-      dumbService.queueTask(pruneTask);
+      pruneTask.queue(project);
 
       // Prune stale projects, and manage LRU list (putting current project in front).
       ManageLruProjectFilesTask manageProjectsTask = new ManageLruProjectFilesTask(project);
-      dumbService.queueTask(manageProjectsTask);
+      manageProjectsTask.queue(project);
     }
   }
 
@@ -406,11 +418,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
-      DumbService dumbService = DumbService.getInstance(project);
-
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
-      dumbService.queueTask(task);
+      task.queue(project);
     }
   }
 }

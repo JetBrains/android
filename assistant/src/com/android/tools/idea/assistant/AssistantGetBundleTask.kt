@@ -5,7 +5,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.apache.http.concurrent.FutureCallback
-import java.lang.Exception
 
 class AssistantGetBundleTask(
   project: Project,

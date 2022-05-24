@@ -26,17 +26,20 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper class to manipulate XML and Image file for the mockup
@@ -46,7 +49,7 @@ public class MockupFileHelper {
   public static final Set<String> VALID_EXTENSION = new HashSet<>(Arrays.asList("psd", "png", "jpg"));
   public static final Logger LOGGER = Logger.getInstance(MockupFileHelper.class);
 
-  private static final Map<String, Image> IMAGE_CACHE = ContainerUtil.createWeakMap();
+  private static final Map<String, Image> IMAGE_CACHE = new WeakHashMap<>();
 
   @Nullable
   public static Image openImageFile(String path) {

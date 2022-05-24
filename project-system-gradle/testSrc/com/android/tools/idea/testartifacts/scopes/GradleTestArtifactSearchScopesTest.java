@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -225,7 +226,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   @NotNull
   private GradleTestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
-    Module module1 = TestModuleUtil.findModule(getProject(), moduleName);
+    Module module1 = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), moduleName));
     GradleTestArtifactSearchScopes testArtifactSearchScopes = GradleTestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
@@ -244,9 +245,9 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of test-util
     // implementation project(':lib')
-    Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
-    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
-    Module lib2Module = TestModuleUtil.findModule(getProject(), "lib2");
+    Module testUtilModule = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "test-util"));
+    Module libModule = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "lib"));
+    Module lib2Module = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "lib2"));
 
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
 
@@ -278,9 +279,9 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of lib
     // testImplementation project(':test-util')
-    Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
-    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
-    Module lib2Module = TestModuleUtil.findModule(getProject(), "lib2");
+    Module testUtilModule = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "test-util"));
+    Module libModule = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "lib"));
+    Module lib2Module = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "lib2"));
 
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(libModule);
 
@@ -315,10 +316,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   public void testCircularModuleDependencies_ab() throws Exception {
     loadProject(CIRCULAR_MODULE_DEPS);
 
-    Module aModule = gradleModule(getProject(), ":a");
-    Module bModule = gradleModule(getProject(), ":b");
-    Module libModule = gradleModule(getProject(), ":lib");
-    Module lib2Module = gradleModule(getProject(), ":lib2");
+    Module aModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":a")));
+    Module bModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":b")));
+    Module libModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":lib")));
+    Module lib2Module = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":lib2")));
 
     GradleTestArtifactSearchScopes aScopes = GradleTestArtifactSearchScopes.getInstance(aModule);
 
@@ -355,10 +356,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   public void testCircularModuleDependencies_ab_2() throws Exception {
     loadProject(CIRCULAR_MODULE_DEPS);
     // The second part of the test above (i.e. start resolving from module :b).
-    Module aModule = gradleModule(getProject(), ":a");
-    Module bModule = gradleModule(getProject(), ":b");
-    Module libModule = gradleModule(getProject(), ":lib");
-    Module lib2Module = gradleModule(getProject(), ":lib2");
+    Module aModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":a")));
+    Module bModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":b")));
+    Module libModule = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":lib")));
+    Module lib2Module = ModuleSystemUtil.getMainModule(requireNotNull(gradleModule(getProject(), ":lib2")));
 
     GradleTestArtifactSearchScopes bScopes = GradleTestArtifactSearchScopes.getInstance(bModule);
 
@@ -392,4 +393,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   private static Collection<Module> getModules(@NotNull Collection<ModuleDependency> deps) {
     return ContainerUtil.map(deps, it -> it.getModule());
   }
-}
+
+  @NotNull
+  private static <T> T requireNotNull(@Nullable T o) {
+    if (o == null) fail("Not null object expected");
+    return o;
+  }
+ }

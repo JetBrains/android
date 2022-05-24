@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An object, typically an {@link com.intellij.execution.Executor}, that provides custom launch options to be

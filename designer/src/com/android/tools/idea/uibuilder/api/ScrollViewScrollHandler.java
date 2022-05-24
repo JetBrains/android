@@ -19,10 +19,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.android.tools.idea.rendering.RenderService;
 import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import org.jetbrains.annotations.NotNull;
 
 public final class ScrollViewScrollHandler implements ScrollHandler {
   private final int myMaxScrollableSize;

@@ -18,12 +18,12 @@ package com.android.tools.idea.adb;
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.android.tools.idea.flags.StudioFlags;

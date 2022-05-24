@@ -21,7 +21,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -36,9 +35,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +71,7 @@ public class Jdks {
   }
 
   @Nullable
-  private static JavaSdkVersion getVersion(@NotNull String jdkRoot) {
+  private static JavaSdkVersion getVersion(String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
@@ -94,7 +90,7 @@ public class Jdks {
 
   @Nullable
   public Sdk createEmbeddedJdk() {
-    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
+    if (myIdeInfo.isAndroidStudio()) {
       Path path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
       if (path == null) {
         return null;

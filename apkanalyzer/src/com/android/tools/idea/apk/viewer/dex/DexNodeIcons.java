@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.apk.analyzer.dex.tree.*;
+import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
+import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
+import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.intellij.util.PlatformIcons;
-
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class DexNodeIcons {
   public static Icon forNode(DexElementNode node){

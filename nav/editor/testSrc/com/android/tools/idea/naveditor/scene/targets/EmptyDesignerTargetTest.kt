@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -24,8 +23,11 @@ import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.util.Collections
 
 class EmptyDesignerTargetTest : NavTestCase() {

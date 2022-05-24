@@ -16,6 +16,9 @@
 package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.FrameEvent
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Layer
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Phase
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -234,14 +237,14 @@ class TraceProcessorModelTest {
 
   @Test
   fun addAndroidFrameLayers() {
-    val layer = TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
+    val layer = Layer.newBuilder()
       .setLayerName("foobar")
-      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+      .addPhase(Phase.newBuilder()
                   .setPhaseName("Display")
-                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(1)))
-      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+                  .addFrameEvent(FrameEvent.newBuilder().setId(1)))
+      .addPhase(Phase.newBuilder()
                   .setPhaseName("GPU")
-                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(2)))
+                  .addFrameEvent(FrameEvent.newBuilder().setId(2)))
       .build()
     val frameEventResult = TraceProcessor.AndroidFrameEventsResult.newBuilder()
       .addLayer(layer)
@@ -284,7 +287,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Late Present")
                         .setJankType("App Deadline Missed, SurfaceFlinger CPU Deadline Missed")
                         .setOnTimeFinish(false)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(1))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(3)
                         .setSurfaceFrameToken(103)
@@ -294,7 +298,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Early Present")
                         .setJankType("Buffer Stuffing, SurfaceFlinger GPU Deadline Missed")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(2))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(4)
                         .setSurfaceFrameToken(104)
@@ -304,7 +309,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Dropped Frame")
                         .setJankType("Unknown Jank")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(false))
+                        .setGpuComposition(false)
+                        .setLayoutDepth(0))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(1)
                         .setSurfaceFrameToken(101)
@@ -314,7 +320,8 @@ class TraceProcessorModelTest {
                         .setPresentType("On-time Present")
                         .setJankType("None")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(0))
       .build()
     val model = TraceProcessorModel.Builder().apply {
       addAndroidFrameTimelineEvents(frameTimelineResult)
@@ -322,17 +329,67 @@ class TraceProcessorModelTest {
     assertThat(model.getAndroidFrameTimelineEvents()).containsExactly(
       AndroidFrameTimelineEvent(1, 101, 1, 2, 2, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
-                                onTimeFinish = true, gpuComposition = true),
+                                onTimeFinish = true, gpuComposition = true, layoutDepth = 0),
       AndroidFrameTimelineEvent(2, 102, 3, 4, 5, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                                onTimeFinish = false, gpuComposition = true),
+                                onTimeFinish = false, gpuComposition = true, layoutDepth = 1),
       AndroidFrameTimelineEvent(3, 103, 5, 6, 6, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
-                                onTimeFinish = true, gpuComposition = true),
+                                onTimeFinish = true, gpuComposition = true, layoutDepth = 2),
       AndroidFrameTimelineEvent(4, 104, 7, 8, 10, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
-                                onTimeFinish = true, gpuComposition = false),
+                                onTimeFinish = true, gpuComposition = false, layoutDepth = 0),
     ).inOrder()
+  }
+
+  @Test
+  fun `grouping layers by phase adjusts depths`() {
+    fun<O,B> constructorOf(builder: () -> B, build: B.() -> O): (B.() -> Unit) -> O = { builder().apply(it).build() }
+    val layer = constructorOf(Layer::newBuilder, Layer.Builder::build)
+    val phase = constructorOf(Phase::newBuilder, Phase.Builder::build)
+    val frame = constructorOf(FrameEvent::newBuilder, FrameEvent.Builder::build)
+    val displayPhase = phase {
+      phaseName = "Display"
+      addFrameEvent(frame { frameNumber = 1; depth = 0 })
+      addFrameEvent(frame { frameNumber = 2; depth = 1 })
+    }
+    val layer1 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 1; depth = 0 })
+        addFrameEvent(frame { frameNumber = 2; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+    val layer2 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 3; depth = 0 })
+        addFrameEvent(frame { frameNumber = 4; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+    val layer3 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 5; depth = 0 })
+        addFrameEvent(frame { frameNumber = 6; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+
+    assertThat(listOf(layer1, layer2, layer3).groupedByPhase()).isEqualTo(listOf(
+      phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 1; depth = 0 })
+        addFrameEvent(frame { frameNumber = 2; depth = 1 })
+        addFrameEvent(frame { frameNumber = 3; depth = 2 })
+        addFrameEvent(frame { frameNumber = 4; depth = 3 })
+        addFrameEvent(frame { frameNumber = 5; depth = 4 })
+        addFrameEvent(frame { frameNumber = 6; depth = 5 })
+      },
+      displayPhase
+    ))
   }
 
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)

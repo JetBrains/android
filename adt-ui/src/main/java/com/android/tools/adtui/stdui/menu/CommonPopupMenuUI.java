@@ -18,16 +18,14 @@ package com.android.tools.adtui.stdui.menu;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaPopupMenuBorder;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.registry.Registry;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Color;
+import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.plaf.BorderUIResource;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.PopupMenuUI;
 import javax.swing.plaf.UIResource;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 public class CommonPopupMenuUI extends PopupMenuUI {
   @Override

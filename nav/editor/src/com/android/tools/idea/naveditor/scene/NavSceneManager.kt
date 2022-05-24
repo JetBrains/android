@@ -47,10 +47,10 @@ import com.android.tools.idea.naveditor.model.isSelfAction
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
-import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavActionSourceHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavDestinationHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavHorizontalActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavSelfActionHitProvider
 import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
@@ -98,7 +98,7 @@ private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 open class NavSceneManager(
   model: NlModel,
   surface: NavDesignSurface
-) : SceneManager(model, surface, false, NavSceneComponentHierarchyProvider(), null) {
+) : SceneManager(model, surface, NavSceneComponentHierarchyProvider(), null) {
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
@@ -212,7 +212,7 @@ open class NavSceneManager(
 
   override fun createTemporaryComponent(component: NlComponent) = TemporarySceneComponent(scene, component)
 
-  override fun requestRender(): CompletableFuture<Void> {
+  override fun requestRenderAsync(): CompletableFuture<Void> {
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
@@ -281,7 +281,7 @@ open class NavSceneManager(
     return actionType == ActionType.GLOBAL || actionType == ActionType.EXIT
   }
 
-  override fun requestLayout(animate: Boolean): CompletableFuture<Void> {
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
     var bounds: Rectangle? = scene.root?.fillDrawRect(0, null)
 
     updateRootBounds(bounds)
@@ -290,7 +290,7 @@ open class NavSceneManager(
   }
 
   override fun layout(animate: Boolean) {
-    requestLayout(animate)
+    requestLayoutAsync(animate)
   }
 
   override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
@@ -306,7 +306,7 @@ open class NavSceneManager(
     override fun modelChanged(model: NlModel) {
       updateHierarchy(model, model)
       designSurface.refreshRoot()
-      requestRender()
+      requestRenderAsync()
       model.notifyListenersModelDerivedDataChanged()
     }
 
@@ -527,7 +527,7 @@ open class NavSceneManager(
   override fun activate(source: Any): Boolean = super.activate(source).also {
     if (it) {
       updateHierarchy(model, model)
-      requestRender()
+      requestRenderAsync()
     }
   }
 }

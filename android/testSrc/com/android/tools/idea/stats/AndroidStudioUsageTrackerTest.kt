@@ -28,9 +28,9 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperim
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
+import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.tools.idea.stats.FeatureSurveys.featureSurveyInvoked
 import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -257,6 +257,32 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     })
     featureSurveyInvoked("featureSurvey1", -5, -5)
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey2"))
+  }
+
+  fun testHasUserBeenPromptedForOptin() {
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = null
+    })
+
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = "invalid"
+    })
+
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = "2021.1"
+    })
+
+    assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "0"))
+    assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "1"))
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2022", "0"))
   }
 
   companion object {

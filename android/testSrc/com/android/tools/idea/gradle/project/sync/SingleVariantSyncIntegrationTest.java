@@ -33,7 +33,7 @@ public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTestC
 
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);
@@ -58,8 +58,9 @@ public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTestC
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
       .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
-                   m.getMessage().contains(
-                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+                   (m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:") ||
+                    m.getMessage().contains("Failed to resolve: project :lib\nAffected Modules:")))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
   }

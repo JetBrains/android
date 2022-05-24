@@ -23,8 +23,8 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ProportionalImageScalerTest {
   private fun assertScaleFactorsMatch(maxAllowedHeight: Int, heightToScaleFactor: Map<Int, Double>) {
-    val minHeight = heightToScaleFactor.keys.min()!!
-    val maxHeight = heightToScaleFactor.keys.max()!!
+    val minHeight = heightToScaleFactor.keys.minOrNull()!!
+    val maxHeight = heightToScaleFactor.keys.maxOrNull()!!
 
     for ((height, expectedScaleFacor) in heightToScaleFactor) {
       val scaleFactor = determineScaleFactor(height, minHeight, maxHeight, maxAllowedHeight)

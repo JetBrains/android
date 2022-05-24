@@ -30,7 +30,6 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.util.Processor
-import org.jetbrains.annotations.NotNull
 
 /**
  * Adding relevant DataBinding classes and fields to usages of Android Resources.

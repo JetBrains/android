@@ -16,12 +16,11 @@
 package com.android.tools.idea.common.surface;
 
 import com.android.annotations.concurrency.UiThread;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface implemented by listeners for {@link DesignSurface} events

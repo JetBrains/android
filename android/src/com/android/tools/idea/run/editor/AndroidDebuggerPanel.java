@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -35,7 +35,7 @@ public class AndroidDebuggerPanel {
 
   private JPanel myOptionPanel;
   private JComponent myOptionComponent;
-  private final Map<String, AndroidDebuggerConfigurable<AndroidDebuggerState>> myConfigurables = Maps.newHashMap();
+  private final Map<String, AndroidDebuggerConfigurable<AndroidDebuggerState>> myConfigurables = new HashMap<>();
 
   public AndroidDebuggerPanel(@NotNull RunConfiguration runConfiguration, @NotNull AndroidDebuggerContext androidDebuggerContext) {
     myAndroidDebuggerContext = androidDebuggerContext;

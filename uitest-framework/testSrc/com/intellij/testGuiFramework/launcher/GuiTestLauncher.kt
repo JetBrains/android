@@ -18,7 +18,6 @@ package com.intellij.testGuiFramework.launcher
 import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.tests.gui.framework.AnalyticsTestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
@@ -161,6 +160,7 @@ object GuiTestLauncher {
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
+      "-Didea.is.integration.test=true",
       "-Ddisable.android.first.run=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
@@ -180,7 +180,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-          getWorkspaceRoot().resolve("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+          TestUtils.resolveWorkspacePath("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
@@ -207,9 +207,6 @@ object GuiTestLauncher {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"
     }
     if (TestUtils.runningFromBazel()) {
-      if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
-        options += "-Didea.home.path=${resolveWorkspacePath("tools/idea").toFile()}"
-      }
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"

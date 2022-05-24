@@ -18,9 +18,8 @@ package com.android.tools.idea.explorer.mocks;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.intellij.ui.SimpleListCellRenderer;
+import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class MockDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
   private final ListCellRenderer<DeviceFileSystem> myRenderer;

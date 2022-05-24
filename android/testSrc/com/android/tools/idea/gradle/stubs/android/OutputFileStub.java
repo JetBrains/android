@@ -17,11 +17,10 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 public class OutputFileStub implements OutputFile {
 

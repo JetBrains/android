@@ -15,18 +15,17 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import com.android.ide.common.rendering.api.AttributeFormat;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.Nullable;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nullable;
 
 public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   public FormatConverter() {

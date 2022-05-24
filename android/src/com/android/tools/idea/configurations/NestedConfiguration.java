@@ -524,7 +524,7 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
   @Nullable
   public static String computeDisplayName(int flags, @NotNull Configuration configuration) {
     if ((flags & CFG_LOCALE) != 0) {
-      return LocaleMenuAction.getLocaleLabel(configuration.getLocale(), false);
+      return Locale.getLocaleLabel(configuration.getLocale(), false);
     }
 
     if ((flags & CFG_TARGET) != 0) {

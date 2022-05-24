@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.ui;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.project.Project;
-import junit.framework.TestCase;
-
 import javax.swing.event.HyperlinkEvent;
-
-import static org.mockito.Mockito.*;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link CustomNotificationListener}.

@@ -15,30 +15,29 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.workbench.SideModel.EventType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
+import java.awt.Rectangle;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.MouseEvent;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
 public class LayeredPanelTest {
@@ -129,12 +128,12 @@ public class LayeredPanelTest {
     when(myToolWindow1.isLeft()).thenReturn(true);
     myPanel.modelChanged(myModel, myEventType);
 
-    mySplitter.setFirstSize(JBUI.scale(700));
+    mySplitter.setFirstSize(JBUIScale.scale(700));
     fireWidthChanged();
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.PALETTE.UNSCALED.WIDTH", -1)).isEqualTo(700);
 
     myPanel.modelChanged(myModel, myEventType);
-    assertThat(mySplitter.getFirstSize()).isEqualTo(JBUI.scale(700));
+    assertThat(mySplitter.getFirstSize()).isEqualTo(JBUIScale.scale(700));
   }
 
   private void fireWidthChanged() {

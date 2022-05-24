@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.JPanel;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import javax.swing.JPanel;
 
 /**
  * This represents a single row of a timeline
@@ -49,6 +49,7 @@ public class TimeLineRow extends JPanel {
   private boolean mHasGraph = true;
   private boolean mGraphOpen = false;
   GraphRender mGraph = new GraphRender();
+  private boolean mShowNewGraph = StudioFlags.NELE_MOTION_AREA_GRAPH.get();
 
   @Override
   public void updateUI() {
@@ -186,8 +187,10 @@ public class TimeLineRow extends JPanel {
       int gy = myRowHeight + ((mShowTitle) ? myTitleHeight : 0);
       mGraph.draw(g, mTimelineStructure, MEUI.ourLeftColumnWidth, gy, w - MEUI.ourLeftColumnWidth, myGraphHeight);
     }
-    g.setColor(MEUI.myGridColor);
-    drawTicks(g, mTimelineStructure, h);
+    if (!mShowNewGraph) {
+      g.setColor(MEUI.myGridColor);
+      TimeLineRow.drawTicks(g, mTimelineStructure, h);
+    }
   }
 
   public void drawArrow(Graphics g, int y) {
@@ -216,9 +219,13 @@ public class TimeLineRow extends JPanel {
   }
 
   public static void drawTicks(Graphics g, TimelineStructure mTimelineStructure, int h) {
+    drawTicks(g, mTimelineStructure, h, 0);
+  }
+
+  public static void drawTicks(Graphics g, TimelineStructure mTimelineStructure, int h, int y) {
     for (int i = 0; i < mTimelineStructure.myXTicksPixels.length; i++) {
       int x = mTimelineStructure.myXTicksPixels[i] + MEUI.ourLeftColumnWidth;
-      g.fillRect(x, 0, 1, h);
+      g.fillRect(x, y, 1, h);
     }
   }
 

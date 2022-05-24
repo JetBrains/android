@@ -1,30 +1,14 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
-import com.android.jarutils.SignedJarBuilder;
+import com.android.io.FileWrapper;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.PkgProps;
-import com.android.tools.idea.io.BufferingFileWrapper;
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
@@ -37,6 +21,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.execution.ParametersListUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -45,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -129,7 +115,7 @@ public class AndroidBuildCommonUtils {
   }
 
   public static boolean isTestConfiguration(@NotNull String typeId) {
-    return ArrayUtil.find(TEST_CONFIGURATION_TYPE_IDS, typeId) >= 0;
+    return ArrayUtilRt.find(TEST_CONFIGURATION_TYPE_IDS, typeId) >= 0;
   }
 
   public static boolean isInstrumentationTestConfiguration(@NotNull String typeId) {
@@ -247,7 +233,7 @@ public class AndroidBuildCommonUtils {
     }
     else if (jarFile.isFile()) {
       if (!jarFile.delete()) {
-        throw new IOException("Cannot delete file " + FileUtil.toSystemDependentName(jarFile.getPath()));
+        throw new IOException("Cannot delete file " + FileUtilRt.toSystemDependentName(jarFile.getPath()));
       }
     }
     List<String> srcFiles = new ArrayList<>();
@@ -389,7 +375,7 @@ public class AndroidBuildCommonUtils {
     Map<String, String> home = System.getenv().containsKey(PROGUARD_HOME_ENV_VARIABLE)
                                      ? Collections.emptyMap()
                                      : Collections.singletonMap(PROGUARD_HOME_ENV_VARIABLE, proguardHome);
-    return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands), home);
+    return AndroidExecutionUtil.doExecute(ArrayUtilRt.toStringArray(commands), home);
   }
 
   @NotNull
@@ -410,7 +396,7 @@ public class AndroidBuildCommonUtils {
 
     packClassFilesIntoJar(classFilesDirOsPaths, libClassFilesDirOsPaths, inputJar);
 
-    return FileUtil.toSystemDependentName(inputJar.getPath());
+    return FileUtilRt.toSystemDependentName(inputJar.getPath());
   }
 
   public static String platformToolPath(@NotNull String toolFileName) {
@@ -433,7 +419,7 @@ public class AndroidBuildCommonUtils {
       new File(sdkDirOsPath + File.separatorChar + packageDirName + File.separatorChar + SdkConstants.FN_SOURCE_PROP);
     if (propFile.exists() && propFile.isFile()) {
       Map<String, String> map =
-        ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
+        ProjectProperties.parsePropertyFile(new FileWrapper(propFile), new MessageBuildingSdkLog());
       if (map == null) {
         return null;
       }
@@ -448,7 +434,7 @@ public class AndroidBuildCommonUtils {
 
   @NotNull
   public static String readFile(@NotNull File file) throws IOException {
-    return Files.toString(file, Charsets.UTF_8);
+    return Files.toString(file, StandardCharsets.UTF_8);
   }
 
   public static boolean contains2Identifiers(String packageName) {
@@ -533,27 +519,9 @@ public class AndroidBuildCommonUtils {
                              @NotNull File destFile,
                              @NotNull PrivateKey privateKey,
                              @NotNull X509Certificate certificate)
-    throws IOException, GeneralSecurityException {
-    FileOutputStream fos = new FileOutputStream(destFile);
-    SignedJarBuilder builder = new SafeSignedJarBuilder(fos, privateKey, certificate, destFile.getPath());
-    FileInputStream fis = new FileInputStream(srcApk);
-    try {
-      builder.writeZip(fis, null);
-      builder.close();
-    }
-    finally {
-      try {
-        fis.close();
-      }
-      catch (IOException ignored) {
-      }
-      finally {
-        try {
-          fos.close();
-        }
-        catch (IOException ignored) {
-        }
-      }
+    throws IOException {
+    try (SafeSignedJarBuilder builder = new SafeSignedJarBuilder(privateKey, certificate, destFile.getPath())){
+      builder.writeZip(srcApk, null);
     }
   }
 

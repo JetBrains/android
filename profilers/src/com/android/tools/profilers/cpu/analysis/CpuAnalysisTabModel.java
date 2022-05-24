@@ -39,7 +39,8 @@ public class CpuAnalysisTabModel<T> {
     BOTTOM_UP("Bottom Up"),
     EVENTS("Events"),
     OCCURRENCES("Occurrences"),
-    FRAMES("Frames"),
+    FRAMES("All Frames"),
+    JANKS("Janky Frames"),
     LOGS("Logs");
 
     /**

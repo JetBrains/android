@@ -49,7 +49,7 @@ class ModuleValidator(
                message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
       GradleUtil.findModuleByGradlePath(project, rootedModuleGradlePath) != null ->
         Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
-      else -> pathValidator.validate(getModuleRoot(projectPath, moduleGradlePath))
+      else -> pathValidator.validate(getModuleRoot(projectPath, moduleGradlePath).toPath())
     }
   }
 }

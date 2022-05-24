@@ -16,12 +16,12 @@
 
 package org.jetbrains.kotlin.android.intention
 
+import com.android.tools.idea.kotlin.insideBody
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canRedoParcelable
-import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.android.reimplementParcelable
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention

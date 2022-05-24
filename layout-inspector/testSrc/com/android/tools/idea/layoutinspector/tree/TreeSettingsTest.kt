@@ -29,8 +29,8 @@ import com.intellij.ide.util.PropertiesComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.`when`
 
 class InspectorTreeSettingsTest {
 

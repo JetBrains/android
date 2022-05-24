@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
@@ -41,6 +40,7 @@ import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -308,7 +308,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   // Update build.gradle in root directory
   private void updateBuildFile(@NotNull String gradlePluginVersion) throws IOException {
     File buildFile = getAbsolutionFilePath("build.gradle");
-    String contents = Files.toString(buildFile, Charsets.UTF_8);
+    String contents = Files.toString(buildFile, StandardCharsets.UTF_8);
     contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy());
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
                                    "classpath 'com.android.tools.build:gradle:" +
@@ -318,13 +318,13 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     contents = contents.replaceAll("(classpath 'com.jakewharton:butterknife-gradle-plugin:8.4.0')", "// $1");
     contents = contents.replaceAll("(force 'com.android.support:[^:]*):[^']*'", "$1:" + "25.1.0" + "'");
     int pos = contents.indexOf("apply plugin: 'com.uber");
-    write(contents.substring(0, pos - 1), buildFile, Charsets.UTF_8);
+    write(contents.substring(0, pos - 1), buildFile, StandardCharsets.UTF_8);
   }
 
   // Update dependencies.gradle
   private void updateDependenciesFile() throws IOException {
     File dependenciesFile = getAbsolutionFilePath("dependencies.gradle");
-    String contents = Files.toString(dependenciesFile, Charsets.UTF_8);
+    String contents = Files.toString(dependenciesFile, StandardCharsets.UTF_8);
 
     contents = contents.replaceAll("buildToolsVersion: '\\d+.\\d+.\\d+',",
                                    "buildToolsVersion: '" + BuildEnvironment.getInstance().getBuildToolsVersion() + "',");
@@ -411,7 +411,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
                "]\n" +
                "\n" +
                "\n // End support lib version fixes. \n";
-    write(contents, dependenciesFile, Charsets.UTF_8);
+    write(contents, dependenciesFile, StandardCharsets.UTF_8);
   }
 
   // Returns full path, given relative path to root directory
@@ -428,8 +428,8 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   // Replace all occurrence of regex in file
   private void searchAndReplace(@NotNull File file, @NotNull String regex, @NotNull String replaceString) throws IOException {
-    String contents = Files.toString(file, Charsets.UTF_8);
+    String contents = Files.toString(file, StandardCharsets.UTF_8);
     contents = contents.replaceAll(regex, replaceString);
-    write(contents, file, Charsets.UTF_8);
+    write(contents, file, StandardCharsets.UTF_8);
   }
 }

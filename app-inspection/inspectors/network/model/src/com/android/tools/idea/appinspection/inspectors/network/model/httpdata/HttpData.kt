@@ -18,9 +18,12 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.util.io.URLUtil
+import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URI
 import java.net.URLEncoder
+import java.util.zip.GZIPInputStream
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
 
@@ -44,7 +47,7 @@ data class HttpData(
   val requestFields: String,
   val requestPayload: ByteString,
   val responseFields: String,
-  val responsePayload: ByteString
+  private val rawResponsePayload: ByteString
 ) {
 
   /**
@@ -53,6 +56,34 @@ data class HttpData(
   val javaThreads = threads
   val requestHeader = RequestHeader(requestFields)
   val responseHeader = ResponseHeader(responseFields)
+
+  // The unzipped version of the response payload. Note not all response payloads are zipped,
+  // so this could be the same as the rawResponsePayload.
+  private lateinit var unzippedResponsePayload: ByteString
+  val responsePayload: ByteString
+    get() {
+      if (this::unzippedResponsePayload.isInitialized) {
+        return unzippedResponsePayload
+      }
+      else {
+        if (responseHeader.getField("content-encoding").toLowerCase().contains("gzip")) {
+          try {
+            GZIPInputStream(ByteArrayInputStream(rawResponsePayload.toByteArray())).use { inputStream ->
+              unzippedResponsePayload = ByteString.copyFrom(inputStream.readBytes())
+            }
+          }
+          catch (ignored: IOException) {
+            // If we got here, it means we failed to unzip data that was supposedly zipped. Just
+            // fallback and return the content directly.
+            unzippedResponsePayload = rawResponsePayload
+          }
+        }
+        else {
+          unzippedResponsePayload = rawResponsePayload
+        }
+        return unzippedResponsePayload
+      }
+    }
 
   class ContentType(private val contentType: String) {
     val isEmpty = contentType.isEmpty()

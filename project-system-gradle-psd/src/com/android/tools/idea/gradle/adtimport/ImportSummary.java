@@ -17,18 +17,21 @@
 package com.android.tools.idea.gradle.adtimport;
 
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.utils.SdkUtils;
-import com.google.common.base.Charsets;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Records information about the import to be presented to the user:
  * <ul>
@@ -151,13 +154,13 @@ public class ImportSummary {
   private final GradleImport myImporter;
   private File myDestDir;
   private boolean myManifestsMayDiffer;
-  private Map<String, List<String>> myNotMigrated = Maps.newHashMap();
-  private Map<ImportModule, Map<File, File>> myMoved = Maps.newHashMap();
-  private Map<File, GradleCoordinate> myJarDependencies = Maps.newHashMap();
-  private Map<String, List<GradleCoordinate>> myLibDependencies = Maps.newHashMap();
-  private List<String> myGuessedDependencyVersions = Lists.newArrayList();
+  private Map<String, List<String>> myNotMigrated = new HashMap<>();
+  private Map<ImportModule, Map<File, File>> myMoved = new HashMap<>();
+  private Map<File, GradleCoordinate> myJarDependencies = new HashMap<>();
+  private Map<String, List<GradleCoordinate>> myLibDependencies = new HashMap<>();
+  private List<String> myGuessedDependencyVersions = new ArrayList<>();
   private File myLastGuessedJar;
-  private List<String> myIgnoredUserHomeProGuardFiles = Lists.newArrayList();
+  private List<String> myIgnoredUserHomeProGuardFiles = new ArrayList<>();
   private boolean myHasRiskyPathChars;
   private boolean myWrapErrorMessages = true;
 
@@ -176,7 +179,7 @@ public class ImportSummary {
   public void write(@NonNull File file) throws IOException {
     String summary = createSummary();
     assert file.getParentFile().exists();
-    Files.write(summary, file, Charsets.UTF_8);
+    Files.write(summary, file, StandardCharsets.UTF_8);
   }
 
   public void setDestDir(File destDir) {
@@ -230,7 +233,7 @@ public class ImportSummary {
   public void reportMoved(@NonNull ImportModule module, @NonNull File from, @NonNull File to) {
     Map<File, File> map = myMoved.get(module);
     if (map == null) {
-      map = new LinkedHashMap<File, File>(); // preserve insert order
+      map = new LinkedHashMap<>(); // preserve insert order
       myMoved.put(module, map);
     }
     map.put(from, to);
@@ -244,7 +247,7 @@ public class ImportSummary {
   public void reportIgnored(@NonNull String module, @NonNull String path) {
     List<String> list = myNotMigrated.get(module);
     if (list == null) {
-      list = Lists.newArrayList();
+      list = new ArrayList<>();
       myNotMigrated.put(module, list);
     }
     list.add(path);
@@ -258,7 +261,7 @@ public class ImportSummary {
     StringBuilder sb = new StringBuilder(2000);
     sb.append(MSG_HEADER);
 
-    List<String> problems = Lists.newArrayList();
+    List<String> problems = new ArrayList<>();
     problems.addAll(myImporter.getErrors());
     problems.addAll(myImporter.getWarnings());
     if (!problems.isEmpty()) {
@@ -298,7 +301,7 @@ public class ImportSummary {
         if (modules.size() > 1) {
           sb.append("From ").append(module).append(":\n");
         }
-        List<String> sorted = new ArrayList<String>(myNotMigrated.get(module));
+        List<String> sorted = new ArrayList<>(myNotMigrated.get(module));
         Collections.sort(sorted);
         for (String path : sorted) {
           sb.append("* ").append(path).append("\n");
@@ -356,7 +359,7 @@ public class ImportSummary {
           sb.append("In ").append(module.getOriginalName()).append(":\n");
         }
         Map<File, File> map = myMoved.get(module);
-        List<File> sorted = new ArrayList<File>(map.keySet());
+        List<File> sorted = new ArrayList<>(map.keySet());
         Collections.sort(sorted);
         for (File from : sorted) {
           sb.append("* ");

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.model
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.ide.common.repository.GradleVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.util.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -40,6 +39,7 @@ interface INdkModel {
   val buildSystems: Collection<String>
   val defaultNdkVersion: String
   val ndkVersion: String
+  val needsAbiSyncBeforeRun: Boolean
 }
 
 sealed class NdkModel : INdkModel
@@ -175,6 +175,8 @@ data class V1NdkModel(
   @Transient
   override val ndkVersion: String = androidProject.ndkVersion
 
+  override val needsAbiSyncBeforeRun: Boolean get() = true
+
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
   fun findToolchain(toolchainName: String): IdeNativeToolchain? = toolchainsByName[toolchainName]
   fun findSettings(settingsName: String): IdeNativeSettings? = settingsByName[settingsName]
@@ -233,6 +235,8 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
 
   @Transient
   override val ndkVersion: String = nativeModule.ndkVersion
+
+  override val needsAbiSyncBeforeRun: Boolean get() = false
 }
 
 private fun File.readIndexFile(): Set<File> = when {

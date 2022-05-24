@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_FILE_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_OPACITY_CHANGED;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.ListenerCollection;
-import com.android.tools.pixelprobe.*;
+import com.android.tools.pixelprobe.Guide;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Path;
@@ -42,11 +42,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_FILE_CHANGED;
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_OPACITY_CHANGED;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -121,7 +120,7 @@ public class Mockup implements ModelListener {
   private final static int C_W = 2;
   private final static int C_H = 3;
 
-  private static final Map<NlComponent, Mockup> MOCKUP_CACHE = ContainerUtil.createWeakMap();
+  private static final Map<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
 
   private final ListenerCollection<MockupModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final Rectangle myBounds;

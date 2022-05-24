@@ -94,14 +94,12 @@ class IdeResourceNameValidator private constructor(
     }
   }
 
-  override fun checkInput(inputString: String): Boolean = getErrorText(inputString) == null
-
   override fun canClose(inputString: String): Boolean = checkInput(inputString)
 
   fun doesResourceExist(name: String): Boolean = existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
 
   override fun getErrorText(inputString: String?): String? {
-    if (inputString == null || inputString.isBlank()) {
+    if (inputString.isNullOrBlank()) {
       return "Enter a new name"
     }
 

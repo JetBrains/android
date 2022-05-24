@@ -31,9 +31,6 @@ import org.junit.runner.RunWith;
 
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
-  // Require resources with spaces (HTML File template)
-  // https://github.com/bazelbuild/bazel/issues/374
-  com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
   com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest.class // b/176807290
 })

@@ -19,10 +19,9 @@ import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A {@linkplain RenderProblem} holds information about a layout rendering

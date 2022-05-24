@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory.adapters.classifiers;
 
 import com.android.tools.profiler.proto.Memory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Native callstack {@link ClassifierSet} that represents a heapprofd call graph node. End nodes return a {@link NativeAllocationMethodSet}

@@ -18,15 +18,13 @@ package com.android.tools.idea.memorysettings;
 import static com.android.utils.FileUtils.join;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.util.PropertiesFiles;
-import com.android.utils.FileUtils;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 
 public class DaemonMemorySettingsTest extends PlatformTestCase {
 

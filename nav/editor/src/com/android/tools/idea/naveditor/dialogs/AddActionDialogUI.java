@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.naveditor.dialogs;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBTextField;
-
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
 
 /**
  * This is just a container for the fields in the add action dialog form. The logic is all in {@link AddActionDialog}

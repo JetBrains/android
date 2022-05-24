@@ -24,13 +24,10 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_IN
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TEST
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.run.PostBuildModelProvider
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
-import com.android.tools.idea.gradle.util.GradleUtil.getGradlePath
-import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputListingFile
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
@@ -44,9 +41,8 @@ import org.jetbrains.android.facet.AndroidFacet
 class GradleApplicationIdProvider(
   private val androidFacet: AndroidFacet,
   private val forTests: Boolean,
-  private val androidModel: AndroidModuleModel,
-  private val variant: IdeVariant,
-  private val outputModelProvider: PostBuildModelProvider
+  private val androidModel: GradleAndroidModel,
+  private val variant: IdeVariant
 ) : ApplicationIdProvider {
 
   override fun getPackageName(): String {
@@ -79,12 +75,9 @@ class GradleApplicationIdProvider(
     return getApplicationIdFromModelOrManifest(baseAppFacet)
   }
 
-  private fun tryToGetInstantAppApplicationId(): String? {
+  private fun tryToGetInstantAppApplicationId(): String {
     if (androidModel.androidProject.projectType !== PROJECT_TYPE_INSTANTAPP) error("PROJECT_TYPE_INSTANTAPP expected")
-    if (!androidModel.features.isPostBuildSyncSupported) return null
-    val postBuildModel = outputModelProvider.postBuildModel ?: return null
-    val projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(getGradlePath(androidFacet.module)) ?: return null
-    return projectBuildOutput.instantAppVariantsBuildOutput.find { it.name == variant.name }?.applicationId
+    return getApplicationIdFromModelOrManifest(androidFacet)
   }
 
   override fun getTestPackageName(): String? {
@@ -92,11 +85,8 @@ class GradleApplicationIdProvider(
 
     if (androidModel.features.isBuildOutputFileSupported) {
       val artifactForAndroidTest = getArtifactForAndroidTest() ?: return null
-      // TODO(b/190357145): This is wrong. We can't read just OutputType.Apk since the last successful build might as well require
-      //                    OutputType.ApkFromBundle.
-      artifactForAndroidTest.buildInformation.getOutputListingFile(OutputType.Apk).nullize()
-        ?.let { outputListingFile -> androidModel.getGenericBuiltArtifactsUsingCache(outputListingFile).genericBuiltArtifacts }
-        ?.applicationId
+      androidModel.getApplicationIdUsingCache(artifactForAndroidTest.buildInformation)
+        .takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
         ?.let { return it }
     }
 
@@ -132,13 +122,13 @@ class GradleApplicationIdProvider(
       findModuleByGradlePath(androidFacet.module.project, testedTargetVariant.targetProjectPath)?.androidFacet
       ?: return null
 
-    val targetModel = AndroidModuleModel.get(targetFacet) ?: return null
+    val targetModel = GradleAndroidModel.get(targetFacet) ?: return null
     val targetVariant = targetModel.variants.find { it.name == testedTargetVariant.targetVariant } ?: return null
 
     // Note: Even though our project is a test module project we request an application id provider for the target module which is
     //       not a test module and the return provider is supposed to be used to obtain the non-test application id only and hence
     //       we create a `GradleApplicationIdProvider` instance in `forTests = false` mode.
-    return GradleApplicationIdProvider(targetFacet, forTests = false, targetModel, targetVariant, outputModelProvider)
+    return GradleApplicationIdProvider(targetFacet, forTests = false, targetModel, targetVariant)
   }
 
   private fun getApplicationIdFromModelOrManifest(facet: AndroidFacet): String {

@@ -121,4 +121,57 @@ class ComposeRenderErrorContributorTest {
     assertEquals("The preview will display after rebuilding the project.<BR/><BR/>" +
                  "<A HREF=\"action:build\">Build</A> the project.<BR/>", stripImages(issues[0].htmlContent))
   }
+
+  @Test
+  fun `view model usage`() {
+    val throwable = createExceptionFromDesc("""
+      java.lang.Throwable: lateinit property okHttpClient has not been initialized
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+      	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
+      	at com.example.jetcaster.Graph${'$'}podcastRepository${'$'}2.invoke(Graph.kt:52)
+      	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
+      	at com.example.jetcaster.Graph.getPodcastRepository(Graph.kt:52)
+      	at com.example.jetcaster.ui.home.HomeViewModel.<init>(HomeViewModel.kt:33)
+      	at androidx.lifecycle.ViewModelProvider${'$'}NewInstanceFactory.create(ViewModelProvider.java:219)
+      	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.java:187)
+      	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(ViewModel.kt:72)
+      	at com.example.jetcaster.ui.home.HomeKt.Home(Home.kt:89)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}{'${'$'}'}3${'$'}1.invoke(ComposeViewAdapter.kt:573)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:215)
+      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
+      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
+      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:901)
+      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:368)
+      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:730)
+      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}{'${'$'}'}8(RenderTask.java:886)
+      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}{'${'$'}'}2.run(RenderExecutor.kt:187)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+      	at java.base/java.lang.Thread.run(Thread.java:829)
+
+      """.trimIndent())
+    val logger = RenderLogger("test", androidProjectRule.module).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
+    assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
+    assertEquals("This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
+                 "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+                 "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
+                 " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+                 stripImages(issues[0].htmlContent))
+  }
 }

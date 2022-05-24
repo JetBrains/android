@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("ApkFacetCheckerInitializer")
 package com.android.tools.idea.startup
 
-import com.android.tools.idea.ApkFacetChecker
+import com.android.tools.idea.ApkFacetCheckerInternal
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.initializeApkFacetChecker
+import com.intellij.facet.FacetManager
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
 
 /**
- * Class that initializes [ApkFacetChecker] as soon as the project is opened and stores it in the project.
+ * Provides an implementation of the [ApkFacetCheckerInternal] interface.
  */
-class ApkFacetCheckerInitializer : ProjectManagerListener {
-  companion object {
-    private val checker: (module: Module) -> Boolean = { ApkFacet.getInstance(it) != null }
-  }
+fun initializeApkFacetChecker() {
+  initializeApkFacetChecker(object: ApkFacetCheckerInternal {
+    override fun hasApkFacet(module: Module): Boolean =
+      FacetManager.getInstance(module).getFacetByType(ApkFacet.ID) != null
 
-  override fun projectOpened(project: Project) {
-    ApkFacetChecker(checker).storeInProject(project)
-  }
+    override fun hasApkFacet(project: Project): Boolean =
+      ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.ID)
+  })
 }

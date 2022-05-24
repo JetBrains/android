@@ -1,0 +1,692 @@
+MODULE                        : MultiFlavor
+MODULE                        : MultiFlavor.app
+    Dir                           : <ROOT>/app
+    ModulePath                    : :app
+    Type                          : APP
+    MavenName                     : MultiFlavor:app:
+    GradleVersion                 : <AGP_VERSION>
+    BuildFolder                   : <ROOT>/app/build [-]
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    JavaSourceLevel               : 1.8
+    CompileTarget                 : android-<SDK_VERSION>
+    LintOptions
+        AbortOnError                  : true
+        AbsolutePaths                 : true
+        ExplainIssues                 : true
+        HtmlReport                    : true
+        XmlReport                     : true
+        CheckReleaseBuilds            : true
+    LintModelVariant              : firstAbcSecondAbcDebug
+        BuildFeatures
+            ViewBinding                   : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode               : DISABLED
+        MainArtifact
+            ApplicationId                 :
+            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
+            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
+            Dependencies
+                CompileDependencies
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
+                    androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.collection:collection          : null => androidx.collection:collection:1.1.0
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
+                    androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                PackageDependencies
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
+                    androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.collection:collection          : null => androidx.collection:collection:1.1.0
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
+                    androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
+        TestArtifact
+            Dependencies
+                CompileDependencies
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
+                    androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.collection:collection          : null => androidx.collection:collection:1.1.0
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
+                    androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
+                    junit:junit                   : null => junit:junit:4.12
+                    org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                PackageDependencies
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
+                    androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
+                    androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.collection:collection          : null => androidx.collection:collection:1.1.0
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
+                    androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
+                    junit:junit                   : null => junit:junit:4.12
+                    org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
+        ApplicationId                 :
+        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
+        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
+        Dependencies
+            CompileDependencies
+                androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
+                androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
+                androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
+                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                androidx.collection:collection          : null => androidx.collection:collection:1.1.0
+                androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
+                androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
+                androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
+                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1@aar
+                androidx.test:core            : null => androidx.test:core:1.2.0@aar
+                androidx.test:monitor         : null => androidx.test:monitor:1.2.0@aar
+                androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
+                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                artifacts::app                : null => :app@main
+                com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
+                com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
+                javax.inject:javax.inject     : null => javax.inject:javax.inject:1
+                junit:junit                   : null => junit:junit:4.12
+                net.sf.kxml:kxml2             : null => net.sf.kxml:kxml2:2.3.0
+                org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
+                org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+            PackageDependencies
+                androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
+                androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
+                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
+                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1@aar
+                androidx.test:core            : null => androidx.test:core:1.2.0@aar
+                androidx.test:monitor         : null => androidx.test:monitor:1.2.0@aar
+                androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
+                artifacts::app                : null => :app@main
+                com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
+                com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
+                javax.inject:javax.inject     : null => javax.inject:javax.inject:1
+                junit:junit                   : null => junit:junit:4.12
+                net.sf.kxml:kxml2             : null => net.sf.kxml:kxml2:2.3.0
+                org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
+                org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
+        MinSdkVersion                 : API 16
+        TargetSdkVersion              : API <SDK_VERSION>
+        ResValues
+            string/v_a                    : v_a:string=firstAbc
+            string/v_b                    : v_b:string=debug
+            string/v_c                    : v_c:string=secondAbc
+        ManifestPlaceholders
+            a                             : firstAbc
+            b                             : debug
+            c                             : secondAbc
+        - ProguardFiles               : <ROOT>/app/default.pro [-]
+        - ProguardFiles               : <ROOT>/app/debug.pro [-]
+        SourceProviders
+            ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
+            - JavaDirectories             : <ROOT>/app/src/main/java
+            - JavaDirectories             : <ROOT>/app/src/main/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/main/res
+            - AssetsDirectories           : <ROOT>/app/src/main/assets [-]
+            ManifestFile                  : <ROOT>/app/src/firstAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/firstAbc/java [-]
+            - JavaDirectories             : <ROOT>/app/src/firstAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/firstAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/firstAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/secondAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/secondAbc/java
+            - JavaDirectories             : <ROOT>/app/src/secondAbc/java2 [-]
+            - JavaDirectories             : <ROOT>/app/src/secondAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/secondAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/secondAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/firstAbcSecondAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/firstAbcSecondAbc/java
+            - JavaDirectories             : <ROOT>/app/src/firstAbcSecondAbc/java2
+            - JavaDirectories             : <ROOT>/app/src/firstAbcSecondAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/firstAbcSecondAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/firstAbcSecondAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/debug/java [-]
+            - JavaDirectories             : <ROOT>/app/src/debug/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/debug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/debug/assets [-]
+            ManifestFile                  : <ROOT>/app/src/firstAbcSecondAbcDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/java [-]
+            - JavaDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/firstAbcSecondAbcDebug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/firstAbcSecondAbcDebug/assets [-]
+        TestSourceProviders
+            ManifestFile                  : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTest/java
+            - JavaDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/androidTest/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTest/assets [-]
+            ManifestFile                  : <ROOT>/app/src/test/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/test/java
+            - JavaDirectories             : <ROOT>/app/src/test/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/test/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/test/assets [-]
+            ManifestFile                  : <ROOT>/app/src/androidTestFirstAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestFirstAbc/java [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestFirstAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/androidTestFirstAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTestFirstAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/testFirstAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/testFirstAbc/java [-]
+            - JavaDirectories             : <ROOT>/app/src/testFirstAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/testFirstAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/testFirstAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/androidTestSecondAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestSecondAbc/java [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestSecondAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/androidTestSecondAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTestSecondAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/testSecondAbc/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/testSecondAbc/java
+            - JavaDirectories             : <ROOT>/app/src/testSecondAbc/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/testSecondAbc/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/testSecondAbc/assets [-]
+            ManifestFile                  : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/androidTestDebug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTestDebug/assets [-]
+            ManifestFile                  : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/testDebug/java [-]
+            - JavaDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
+            - ResDirectories              : <ROOT>/app/src/testDebug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
+        Debuggable                    : true
+        LibraryResolver
+            LintModelLibrary              : LocalLibrary(:app)
+                Identifier                    : :app@main
+                ProjectPath                   : :app
+            LintModelLibrary              : AndroidLibrary(androidx.activity:activity:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
+                Identifier                    : androidx.activity:activity:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.activity:activity:1.0.0
+            LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.1.0)
+                - JarFiles                    : <M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar
+                Identifier                    : androidx.annotation:annotation:1.1.0
+                ResolvedCoordinates           : androidx.annotation:annotation:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat-resources:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
+                Identifier                    : androidx.appcompat:appcompat-resources:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.appcompat:appcompat-resources:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
+                Identifier                    : androidx.appcompat:appcompat:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/public.txt
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.appcompat:appcompat:1.1.0
+            LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:2.1.0)
+                - JarFiles                    : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+                Identifier                    : androidx.arch.core:core-common:2.1.0
+                ResolvedCoordinates           : androidx.arch.core:core-common:2.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.arch.core:core-runtime:2.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+                Identifier                    : androidx.arch.core:core-runtime:2.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.arch.core:core-runtime:2.0.0
+            LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.1.0)
+                - JarFiles                    : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
+                Identifier                    : androidx.collection:collection:1.1.0
+                ResolvedCoordinates           : androidx.collection:collection:1.1.0
+            LintModelLibrary              : JavaLibrary(androidx.constraintlayout:constraintlayout-solver:1.1.3)
+                - JarFiles                    : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
+                Identifier                    : androidx.constraintlayout:constraintlayout-solver:1.1.3
+                ResolvedCoordinates           : androidx.constraintlayout:constraintlayout-solver:1.1.3
+            LintModelLibrary              : AndroidLibrary(androidx.constraintlayout:constraintlayout:1.1.3)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
+                Identifier                    : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/proguard.txt [-]
+                ResolvedCoordinates           : androidx.constraintlayout:constraintlayout:1.1.3
+            LintModelLibrary              : AndroidLibrary(androidx.core:core:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
+                Identifier                    : androidx.core:core:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/public.txt
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.core:core:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.cursoradapter:cursoradapter:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+                Identifier                    : androidx.cursoradapter:cursoradapter:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.cursoradapter:cursoradapter:1.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.customview:customview:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+                Identifier                    : androidx.customview:customview:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.customview:customview:1.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.drawerlayout:drawerlayout:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+                Identifier                    : androidx.drawerlayout:drawerlayout:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.drawerlayout:drawerlayout:1.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.fragment:fragment:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
+                Identifier                    : androidx.fragment:fragment:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.fragment:fragment:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.interpolator:interpolator:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
+                Identifier                    : androidx.interpolator:interpolator:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.interpolator:interpolator:1.0.0
+            LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:2.1.0)
+                - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar
+                Identifier                    : androidx.lifecycle:lifecycle-common:2.1.0
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:2.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata-core:2.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata-core:2.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata:2.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata:2.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:2.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:2.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:2.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
+                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:2.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.loader:loader:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+                Identifier                    : androidx.loader:loader:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.loader:loader:1.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.savedstate:savedstate:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
+                Identifier                    : androidx.savedstate:savedstate:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/proguard.txt
+                ResolvedCoordinates           : androidx.savedstate:savedstate:1.0.0
+            LintModelLibrary              : AndroidLibrary(androidx.test.espresso:espresso-core:3.2.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
+                Identifier                    : androidx.test.espresso:espresso-core:3.2.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/proguard.txt
+                ResolvedCoordinates           : androidx.test.espresso:espresso-core:3.2.0
+            LintModelLibrary              : AndroidLibrary(androidx.test.espresso:espresso-idling-resource:3.2.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
+                Identifier                    : androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.test.espresso:espresso-idling-resource:3.2.0
+            LintModelLibrary              : AndroidLibrary(androidx.test.ext:junit:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar
+                Identifier                    : androidx.test.ext:junit:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/proguard.txt [-]
+                ResolvedCoordinates           : androidx.test.ext:junit:1.1.1
+            LintModelLibrary              : AndroidLibrary(androidx.test:core:1.2.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar
+                Identifier                    : androidx.test:core:1.2.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.test:core:1.2.0
+            LintModelLibrary              : AndroidLibrary(androidx.test:monitor:1.2.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar
+                Identifier                    : androidx.test:monitor:1.2.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/proguard.txt
+                ResolvedCoordinates           : androidx.test:monitor:1.2.0
+            LintModelLibrary              : AndroidLibrary(androidx.test:runner:1.2.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
+                Identifier                    : androidx.test:runner:1.2.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/proguard.txt
+                ResolvedCoordinates           : androidx.test:runner:1.2.0
+            LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable-animated:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
+                Identifier                    : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.vectordrawable:vectordrawable-animated:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
+                Identifier                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.vectordrawable:vectordrawable:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.versionedparcelable:versionedparcelable:1.1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
+                Identifier                    : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/proguard.txt
+                ResolvedCoordinates           : androidx.versionedparcelable:versionedparcelable:1.1.0
+            LintModelLibrary              : AndroidLibrary(androidx.viewpager:viewpager:1.0.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+                Identifier                    : androidx.viewpager:viewpager:1.0.0@aar
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
+                ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
+            LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
+                - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
+                Identifier                    : com.google.code.findbugs:jsr305:2.0.1
+                ResolvedCoordinates           : com.google.code.findbugs:jsr305:2.0.1
+            LintModelLibrary              : JavaLibrary(com.squareup:javawriter:2.1.1)
+                - JarFiles                    : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
+                Identifier                    : com.squareup:javawriter:2.1.1
+                ResolvedCoordinates           : com.squareup:javawriter:2.1.1
+            LintModelLibrary              : JavaLibrary(javax.inject:javax.inject:1)
+                - JarFiles                    : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+                Identifier                    : javax.inject:javax.inject:1
+                ResolvedCoordinates           : javax.inject:javax.inject:1
+            LintModelLibrary              : JavaLibrary(junit:junit:4.12)
+                - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
+                Identifier                    : junit:junit:4.12
+                ResolvedCoordinates           : junit:junit:4.12
+            LintModelLibrary              : JavaLibrary(net.sf.kxml:kxml2:2.3.0)
+                - JarFiles                    : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                Identifier                    : net.sf.kxml:kxml2:2.3.0
+                ResolvedCoordinates           : net.sf.kxml:kxml2:2.3.0
+            LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
+                - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
+                ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
+            LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-integration:1.3)
+                - JarFiles                    : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
+                Identifier                    : org.hamcrest:hamcrest-integration:1.3
+                ResolvedCoordinates           : org.hamcrest:hamcrest-integration:1.3
+            LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-library:1.3)
+                - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
+                Identifier                    : org.hamcrest:hamcrest-library:1.3
+                ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
+MODULE                        : MultiFlavor.app.androidTest
+MODULE                        : MultiFlavor.app.main
+MODULE                        : MultiFlavor.app.unitTest

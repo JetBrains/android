@@ -1,7 +1,7 @@
 android {
   compileOptions {
-    setSourceCompatibility(1.6)
-    setTargetCompatibility(1.6)
+    sourceCompatibility(1.6)
+    targetCompatibility(1.6)
   }
   compileOptions.sourceCompatibility = JavaVersion.VERSION_1_7
 }

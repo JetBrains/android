@@ -47,7 +47,6 @@ class SafeArgsTrackerTest(private val params: TestParams) {
   }
 
   companion object {
-    @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val parameters = listOf(

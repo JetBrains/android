@@ -2,7 +2,7 @@
 package org.jetbrains.android.facet
 
 import com.intellij.facet.ui.FacetEditorTab
-import com.intellij.ui.layout.*
+import com.intellij.ui.layout.panel
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 

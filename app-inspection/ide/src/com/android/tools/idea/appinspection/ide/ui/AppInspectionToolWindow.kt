@@ -64,7 +64,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
       }
 
-      notificationGroup.createNotification(title, content, type, object : NotificationListener.Adapter() {
+      notificationGroup.createNotification(title, content, type).setListener(object : NotificationListener.Adapter() {
         override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
           hyperlinkClicked()
           notification.expire()

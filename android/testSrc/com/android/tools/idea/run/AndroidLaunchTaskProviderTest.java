@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.gradle.project.sync.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.fail;
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.gradle.project.sync.MakeBeforeRunTaskProviderTestUtilKt;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.GradleIntegrationTest;
+import com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
@@ -111,8 +111,6 @@ public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
 
       LaunchOptions launchOptions = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
-        .setSkipNoopApkInstallations(true)
-        .setForceStopRunningApp(true)
         .setDebug(debug)
         .build();
 

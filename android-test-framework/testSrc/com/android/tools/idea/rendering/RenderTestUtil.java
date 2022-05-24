@@ -23,8 +23,8 @@ import static org.junit.Assert.fail;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
-import com.android.tools.adtui.ImageUtils;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.util.concurrent.Futures;
@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -117,16 +118,18 @@ public class RenderTestUtil {
   public static void waitForRenderTaskDisposeToFinish() {
     // Make sure there is no RenderTask disposing event in the event queue.
     UIUtil.dispatchAllInvocationEvents();
-    Thread.getAllStackTraces().keySet().stream()
-      .filter(t -> t.getName().startsWith("RenderTask dispose"))
-      .forEach(t -> {
-        try {
-          t.join(10 * 1000); // 10s
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      });
+    assert RenderTask.ourDisposeService.toString().startsWith("BoundedExecutor(1)"):
+      "The 'waiting' code below assumes that tasks are executed sequentially, in one thread, in order"
+    ;
+
+    String complete = "complete";
+    Future<?> lastTaskInDisposeQueue = RenderTask.ourDisposeService.submit(complete::toString);
+    try {
+      Object res = lastTaskInDisposeQueue.get(10, TimeUnit.SECONDS);
+      assert complete.equals(res): "'RenderTask dispose' has not completed after 10s timeout";
+    } catch (Exception e){
+      throw new AssertionError("'RenderTask dispose' has not completed after 10s timeout", e);
+    }
   }
 
   @NotNull

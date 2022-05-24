@@ -18,14 +18,11 @@ package com.android.tools.compose.templates
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
-import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.template.impl.InvokeTemplateAction
 import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
-import com.intellij.codeInsight.template.impl.LiveTemplateLookupElement
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import java.util.HashSet
 
 class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
 

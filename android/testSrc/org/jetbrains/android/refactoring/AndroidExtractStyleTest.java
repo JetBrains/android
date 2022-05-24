@@ -3,13 +3,12 @@ package org.jetbrains.android.refactoring;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.util.ArrayUtilRt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidExtractStyleTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/extractStyle/";
@@ -109,7 +108,7 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
       for (XmlAttribute attribute : extractableAttributes) {
         names.add(attribute.getName());
       }
-      final String[] extractableAttributeNames = ArrayUtil.toStringArray(names);
+      final String[] extractableAttributeNames = ArrayUtilRt.toStringArray(names);
       Arrays.sort(extractableAttributeNames);
 
       assertTrue(

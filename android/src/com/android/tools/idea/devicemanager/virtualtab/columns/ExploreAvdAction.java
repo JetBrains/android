@@ -55,14 +55,17 @@ public final class ExploreAvdAction extends AvdUiAction {
       return;
     }
 
-    DeviceExplorerViewService.getInstance(project).openAndShowDevice(Objects.requireNonNull(myAvdInfoProvider.getAvdInfo()));
+    AvdInfo avdInfo = Objects.requireNonNull(myAvdInfoProvider.getAvdInfo());
+    if (AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo)) {
+      DeviceExplorerViewService.getInstance(project).openAndShowDevice(avdInfo);
+    }
+    else {
+      DeviceExplorerViewService.getInstance(project).showToolWindow();
+    }
   }
 
   @Override
   public boolean isEnabled() {
-    // TODO: button should be grayed out when not enabled
-    AvdInfo avdInfo = myAvdInfoProvider.getAvdInfo();
-    assert avdInfo != null;
-    return AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo);
+    return true; // TODO(b/200132812): always return true for now so action works, but will be redone later
   }
 }

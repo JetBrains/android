@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint.inspections;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.inspections.AndroidLintApiInspection;
 import com.android.tools.lint.checks.ApiDetector;
 
 public class AndroidLintInlinedApiInspection extends AndroidLintApiInspection {

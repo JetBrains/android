@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
   @NotNull

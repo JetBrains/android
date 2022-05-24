@@ -15,26 +15,25 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.LayoutFocusTraversalPolicy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@link LayeredPanel} implements {@link AutoHide} tool windows.
@@ -66,15 +65,14 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     myContainer = new JPanel();
     myContainer.setOpaque(false);
     myContainer.addComponentListener(createWidthUpdater());
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(this);
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
-    mySplitter.setDividerWidth(JBUI.scale(0));
+    mySplitter.setDividerWidth(JBUIScale.scale(0));
     mySplitter.setFocusCycleRoot(false);
     mySplitter.setFocusTraversalPolicyProvider(true);
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     mySide = Side.LEFT;
-    Disposer.register(this, mySplitter);
 
     add(defaultLayer, DEFAULT_LAYER);
     add(mySplitter, PALETTE_LAYER);
@@ -165,7 +163,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
     int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(), -1);
     if (width != -1) {
-      return JBUI.scale(width);
+      return JBUIScale.scale(width);
     }
     int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(), -1);
     if (scaledWidth == -1) {

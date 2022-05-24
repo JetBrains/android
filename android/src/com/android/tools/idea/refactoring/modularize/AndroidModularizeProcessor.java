@@ -20,17 +20,15 @@ import static com.android.SdkConstants.TAG_APPLICATION;
 import static com.android.SdkConstants.TAG_MANIFEST;
 import static com.android.SdkConstants.TAG_RESOURCES;
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -61,12 +59,11 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesUtil;
 import com.intellij.refactoring.util.RefactoringUIUtil;
-import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
+import com.intellij.util.CommonJavaRefactoringUtil;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -115,7 +112,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
     for (PsiElement root : myRoots) {
       AndroidFacet facet = AndroidFacet.getInstance(root);
       if (facet != null) {
-        if (!collectModulesClosure(facet.getModule(), Sets.newHashSet()).contains(myTargetModule)) {
+        if (!collectModulesClosure(facet.getModule(), new HashSet<>()).contains(myTargetModule)) {
           myShouldSelectAllReferences = false;
           break;
         }
@@ -232,7 +229,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   protected void previewRefactoring(@NotNull UsageInfo[] usages) {
     PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages, myShouldSelectAllReferences);
     if (previewDialog.showAndGet()) {
-      TransactionGuard.getInstance().submitTransactionAndWait(() -> execute(previewDialog.getSelectedUsages()));
+      execute(previewDialog.getSelectedUsages());
     }
   }
 
@@ -316,7 +313,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
         MoveClassesOrPackagesUtil.doMoveClass(
           (PsiClass)element,
-          RefactoringUtil
+          CommonJavaRefactoringUtil
             .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
           true);
       }

@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.intellij.build.events.BuildEvent;
-import com.intellij.build.events.FileMessageEvent;
-import com.intellij.build.events.MessageEvent;
-import com.intellij.build.output.BuildOutputInstantReader;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
-import java.util.List;
-import java.util.function.Consumer;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.FileMessageEvent;
+import com.intellij.build.events.MessageEvent;
+import com.intellij.build.output.BuildOutputInstantReader;
+import java.util.List;
+import java.util.function.Consumer;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 public class GradleBuildOutputParserTest {
   @Mock private BuildOutputInstantReader myReader;

@@ -21,10 +21,14 @@ import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
+import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
+
+private const val minRev = "1.1.0-beta04"
+private const val exampleBenchmarkName = "ExampleBenchmark"
 
 fun RecipeExecutor.generateBenchmarkModule(
   moduleData: ModuleTemplateData,
@@ -34,10 +38,10 @@ fun RecipeExecutor.generateBenchmarkModule(
   val testOut = moduleData.testDir
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
-  val (buildApi, targetApi,  minApi) = moduleData.apis
+  val (buildApi, targetApi, minApi) = moduleData.apis
   val language = projectData.language
 
-  addClasspathDependency("androidx.benchmark:benchmark-gradle-plugin:+")
+  addClasspathDependency("androidx.benchmark:benchmark-gradle-plugin:+", minRev)
 
   addIncludeToSettings(moduleData.name)
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
@@ -54,21 +58,22 @@ fun RecipeExecutor.generateBenchmarkModule(
 
   save(bg, moduleOut.resolve(buildFile))
   applyPlugin("com.android.library", projectData.gradlePluginVersion)
-  applyPlugin("androidx.benchmark", projectData.gradlePluginVersion)
+  applyPlugin("androidx.benchmark", minRev)
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
-  addDependency("junit:junit:4.+", "androidTestImplementation", minRev = "4.13.2")
-  addDependency("androidx.benchmark:benchmark-junit4:+", "androidTestImplementation")
+  addDependency("junit:junit:4.+", "androidTestImplementation", "4.13.2")
+  addDependency("androidx.benchmark:benchmark-junit4:+", "androidTestImplementation", minRev)
 
   save(androidManifestXml(packageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
   save(testAndroidManifestXml(packageName), moduleOut.resolve("src/androidTest/AndroidManifest.xml"))
+  save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
-    save(exampleBenchmarkKt(packageName), testOut.resolve("ExampleBenchmark.kt"))
+    save(exampleBenchmarkKt(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.kt"))
   }
   else {
-    save(exampleBenchmarkJava(packageName), testOut.resolve("ExampleBenchmark.java"))
+    save(exampleBenchmarkJava(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.java"))
   }
 
-  addKotlinIfNeeded(projectData, noKtx = true)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
 }

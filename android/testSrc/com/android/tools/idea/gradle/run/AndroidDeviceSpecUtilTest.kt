@@ -26,8 +26,8 @@ import com.google.common.util.concurrent.Futures
 import org.junit.After
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.io.File
 import java.util.concurrent.TimeUnit
 

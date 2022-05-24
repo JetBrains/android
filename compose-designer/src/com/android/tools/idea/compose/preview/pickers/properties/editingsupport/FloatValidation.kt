@@ -18,14 +18,14 @@ package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 
 /**
  * [EditingValidation] instance that validates for positive (>0) float numbers.
  */
 object FloatValidator : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
-    if (editedValue == null || editedValue.isBlank()) return EDITOR_NO_ERROR
+    if (editedValue.isNullOrBlank()) return EDITOR_NO_ERROR
     val trimmedValue = editedValue.trim()
 
     val numberValue = trimmedValue.toFloatOrNull()

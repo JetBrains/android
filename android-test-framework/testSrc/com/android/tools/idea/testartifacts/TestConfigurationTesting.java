@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.testartifacts;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,9 +40,6 @@ import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.
@@ -120,10 +121,10 @@ public class TestConfigurationTesting {
   public static ConfigurationContext createContext(@NotNull Project project, @NotNull PsiElement psiElement) {
     MapDataContext dataContext = new MapDataContext();
     dataContext.put(CommonDataKeys.PROJECT, project);
-    if (LangDataKeys.MODULE.getData(dataContext) == null) {
-      dataContext.put(LangDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
+    if (PlatformCoreDataKeys.MODULE.getData(dataContext) == null) {
+      dataContext.put(PlatformCoreDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
     }
     dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement));
-    return ConfigurationContext.getFromContext(dataContext);
+    return ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN);
   }
 }

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
@@ -35,7 +35,7 @@ interface PsProject : PsModel {
   var androidGradlePluginVersion: ParsedValue<String>
   var gradleVersion: ParsedValue<String>
 
-  fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository>
+  fun getPluginArtifactRepositories(): Collection<ArtifactRepository>
 
   fun findModuleByName(moduleName: String): PsModule?
   fun findModuleByGradlePath(gradlePath: String): PsModule?

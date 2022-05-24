@@ -26,7 +26,6 @@ import org.junit.Test
 import java.io.File
 import java.lang.reflect.Modifier
 import java.sql.SQLException
-import java.util.*
 import java.util.function.Consumer
 
 /**
@@ -58,7 +57,6 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
 
   @Test
   @Throws(SQLException::class)
-  @Suppress("MemberVisibilityCanBePrivate") // Needs to be public for JUnit
   fun closedConnectionIsHandled() {
     var errorThrown = false
     val db = DataStoreDatabase(dbFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
@@ -86,7 +84,6 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
 
   @Test
   @Throws(SQLException::class)
-  @Suppress("MemberVisibilityCanBePrivate") // Needs to be public for JUnit
   fun errorIsHandled() {
     var throwsError = false
     DataStoreTable.addDataStoreErrorCallback { _ -> throwsError = true }

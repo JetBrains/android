@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.google.common.truth.Truth
 import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 import org.jetbrains.plugins.gradle.issue.GradleIssueData

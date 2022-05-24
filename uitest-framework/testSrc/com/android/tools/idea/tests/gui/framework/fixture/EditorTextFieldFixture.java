@@ -16,12 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.ui.EditorTextField;
+import java.awt.Container;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.AbstractJComponentFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 public class EditorTextFieldFixture extends AbstractJComponentFixture<EditorTextFieldFixture, EditorTextField, EditorTextFieldDriver> {
 

@@ -47,6 +47,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertyType.COLOR
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.res.ResourceNamespaceContext
@@ -80,7 +81,6 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
-import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
@@ -91,8 +91,9 @@ import javax.swing.Icon
  * The namespaces from the agent are using the real package names.
  */
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
-  return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-    .firstOrNull { Manifest.getMainManifest(it)?.`package`?.value == packageName }
+  return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).firstOrNull {
+    AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
+  }
 }
 
 /**

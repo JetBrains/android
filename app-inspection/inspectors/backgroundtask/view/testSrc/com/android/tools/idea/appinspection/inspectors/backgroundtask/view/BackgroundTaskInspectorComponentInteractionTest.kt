@@ -190,6 +190,25 @@ class BackgroundTaskInspectorComponentInteractionTest {
   }
 
   @Test
+  fun clickHeaderRowsWithNoSelectionChange() = runBlocking {
+    val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
+    client.sendWorkAddedEvent(workInfo)
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry(workInfo.id)
+      val tree = TreeWalker(tableView.component)
+        .descendantStream()
+        .filter { it is JTree }
+        .findFirst()
+        .get() as JTree
+      val path = tree.selectionModel.selectionPath
+      val headerPath = path.parentPath
+      tree.selectionModel.selectionPath = headerPath
+      // The tree table should not select header path.
+      assertThat(tree.selectionModel.selectionPath).isEqualTo(path)
+    }
+  }
+
+  @Test
   fun openDependencyGraphView() = runBlocking {
     val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
     client.sendWorkAddedEvent(workInfo)

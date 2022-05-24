@@ -19,12 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class SdkProblemDialogFixture<ParentFixture extends ComponentFixture> implements ContainerFixture<JDialog> {
 

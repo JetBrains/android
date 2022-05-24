@@ -24,8 +24,8 @@ import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
+import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.ErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,7 +170,7 @@ class AndroidInlineUtil {
                                                      Collection<PsiElement> unambiguousUsages,
                                                      Collection<PsiElement> unsupportedUsages,
                                                      Collection<PsiElement> implicitlyInherited) {
-    final MultiMap<PsiElement, String> result = new MultiMap<PsiElement, String>();
+    final MultiMap<PsiElement, String> result = new MultiMap<>();
 
     for (PsiElement usage : nonXmlUsages) {
       result.putValue(usage, "Non-XML reference '" + toString(usage) + "' won't be updated");

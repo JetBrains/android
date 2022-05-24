@@ -28,9 +28,9 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
 import com.intellij.openapi.fileEditor.FileEditorManager
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.event.KeyEvent
 
@@ -67,12 +67,13 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   fun testNoPopupMenuTriggerWhenNotHoveredOnSceneView() {
     val surface = myModel.surface
-    val tooltips = surface.focusedSceneView!!.sceneManager.model.configuration.toTooltips()
-    val interactionHandler = VisualizationInteractionHandler(surface) { CustomModelsProvider(object : ConfigurationSetListener {
-      override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
+    val interactionHandler = VisualizationInteractionHandler(surface) {
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), object : ConfigurationSetListener {
+        override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
 
-      override fun onCurrentConfigurationSetUpdated() = Unit
-    }) }
+        override fun onCurrentConfigurationSetUpdated() = Unit
+      })
+    }
 
     val view = surface.sceneManager!!.sceneView
     val mouseEvent = MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2)

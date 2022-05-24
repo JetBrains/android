@@ -52,7 +52,6 @@ class PropertiesPanelTest {
   private var builder2b: FakeInspectorBuilder? = null
   private var builder2c: FakeInspectorBuilder? = null
 
-  @Suppress("UNCHECKED_CAST")
   @Before
   fun setUp() {
     model1 = FakePropertyModel()

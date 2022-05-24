@@ -90,7 +90,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
   @WorkerThread
   fun forwardResults(listener: AndroidTestResultListener) {
     val dir = protoFile.parentFile
-    startAll(listener, deviceMap, resultProto)
+    startAll(listener, deviceMap, dir, resultProto)
     runAll(listener, deviceMap, dir, resultProto)
     finishAll(listener, deviceMap)
   }
@@ -143,15 +143,28 @@ class UtpTestResultAdapter(private val protoFile: File) {
     }
   }
 
-  private fun startAll(listener: AndroidTestResultListener, deviceMap: DeviceMap, resultProto: TestSuiteResultProto.TestSuiteResult) {
+  private fun startAll(listener: AndroidTestResultListener, deviceMap: DeviceMap, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult) {
     for (deviceTestSuite in deviceMap.values) {
       listener.onTestSuiteScheduled(deviceTestSuite.device)
       deviceTestSuite.testSuite = AndroidTestSuite(resultProto.testSuiteMetaData.testSuiteName,
                                                    resultProto.testSuiteMetaData.testSuiteName,
-                                                   resultProto.testResultCount,
+                                                   countTestCaseCount(deviceTestSuite.device, dir, resultProto),
                                                    AndroidTestSuiteResult.PASSED)
       listener.onTestSuiteStarted(deviceTestSuite.device, deviceTestSuite.testSuite)
     }
+  }
+
+  private fun countTestCaseCount(device: AndroidDevice, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult): Int {
+    var testCaseCount = 0
+    for (testResultProto in resultProto.testResultList) {
+      val deviceInfo = testResultProto.getDeviceInfo(dir)
+      if (deviceInfo != null) {
+        if (device.deviceName == deviceInfo.displayName() && device.deviceType == deviceInfo.deviceType()) {
+          testCaseCount++
+        }
+      }
+    }
+    return testCaseCount
   }
 
   private fun runAll(listener: AndroidTestResultListener, deviceMap: DeviceMap, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult) {

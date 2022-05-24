@@ -20,13 +20,8 @@ fun androidManifestXml(packageName: String, targetPackageName: String) =
 """<?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="$packageName">
-
     <queries>
         <package android:name="$targetPackageName" />
     </queries>
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
 </manifest>"""

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
+
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFrame;
@@ -23,18 +25,15 @@ import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.ScreenUtil;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-
-import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
 
 /**
  * {@link WelcomeFrameProvider} for the {@link FirstRunWizard}.
  */
 public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
   @Override
-  public IdeFrame createFrame() {
+  public @Nullable IdeFrame createFrame() {
     WelcomeFrame frame = WelcomeScreenProvider.EP_NAME.computeSafeIfAny(provider -> {
       if (provider instanceof AndroidStudioWelcomeScreenProvider && provider.isAvailable()) {
         // If we need to show the first run wizard, return a normal WelcomeFrame (which will initialize the wizard via the
@@ -54,8 +53,7 @@ public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
    * too big on low resolution screen with HiDPI. See
    * <a href="https://issuetracker.google.com/issues/68295805">bug 68295805</a>.
    */
-  @Nullable
-  private IdeFrame customizeFlatWelcomeFrame() {
+  private @Nullable IdeFrame customizeFlatWelcomeFrame() {
     return WelcomeFrame.EP.computeSafeIfAny(provider -> {
       if (provider == this) {
         // Avoid infinite recursion, since we are one of the providers.

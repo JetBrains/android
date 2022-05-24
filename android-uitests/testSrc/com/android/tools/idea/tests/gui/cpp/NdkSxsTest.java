@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.cpp;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -32,11 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.reflect.core.Reflection.method;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NdkSxsTest {
@@ -77,24 +77,25 @@ public class NdkSxsTest {
   private void checkNdkSideBySide(@NotNull IdeSettingsDialogFixture ideSettingsDialogFixture) {
     GuiTests.waitUntilFound(guiTest.robot(),
                             ideSettingsDialogFixture.target(),
-                            new GenericTypeMatcher<TreeTableView>(TreeTableView.class) {
-        @Override
-        protected boolean isMatching(TreeTableView treeTableView) {
-          DefaultMutableTreeNode root = (DefaultMutableTreeNode)treeTableView.getTableModel().getRoot();
-          for (Object object : Collections.list(root.children())) {  // refer to: MultiVersionTreeNode.java
-            try {
-              String title = method("getDisplayName")
-                .withReturnType(String.class)
-                .in(object).invoke();
-              if(title.contains("NDK (Side by side)")) {
-                assertThat(field("myVersionNodes").ofType(Collection.class).in(object).get().size()).isGreaterThan(0);
-                return true;
-              }
-            } catch (ReflectionError e) {
-            }
-          }
-          return false;
-        }
-      });
+                            new GenericTypeMatcher<>(TreeTableView.class) {
+                              @Override
+                              protected boolean isMatching(TreeTableView treeTableView) {
+                                DefaultMutableTreeNode root = (DefaultMutableTreeNode)treeTableView.getTableModel().getRoot();
+                                for (Object object : Collections.list(root.children())) {  // refer to: MultiVersionTreeNode.java
+                                  try {
+                                    String title = method("getDisplayName")
+                                      .withReturnType(String.class)
+                                      .in(object).invoke();
+                                    if (title.contains("NDK (Side by side)")) {
+                                      assertThat(field("myVersionNodes").ofType(Collection.class).in(object).get().size()).isGreaterThan(0);
+                                      return true;
+                                    }
+                                  }
+                                  catch (ReflectionError e) {
+                                  }
+                                }
+                                return false;
+                              }
+                            });
     }
 }

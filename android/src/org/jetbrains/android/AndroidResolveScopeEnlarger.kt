@@ -20,6 +20,7 @@ import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -49,7 +50,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.augment.ManifestClass
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * A [ResolveScopeEnlarger] that adds the right `R` and `Manifest` light classes to the resolution scope of files within Android modules.
@@ -110,7 +110,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
           return true
         }
         val resourceClassFacet = resourceClassModule.androidFacet ?: return false
-        val androidDependencies = AndroidUtils.getAllAndroidDependencies(module, false)
+        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false)
         return androidDependencies.contains(resourceClassFacet)
       }
 

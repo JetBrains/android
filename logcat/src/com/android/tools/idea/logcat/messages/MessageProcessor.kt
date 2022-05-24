@@ -18,7 +18,12 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.intellij.openapi.Disposable
+import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.filters.AndLogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatMasterFilter
+import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -39,21 +44,29 @@ private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
  * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
 internal class MessageProcessor(
-  private val parentDisposable: Disposable,
+  private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
-  private val appendMessages: suspend (TextAccumulator) -> Unit,
+  packageNamesProvider: PackageNamesProvider,
+  var logcatFilter: LogcatFilter?,
+  var showOnlyProjectApps: Boolean,
   private val clock: Clock = Clock.systemDefaultZone(),
   private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
   private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
+  private val projectAppFilter = ProjectAppFilter(packageNamesProvider)
 
   init {
     processMessageChannel()
   }
 
   internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    messageChannel.send(messages)
+    val filter = when {
+      showOnlyProjectApps && logcatFilter != null -> AndLogcatFilter(logcatFilter!!, projectAppFilter)
+      showOnlyProjectApps -> projectAppFilter
+      else -> logcatFilter
+    }
+    messageChannel.send(LogcatMasterFilter(filter).filter(messages))
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
@@ -65,7 +78,7 @@ internal class MessageProcessor(
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
       thisLogger().error("Error processing logcat message", e)
     }
-    AndroidCoroutineScope(parentDisposable, workerThread).launch(exceptionHandler) {
+    AndroidCoroutineScope(logcatPresenter, workerThread).launch(exceptionHandler) {
       // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
       var textAccumulator = TextAccumulator()
       var totalMessages = 0 // Number of messages in current batch
@@ -86,7 +99,7 @@ internal class MessageProcessor(
         // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
         @Suppress("EXPERIMENTAL_API_USAGE")
         if (messageChannel.isEmpty || clock.millis() - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
-          appendMessages(textAccumulator)
+          logcatPresenter.appendMessages(textAccumulator)
           val now = clock.millis()
           logger.debug {
             val timeSinceStart = now - startTime

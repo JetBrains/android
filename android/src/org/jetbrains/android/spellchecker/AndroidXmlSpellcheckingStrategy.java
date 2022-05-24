@@ -67,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
 
-  private final Tokenizer<XmlAttributeValue> myAttributeValueRenamingTokenizer = new Tokenizer<XmlAttributeValue>() {
+  private final Tokenizer<XmlAttributeValue> myAttributeValueRenamingTokenizer = new Tokenizer<>() {
     @Override
     public void tokenize(@NotNull XmlAttributeValue element, TokenConsumer consumer) {
       consumer.consumeToken(element, true, TextSplitter.getInstance());

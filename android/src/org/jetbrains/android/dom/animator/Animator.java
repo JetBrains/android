@@ -17,9 +17,8 @@ package org.jetbrains.android.dom.animator;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.SubTagList;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 /**
  * Framework code: AnimatorInflater#loadAnimator

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.observable.core;
 
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * Base class for all properties that need to support being set to or returning a {@code null}

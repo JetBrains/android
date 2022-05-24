@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -189,7 +190,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
    */
   private static class LiveSessionDot extends JComponent {
 
-    private static final int SIZE = JBUI.scale(10);
+    private static final int SIZE = JBUIScale.scale(10);
     private static final Dimension DIMENSION = new Dimension(SIZE, SIZE);
 
     @Override

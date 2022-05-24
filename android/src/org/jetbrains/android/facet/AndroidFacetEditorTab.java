@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -31,9 +17,11 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
@@ -43,10 +31,10 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ArrayUtil;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -55,9 +43,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -67,9 +53,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
-import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -80,6 +64,8 @@ import org.jetbrains.annotations.SystemIndependent;
 
 @SuppressWarnings("deprecation")
 public class AndroidFacetEditorTab extends FacetEditorTab {
+  public static final Key<String> PREV_AIDL_GEN_OUTPUT_PATH = Key.create("android.prev.aidl.gen.output.path");
+
   private final AndroidFacetConfiguration myConfiguration;
   private final FacetEditorContext myContext;
   private JPanel myContentPanel;
@@ -233,8 +219,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final JComboBox apkPathComboBoxComponent = myApkPathCombo.getComboBox();
     apkPathComboBoxComponent.setEditable(true);
     apkPathComboBoxComponent.setModel(new DefaultComboBoxModel(getDefaultApks(module)));
-    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
-    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
+    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
+    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
 
     myApkPathCombo.addBrowseFolderListener(project, new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override
@@ -253,7 +239,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       }
     });
 
-    myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel(new Object[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
+    myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel<>(new String[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
     myUpdateProjectPropertiesCombo.setRenderer(SimpleListCellRenderer.create(
       "No", value -> value.isEmpty() ? "Ask" : Boolean.parseBoolean(value) ? "Yes" : "No"));
     buildImportedOptionsList();
@@ -295,7 +281,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private void buildImportedOptionsList() {
-    myImportedOptionsList.setItems(Arrays.asList(AndroidImportableProperty.values()), new Function<AndroidImportableProperty, String>() {
+    myImportedOptionsList.setItems(Arrays.asList(AndroidImportableProperty.values()), new Function<>() {
       @Override
       public String fun(AndroidImportableProperty property) {
         return property.getDisplayName();
@@ -315,18 +301,18 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private static String[] getDefaultApks(@NotNull Module module) {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     String path = AndroidCompileUtil.getOutputPackage(module);
     if (path != null) {
       result.add(path);
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   @Override
   @Nls
   public String getDisplayName() {
-    return "Android SDK Settings";
+    return AndroidBundle.message("configurable.AndroidFacetEditorTab.display.name");
   }
 
   @NotNull
@@ -433,7 +419,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @NotNull
   private String getSelectedCustomKeystorePath() {
     final String path = myCustomDebugKeystoreField.getText().trim();
-    return !path.isEmpty() ? VfsUtil.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
+    return !path.isEmpty() ? VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
   }
 
   private boolean checkRelativePath(String relativePathFromConfig, String absPathFromTextField) {
@@ -466,8 +452,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String absGenPathR = myRGenPathField.getText().trim();
     String absGenPathAidl = myAidlGenPathField.getText().trim();
 
-    boolean runIdl = false;
-
     if (absGenPathR == null || absGenPathR.isEmpty() || absGenPathAidl == null || absGenPathAidl.isEmpty()) {
       throw new ConfigurationException("Please specify source root for autogenerated files");
     }
@@ -477,9 +461,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
       String relativeGenPathAidl = getAndCheckRelativePath(absGenPathAidl, false);
       String newIdlDestDir = '/' + relativeGenPathAidl;
-      if (!newIdlDestDir.equals(myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_AIDL)) {
-        runIdl = true;
-      }
+      myContext.getFacet().putUserData(PREV_AIDL_GEN_OUTPUT_PATH, myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_AIDL);
       myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_AIDL = newIdlDestDir;
     }
 
@@ -561,27 +543,18 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String absProguardLogsPath = myProguardLogsDirectoryField.getText().trim();
     myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH =
       !absProguardLogsPath.isEmpty() ? '/' + getAndCheckRelativePath(absProguardLogsPath, false) : "";
-
-    if (runIdl) {
-      AndroidFacet facet = (AndroidFacet)myContext.getFacet();
-      ModuleSourceAutogenerating sourceAutoGenerator = ModuleSourceAutogenerating.getInstance(facet);
-
-      if (sourceAutoGenerator != null) {
-        sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AIDL);
-      }
-    }
   }
 
   private String getAndCheckRelativePath(String absPath, boolean checkExists) throws ConfigurationException {
     if (absPath.indexOf('/') < 0 && absPath.indexOf(File.separatorChar) < 0) {
-      throw new ConfigurationException(AndroidBundle.message("file.must.be.under.module.error", FileUtil.toSystemDependentName(absPath)));
+      throw new ConfigurationException(AndroidBundle.message("file.must.be.under.module.error", FileUtilRt.toSystemDependentName(absPath)));
     }
     String relativeGenPathR = toRelativePath(absPath);
     if (relativeGenPathR == null || relativeGenPathR.isEmpty()) {
-      throw new ConfigurationException(AndroidBundle.message("file.must.be.under.module.error", FileUtil.toSystemDependentName(absPath)));
+      throw new ConfigurationException(AndroidBundle.message("file.must.be.under.module.error", FileUtilRt.toSystemDependentName(absPath)));
     }
     if (checkExists && LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(absPath)) == null) {
-      throw new ConfigurationException(AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(absPath)));
+      throw new ConfigurationException(AndroidBundle.message("android.file.not.exist.error", FileUtilRt.toSystemDependentName(absPath)));
     }
     return relativeGenPathR;
   }
@@ -617,8 +590,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String libsAbsPath = !libsPath.isEmpty() ? toAbsolutePath(libsPath) : "";
     myNativeLibsFolder.setText(libsAbsPath != null ? libsAbsPath : "");
 
-    myCustomDebugKeystoreField.setText(FileUtil.toSystemDependentName(
-      VfsUtil.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
+    myCustomDebugKeystoreField.setText(
+      FileUtilRt.toSystemDependentName(VfsUtilCore.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
 
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);
@@ -682,7 +655,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
     if (moduleDirPath == null) return null;
-    final String path = PathUtil.getCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
+    final String path = FileUtil.toCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
     return path != null ? PathUtil.getLocalPath(path) : null;
   }
 
@@ -741,7 +714,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       descriptor.setRoots(contentRoots);
       VirtualFile file = FileChooser.chooseFile(descriptor, myContentPanel, myContext.getProject(), initialFile);
       if (file != null) {
-        myTextField.setText(FileUtil.toSystemDependentName(file.getPath()));
+        myTextField.setText(FileUtilRt.toSystemDependentName(file.getPath()));
       }
     }
   }
@@ -776,7 +749,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       VirtualFile[] files = chooserDirsUnderModule(initialFile, myChooseFile, false, myFilter);
       if (files.length > 0) {
         assert files.length == 1;
-        myTextField.setText(FileUtil.toSystemDependentName(files[0].getPath()));
+        myTextField.setText(FileUtilRt.toSystemDependentName(files[0].getPath()));
       }
     }
   }

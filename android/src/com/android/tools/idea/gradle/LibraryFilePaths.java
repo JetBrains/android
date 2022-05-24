@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle;
 
-import static com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER;
 import static com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsModelCollectorKt.idToString;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -24,20 +23,20 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LibraryFilePaths {
   // Key: libraryId, Value: ExtraArtifactsPaths for the library.
-  @NotNull private final Map<String, ArtifactPaths> myPathsMap = new HashMap<>();
+  @NotNull private final Map<String, ArtifactPaths> myPathsMap = new ConcurrentHashMap<>();
 
   // for 2019-05 gradle cache layout
   private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
@@ -68,7 +67,7 @@ public class LibraryFilePaths {
 
   @NotNull
   public static LibraryFilePaths getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, LibraryFilePaths.class);
+    return project.getService(LibraryFilePaths.class);
   }
 
   @Nullable

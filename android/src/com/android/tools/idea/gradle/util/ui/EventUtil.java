@@ -50,7 +50,7 @@ public class EventUtil {
     if (project != null) {
       VirtualFile file = VIRTUAL_FILE.getData(dataContext);
       if (file != null) {
-        ProjectFileIndex fileIndex = ProjectFileIndex.SERVICE.getInstance(project);
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
         module = fileIndex.getModuleForFile(file);
         if (isGradleModule(module)) {
           return module;

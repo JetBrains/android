@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -17,18 +18,16 @@ import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
-import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.refactoring.AndroidInlineLayoutProcessor");
@@ -78,7 +77,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     if (myUsageElement != null) {
       return new UsageInfo[] {new UsageInfo(myUsageElement)};
     }
-    final Set<UsageInfo> usages = new HashSet<UsageInfo>();
+    final Set<UsageInfo> usages = new HashSet<>();
     AndroidInlineUtil.addReferences(myLayoutFile, usages);
 
     for (PsiField field : IdeResourcesUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
@@ -89,7 +88,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
-    final List<LayoutUsageData> inlineInfos = new ArrayList<LayoutUsageData>();
+    final List<LayoutUsageData> inlineInfos = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();
@@ -149,9 +148,9 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   }
 
   private static MultiMap<PsiElement, String> detectConflicts(UsageInfo[] usages) {
-    final List<PsiElement> nonXmlUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unsupportedUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unambiguousUsages = new ArrayList<PsiElement>();
+    final List<PsiElement> nonXmlUsages = new ArrayList<>();
+    final List<PsiElement> unsupportedUsages = new ArrayList<>();
+    final List<PsiElement> unambiguousUsages = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();
@@ -175,7 +174,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
       }
     }
     return AndroidInlineUtil.buildConflicts(nonXmlUsages, unambiguousUsages, unsupportedUsages,
-                                            Collections.<PsiElement>emptyList());
+                                            Collections.emptyList());
   }
 
   @NotNull

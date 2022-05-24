@@ -61,6 +61,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -109,7 +110,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,12 +126,6 @@ public class AndroidJavaDocRenderer {
   public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type,
                               @NotNull String name, boolean framework) {
     return render(module, configuration, ResourceUrl.create(type, name, framework));
-  }
-
-  /** Renders the Javadoc for a resource of given type and name. */
-  @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
-    return render(module, null, url);
   }
 
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource. */
@@ -244,14 +238,10 @@ public class AndroidJavaDocRenderer {
     protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
-    protected ResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
       myConfiguration = configuration;
-    }
-    protected ResourceValueRenderer(Module module) {
-      this(module, null);
     }
 
     public void setSmall(boolean small) {
@@ -317,7 +307,7 @@ public class AndroidJavaDocRenderer {
 
       LocalResourceRepository resources = getAppResources();
 
-      List<AndroidFacet> dependencies =  AndroidUtils.getAllAndroidDependencies(myModule, true);
+      List<AndroidFacet> dependencies =  AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
       boolean hasGradleModel = false;
       int rank = 0;
 
@@ -326,7 +316,7 @@ public class AndroidJavaDocRenderer {
         AndroidModuleModel androidModel = AndroidModuleModel.get(reachableFacet);
         if (androidModel != null) {
           hasGradleModel = true;
-          String facetModuleName = reachableFacet.getModule().getName();
+          String facetModuleName = reachableFacet.getHolderModule().getName();
           assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
           IdeVariant selectedVariant = androidModel.getSelectedVariant();
@@ -468,7 +458,6 @@ public class AndroidJavaDocRenderer {
       if (items.size() == 1) {
         renderToHtml(builder, items.get(0), url, true, items.get(0).value);
       } else {
-        //noinspection SpellCheckingInspection
         builder.beginTable("valign=\"top\"");
 
         boolean haveFlavors = haveFlavors(items);
@@ -514,7 +503,6 @@ public class AndroidJavaDocRenderer {
                               @Nullable ItemInfo info,
                               @Nullable ResourceUrl url,
                               boolean showResolution) {
-      //noinspection SpellCheckingInspection
       builder.addHtml("<td valign=\"top\">");
       if (attribute != null) {
         builder.addHtml("<").addHtml(attribute).addHtml(">");

@@ -16,12 +16,21 @@
 
 package com.android.tools.idea.uibuilder.scout;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_PACKED;
+import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD;
+import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
+import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.VALUE_ZERO_DP;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
 
 
 /**
@@ -45,8 +54,8 @@ public class ConstraintSet {
    * @param parent     parent scout widget
    */
   public ConstraintSet(int[] cWidgets, ArrayList<ArrayList<ConstrainedWidget>> validConns, ScoutWidget parent) {
-    myWidgets = new ArrayList<ConstrainedWidget>();
-    myChainConnnections = new ArrayList<Connection>();
+    myWidgets = new ArrayList<>();
+    myChainConnnections = new ArrayList<>();
     myProbability = 0;
     myParentWidget = parent;
     for (int i = 0; i < validConns.size(); i++) {
@@ -151,8 +160,8 @@ public class ConstraintSet {
    */
   boolean hasCycles() {
     boolean hasCycles = false;
-    ArrayList<ConstrainedWidget> remaining = new ArrayList<ConstrainedWidget>(myWidgets);
-    Stack<ConstrainedWidget> visited = new Stack<ConstrainedWidget>();
+    ArrayList<ConstrainedWidget> remaining = new ArrayList<>(myWidgets);
+    Stack<ConstrainedWidget> visited = new Stack<>();
     while (remaining.size() != 0 && !hasCycles) {
       hasCycles |= searchCycles(remaining, visited, remaining.get(0), Direction.ORIENTATION_VERTICAL);
     }

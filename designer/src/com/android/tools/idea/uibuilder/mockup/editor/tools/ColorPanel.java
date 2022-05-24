@@ -20,13 +20,14 @@ import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.util.ListenerCollection;
 import com.intellij.ui.ColorPickerListener;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Locale;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.Nullable;
 
 
 @SuppressWarnings("UseJBColor")

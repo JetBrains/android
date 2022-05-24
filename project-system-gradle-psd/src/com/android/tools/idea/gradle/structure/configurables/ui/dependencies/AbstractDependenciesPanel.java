@@ -22,6 +22,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
@@ -39,6 +40,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.Header;
 import com.android.tools.idea.structure.dialog.TrackedConfigurableKt;
+import com.android.tools.idea.structure.dialog.VersionCatalogWarningHeader;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
@@ -48,13 +50,14 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
@@ -68,14 +71,17 @@ import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +94,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final List<DependencyDetails> myDependencyDetails = Lists.newArrayList();
+  @NotNull private final List<DependencyDetails> myDependencyDetails = new ArrayList<>();
 
   @Nullable private final PsModule myModule;
 
@@ -99,7 +105,8 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private AddJarDependencyAction myAddJarDependencyAction;
 
   protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsModule module) {
-    super(new BorderLayout());
+    super();
+    this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     myContext = context;
     myModule = module;
 
@@ -112,7 +119,13 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoScrollPane.setBorder(JBUI.Borders.empty());
 
     myHeader = new Header(title);
-    add(myHeader, BorderLayout.NORTH);
+    add(myHeader);
+
+    Project project = context.getProject().getIdeProject();
+    boolean projectUsesVersionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject();
+    if (projectUsesVersionCatalogs) {
+      add(new VersionCatalogWarningHeader());
+    }
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
@@ -134,7 +147,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
     myIssuesViewer = issuesViewer;
-    myIssuesViewer.setShowEmptyText(false);
     myInfoPanel.setIssuesViewer(myIssuesViewer);
   }
 
@@ -184,10 +196,12 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     DefaultActionGroup actions = new DefaultActionGroup();
 
-    AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
+    AnAction addDependencyAction =
+      new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.AbstractDependenciesPanel.text.add.dependency"), () -> "",
+                          IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {
+        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<>(null, getPopupActions()) {
           @Override
           public Icon getIconFor(AbstractPopupAction action) {
             return action.icon;
@@ -199,7 +213,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           }
 
           @Override
-          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep<?> onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 
@@ -223,6 +237,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     }
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
+    toolbar.setTargetComponent(null);
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     actionsPanel.add(toolbarComponent, BorderLayout.CENTER);
@@ -359,7 +374,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
     @NotNull private final String myTitle;
 
-    AbstractAddDependencyAction(@NotNull String title, @NotNull String text, @NotNull Icon icon, int index) {
+    AbstractAddDependencyAction(@NotNull @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
       super(text, icon, index);
       myTitle = title;
     }

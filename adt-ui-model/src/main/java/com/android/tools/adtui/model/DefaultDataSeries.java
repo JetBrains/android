@@ -18,11 +18,10 @@ package com.android.tools.adtui.model;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 
 public class DefaultDataSeries<E> implements DataSeries<E> {

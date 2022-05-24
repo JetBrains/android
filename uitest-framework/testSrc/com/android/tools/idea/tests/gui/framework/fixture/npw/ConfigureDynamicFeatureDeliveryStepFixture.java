@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind;
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind;
-import com.android.tools.idea.tests.gui.framework.fixture.LinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorTextFieldFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.LinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.ui.components.labels.LinkLabel;
@@ -82,7 +82,7 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
 
     // Find the panel containing the new "device feature" entry (it is the last panel added in the container)
     JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
-    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel component) {
         return component.getParent() == container;
@@ -101,7 +101,7 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   public ConfigureDynamicFeatureDeliveryStepFixture<W> removeConditionalDeliveryFeature(@NotNull DeviceFeatureKind featureKind, @NotNull String value) {
     // Find the panel containing the "device feature" entry matching feature kind and value
     JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
-    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel component) {
         return component.getParent() == container;

@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.LazyDataSeries
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent.Data
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent.Padding
 import org.jetbrains.annotations.VisibleForTesting
@@ -31,20 +33,32 @@ import java.util.concurrent.TimeUnit
  */
 class AndroidFrameEventTrackModel
 @VisibleForTesting
-constructor(phaseName: String, eventSeries: List<RangedSeries<AndroidFrameEvent>>, val vsyncSeries: RangedSeries<Long>)
+constructor(phaseName: String,
+            val viewRange: Range,
+            eventSeries: List<RangedSeries<AndroidFrameEvent>>,
+            val vsyncSeries: RangedSeries<Long>,
+            val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+            val timelineEventByFrameNumber: Map<Long, AndroidFrameTimelineEvent>)
           : StateChartModel<AndroidFrameEvent>() {
 
+  @JvmOverloads
   constructor(phase: TraceProcessor.AndroidFrameEventsResult.Phase,
               viewRange: Range,
-              vsyncSeries: List<SeriesData<Long>>)
+              vsyncSeries: List<SeriesData<Long>>,
+              multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+              keepEvent: (TraceProcessor.AndroidFrameEventsResult.FrameEvent) -> Boolean = { true },
+              timelineEventByFrameNumber: Map<Long, AndroidFrameTimelineEvent> = mapOf())
     : this(phase.phaseName,
+           viewRange,
            phase.frameEventList.groupBy { it.depth }
              .toSortedMap(compareByDescending { it }) // Display lower depth on top.
              .values
-             .map { it.padded() }
+             .map { it.filter(keepEvent).padded() }
              .filterNot { it.isEmpty() }
              .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) },
-           RangedSeries(viewRange, LazyDataSeries { vsyncSeries }))
+           RangedSeries(viewRange, LazyDataSeries { vsyncSeries }),
+           multiSelectionModel,
+           timelineEventByFrameNumber)
 
   val androidFramePhase = AndroidFramePhase.valueOf(phaseName)
   var activeSeriesIndex = -1

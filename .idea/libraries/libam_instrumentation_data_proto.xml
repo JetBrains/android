@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="libam-instrumentation-data-proto">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/ddmlib/libam-instrumentation-data-proto.jar!/" />
+      <root url="jar://$WORKSPACE_ROOT$/bazel-bin/tools/base/ddmlib/libam-instrumentation-data-proto.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

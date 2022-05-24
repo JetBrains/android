@@ -10,8 +10,9 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -25,6 +26,7 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.collect.ImmutableList;
@@ -56,6 +58,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -79,8 +83,6 @@ import org.xmlpull.v1.XmlPullParserException;
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
   implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
-  private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
-
   /**
    * Element name used to group the {@link ProfilerState} settings
    */
@@ -88,8 +90,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
-  public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
-  public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
   public boolean INSPECTION_WITHOUT_ACTIVITY_RESTART = false; // set global attributes at launch time
 
   private final ProfilerState myProfilerState;
@@ -142,11 +142,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (module == null) {
       // Can't proceed, and fatal error has been caught in ConfigurationModule#checkForWarnings
       return errors;
-    }
-
-    Project project = module.getProject();
-    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      errors.add(ValidationError.fatal(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -241,10 +236,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected LaunchOptions.Builder getLaunchOptions() {
     return LaunchOptions.builder()
-      .setClearLogcatBeforeStart(CLEAR_LOGCAT)
-      .setSkipNoopApkInstallations(SKIP_NOOP_APK_INSTALLATIONS)
-      .setForceStopRunningApp(FORCE_STOP_RUNNING_APP)
-      .setInspectionWithoutActivityRestart(INSPECTION_WITHOUT_ACTIVITY_RESTART);
+      .setClearLogcatBeforeStart(CLEAR_LOGCAT);
   }
 
   @Override
@@ -285,6 +277,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull RunStats stats) throws ExecutionException {
     validateBeforeRun(executor);
+
+    if (StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get()
+        && !isTestConfiguration()
+        && env.getUserData(SwapInfo.SWAP_INFO_KEY) == null
+        && AndroidConfigurationExecutionSettings.getInstance().getState().getEnableNewConfigurationFlow()
+    ) {
+      // TODO: implement new flow
+    }
 
     Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
@@ -350,7 +350,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
-    LaunchTasksProvider launchTasksProvider = createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
+    LaunchTasksProvider launchTasksProvider =
+      createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
     return new AndroidRunState(env, getName(), module, applicationIdProvider,
                                getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
@@ -359,12 +360,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /**
    * Subclasses should override to adjust the LaunchTaskProvider
    */
-  protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
-                                                       @NotNull AndroidFacet facet,
-                                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                                       @NotNull ApkProvider apkProvider,
-                                                       @NotNull LaunchOptions launchOptions) {
-    return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
+  private LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
+                                                        @NotNull AndroidFacet facet,
+                                                        @NotNull ApplicationIdProvider applicationIdProvider,
+                                                        @NotNull ApkProvider apkProvider,
+                                                        @NotNull LaunchOptions launchOptions) {
+    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
+      .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
+      .filter(Objects::nonNull)
+      .findFirst();
+    return provided.orElseGet(() -> new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions));
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -392,7 +397,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     Project project = getProject();
 
     return currentTargetProvider.requiresRuntimePrompt(project) ?
-        currentTargetProvider.showPrompt(facet) : currentTargetProvider.getDeployTarget(project);
+           currentTargetProvider.showPrompt(facet) : currentTargetProvider.getDeployTarget(project);
   }
 
   @Nullable
@@ -400,12 +405,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
   }
 
-  protected int getNumberOfSelectedDevices(@NotNull AndroidFacet facet) {
-    return getDeployTarget(facet).getDevices(facet).getDevices().size();
-  }
-
   @Nullable
-  protected ApkProvider getApkProvider() {
+  public final ApkProvider getApkProvider() {
     return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
   }
 

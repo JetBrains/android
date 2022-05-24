@@ -33,8 +33,6 @@ import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
 /**
  * Information on a system image. Used internally by the avd manager.
  */
@@ -239,6 +237,12 @@ public final class SystemImageDescription {
         return true;
       }
       return false;
+    }
+
+    @NotNull
+    @Override
+    public RepoPackage getPackage() {
+      return myRemotePackage;
     }
 
     @Override

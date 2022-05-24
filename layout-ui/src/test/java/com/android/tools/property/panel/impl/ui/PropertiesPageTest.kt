@@ -38,8 +38,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 import javax.swing.JLabel
 
@@ -58,7 +58,7 @@ class PropertiesPageTest {
     val controlTypeProvider = mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
     val editorProvider = mock(EditorProvider::class.java) as EditorProvider<PropertyItem>
     disposable = Disposer.newDisposable()
-    tableUI = TableUIProvider.create(PropertyItem::class.java, controlTypeProvider, editorProvider)
+    tableUI = TableUIProvider(controlTypeProvider, editorProvider)
     tableModel = mock(PTableModel::class.java)
     page = PropertiesPage(disposable!!)
     page!!.clear()

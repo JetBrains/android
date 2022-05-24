@@ -16,8 +16,8 @@
 package com.android.tools.idea.imports
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Disposer
@@ -58,7 +58,7 @@ class MavenClassRegistryManager : Disposable {
 
   companion object {
     @JvmStatic
-    fun getInstance(): MavenClassRegistryManager = ServiceManager.getService(MavenClassRegistryManager::class.java)
+    fun getInstance(): MavenClassRegistryManager = ApplicationManager.getApplication().getService(MavenClassRegistryManager::class.java)
   }
 }
 

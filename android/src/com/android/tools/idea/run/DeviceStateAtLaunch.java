@@ -17,10 +17,9 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /** A simple container that maintains the state of devices at the time of a particular launch. */
 public class DeviceStateAtLaunch {

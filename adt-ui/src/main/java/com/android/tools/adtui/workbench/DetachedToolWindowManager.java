@@ -18,7 +18,6 @@ package com.android.tools.adtui.workbench;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -46,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
  * active {@link WorkBench}.
  */
 public class DetachedToolWindowManager implements Disposable {
-  private final Application myApplication;
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
@@ -60,9 +58,8 @@ public class DetachedToolWindowManager implements Disposable {
   }
 
   @VisibleForTesting
-  DetachedToolWindowManager(@NotNull Project currentProject) {
-    myApplication = ApplicationManager.getApplication();
-    myProject = currentProject;
+  DetachedToolWindowManager(@NotNull Project project) {
+    myProject = project;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
@@ -162,7 +159,7 @@ public class DetachedToolWindowManager implements Disposable {
   }
 
   public void restoreDefaultLayout() {
-    myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+    ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
   }
 
   @NotNull
@@ -178,12 +175,12 @@ public class DetachedToolWindowManager implements Disposable {
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override

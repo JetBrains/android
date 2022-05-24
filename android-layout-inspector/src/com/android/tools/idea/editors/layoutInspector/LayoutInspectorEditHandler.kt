@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector
 
 import com.android.layoutinspector.model.ViewProperty
-import java.util.*
+import java.util.Arrays
 
 class LayoutInspectorEditHandler : EditHandler {
   companion object {

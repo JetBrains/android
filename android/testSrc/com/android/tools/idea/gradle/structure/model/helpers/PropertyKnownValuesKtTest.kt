@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.repositories.search.combine
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.equalTo
@@ -50,8 +50,7 @@ class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
                equalTo(listOf(ValueDescriptor("bar"), ValueDescriptor("otherBar"))))
   }
 
-  @Test
-  fun toVersionValueDescriptors() {
+  fun testToVersionValueDescriptors() {
     val searchResults =
       listOf(
         SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1"))))),
@@ -63,5 +62,20 @@ class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
       searchResults.toVersionValueDescriptors(),
       IsEqual.equalTo(
         listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"), ValueDescriptor("0.9"))))
+  }
+
+  @Test
+  fun testToVersionValueDescriptorsWithMinimum() {
+    val searchResults =
+      listOf(
+        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1"))))),
+        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("0.9"))))),
+        SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
+      ).combine()
+
+    assertThat(
+      searchResults.toVersionValueDescriptors { it >= GradleVersion(1, 0) },
+      IsEqual.equalTo(
+        listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"))))
   }
 }

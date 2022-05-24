@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2011 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -200,7 +186,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    FutureCallback<DeviceNameProperties> callback = new FutureCallback<DeviceNameProperties>() {
+    FutureCallback<DeviceNameProperties> callback = new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable DeviceNameProperties properties) {
         updateTree();
@@ -220,7 +206,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         if (isOKActionEnabled()) {
           doOKAction();
           return true;
@@ -383,7 +369,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     }
 
-    ArrayList<AndroidDebugger> androidDebuggers = Lists.newArrayList();
+    ArrayList<AndroidDebugger> androidDebuggers = new ArrayList<>();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;
@@ -498,7 +484,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
 
       List<Client> clients = Lists.newArrayList(device.getClients());
-      Collections.sort(clients, (c1, c2) -> {
+      clients.sort((c1, c2) -> {
         String n1 = StringUtil.notNullize(c1.getClientData().getClientDescription());
         String n2 = StringUtil.notNullize(c2.getClientData().getClientDescription());
         return n1.compareTo(n2);
@@ -568,7 +554,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @NotNull
   private static Set<String> collectAllProcessNames(Project project) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
 
     for (AndroidFacet facet : facets) {
       final String packageName = AndroidCompileUtil.getAaptManifestPackage(facet);

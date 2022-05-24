@@ -16,12 +16,11 @@
 package com.android.tools.idea.profiling.capture;
 
 import com.google.common.io.Files;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An opaque handle that holds references to the resources needed to work with the backing file.

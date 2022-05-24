@@ -15,7 +15,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -66,7 +65,10 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   public static class ModuleRootListenerImpl implements ModuleRootListener {
     @Override
     public void rootsChanged(@NotNull final ModuleRootEvent event) {
-      ServiceManager.getService(event.getProject(), AndroidPropertyFilesUpdater.class).onRootsChanged();
+      Project project = event.getProject();
+      if (!project.isDefault()) {
+        project.getService(AndroidPropertyFilesUpdater.class).onRootsChanged();
+      }
     }
   }
 
@@ -136,7 +138,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
 
     if (!changes.isEmpty() || !toAskChanges.isEmpty()) {
       if (!toAskChanges.isEmpty()) {
-        askUserIfUpdatePropertyFile(myProject, toAskFacets, new Processor<MyResult>() {
+        askUserIfUpdatePropertyFile(myProject, toAskFacets, new Processor<>() {
           @Override
           public boolean process(MyResult result) {
             if (result == MyResult.NEVER) {
@@ -432,7 +434,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),
       AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
+      NotificationType.INFORMATION).setListener(new NotificationListener.Adapter() {
       @Override
       protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
         final String desc = event.getDescription();

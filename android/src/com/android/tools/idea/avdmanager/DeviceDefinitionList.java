@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -31,7 +30,7 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -48,6 +47,7 @@ import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,8 +88,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String WEAR = "Wear OS";
   private static final String AUTOMOTIVE = "Automotive";
 
-  private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
-  private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
+  private Map<String, List<Device>> myDeviceCategoryMap = new HashMap<>();
+  private static final Map<String, Device> myDefaultCategoryDeviceMap = new HashMap<>();
 
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
   private final ListTableModel<Device> myModel = new ListTableModel<>();
@@ -101,8 +101,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private JButton myRefreshButton;
   private JPanel myPanel;
   private SearchTextField mySearchTextField;
-  private List<DeviceDefinitionSelectionListener> myListeners = Lists.newArrayList();
-  private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
+  private List<DeviceDefinitionSelectionListener> myListeners = new ArrayList<>();
+  private List<DeviceCategorySelectionListener> myCategoryListeners = new ArrayList<>();
   private List<Device> myDevices;
   private Device myDefaultDevice;
 
@@ -406,6 +406,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
+      if (d.getIsDeprecated()) {
+        continue;
+      }
       String category = getCategory(d);
       if (!myDeviceCategoryMap.containsKey(category)) {
         myDeviceCategoryMap.put(category, new ArrayList<>(1));
@@ -413,7 +416,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myDeviceCategoryMap.get(category).add(d);
     }
     Set<String> categories = myDeviceCategoryMap.keySet();
-    String[] categoryArray = ArrayUtil.toStringArray(categories);
+    String[] categoryArray = ArrayUtilRt.toStringArray(categories);
     myCategoryModel.setItems(Lists.newArrayList(categoryArray));
   }
 

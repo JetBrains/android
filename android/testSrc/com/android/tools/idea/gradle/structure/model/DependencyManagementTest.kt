@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.android.findModuleDependency
 import com.android.tools.idea.gradle.structure.model.android.findVariant
-import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue

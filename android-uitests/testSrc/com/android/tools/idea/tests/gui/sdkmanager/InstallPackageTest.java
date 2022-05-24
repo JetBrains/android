@@ -128,7 +128,7 @@ public class InstallPackageTest {
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.invokeSdkManager();
     findAndClickLabel(ideSettingsDialogFixture, INSTALL_PACKAGE_TAB);
 
-    GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(), new GenericTypeMatcher<TreeTableView>(TreeTableView.class) {
+    GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(), new GenericTypeMatcher<>(TreeTableView.class) {
       @Override
       protected boolean isMatching(TreeTableView ttv) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)ttv.getTableModel().getRoot();
@@ -139,7 +139,8 @@ public class InstallPackageTest {
               method("cycleState").in(object).invoke();
               return true;
             }
-          } catch (ReflectionError ignored) {
+          }
+          catch (ReflectionError ignored) {
             //ignored. Continue iterating through the loop
           }
         }

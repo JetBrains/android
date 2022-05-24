@@ -93,7 +93,7 @@ public class QuickFixForJniTest {
       .invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
 
     JBList quickFixPopup = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
-                                                               null, new GenericTypeMatcher<JBList>(JBList.class) {
+                                                               null, new GenericTypeMatcher<>(JBList.class) {
         @Override
         protected boolean isMatching(@NotNull JBList list) {
           return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
@@ -104,7 +104,7 @@ public class QuickFixForJniTest {
 
     // Create fixture for the second popup
     JBList nativeSourcePopup = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
-                                                                   null, new GenericTypeMatcher<JBList>(JBList.class) {
+                                                                   null, new GenericTypeMatcher<>(JBList.class) {
         @Override
         protected boolean isMatching(@NotNull JBList list) {
           return list.getClass().getName().equals(JBList.class.getName());

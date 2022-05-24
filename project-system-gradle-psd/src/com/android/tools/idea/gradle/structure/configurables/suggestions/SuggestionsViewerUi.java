@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.VerticalLayout;
-
-import javax.swing.*;
+import javax.swing.JPanel;
 
 public abstract class SuggestionsViewerUi {
   protected JBLabel myEmptyIssuesLabel;

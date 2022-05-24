@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.settings;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
@@ -28,6 +33,8 @@ import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +54,26 @@ public class PluginsBlockModelImpl extends GradleDslBlockModel implements Plugin
   }
 
   @Override
+  public @NotNull List<PluginModel> appliedPlugins() {
+    Predicate<PluginModel> appliedPredicate = (plugin) -> {
+      ResolvedPropertyModel apply = plugin.apply();
+      ValueType valueType = apply.getValueType();
+      if (valueType == NONE) {
+        // pluginManagement.plugins defaults to `apply false`
+        return false;
+      }
+      else if (valueType == BOOLEAN) {
+        return apply.getValue(BOOLEAN_TYPE);
+      }
+      else {
+        // not understood: default to not applied.
+        return false;
+      }
+    };
+    return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
+  }
+
+  @Override
   public @NotNull PluginModel applyPlugin(@NotNull String plugin) {
     Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(myDslElement));
     if (models.containsKey(plugin)) {
@@ -56,19 +83,19 @@ public class PluginsBlockModelImpl extends GradleDslBlockModel implements Plugin
     literal.setElementType(REGULAR);
     literal.setValue(plugin.trim());
     myDslElement.setNewElement(literal);
-    return new PluginModelImpl(literal, literal);
+    return new PluginModelImpl(literal);
   }
 
   @Override
   public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply) {
     GradleDslInfixExpression expression = new GradleDslInfixExpression(myDslElement, null);
-    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin.trim());
+    expression.setNewLiteral(ID, plugin.trim());
     expression.setNewLiteral(VERSION, version);
     if (apply != null) {
       expression.setNewLiteral(APPLY, apply);
     }
     myDslElement.setNewElement(expression);
-    return new PluginModelImpl(expression, idLiteral);
+    return new PluginModelImpl(expression);
   }
 
   @Override

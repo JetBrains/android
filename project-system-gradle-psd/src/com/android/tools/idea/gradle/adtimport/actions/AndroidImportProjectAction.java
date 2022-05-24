@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.adtimport.actions;
 
-import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.adtimport.AdtModuleImporter.isAdtProjectLocation;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.adtimport.AdtImportProvider;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
-import com.google.common.collect.Lists;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -58,7 +58,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import org.jdom.Element;
@@ -101,7 +101,7 @@ public class AndroidImportProjectAction extends AnAction {
           if (!wizard.showAndGet()) {
             return;
           }
-          createFromWizard(wizard, null);
+          createFromWizard(wizard);
         }
       }
     }
@@ -131,7 +131,6 @@ public class AndroidImportProjectAction extends AnAction {
     };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
-    //noinspection DialogTitleCapitalization
     descriptor.setDescription(WIZARD_DESCRIPTION);
     return descriptor;
   }
@@ -163,7 +162,7 @@ public class AndroidImportProjectAction extends AnAction {
 
   private static boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
     ProjectImportPathValidator validator = new ProjectImportPathValidator("project file");
-    Validator.Result result = validator.validate(virtualToIoFile(file));
+    Validator.Result result = validator.validate(file.toNioPath());
     if (result.getSeverity() != Validator.Severity.OK) {
       boolean isError = result.getSeverity() == Validator.Severity.ERROR;
       Messages.showInfoMessage(project, result.getMessage(), isError ? "Cannot Import Project" : "Project Import Warning");
@@ -175,7 +174,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
+  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) {
     VirtualFile target = findImportTarget(file);
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = virtualToIoFile(targetDir);
@@ -224,7 +223,7 @@ public class AndroidImportProjectAction extends AnAction {
   @NotNull
   private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file) {
     VirtualFile target = findImportTarget(file);
-    List<ProjectImportProvider> available = Lists.newArrayList();
+    List<ProjectImportProvider> available = new ArrayList<>();
     for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
       if (provider.canImport(target, null)) {
         available.add(provider);
@@ -262,7 +261,7 @@ public class AndroidImportProjectAction extends AnAction {
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-      Project project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
+      Project project = projectManager.newProject(projectDirPath.toPath(), OpenProjectTask.build().asNewProject().withProjectName(wizard.getProjectName()));
       if (project == null) {
         return;
       }

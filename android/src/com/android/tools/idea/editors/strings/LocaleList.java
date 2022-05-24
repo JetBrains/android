@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.Function;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 final class LocaleList extends JBList<Locale> {
   LocaleList(@NotNull Collection<Locale> locales) {
@@ -31,11 +28,11 @@ final class LocaleList extends JBList<Locale> {
 
     setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       label.setIcon(value.getFlagImage());
-      label.setText(LocaleMenuAction.getLocaleLabel(value, false));
+      label.setText(Locale.getLocaleLabel(value, false));
     }));
     setFixedCellHeight(20);
     setName("localeList");
 
-    new ListSpeedSearch(this, (Function<Object, String>)object -> LocaleMenuAction.getLocaleLabel((Locale)object, false));
+    new ListSpeedSearch<>(this, object -> Locale.getLocaleLabel(object, false));
   }
 }

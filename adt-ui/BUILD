@@ -32,6 +32,7 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 

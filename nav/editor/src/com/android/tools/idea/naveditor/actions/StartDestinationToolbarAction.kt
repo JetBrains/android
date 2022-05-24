@@ -26,7 +26,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
-import icons.StudioIcons
 
 class StartDestinationToolbarAction private constructor(): AnAction() {
 

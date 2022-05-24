@@ -16,19 +16,22 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.repository.api.RepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.RootProvider
+import com.intellij.testFramework.replaceService
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.io.File
 
 class SdkSyncUtilTest : AndroidGradleTestCase() {
@@ -51,7 +54,7 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
   @Test
   fun testComputeSdkRepoReloads() {
     val repoManager = mock(RepoManager::class.java)
-    val sdkHandler = AndroidSdkHandler(null, null, MockFileOp(), repoManager)
+    val sdkHandler = AndroidSdkHandler(null, null, repoManager)
     `when`(androidSdks.findSuitableAndroidSdk(eq("WantedCompileTarget"))).thenReturn(null)
     `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     `when`(androidSdks.tryToCreate(any(), any())).thenAnswer {
@@ -67,6 +70,37 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
       ideSdks
     ))
 
+    verify(repoManager).reloadLocalIfNeeded(any())
+  }
+
+  @Test
+  fun testComputeSdkRepoReloadsNoRoots() {
+    val compileTarget = "WantedCompileTarget"
+    val repoManager = mock(RepoManager::class.java)
+    val sdkHandler = AndroidSdkHandler(null, null, repoManager)
+    `when`(androidSdks.findSuitableAndroidSdk(eq(compileTarget))).thenReturn(sdk)
+    val rootProvider = mock(RootProvider::class.java)
+    `when`(rootProvider.getFiles(any())).thenReturn(arrayOf())
+    `when`(sdk.rootProvider).thenReturn(rootProvider)
+    `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
+    `when`(androidSdks.tryToCreate(any(), any())).thenAnswer {
+      ApplicationManager.getApplication().assertWriteAccessAllowed()
+      sdk
+    }
+
+    val mockTable = spy(ProjectJdkTable.getInstance())
+    Mockito.doNothing().`when`(mockTable).removeJdk(any())
+    ApplicationManager.getApplication().replaceService(ProjectJdkTable::class.java, mockTable, project)
+
+    assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(
+      project,
+      "ModuleName",
+      compileTarget,
+      listOf(),
+      ideSdks
+    ))
+
+    verify(mockTable).removeJdk(eq(sdk))
     verify(repoManager).reloadLocalIfNeeded(any())
   }
 }

@@ -60,12 +60,12 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 
 class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
@@ -97,7 +97,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     val ideComponents = IdeComponents(project, testRootDisposable)
     propertiesService = ideComponents.mockProjectService(PropertiesComponent::class.java)
-    `when`(propertiesService.getValues("com.android.tools.idea.sqlite.queryhistory")).thenReturn(listOf("fake query").toTypedArray())
+    `when`(propertiesService.getList("com.android.tools.idea.sqlite.queryhistory")).thenReturn(listOf("fake query"))
 
     successfulInvocationNotificationInvocations = mutableListOf()
 
@@ -203,7 +203,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     verify(mockDatabaseConnection).query(sqlStatement)
     verify(sqliteEvaluatorView).showTableView()
     verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT", "fake query"))
-    verify(propertiesService).setValues("com.android.tools.idea.sqlite.queryhistory", listOf("SELECT", "fake query").toTypedArray())
+    verify(propertiesService).setList("com.android.tools.idea.sqlite.queryhistory", listOf("SELECT", "fake query"))
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 

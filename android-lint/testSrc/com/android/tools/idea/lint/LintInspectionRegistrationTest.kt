@@ -19,8 +19,8 @@ import com.android.SdkConstants.DOT_JAVA
 import com.android.SdkConstants.DOT_KT
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
-import com.android.tools.idea.lint.common.LintIdeIssueRegistry
 import com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES
+import com.android.tools.idea.lint.common.LintIdeIssueRegistry
 import com.android.tools.lint.checks.CheckResultDetector
 import com.android.tools.lint.checks.PermissionDetector
 import com.android.tools.lint.checks.ViewTypeDetector
@@ -40,9 +40,7 @@ import org.jetbrains.android.AndroidTestCase
 import java.io.File
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.lang.reflect.Modifier
-import java.util.ArrayList
 import java.util.Calendar
-import java.util.Comparator
 import java.util.Locale
 import kotlin.text.Charsets.UTF_8
 
@@ -292,7 +290,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
           "INFO"
         desc.append(severityString)
         val packagePrefix = if (androidSpecific)
-          "com.android.tools.idea.lint.inspections"
+          "com.android.tools.idea.lint.inspections."
         else
           "com.android.tools.idea.lint.common."
         desc.append("\" implementationClass=\"")

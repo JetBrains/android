@@ -23,8 +23,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.Pair;
@@ -475,7 +476,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public PsiElement[] create(String newName) throws Exception {
+    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
       PsiDirectory subdirectory = myDirectory.findSubdirectory(newName);
       if (subdirectory == null) {
         subdirectory = myDirectory.createSubdirectory(newName);
@@ -484,7 +485,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public String getActionName(String newName) {
+    public @NotNull String getActionName(@NotNull String newName) {
       return "Select Resource Directory";
     }
 
@@ -512,10 +513,11 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     return new OverrideElementFix(folder);
   }
 
-  private static class OverrideElementFix implements LintIdeQuickFix {
+  private static class OverrideElementFix extends DefaultLintQuickFix {
     private final String myFolder;
 
     private OverrideElementFix(@Nullable String folder) {
+      super(getActionName(folder));
       myFolder = folder;
     }
 
@@ -552,12 +554,6 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                 @NotNull PsiElement endElement,
                                 @NotNull AndroidQuickfixContexts.ContextType contextType) {
       return true;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return getActionName(myFolder);
     }
   }
 }

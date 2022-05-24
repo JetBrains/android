@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.skia
 
-import com.android.repository.testframework.MockFileOp
+import com.android.testutils.file.recordExistingFile
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
 
 class SkiaParserServerConnectionFactoryTest {
   val projectRule = AndroidProjectRule.inMemory()
-  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1")
+  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1", "skiaparser/1")
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
@@ -34,8 +33,7 @@ class SkiaParserServerConnectionFactoryTest {
   // TODO: test with downloading (currently no way to mock out installation)
   @Test
   fun testFindServerInfoForSkpVersion() {
-    val fileOp = fakeSdkRule.fileOp as MockFileOp
-    fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/1/version-map.xml").path, """
+    fakeSdkRule.sdkPath.resolve("skiaparser/1/version-map.xml").recordExistingFile("""
       <?xml version="1.0" encoding="utf-8"?>
       <versionMapping>
         <server version="1" skpStart="1" skpEnd="10"/>
@@ -47,8 +45,8 @@ class SkiaParserServerConnectionFactoryTest {
     assertThat(SkiaParserServerConnectionFactoryImpl.findServerInfoForSkpVersion(13)!!.serverVersion).isEqualTo(2)
     assertThat(SkiaParserServerConnectionFactoryImpl.findServerInfoForSkpVersion(25)).isNull()
 
-    fakeSdkRule.addLocalPackage("skiaparser;2")
-    fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/2/version-map.xml").path, """
+    fakeSdkRule.addLocalPackage("skiaparser;2", "skiaparser/2")
+    fakeSdkRule.sdkPath.resolve("skiaparser/2/version-map.xml").recordExistingFile("""
       <?xml version="1.0" encoding="utf-8"?>
       <versionMapping>
         <server version="1" skpStart="1" skpEnd="10"/>

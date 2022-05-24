@@ -21,7 +21,8 @@ import java.awt.geom.RoundRectangle2D
  * Represents a round rectangle in swing space
  * Defined by [SwingX], [SwingY], and length and width of [SwingLength]
  */
-inline class SwingRoundRectangle(override val value: RoundRectangle2D.Float) : SwingShape {
+@JvmInline
+value class SwingRoundRectangle(override val value: RoundRectangle2D.Float) : SwingShape {
   constructor(rectangle: SwingRectangle, arcwidth: SwingLength, archeight: SwingLength)
     : this(RoundRectangle2D.Float(
     rectangle.x.value, rectangle.y.value, rectangle.width.value, rectangle.height.value, arcwidth.value, archeight.value))

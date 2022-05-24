@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ALPHA
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 

@@ -16,11 +16,10 @@
 package com.android.tools.idea.editors.strings;
 
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Comparator;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class StringResourceKey implements Comparable<StringResourceKey> {
   private static final Comparator<StringResourceKey> COMPARATOR = Comparator.comparing(StringResourceKey::getName)

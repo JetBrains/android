@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
@@ -63,7 +64,6 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.idea.util.module
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -73,6 +73,7 @@ import java.awt.event.AdjustmentEvent
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.OverlayLayout
 
 private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
@@ -119,6 +120,11 @@ interface ComposePreviewView {
   var hasContent: Boolean
 
   /**
+   * True if the view is displaying an overlay with a message.
+   */
+  val isMessageBeingDisplayed: Boolean
+
+  /**
    * If true, the contents have been at least rendered once.
    */
   var hasRendered: Boolean
@@ -134,11 +140,6 @@ interface ComposePreviewView {
    * Calling this method will also update the FileEditor notifications.
    */
   fun updateVisibilityAndNotifications()
-
-  /**
-   * Hides the content if visible and displays the given [message] and the optional [actionData].
-   */
-  fun showModalErrorMessage(message: String, actionData: ActionData? = null)
 
   /**
    * If the content is not already visible it shows the given message.
@@ -158,8 +159,8 @@ fun interface ComposePreviewViewProvider {
              navigationHandler: PreviewNavigationHandler,
              dataProvider: DataProvider,
              parentDisposable: Disposable,
-             onPinFileAction: AnAction?,
-             onUnPinAction: AnAction?): ComposePreviewView
+             onPinFileAction: AnAction,
+             onUnPinAction: AnAction): ComposePreviewView
 }
 
 /**
@@ -178,7 +179,7 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
+private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
   private val button = ActionButtonWithText(pinAction,
                                             PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
                                             "PinnedToolbar",
@@ -240,9 +241,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       navigationHandler: PreviewNavigationHandler,
                                       dataProvider: DataProvider,
                                       parentDisposable: Disposable,
-                                      onPinFileAction: AnAction?,
-                                      onUnPinAction: AnAction?) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView, Pannable {
+                                      onPinFileAction: AnAction,
+                                      onUnPinAction: AnAction) :
+  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0), ComposePreviewView, Pannable {
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -318,7 +319,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
-    set(value) { scrollPane.viewport.viewPosition = value }
+    set(value) {
+      val extentSize = scrollPane.viewport.extentSize
+      val viewSize = scrollPane.viewport.viewSize
+      val maxAvailableWidth = viewSize.width - extentSize.width
+      val maxAvailableHeight = viewSize.height - extentSize.height
+
+      value.setLocation(value.x.coerceIn(0, maxAvailableWidth), value.y.coerceIn(0, maxAvailableHeight))
+      scrollPane.viewport.viewPosition = value
+    }
 
   /**
    * True if the pinned surface is visible in the preview.
@@ -388,6 +397,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
                     else -> message("panel.initializing")
                   })
     }
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    isFocusCycleRoot = true
   }
 
   override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
@@ -419,7 +430,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
   }
 
-  override fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
+  private fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
     log.debug("showModelErrorMessage: $message")
     loadingStopped(message, actionData)
   }
@@ -470,7 +481,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
             // We zoom to fit to have better initial zoom level when first build is completed.
             // We invoke later to allow the panel to layout itself before calling zoomToFit.
             ApplicationManager.getApplication().invokeLater {
-              pinnedSurface.zoomToFit()
+              if (isPinnedSurfaceVisible) pinnedSurface.zoomToFit()
               mainSurface.zoomToFit()
             }
           }
@@ -522,7 +533,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override var isAnimationPreview: Boolean = false
 
-  override var hasContent: Boolean = true
+  override var hasContent: Boolean = false
+
+  override val isMessageBeingDisplayed: Boolean
+    get() = this.isMessageVisible
 
   @get:Synchronized
   override var hasRendered: Boolean = false

@@ -15,20 +15,33 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.instructions.*;
-import com.intellij.icons.AllIcons;
-import com.intellij.ui.JBColor;
-import icons.StudioIllustrations;
-import com.intellij.util.ui.UIUtilities;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
+
+import com.android.tools.adtui.instructions.HyperlinkInstruction;
+import com.android.tools.adtui.instructions.IconInstruction;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.RenderInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtilities;
+import icons.StudioIllustrations;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * View shown if no processes are selected

@@ -26,12 +26,14 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.IconLoader
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
@@ -73,7 +75,15 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
     get() = WorkBenchFixture.findShowing(target(), robot)
 
   fun waitForRenderToFinish(wait: Wait = Wait.seconds(20)): SplitEditorFixture {
-    wait.expecting("WorkBench to show content").until { workbenchPanel.isShowingContent() }
+    wait.expecting("WorkBench to show content").until {
+      try {
+        workbenchPanel.isShowingContent()
+      }
+      catch (e: ComponentLookupException) {
+        Logger.getInstance(SplitEditorFixture::class.java).info("Failed to get workbenchPanel, will retry until success or timeout", e)
+        return@until false
+      }
+    }
     // Fade out of the loading panel takes 500ms
     Pause.pause(1000)
     wait.expecting("Surface to be ready").until { hasDesignSurface }

@@ -393,6 +393,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     List<PluginModel> plugins = pluginsModel.plugins();
     assertSize(2, plugins);
+    assertEmpty(pluginsModel.appliedPlugins());
     assertEquals("com.android.application", plugins.get(0).name().forceString());
     assertEquals("4.2.0", plugins.get(0).version().forceString());
     assertMissingProperty(plugins.get(0).apply());
@@ -425,6 +426,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     repositoriesModel.addGoogleMavenRepository();
     pluginsModel.applyPlugin("com.android.application", "7.0.0", false);
+    assertEmpty(pluginsModel.appliedPlugins());
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED);
   }
@@ -439,6 +441,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     pluginsModel.removePlugin("com.android.application");
     pluginsModel.applyPlugin("com.android.library", "7.0.0");
+    assertEmpty(pluginsModel.appliedPlugins());
     repositoriesModel.removeRepository(repositoriesModel.repositories().get(0));
     repositoriesModel.addGoogleMavenRepository();
     applyChanges(settingsModel);
@@ -455,6 +458,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     pluginsModel.removePlugin("com.android.application");
     pluginsModel.applyPlugin("com.android.library", "7.0.0", false);
+    assertEmpty(pluginsModel.appliedPlugins());
     repositoriesModel.removeRepository(repositoriesModel.repositories().get(0));
     repositoriesModel.addGoogleMavenRepository();
     applyChanges(settingsModel);

@@ -1,0 +1,6 @@
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.31"
+}
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.31"
+}

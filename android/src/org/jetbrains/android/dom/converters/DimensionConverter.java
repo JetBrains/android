@@ -6,11 +6,15 @@ import com.google.common.primitives.Doubles;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class DimensionConverter extends ResolvingConverter<String> implements AttributeValueDocumentationProvider {
   public static final DimensionConverter INSTANCE = new DimensionConverter();

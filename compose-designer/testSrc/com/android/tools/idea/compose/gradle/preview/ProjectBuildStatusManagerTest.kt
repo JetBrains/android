@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-
 import com.android.tools.idea.compose.preview.ProjectBuildStatusManager
 import com.android.tools.idea.compose.preview.ProjectStatus
 import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
@@ -34,9 +33,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,7 +65,7 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.openFileInEditor(mainFile)
     }
 
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
@@ -105,7 +102,7 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
@@ -145,7 +142,7 @@ class ProjectBuildStatusManagerTest {
     }
 
     val fileFilter = TestFilter()
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       fileFilter,

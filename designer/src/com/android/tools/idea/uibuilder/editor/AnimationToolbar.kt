@@ -18,32 +18,31 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.stdui.CommonButton
-import javax.swing.JPanel
-import javax.swing.JButton
-import javax.swing.JSlider
-import javax.swing.DefaultBoundedRangeModel
-import com.android.tools.idea.uibuilder.analytics.AnimationToolbarAnalyticsManager
-import java.lang.Runnable
-import java.awt.event.ActionEvent
-import com.intellij.util.ui.JBUI
-import com.intellij.util.concurrency.EdtExecutorService
-import icons.StudioIcons
-import java.awt.FlowLayout
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
+import com.android.tools.idea.uibuilder.analytics.AnimationToolbarAnalyticsManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import java.awt.FlowLayout
+import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.Box
+import javax.swing.DefaultBoundedRangeModel
 import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.JSlider
 import javax.swing.SwingConstants
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -97,6 +96,12 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private var myMaxTimeMs: Long
   private var currentSpeedFactor: Double = PlaySpeed.x1.speedFactor
   private var myLoopEnabled = true
+  override var forceElapsedReset: Boolean
+    get() = _forceElapsedReset
+    set(value) {
+      _forceElapsedReset = value
+    }
+  private var _forceElapsedReset: Boolean = false
 
   /**
    * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)

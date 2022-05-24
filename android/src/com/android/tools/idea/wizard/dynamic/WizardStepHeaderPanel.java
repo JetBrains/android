@@ -22,17 +22,24 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Insets;
+import java.beans.PropertyChangeListener;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.beans.PropertyChangeListener;
 
 /**
  * Wizard header component
@@ -81,7 +88,7 @@ public class WizardStepHeaderPanel extends JPanel {
 
     PropertyChangeListener listener = propertyChangeEvent -> {
       // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
-      JBColor.setDark(UIUtil.isUnderDarcula());
+      JBColor.setDark(StartupUiUtil.isUnderDarcula());
       panel.setBackground(headerColor);
 
       // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.
@@ -143,7 +150,7 @@ public class WizardStepHeaderPanel extends JPanel {
     boolean hasDescription = descriptionLabel != null;
     int anchor = hasDescription ? GridConstraints.ANCHOR_SOUTHWEST : GridConstraints.ANCHOR_WEST;
     titleLabel.setForeground(getForeground());
-    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUI.scale(24f)));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUIScale.scale(24f)));
     add(titleLabel, createHeaderLabelGridConstraints(0, column, anchor));
     if (hasDescription) {
       descriptionLabel.setForeground(getForeground());

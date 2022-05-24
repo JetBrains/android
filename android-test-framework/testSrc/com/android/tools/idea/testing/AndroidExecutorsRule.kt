@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.adtui.common.AutoCloseDisposable
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.intellij.openapi.application.ApplicationManager
@@ -22,8 +23,8 @@ import com.intellij.openapi.application.ModalityState
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 
 /**
@@ -41,7 +42,7 @@ class AndroidExecutorsRule(
   override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
       override fun evaluate() {
-        TempDisposable().use {
+        AutoCloseDisposable().use {
           val application = ApplicationManager.getApplication()
           application.registerServiceInstance(AndroidIoManager::class.java, AndroidIoManager(), it)
           val androidExecutors = spy(AndroidExecutors())

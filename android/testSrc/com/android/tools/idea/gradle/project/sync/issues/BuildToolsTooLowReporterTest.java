@@ -51,7 +51,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     super.setUp();
 
     initMocks(this);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myIssueReporter = new BuildToolsTooLowReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
   }

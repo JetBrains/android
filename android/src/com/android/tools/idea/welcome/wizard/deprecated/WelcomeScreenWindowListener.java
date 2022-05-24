@@ -16,16 +16,15 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.lang.ref.WeakReference;
+import javax.swing.JFrame;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Substitutes Idea listener that terminates the app when window closes.
@@ -129,7 +128,7 @@ public final class WelcomeScreenWindowListener {
 
     public DirectListener(@NotNull FirstRunWizardHost host) {
       // Let the instance leave
-      myHostReference = new WeakReference<FirstRunWizardHost>(host);
+      myHostReference = new WeakReference<>(host);
     }
 
     @Nullable

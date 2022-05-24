@@ -19,6 +19,7 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
 import com.intellij.openapi.diagnostic.Logger
@@ -85,7 +86,7 @@ object AndroidDispatchers {
   val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
@@ -263,4 +264,19 @@ suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
     }
   }
   throw CancellationException()
+}
+
+/**
+ * Suspendable method that will suspend until the given [compute] can be executed in a write action in the UI thread.
+ */
+suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScope {
+  val result = CompletableDeferred<T>()
+  ApplicationManager.getApplication().invokeLater {
+    if (isActive) {
+      WriteAction.run<Throwable> {
+        if (isActive) result.complete(compute.compute())
+      }
+    }
+  }
+  return@coroutineScope result.await()
 }

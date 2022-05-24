@@ -15,29 +15,7 @@
  */
 package com.android.layoutlib;
 
-import com.android.ide.common.rendering.api.Bridge;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
-import com.intellij.internal.statistic.analytics.StudioCrashDetection;
-import com.intellij.openapi.components.BaseComponent;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-
-public class NativeCrashHandling implements BaseComponent {
-
-  @Override
-  public void initComponent() {
-    // If the previous run of Studio ended on a JVM crash caused by Layoutlib, pass the information to the Layoutlib Bridge
-    List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-    for (StudioCrashDetails crash : crashes) {
-      if (isCrashCausedByLayoutlib(crash)) {
-        Bridge.setNativeCrash(true);
-        return;
-      }
-    }
-  }
-
-  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
-    return crash.isJvmCrash() &&
-           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
-  }
+public class NativeCrashHandling {
+  // FIXME-ank: depends on modified intellij platform (does not compile with the canonical intellij)
 }
+

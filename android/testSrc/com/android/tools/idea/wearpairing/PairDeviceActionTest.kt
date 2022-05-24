@@ -22,9 +22,9 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
 import com.android.tools.idea.avdmanager.PairDeviceAction
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
 import org.mockito.Mockito
-import org.jetbrains.android.util.AndroidBundle.message
 
 class PairDeviceActionTest {
 

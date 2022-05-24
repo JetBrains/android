@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedDataBinder.ValueDeriver;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
+import java.awt.Color;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.JCheckBox;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedDataBinder.ValueDeriver;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Tests for {@link ScopedDataBinder}. These tests
@@ -79,7 +80,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<String>() {
+    myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -97,7 +98,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return "UNEXPECTED NULL!";
-        } else {
+        }
+        else {
           return trigger.toUpperCase();
         }
       }
@@ -139,7 +141,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<String>() {
+    myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -157,7 +159,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return "UNEXPECTED NULL!";
-        } else {
+        }
+        else {
           return trigger.toUpperCase();
         }
       }
@@ -199,7 +202,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<Boolean>() {
+    myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -216,7 +219,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
-        } else {
+        }
+        else {
           return Boolean.parseBoolean(trigger);
         }
       }
@@ -258,7 +262,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(integerKey, new ValueDeriver<Integer>() {
+    myScopedDataBinder.registerValueDeriver(integerKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -275,7 +279,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
-        } else {
+        }
+        else {
           return Integer.parseInt(trigger);
         }
       }
@@ -323,7 +328,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(colorKey, new ValueDeriver<Color>() {
+    myScopedDataBinder.registerValueDeriver(colorKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -340,7 +345,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
-        } else {
+        }
+        else {
           return Color.decode(trigger);
         }
       }
@@ -382,7 +388,7 @@ public class ScopedDataBinderTest extends TestCase {
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
     // Test value derivation
-    myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<Boolean>() {
+    myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<>() {
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
@@ -399,7 +405,8 @@ public class ScopedDataBinderTest extends TestCase {
         String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
-        } else {
+        }
+        else {
           return Boolean.parseBoolean(trigger);
         }
       }

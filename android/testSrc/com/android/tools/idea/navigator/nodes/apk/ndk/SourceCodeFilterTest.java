@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
 import static com.intellij.openapi.util.io.FileUtil.createDirectory;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link SourceCodeFilter}.

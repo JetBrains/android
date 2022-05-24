@@ -16,11 +16,10 @@
 
 <idea-plugin>
   <id>androidx.compose.plugins.idea</id>
-  <name>Compose</name>
+  <name>Jetpack Compose</name>
   <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
-  <vendor url="http://www.android.com">Android</vendor>
+  <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
-  <idea-version since-build="191.5109.14"/>
   <depends>org.jetbrains.android</depends>
   <depends>org.jetbrains.kotlin</depends>
 
@@ -31,6 +30,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
+
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
 
     <annotator
@@ -69,8 +70,8 @@
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
-                    serviceImplementation="com.android.tools.compose.ComposeSampleResolutionService"
+    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
+                    serviceImplementation="com.android.tools.compose.ComposeKDocLinkResolutionService"
                     overrides="true"
     />
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
@@ -88,6 +89,10 @@
     <completion.contributor language="kotlin"
                             implementationClass="com.android.tools.compose.code.completion.ComposeModifierCompletionContributor"
                             order="first, before ComposeCompletionContributor"/>
+    <completion.contributor language="JSON"
+                            id="MotionSceneCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutJsonCompletionContributor"
+                            order="first, before JsonCompletionContributor"/>
 
     <weigher key="completion"
              implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"

@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.actions;
 
-import com.android.tools.adtui.actions.ZoomType;
 import junit.framework.TestCase;
 
 

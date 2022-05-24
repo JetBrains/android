@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
+
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette.PalettePanel;
 import com.intellij.ui.SearchTextField;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListModel;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
@@ -27,14 +39,6 @@ import org.fest.swing.fixture.JListItemFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
 
 public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
   private final PalettePanel myNewPalette;

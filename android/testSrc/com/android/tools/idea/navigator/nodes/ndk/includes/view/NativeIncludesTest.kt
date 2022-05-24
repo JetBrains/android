@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view
 
-import org.junit.Test
 import nl.jqno.equalsverifier.EqualsVerifier
-
+import org.junit.Test
 
 
 class NativeIncludesTest {

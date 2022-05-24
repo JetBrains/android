@@ -31,19 +31,19 @@ class SystemTraceNodeFactoryTest {
   @Test
   fun `name with numbers in the end`() {
     val name = "Name Ends Number 1234"
-    val expected = "Name Ends Number ###"
     val factory = SystemTraceNodeFactory()
 
-    assertThat(expected).isEqualTo(factory.getNode(name).fullName)
+    assertThat(factory.getNode(name).name).isEqualTo("Name Ends Number")
+    assertThat(factory.getNode(name).nameWithSuffix).isEqualTo("Name Ends Number 1234")
   }
 
   @Test
   fun `name with # and numbers in the end`() {
     val name = "Choreographer#doFrame 1234"
-    val expected = "Choreographer#doFrame ###"
     val factory = SystemTraceNodeFactory()
 
-    assertThat(expected).isEqualTo(factory.getNode(name).fullName)
+    assertThat(factory.getNode(name).name).isEqualTo("Choreographer#doFrame")
+    assertThat(factory.getNode(name).nameWithSuffix).isEqualTo("Choreographer#doFrame 1234")
   }
 
   @Test
@@ -71,7 +71,7 @@ class SystemTraceNodeFactoryTest {
     val node1 = factory.getNode("Name Ends Number 1234")
     val node2 = factory.getNode("Name Ends Number 987654")
 
-    assertThat(node1).isSameAs(node2)
+    assertThat(node1.name).isEqualTo(node2.name)
   }
 
   @Test

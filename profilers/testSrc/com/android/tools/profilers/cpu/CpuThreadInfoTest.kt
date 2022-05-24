@@ -44,7 +44,7 @@ class CpuThreadInfoTest {
     val thread2 = CpuThreadInfo(2, "Thread")
     val thread3 = CpuThreadInfo(3, "Thread")
     val threadArray = mutableListOf(thread3, thread2, thread1, RENDER_THREAD_20, MAIN_THREAD, RENDER_THREAD_10)
-    threadArray.sort()
+    threadArray.sortWith(CpuThreadComparator.BASE)
 
     // Expected order:
     // Main thread

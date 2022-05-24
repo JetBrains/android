@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.idea.ui.wizard.WizardUtils.getProjectLocationParent;
+import static com.android.tools.idea.ui.wizard.WizardUtils.getUniqueName;
+import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
+import static com.google.common.base.Strings.repeat;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
 import com.android.tools.idea.IdeInfo;
@@ -26,15 +35,6 @@ import java.io.File;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.android.tools.adtui.validation.Validator.Result.OK;
-import static com.android.tools.idea.ui.wizard.WizardUtils.getProjectLocationParent;
-import static com.android.tools.idea.ui.wizard.WizardUtils.getUniqueName;
-import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
-import static com.google.common.base.Strings.repeat;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class WizardUtilsTest {
   private final Result ERROR = new Result(Severity.ERROR, "Some error message");

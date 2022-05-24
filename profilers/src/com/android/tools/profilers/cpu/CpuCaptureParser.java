@@ -29,6 +29,7 @@ import com.android.tools.profilers.cpu.systemtrace.AtraceProducer;
 import com.android.tools.profilers.cpu.systemtrace.PerfettoProducer;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -328,9 +329,13 @@ public class CpuCaptureParser {
     }
 
     private void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
-      myServices.openYesNoDialog("The trace file generated is large, and Android Studio may become unresponsive while " +
+      myServices.openYesNoDialog("The trace file generated is large, and " +
+                                 ApplicationNamesInfo.getInstance().getFullProductName() +
+                                 " may become unresponsive while " +
                                  "it parses the data. Do you want to continue?\n\n" +
-                                 "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
+                                 "Warning: If you select \"No\", " +
+                                 ApplicationNamesInfo.getInstance().getFullProductName() +
+                                 " discards the trace data and you will need " +
                                  "to capture a new method trace.",
                                  "Trace File Too Large",
                                  yesCallback,

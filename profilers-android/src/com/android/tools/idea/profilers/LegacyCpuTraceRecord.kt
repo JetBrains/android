@@ -18,8 +18,6 @@ package com.android.tools.idea.profilers
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Transport
-import com.android.tools.profiler.proto.TransportServiceGrpc
 import java.util.concurrent.CountDownLatch
 
 /**

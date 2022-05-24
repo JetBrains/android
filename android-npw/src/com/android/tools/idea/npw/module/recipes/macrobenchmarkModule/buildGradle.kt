@@ -60,6 +60,13 @@ fun buildGradle(
 
   val targetModuleGradlePath = GradleUtil.getGradlePath(targetModule)
 
+  val matchingFallbacks =
+    if (useGradleKts) {
+      "matchingFallbacks += listOf(\"release\")"
+    } else {
+      "matchingFallbacks = [\"release\"]"
+    }
+
   return """
 ${emptyPluginsBlock()}
 
@@ -87,6 +94,7 @@ android {
         $benchmarkBuildType {
             debuggable = true
             signingConfig = $debugSigningConfig
+            $matchingFallbacks
         }
     }
 

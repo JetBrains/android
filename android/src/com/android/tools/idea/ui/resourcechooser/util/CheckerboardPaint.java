@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.ui.resourcechooser.util;
 
-import sun.awt.image.IntegerComponentRaster;
-
-import java.awt.*;
+import java.awt.Paint;
+import java.awt.PaintContext;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
+import sun.awt.image.IntegerComponentRaster;
 
 /**
  * A {@link Paint} that will paint a checkerboard pattern. The current implementation aligns the pattern to the window (device)

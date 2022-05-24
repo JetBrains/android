@@ -78,7 +78,7 @@ fun createSpec(
   val version = if (hasUnknownVersions) null else versions.singleOrNull()
   // Find the minimum value of the build API level for making other decisions
   // If the API level of any device is not known, do not commit to a version
-  val minVersion = if (hasUnknownVersions) null else versions.minWith(Ordering.natural())!!
+  val minVersion = if (hasUnknownVersions) null else versions.minWithOrNull(Ordering.natural())!!
 
   var density: Density? = null
   var abis: List<String> = emptyList()

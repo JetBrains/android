@@ -22,6 +22,6 @@ import com.intellij.openapi.project.Project
 
 class AndroidLayoutInspectorServiceImpl : AndroidLayoutInspectorService {
   override fun getTask(project: Project?, client: Client): LayoutInspectorAction.GetClientWindowsTask {
-    return LayoutInspectorAction.GetClientWindowsTask(project, client);
+    return LayoutInspectorAction.GetClientWindowsTask(project, client)
   }
 }

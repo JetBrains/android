@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -279,11 +278,11 @@ public final class StringResource {
     }
 
     if (myTranslatable && isTranslationMissing(locale)) {
-      return "Key \"" + myKey.getName() + "\" is missing its " + LocaleMenuAction.getLocaleLabel(locale, false) + " translation";
+      return "Key \"" + myKey.getName() + "\" is missing its " + Locale.getLocaleLabel(locale, false) + " translation";
     }
     else if (!myTranslatable && !isTranslationMissing(locale)) {
       return "Key \"" + myKey.getName() + "\" is untranslatable and should not be translated to " +
-             LocaleMenuAction.getLocaleLabel(locale, false);
+             Locale.getLocaleLabel(locale, false);
     }
     else {
       return null;

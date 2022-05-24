@@ -16,10 +16,9 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.model.HNode;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of {@link HTreeChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle.

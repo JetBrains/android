@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidProcessHandler
-import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -37,8 +38,11 @@ interface AppInspectionLaunchTask : LaunchTask
  * App Inspection specific logic that runs when the user presses "Run" or "Debug"
  */
 class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions) = object : AppInspectionLaunchTask {
-    private val project = module.project
+  override fun getTask(applicationId: String,
+                       configuration: AndroidRunConfigurationBase,
+                       device: IDevice,
+                       executor: Executor) = object : AppInspectionLaunchTask {
+    private val project = configuration.project
 
     override fun getId() = APP_INSPECTION_ID
     override fun getDescription() = AppInspectionBundle.message("launch.app.inspection.tool.window")

@@ -17,12 +17,13 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.PaginatedTableView
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.analysis.TableUtils.changeRangeOnSelection
+import com.android.tools.profilers.cpu.analysis.TableUtils.setColumnRenderers
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
-import javax.swing.ListSelectionModel
 
 class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
                            model: CpuAnalysisFramesTabModel
@@ -30,27 +31,20 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
   init {
     layout = BorderLayout()
     val tableContainer = JPanel(BorderLayout())
-    fun initializeTable(model: FrameEventTableModel) {
+    fun initializeTable(model: PaginatedTableModel<FrameEventRow>) {
       val table = PaginatedTableView(model, PAGE_SIZE_VALUES).apply {
         table.apply {
           showVerticalLines = true
           showHorizontalLines = true
           emptyText.text = "No frames in the selected range"
-          columnModel.getColumn(FrameEventTableColumn.FRAME_NUMBER.ordinal).cellRenderer = CustomBorderTableCellRenderer()
-          columnModel.getColumn(FrameEventTableColumn.TOTAL_TIME.ordinal).cellRenderer = DurationRenderer()
-          columnModel.getColumn(FrameEventTableColumn.APP.ordinal).cellRenderer = DurationRenderer()
-          columnModel.getColumn(FrameEventTableColumn.GPU.ordinal).cellRenderer = DurationRenderer()
-          columnModel.getColumn(FrameEventTableColumn.COMPOSITION.ordinal).cellRenderer = DurationRenderer()
+          setColumnRenderers<FrameEventTableColumn> { when (it) {
+            FrameEventTableColumn.FRAME_NUMBER -> CustomBorderTableCellRenderer()
+            FrameEventTableColumn.TOTAL_TIME, FrameEventTableColumn.APP,
+            FrameEventTableColumn.GPU, FrameEventTableColumn.COMPOSITION -> DurationRenderer()
+          } }
 
-          setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-          selectionModel.addListSelectionListener {
-            if (selectedRow >= 0) {
-              val selectedEventIndex = convertRowIndexToModel(selectedRow) + model.pageIndex * model.pageSize
-              model.frameEvents[selectedEventIndex].let {
-                profilersView.studioProfilers.stage.timeline.viewRange.set(it.startTimeUs.toDouble(), it.endTimeUs.toDouble())
-              }
-            }
-          }
+          changeRangeOnSelection(model, { profilersView.studioProfilers.stage.timeline.viewRange },
+                                 { it.startTimeUs.toDouble() }, { it.endTimeUs.toDouble() })
         }
       }
       tableContainer.removeAll()
@@ -61,7 +55,7 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
       // Add a dropdown list when there are multiple layers.
       val layerDropdownList = ComboBox(model.tableModels.toTypedArray()).apply {
         addActionListener {
-          initializeTable(this.selectedItem as FrameEventTableModel)
+          initializeTable(this.selectedItem as PaginatedTableModel<FrameEventRow>)
         }
       }
       add(JPanel(BorderLayout()).apply {

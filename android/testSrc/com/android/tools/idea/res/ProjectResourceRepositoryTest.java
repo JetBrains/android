@@ -53,7 +53,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -126,7 +125,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   // Regression test for https://code.google.com/p/android/issues/detail?id=57090
   public void testParents() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
-    List<AndroidFacet> libraries = AndroidUtils.getAllAndroidDependencies(myModule, true);
+    List<AndroidFacet> libraries = AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
@@ -288,13 +287,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Note that these are currently direct dependencies only, so app.isDependsOn(sharedLib) is false
 
     // Test AndroidUtils#getallAndroidDependencies
-    List<AndroidFacet> appDependsOn = AndroidUtils.getAllAndroidDependencies(app, true);
+    List<AndroidFacet> appDependsOn = AndroidDependenciesCache.getAllAndroidDependencies(app, true);
     assertTrue(appDependsOn.contains(lib1Facet));
     assertTrue(appDependsOn.contains(lib2Facet));
     assertTrue(appDependsOn.contains(sharedLibFacet));
     assertFalse(appDependsOn.contains(appFacet));
 
-    List<AndroidFacet> lib1DependsOn = AndroidUtils.getAllAndroidDependencies(lib1, true);
+    List<AndroidFacet> lib1DependsOn = AndroidDependenciesCache.getAllAndroidDependencies(lib1, true);
     assertTrue(lib1DependsOn.contains(sharedLibFacet));
     assertFalse(lib1DependsOn.contains(appFacet));
     assertFalse(lib1DependsOn.contains(lib1Facet));

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import static org.junit.Assert.assertTrue;
+
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertTrue;
+import org.jetbrains.annotations.NotNull;
 
 public class ComponentListFixture {
   private final ScreenFixture myScreenFixture;
@@ -56,7 +56,7 @@ public class ComponentListFixture {
 
   @NotNull
   public List<NlComponent> getComponents() {
-    List<NlComponent> list = Lists.newArrayList();
+    List<NlComponent> list = new ArrayList<>();
     for (ComponentFixture fixture : myComponents) {
       list.add(fixture.getComponent());
     }

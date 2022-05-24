@@ -17,7 +17,8 @@ package com.android.tools.adtui;
 
 import com.intellij.util.Function;
 import com.intellij.util.containers.Stack;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -82,7 +83,7 @@ public final class TreeWalker {
    * Return ancestors so they can be iterated over.
    */
   public Iterable<Component> ancestors() {
-    return new Iterable<Component>() {
+    return new Iterable<>() {
       @Override
       public Iterator<Component> iterator() {
         return new AncestorIterator(myRoot);
@@ -107,7 +108,7 @@ public final class TreeWalker {
    * @param order Whether the order should be depth first or breadth first
    */
   public Iterable<Component> descendants(DescendantOrder order) {
-    return new Iterable<Component>() {
+    return new Iterable<>() {
       @Override
       public Iterator<Component> iterator() {
         return order.createIterator.fun(myRoot);

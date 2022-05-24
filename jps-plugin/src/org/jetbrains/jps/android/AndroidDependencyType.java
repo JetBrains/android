@@ -1,5 +1,0 @@
-package org.jetbrains.jps.android;
-
-public enum AndroidDependencyType {
-  EXTERNAL_LIBRARY, PROVIDED_LIBRARY, ANDROID_LIBRARY_PACKAGE, JAVA_MODULE_OUTPUT_DIR, ANDROID_LIBRARY_OUTPUT_DIRECTORY
-}

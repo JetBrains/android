@@ -16,7 +16,11 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.ui.JBColor
-import java.awt.*
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import javax.swing.JComponent
 
 private val BORDER_COLOR = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))

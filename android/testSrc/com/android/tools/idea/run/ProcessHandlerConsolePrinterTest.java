@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.run;
 
+import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
+import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 import com.intellij.execution.process.ProcessHandler;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-
-import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
-import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ProcessHandlerConsolePrinter}.

@@ -45,7 +45,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEv
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
@@ -67,8 +66,8 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.StripeButton;
-import com.intellij.openapi.wm.impl.ToolWindowsPane;
+import com.intellij.toolWindow.StripeButton;
+import com.intellij.toolWindow.ToolWindowPane;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
 import java.awt.Container;
@@ -77,6 +76,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -117,7 +117,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public List<String> getModuleNames() {
-    List<String> names = Lists.newArrayList();
+    List<String> names = new ArrayList<>();
     for (Module module : getModuleManager().getModules()) {
       names.add(module.getName());
     }
@@ -183,7 +183,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ThreeComponentsSplitterFixture findToolWindowSplitter() {
-    ToolWindowsPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowsPane.class));
+    ToolWindowPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowPane.class));
     ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getLayeredPane().getComponent(0);
     return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
@@ -323,6 +323,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
     getMenuFixture().invokeMenuPath(10, path);
+    return this;
+  }
+
+  /**
+   * Invokes an action by menu path in a contextual menu
+   *
+   * @param path the series of menu names
+   */
+  public IdeFrameFixture invokeContextualMenuPath(@NotNull String... path) {
+    getMenuFixture().invokeContextualMenuPath(path);
     return this;
   }
 
@@ -495,7 +505,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * checking the component tree, as that will cause the test to immediately fail.
    */
   private static boolean hasValidWindowAncestor(@NotNull Component target) {
-    return execute(new GuiQuery<Boolean>() {
+    return execute(new GuiQuery<>() {
       @Nullable
       @Override
       protected Boolean executeInEDT() {
@@ -522,7 +532,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
         fixtureRef.set(fixture);
         if (hasValidWindowAncestor(fixture.target())) {
-          return execute(new GuiQuery<Boolean>() {
+          return execute(new GuiQuery<>() {
             @Nullable
             @Override
             protected Boolean executeInEDT() {
@@ -623,7 +633,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeSettingsDialogFixture invokeSdkManager() {
-    ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton actionButton) {
         return "SDK Manager".equals(actionButton.getAccessibleContext().getAccessibleName());
@@ -723,7 +733,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public void selectPreviousEditor() {
     robot().pressAndReleaseKey(KeyEvent.VK_E, SystemInfo.isMac ? META_MASK : CTRL_MASK);
-    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel header) {
         return Objects.equals(header.getText(), "Recent Files");

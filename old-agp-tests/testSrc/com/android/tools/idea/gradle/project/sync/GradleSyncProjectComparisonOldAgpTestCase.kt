@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.GradleSyncProjectComparisonTest
+import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.openPreparedProject
@@ -37,13 +38,8 @@ import org.junit.runners.JUnit4
  * The pre-recorded sync results can be found in testData/syncedProjectSnapshots/ *.txt files. Consult [snapshotSuffixes] for more
  * details on the way in which the file names are constructed.
  *
- * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
- *       update multiple snapshots used in one test.
- *
- *       Or with bazel:
-bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests \
---jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
+ * target as "//tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests".
  */
 @OldAgpTest(agpVersions = ["3.3.2"], gradleVersions = ["5.5"])
 @RunWith(JUnit4::class)

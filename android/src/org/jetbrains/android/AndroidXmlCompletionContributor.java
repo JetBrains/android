@@ -364,7 +364,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
                                                                         final boolean markDeprecated) {
     if (!localName.startsWith(LAYOUT_ATTRIBUTE_PREFIX)) {
       if (markDeprecated) {
-        return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<LookupElement>(lookupElement) {
+        return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<>(lookupElement) {
           @Override
           public void renderElement(LookupElementPresentation presentation) {
             super.renderElement(presentation);
@@ -380,7 +380,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       final HashSet<String> lookupStrings = new HashSet<>(lookupElement.getAllLookupStrings());
       lookupStrings.add(localSuffix);
 
-      lookupElement = new LookupElementDecorator<LookupElement>(lookupElement) {
+      lookupElement = new LookupElementDecorator<>(lookupElement) {
         @Override
         public Set<String> getAllLookupStrings() {
           return lookupStrings;

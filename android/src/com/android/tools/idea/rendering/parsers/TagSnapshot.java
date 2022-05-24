@@ -21,7 +21,6 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_USE_TAG;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.google.common.base.Charsets.UTF_8;
 
 import com.android.tools.compose.ComposeLibraryNamespaceKt;
 import com.google.common.collect.Lists;
@@ -31,6 +30,8 @@ import com.google.common.hash.Hashing;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -225,7 +226,7 @@ public class TagSnapshot {
     if (value != null) {
       if (attributes.isEmpty()) {
         // attributes may point to Collections.emptyList() when empty, which isn't mutable
-        attributes = Lists.newArrayList();
+        attributes = new ArrayList<>();
       }
       attributes.add(new AttributeSnapshot(namespace, prefix, name, value));
     }
@@ -255,14 +256,14 @@ public class TagSnapshot {
   public long getSignature() {
     HashFunction hashFunction = Hashing.goodFastHash(64);
     Hasher hasher = hashFunction.newHasher();
-    hasher.putString(tagName, UTF_8);
+    hasher.putString(tagName, StandardCharsets.UTF_8);
     for (AttributeSnapshot attribute : attributes) {
       if (attribute.prefix != null) {
-        hasher.putString(attribute.prefix, UTF_8);
+        hasher.putString(attribute.prefix, StandardCharsets.UTF_8);
       }
-      hasher.putString(attribute.name, UTF_8);
+      hasher.putString(attribute.name, StandardCharsets.UTF_8);
       if (attribute.value != null) {
-        hasher.putString(attribute.value, UTF_8);
+        hasher.putString(attribute.value, StandardCharsets.UTF_8);
       }
       // Note that we're not bothering with namespaces here; the prefix will identify it uniquely
     }

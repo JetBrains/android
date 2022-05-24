@@ -17,9 +17,11 @@ package com.android.tools.idea.model
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.lint.detector.api.Desugaring
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 
 open class TestAndroidModel @JvmOverloads constructor(
   private val applicationId: String = "com.example.test",
@@ -31,12 +33,16 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
   private val namespacing: Namespacing = Namespacing.DISABLED,
-  private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT
+  private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT,
+  private val lintRuleJars: ImmutableList<File>? = null
 ) : AndroidModel {
 
   companion object {
     @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(
       namespacing = Namespacing.REQUIRED
+    )
+    @JvmStatic fun lintRuleJars(lintRuleJars: ImmutableList<File>) = TestAndroidModel(
+      lintRuleJars = lintRuleJars
     )
   }
 
@@ -44,12 +50,13 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getAllApplicationIds(): Set<String> = allApplicationIds
   override fun overridesManifestPackage(): Boolean = overridesManifestPackage
   override fun isDebuggable(): Boolean = debuggable
-  override fun getMinSdkVersion(): AndroidVersion? = minSdkVersion
-  override fun getRuntimeMinSdkVersion(): AndroidVersion? = runtimeMinSdkVersion
+  override fun getMinSdkVersion(): AndroidVersion = minSdkVersion ?: AndroidVersion(1)
+  override fun getRuntimeMinSdkVersion(): AndroidVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel
+  override fun getLintRuleJarsOverride(): MutableIterable<File>? = lintRuleJars
   override fun isGenerated(file: VirtualFile): Boolean = TODO("not implemented")
   override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean = TODO("not implemented")
 }

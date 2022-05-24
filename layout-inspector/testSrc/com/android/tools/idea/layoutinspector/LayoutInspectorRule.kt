@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.android.tools.idea.layoutinspector
-
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
@@ -24,6 +23,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -35,6 +35,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -43,11 +45,13 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
@@ -98,23 +102,22 @@ fun DeviceDescriptor.createProcess(
  *
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
-interface InspectorClientProvider {
+fun interface InspectorClientProvider {
   fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient?
 }
 
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
-class LegacyClientProvider(
-  private val parentDisposable: Disposable,
-  private val treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
+fun LegacyClientProvider(
+  parentDisposable: Disposable,
+  treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
     Mockito.`when`(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
   }
-) : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    return LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
-                        parentDisposable, treeLoaderOverride)
-  }
+) = InspectorClientProvider { params, inspector ->
+  LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
+               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+               parentDisposable, treeLoaderOverride)
 }
 
 /**
@@ -134,15 +137,37 @@ class LegacyClientProvider(
  *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
  */
 class LayoutInspectorRule(
-  private val clientProvider: InspectorClientProvider,
+  private val clientProviders: List<InspectorClientProvider>,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
-  val launcherExecutor: Executor = MoreExecutors.directExecutor(),
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
 
   lateinit var launcher: InspectorClientLauncher
     private set
   private val launcherDisposable = Disposer.newDisposable()
+
+  private val launcherExecutor = Executor { runnable ->
+    if (launchSynchronously) {
+      runnable.run()
+    }
+    else {
+      Thread {
+        runnable.run()
+        asyncLaunchLatch.countDown()
+      }.start()
+    }
+  }
+
+  /**
+   * Set this to false if the test requires the launcher to execute on a different thread.
+   * Use [asyncLaunchLatch] to make sure the thread finished.
+   */
+  var launchSynchronously = true
+
+  /**
+   * Use this latch to control the execution of background launchers
+   */
+  lateinit var asyncLaunchLatch: CountDownLatch
 
   /**
    * Convenience accessor, as this property is used a lot
@@ -195,11 +220,12 @@ class LayoutInspectorRule(
 
     inspectorModel = InspectorModel(projectRule.project)
     launcher = InspectorClientLauncher(processes,
-                                       listOf { params -> clientProvider.create(params, inspector) },
+                                       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
                                        project,
                                        launcherDisposable,
-                                       launcherExecutor)
+                                       executor = launcherExecutor)
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
+    AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated
     inspectorClient = launcher.activeClient

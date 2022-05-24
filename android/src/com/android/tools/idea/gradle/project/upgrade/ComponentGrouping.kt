@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vcs.FileStatus
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -25,7 +24,6 @@ import com.intellij.usages.UsageView
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
-import javax.swing.Icon
 
 /**
  * Usage Grouping by component.
@@ -70,12 +68,8 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun getIcon(): Icon? = null
-  override fun getFileStatus(): FileStatus? = null
-  override fun update() {}
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
-  override fun isValid(): Boolean = true
 
   override fun getPresentableGroupText(): String = usageName
 

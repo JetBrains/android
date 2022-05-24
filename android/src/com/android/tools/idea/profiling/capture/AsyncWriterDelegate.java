@@ -17,12 +17,11 @@ package com.android.tools.idea.profiling.capture;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A package-private delegate to perform the actual write operation synchronously on a separate thread.
@@ -30,7 +29,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 class AsyncWriterDelegate implements Runnable {
   private static final Logger LOG = Logger.getInstance(AsyncWriterDelegate.class);
 
-  @NotNull private BlockingQueue<Message> myWriteQueue = new LinkedBlockingDeque<Message>();
+  @NotNull private BlockingQueue<Message> myWriteQueue = new LinkedBlockingDeque<>();
   private boolean myShouldContinue = true;
 
   private static abstract class Message {

@@ -69,10 +69,10 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
     myFixture.addClass("""
       package com.example;
       class FooDb {}
-    """.trimIndent());
+    """.trimIndent())
 
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
-    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true);
+    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
 
     val context = MapDataContext()
     context.put(CommonDataKeys.VIRTUAL_FILE_ARRAY.name, arrayOf(jsonOne, jsonTwo))

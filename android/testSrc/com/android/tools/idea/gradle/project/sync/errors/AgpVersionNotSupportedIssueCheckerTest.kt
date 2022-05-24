@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
+import com.android.Version
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,36 +29,108 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AgpVersionNotSupportedIssueCheckerTest {
-  private val agpVersionNotSupportedIssueCheckerTest = AgpVersionNotSupportedIssueChecker()
+  private val agpVersionNotSupportedIssueChecker = AgpVersionNotSupportedIssueChecker()
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testCheckIssue() {
-
     val expectedNotificationMessage = "The project is using an incompatible version (AGP 3.1.4) of the Android Gradle plugin."
-    val error = "The project is using an incompatible version (AGP 3.1.4) of the Android Gradle plugin. Minimum supported version is AGP 3.2."
+    val error = "The project is using an incompatible version (AGP 3.1.4) of the Android Gradle plugin. " +
+                "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
 
     val issueData = GradleIssueData(":", Throwable(error), null, null)
-    val buildIssue = agpVersionNotSupportedIssueCheckerTest.check(issueData)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue.description).contains(expectedNotificationMessage)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
+      .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+  }
+
+  @Test
+  fun testCheckIssueTooNew() {
+    val expectedNotificationMessage = "The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin."
+    val error = "The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin. " +
+                "Latest supported version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}."
+
+    val issueData = GradleIssueData(":", Throwable(error), null, null)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+      .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+  }
+
+  @Test
+  fun testCheckIssueOldPreview() {
+    val expectedNotificationMessage = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin."
+    val error = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin. " +
+                "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
+
+    val issueData = GradleIssueData(":", Throwable(error), null, null)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue.description).contains(expectedNotificationMessage)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
+      .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+  }
+
+  @Test
+  fun testCheckIssueIncompatiblePreview() {
+    val expectedNotificationMessage =
+      "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin."
+    val error = "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin. " +
+                "Current compatible preview version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}."
+
+    val issueData = GradleIssueData(":", Throwable(error), null, null)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue.description).contains(expectedNotificationMessage)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
+      .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
   }
 
   @Test
   fun testIssueHandled() {
     assertThat(
-      agpVersionNotSupportedIssueCheckerTest.consumeBuildOutputFailureMessage(
+      agpVersionNotSupportedIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
-        "The project is using an incompatible version of the Android Gradle plugin. Minimum supported version is AGP 3.2.",
+        "The project is using an incompatible version (AGP 3.1.0) of the Android Gradle plugin. " +
+        "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.",
         null,
         null,
         "",
         TestMessageEventConsumer()
       )).isEqualTo(true)
+  }
+
+  @Test
+  fun testIssueNotHandled() {
+    assertThat(
+      agpVersionNotSupportedIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "The project is using an incompatible version (AGP 0.9.0) of the Android Gradle Plugin. " +
+        "Minimum supported version is AGP 1.0.0.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }

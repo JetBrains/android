@@ -15,11 +15,11 @@
  */
 package com.android.tools.datastore.energy;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.energy.PowerProfile.LocationStats;
 import com.android.tools.datastore.energy.PowerProfile.LocationType;
 import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

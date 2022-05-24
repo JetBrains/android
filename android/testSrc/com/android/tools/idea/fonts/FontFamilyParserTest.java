@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.UsefulTestCase;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-import java.util.Iterator;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class FontFamilyParserTest extends UsefulTestCase {
 
@@ -161,7 +165,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
   private static File createXmlFile(@NotNull @Language("XML") String content) throws IOException {
     File folder = FileUtil.createTempDirectory("temp", "folder");
     File file = new File(folder, "example.xml");
-    InputStream inputStream = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8.toString()));
+    InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8.toString()));
     try (OutputStream outputStream = new FileOutputStream(file)) {
       FileUtil.copy(inputStream, outputStream);
     }

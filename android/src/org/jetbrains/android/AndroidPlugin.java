@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.tools.analytics.AnalyticsSettings;
@@ -15,13 +15,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidPlugin {
-  private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
 
   public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
@@ -42,17 +40,12 @@ public final class AndroidPlugin {
    * Reduces prominence of the Android related UI elements to keep low profile.
    */
   private static void initializeForNonStudio(ActionManager actionManager) {
-    // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
-    Actions.moveAction(actionManager, "Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
-    // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
-    Actions.moveAction(actionManager, "Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
-               new Constraints(Anchor.LAST, null));
     AnalyticsSettings.disable();
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
-  private static void setUpActionsUnderFlag(ActionManager actionManager) {
+  private static void setUpActionsUnderFlag(@NotNull ActionManager actionManager) {
     // TODO: Once the StudioFlag is removed, the configuration type registration should move to the
     // android-plugin.xml file.
     if (StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get()) {

@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.util.XmlUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicLong;
-
 import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
 import static com.android.SdkConstants.AAPT_PREFIX;
 import static com.android.SdkConstants.ATTR_NAME;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.xml.util.XmlUtil;
+import java.util.concurrent.atomic.AtomicLong;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Aapt attributes are attributes that instead of containing a reference, contain the inlined value of the reference. This snapshot will

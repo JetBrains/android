@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBInsets;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -424,7 +424,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     if (myHoverHandler != null) {
       myHoverHandler.accept(pickData);
     }
-    myClick = event.getClickCount() > 0;
+    myClick = event.getClickCount() > 0 && event.getButton() == MouseEvent.BUTTON1;
     if (myClickHandler != null && myClick) {
       // If we didn't click an item see if we clicked a clickable background.
       if (pickData == null && myBackgroundClickable) {
@@ -544,7 +544,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
-    @NotNull private Insets myHostInsets = JBUI.emptyInsets();
+    @NotNull private Insets myHostInsets = JBInsets.emptyInsets();
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
     private boolean myBackgroundClickable = false;
@@ -594,7 +594,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     /**
      * If set, the handler will get triggered when the user clicked on the icon+label region of the DurationData.
      */
-    public Builder<E> setClickHander(@NotNull Consumer<E> handler) {
+    public Builder<E> setClickHandler(@NotNull Consumer<E> handler) {
       myClickHandler = handler;
       return this;
     }

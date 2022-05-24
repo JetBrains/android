@@ -120,15 +120,16 @@ class ProposedFileTreeModelTest {
 
   @Test
   fun conflictWithMoreSpecificConfiguration() {
-    val filename = "file"
+    val pngFile = "file.png"
+    val webpFile = "file.webp"
     val resDir = rootDir.createChildDir("res")
     val drawableDir = resDir.createChildDir("drawable")
     val drawableV24Dir = resDir.createChildDir("drawable-v24")
     val drawableV30Dir = resDir.createChildDir("drawable-v30")
-    val drawableV24ExistingFile = drawableV24Dir.createChildFile(filename)
-    val rootFile = rootDir.resolve(filename)
-    val drawableFile = drawableDir.resolve(filename)
-    val drawableV30File = drawableV30Dir.resolve(filename)
+    val drawableV24ExistingFile = drawableV24Dir.createChildFile(webpFile)
+    val rootFile = rootDir.resolve(pngFile)
+    val drawableFile = drawableDir.resolve(pngFile)
+    val drawableV30File = drawableV30Dir.resolve(pngFile)
 
     val treeModel = ProposedFileTreeModel(rootDir, setOf(
       rootFile,

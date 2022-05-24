@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators.forms;
 
 import com.intellij.ui.JBColor;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 
 /**
  * Base class for root component of the Tools popup. It draws rounded border.

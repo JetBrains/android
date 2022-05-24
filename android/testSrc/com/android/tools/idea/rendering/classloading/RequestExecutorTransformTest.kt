@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering.classloading
 import com.intellij.testFramework.UsefulTestCase
 import org.junit.Test
 import java.io.StringWriter
-import java.lang.RuntimeException
 
 class RequestExecutorTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */

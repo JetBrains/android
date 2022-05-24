@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.adtui.workbench.WorkBenchLoadingPanel
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
 import java.awt.Container

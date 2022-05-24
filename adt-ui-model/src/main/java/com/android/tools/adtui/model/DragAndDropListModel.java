@@ -16,10 +16,9 @@
 package com.android.tools.adtui.model;
 
 import com.intellij.util.containers.OrderedSet;
+import javax.swing.DefaultListModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Model to be used when a list wants to support ordered drag and drop operations. This class currently only manages the ordering of

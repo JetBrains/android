@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_MEDIA_ROUTE_ACTION_PROVIDER;
+import static com.android.SdkConstants.MEDIA_ROUTER_LIB_ARTIFACT;
+
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.SdkConstants.*;
 
 public final class CastButtonHandler extends MenuHandler {
   private final boolean myIsAndroidX;

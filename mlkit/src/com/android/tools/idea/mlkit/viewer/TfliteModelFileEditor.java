@@ -35,9 +35,9 @@ import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
@@ -247,7 +247,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(createSectionHeader("Model"));
 
     JBLabel infoLabel = new JBLabel(
-      "Model is not fully supported in current Android Studio or Android Gradle Plugin. " +
+      "Model is not fully supported in current " +
+      ApplicationNamesInfo.getInstance().getFullProductName() +
+      " or Android Gradle Plugin. " +
       "Please update to the latest version to get the best experience.");
     infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     infoLabel.setBorder(Borders.empty(10, 20, 10, 0));
@@ -880,10 +882,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return null;
   }
 
-  @Nullable
   @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
+  public @NotNull VirtualFile getFile() {
+    return myFile;
   }
 
   @Override

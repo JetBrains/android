@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.ui;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 
 public class SdkUiStrings {
   public static final String JDK_LOCATION_WARNING_URL =
     "https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:why_is_there_more_than_one_daemon_process_on_my_machine";
-  public static final String JDK_LOCATION_TOOLTIP = "To share the same Gradle daemon between Android Studio and other " +
+  public static final String JDK_LOCATION_TOOLTIP = "To share the same Gradle daemon between " +
+                                                    ApplicationNamesInfo.getInstance().getFullProductName() +
+                                                    " and other " +
                                                     "external processes, create a JAVA_HOME environment variable with a valid " +
                                                     "JDK location and select it from the dropdown below.";
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT = "Please choose a valid JDK %s directory.";

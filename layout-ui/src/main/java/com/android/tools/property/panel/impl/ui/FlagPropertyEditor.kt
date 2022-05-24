@@ -34,6 +34,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -134,7 +135,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
   }
 
   private fun addLinks() {
-    val font = UIUtil.getLabelFont()
+    val font = StartupUiUtil.getLabelFont()
     val smallerFont = font.deriveFont(font.size2D * 0.9f)
     val selectAll = HyperlinkLabel("Select all")
     selectAll.font = smallerFont

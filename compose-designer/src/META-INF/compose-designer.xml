@@ -33,7 +33,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.no.parameters.name"
                      level="ERROR"/>
@@ -41,7 +41,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.no.composable.name"
                      level="ERROR"/>
@@ -49,7 +49,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.top.level.function"
                      level="ERROR"/>
@@ -57,7 +57,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.dimension.limit.name"
                      level="WARNING"/>
@@ -65,7 +65,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
@@ -73,7 +73,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.UpdateTransitionLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.update.transition.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -81,10 +81,18 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.device.spec.name"
+                     level="ERROR"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
@@ -97,7 +105,7 @@
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
     <codeInsight.lineMarkerProvider
         language="kotlin"
-        implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
+        implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerLineMarkerProvider"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>
@@ -127,7 +135,7 @@
             text="Toggle Issue Panel"
             description="Toggle the visibility of Issue Panel"
             use-shortcut-of="Android.Designer.IssueNotificationAction" />
-    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.ForcePreviewDaemonRestart" />
+    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.ForcePreviewDaemonStop" />
   </actions>
 
 </idea-plugin>

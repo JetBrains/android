@@ -17,12 +17,14 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -42,14 +44,17 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -200,6 +205,72 @@ public class RenderTaskTest extends AndroidTestCase {
       }
       catch (Exception ex) {
         throw new RuntimeException(ex);
+      }
+    });
+  }
+
+  public void testCustomViewRenderOutOfDateIsReported() throws Exception {
+    File tmpDir = Files.createTempDir();
+    File srcDir = new File(tmpDir, "src");
+    File customView = new File(srcDir, "com/google/test/CustomView.java");
+    FileUtil.writeToFile(customView, "package com.google.test;\n" +
+                                         "import android.content.Context;\n" +
+                                         "import android.util.AttributeSet;\n" +
+                                         "import android.widget.TextView;\n" +
+                                         "public class CustomView extends TextView {\n" +
+                                         "  public CustomView(Context context, AttributeSet attrs) {\n" +
+                                         "    super(context);\n" +
+                                         "    setText(\"Hello\");\n" +
+                                         "  }\n" +
+                                         "}");
+    ApplicationManager.getApplication().runWriteAction(
+      (Computable<SourceFolder>)() ->
+        PsiTestUtil.addSourceRoot(myModule, Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir, true))));
+    ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+    File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
+    File outputFile = new File(outputDir, "com/google/test/CustomView.class");
+    Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
+
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/test.xml",
+                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                          "    android:layout_height=\"match_parent\"\n" +
+                                                          "    android:layout_width=\"match_parent\"\n" +
+                                                          "    android:orientation=\"vertical\"\n" +
+                                                          "    android:background=\"#FFF\">\n" +
+                                                          "  <com.google.test.CustomView" +
+                                                          "    android:layout_height=\"match_parent\"\n" +
+                                                          "    android:layout_width=\"match_parent\" />\n" +
+                                                          "</LinearLayout>\n")
+      .getVirtualFile();
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
+    RenderLogger logger = new RenderLogger(null, null);
+
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      try {
+        RenderResult result = task.render().get();
+        assertTrue(result.hasRequestedCustomViews());
+        assertTrue(result.getRenderResult().isSuccess());
+        assertTrue(logger.getMessages().isEmpty());
+
+        // Drop PSI cache
+        ApplicationManager.getApplication().invokeAndWait(() -> PsiManager.getInstance(getProject()).dropPsiCaches());
+        ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+        FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
+        VfsUtil.findFileByIoFile(outputFile, true);
+
+        result = task.render().get();
+        assertTrue(result.hasRequestedCustomViews());
+        assertTrue(result.getRenderResult().isSuccess());
+        assertEquals(
+          "The project has been edited more recently than the last build: <A HREF=\"action:build\">Build</A> the project.",
+          logger.getMessages().get(0).getHtml());
+      }
+      catch (Throwable e) {
+        e.printStackTrace(System.err);
+        fail("Unexpected exception: " + e.getMessage());
       }
     });
   }
@@ -603,9 +674,104 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
         ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
+    });
+  }
+
+  public void testMacroTagSupport() {
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "\n" +
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:textColor=\"?customColor\"\n" +
+                                            "        android:text=\"@macro/macroString\"/>\n" +
+                                            "    \n" +
+                                            "\n" +
+                                            "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    myFixture.addFileToProject("res/values/strings.xml",
+                               // language=XML
+                               "<resources>\n" +
+                               "    <string name=\"fooBar\">FOO BAR LOREM IPSUM</string>\n" +
+                               "    <macro name=\"macroString\">@string/fooBar</macro>\n" +
+                               "    <style name=\"CustomTheme\" parent=\"@android:style/Theme\">\n" +
+                               "        <item name=\"customColor\">@macro/macroColor</item>\n" +
+                               "    </style>\n" +
+                               "    <attr name=\"customColor\" format=\"color\"/>\n" +
+                               "    <macro name=\"macroColor\">@color/purple_200</macro>\n" +
+                               "    <color name=\"purple_200\">#FFBB86FC</color>" +
+                               "</resources>");
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file, DEFAULT_DEVICE_ID, "@style/CustomTheme");
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/macro.png"));
+        assert result != null;
+        ImageDiffUtil.assertImageSimilar("macros", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+  }
+
+  /**
+   * Returns the value of {@code android.content.res.Resources.mSystem} via reflection.
+   */
+  @Nullable
+  private static Object getMSystemValue(@NotNull RenderTask task) {
+    try {
+      Class<?> resourcesClass = task.getLayoutlibCallback().findClass("android.content.res.Resources");
+      Field mSystemField = resourcesClass.getDeclaredField("mSystem");
+      mSystemField.setAccessible(true);
+      return mSystemField.get(null);
+    }
+    catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public void testRunRenderActionWithSessionHasAccessToResources() {
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      // This ensures the render session is initialized.
+      task.render().join();
+
+      // Check that runAsyncRenderAction runs without the session.
+      task.runAsyncRenderAction(() -> {
+        assertNull(getMSystemValue(task));
+        return null;
+      }).join();
+
+      // When running under a session, mSystem will be initialized.
+      task.runAsyncRenderActionWithSession(() -> {
+        assertNotNull(getMSystemValue(task));
+      }).join();
     });
   }
 }

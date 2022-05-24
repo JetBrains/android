@@ -371,8 +371,9 @@
     <item tag="com.google.android.material.navigation.NavigationView" suggested="true" meta="material"/>
     <item tag="android.support.design.widget.BottomNavigationView" suggested="true" meta="material"/>
     <item tag="com.google.android.material.bottomnavigation.BottomNavigationView" suggested="true" meta="material"/>
-    <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
-    <item tag="androidx.appcompat.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="android.support.v7.widget.Toolbar" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="androidx.appcompat.widget.Toolbar" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="com.google.android.material.appbar.MaterialToolbar" suggested="true" meta="material" />
     <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="com.google.android.material.tabs.TabLayout" suggested="true" meta="material"

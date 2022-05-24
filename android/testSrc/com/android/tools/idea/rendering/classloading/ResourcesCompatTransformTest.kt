@@ -19,7 +19,6 @@ import android.util.TypedValue
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
 import java.io.StringWriter
-import java.lang.RuntimeException
 
 class ResourcesCompatTransformTest {
 

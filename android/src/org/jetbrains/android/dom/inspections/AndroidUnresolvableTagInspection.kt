@@ -19,7 +19,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
-import java.util.ArrayList
 
 /**
  * Looks for unknown tags, such as unresolved custom layouts

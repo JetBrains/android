@@ -273,7 +273,7 @@ public class AppBarConfigurationDialog extends JDialog {
     ListenableFuture<SyncResult> syncResult = ProjectSystemUtil.getSyncManager(module.getProject())
       .syncProject(SyncReason.PROJECT_MODIFIED);
 
-    Futures.addCallback(syncResult, new FutureCallback<SyncResult>() {
+    Futures.addCallback(syncResult, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable SyncResult result) {
         if (result != null && result.isSuccessful()) {
@@ -365,9 +365,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private PsiFile generateXml(boolean collapsed) {
     StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
-    for (int i = 0; i < SAMPLE_REPETITION; i++) {
-      text.append(SAMPLE_TEXT);
-    }
+    text.append(SAMPLE_TEXT.repeat(SAMPLE_REPETITION));
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);

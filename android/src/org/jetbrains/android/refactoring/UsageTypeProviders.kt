@@ -46,7 +46,7 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
  */
 class GradleUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? {
-    if (element?.language != GroovyLanguage && element?.language != KotlinLanguage.INSTANCE) return null
+    if (element.language != GroovyLanguage && element.language != KotlinLanguage.INSTANCE) return null
     return if (GradleFiles.getInstance(element.project).isGradleFile(element.containingFile)) GRADLE_USAGE_TYPE else null
   }
 

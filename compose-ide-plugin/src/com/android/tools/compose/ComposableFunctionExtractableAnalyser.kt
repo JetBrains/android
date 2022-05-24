@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ArgumentMatch
+import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 
 /**
  * Adds [COMPOSABLE_FQ_NAME] annotation to a function when it's extracted from a function annotated with [COMPOSABLE_FQ_NAME]

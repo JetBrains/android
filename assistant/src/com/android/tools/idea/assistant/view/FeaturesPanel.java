@@ -16,23 +16,28 @@
 package com.android.tools.idea.assistant.view;
 
 
+import static com.android.tools.idea.assistant.view.TutorialChooser.NAVIGATION_KEY;
+
 import com.android.tools.idea.assistant.AssistActionHandler;
 import com.android.tools.idea.assistant.AssistNavListener;
-import com.android.tools.idea.assistant.datamodel.*;
+import com.android.tools.idea.assistant.datamodel.ActionData;
+import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
+import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.assistant.view.TutorialChooser.NAVIGATION_KEY;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Entry point for the complete set of services and tutorials associated with

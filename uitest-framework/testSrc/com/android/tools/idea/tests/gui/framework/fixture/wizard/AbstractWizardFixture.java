@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.diagnostic.PerformanceWatcher;
 import com.intellij.openapi.util.text.StringUtil;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.function.Predicate;
 import javax.swing.JButton;
@@ -104,7 +103,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S waitUntilStepErrorMessageIsGone() {
-    waitUntilGone(robot(), target(), new GenericTypeMatcher<JTextComponent>(JTextComponent.class) {
+    waitUntilGone(robot(), target(), new GenericTypeMatcher<>(JTextComponent.class) {
       @Override
       protected boolean isMatching(@NotNull JTextComponent component) {
         // Note: When there are no errors, the ValidationText component is kept visible (for layout reasons).

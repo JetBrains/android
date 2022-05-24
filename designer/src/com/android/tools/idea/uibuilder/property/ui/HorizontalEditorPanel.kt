@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.property.ui
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
+import com.android.tools.property.panel.api.PropertyEditorModel
 import java.awt.FlowLayout
 import javax.swing.JComponent
 

@@ -18,12 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
+import javax.swing.JList;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.JList;
 
 public class CompletionFixture {
   // In most cases a 8 second delay is not needed.

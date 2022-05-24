@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
@@ -49,6 +48,6 @@ class InspectorBannerService {
   }
 
   companion object {
-    fun getInstance(project: Project) = ServiceManager.getService(project, InspectorBannerService::class.java)
+    fun getInstance(project: Project) = project.getService(InspectorBannerService::class.java)
   }
 }

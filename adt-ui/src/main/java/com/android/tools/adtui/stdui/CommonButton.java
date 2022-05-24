@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.stdui;
 
+import javax.swing.Icon;
+import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Borderless button with hover effect.

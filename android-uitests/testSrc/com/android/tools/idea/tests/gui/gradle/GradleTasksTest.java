@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static java.util.regex.Pattern.DOTALL;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
@@ -25,6 +30,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.Consumer;
+import java.io.IOException;
+import java.util.regex.Pattern;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -32,14 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.util.regex.Pattern;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static java.util.regex.Pattern.DOTALL;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleTasksTest {

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
@@ -54,7 +55,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
     @SuppressWarnings("unchecked")
     List<String> missingCases = LintFix.getStringList(fixData, AnnotationDetector.KEY_CASES);
     if (missingCases != null && !missingCases.isEmpty()) {
-      return new LintIdeQuickFix[]{new LintIdeQuickFix() {
+      return new LintIdeQuickFix[]{new DefaultLintQuickFix("Add Missing @IntDef Constants") {
         @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
@@ -107,12 +108,6 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
                                     @NotNull PsiElement endElement,
                                     @NotNull AndroidQuickfixContexts.ContextType contextType) {
           return startElement.isValid();
-        }
-
-        @NotNull
-        @Override
-        public String getName() {
-          return "Add Missing @IntDef Constants";
         }
       }};
     }

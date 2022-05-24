@@ -16,19 +16,17 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.catching
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
-import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @UiThread
-class PairingCodePairingController(edtExecutor: Executor,
+class PairingCodePairingController(private val scope: CoroutineScope,
                                    private val pairingService: WiFiPairingService,
                                    private val view: PairingCodePairingView) {
   private val LOG = logger<PairingCodePairingController>()
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
 
   init {
     view.addListener(ViewListener())
@@ -45,23 +43,23 @@ class PairingCodePairingController(edtExecutor: Executor,
     override fun onPairInvoked() {
       LOG.info("Starting pairing code pairing process with mDNS service ${view.model.service}")
       view.showPairingInProgress()
-      val futurePairing = pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
-      futurePairing.transform(edtExecutor) { pairingResult ->
-        //TODO: Ensure not disposed and state still the same
-        view.showWaitingForDeviceProgress(pairingResult)
-        pairingResult
-      }.transformAsync(edtExecutor) { pairingResult ->
-        LOG.info("Pairing code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect")
-        //TODO: Ensure not disposed and state still the same
-        pairingService.waitForDevice(pairingResult)
-      }.transform(edtExecutor) { device ->
-        LOG.info("Device ${device} corresponding to mDNS service ${view.model.service} is now connected")
-        //TODO: Ensure not disposed and state still the same
-        view.showPairingSuccess(view.model.service, device)
-      }.catching(edtExecutor, Throwable::class.java) { throwable ->
-        LOG.warn("Pairing code pairing process failed", throwable)
-        //TODO: Ensure not disposed and state still the same
-        view.showPairingError(view.model.service, throwable)
+
+      scope.launch(uiThread(ModalityState.any())) {
+        try {
+          val pairingResult = pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
+          view.showWaitingForDeviceProgress(pairingResult)
+          LOG.info(
+            "Pairing code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect")
+          //TODO: Ensure not disposed and state still the same
+          val device = pairingService.waitForDevice(pairingResult)
+          LOG.info("Device ${device} corresponding to mDNS service ${view.model.service} is now connected")
+          //TODO: Ensure not disposed and state still the same
+          view.showPairingSuccess(view.model.service, device)
+        } catch (e: Throwable) {
+          LOG.warn("Pairing code pairing process failed", e)
+          //TODO: Ensure not disposed and state still the same
+          view.showPairingError(view.model.service, e)
+        }
       }
     }
   }

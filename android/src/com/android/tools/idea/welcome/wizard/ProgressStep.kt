@@ -16,8 +16,6 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
-import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
-
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.stripSuffix
 import com.intellij.execution.impl.ConsoleViewUtil
@@ -32,6 +30,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.uiDesigner.core.GridConstraints

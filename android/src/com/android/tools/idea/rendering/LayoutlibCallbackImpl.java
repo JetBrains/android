@@ -92,7 +92,6 @@ import com.android.utils.XmlUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -114,12 +113,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -198,8 +197,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
-   * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
-   *                           use a shared one from the ModuleClassLoaderManager
+   * @param classLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
    */
   public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -210,7 +208,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               @NotNull ModuleClassLoader moduleClassLoader) {
+                               @NotNull ClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
@@ -655,7 +653,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (includes != null && !includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
-          List<String> list = Lists.newLinkedList();
+          List<String> list = new LinkedList<>();
           list.add(include);
           list.add(from);
           return list;

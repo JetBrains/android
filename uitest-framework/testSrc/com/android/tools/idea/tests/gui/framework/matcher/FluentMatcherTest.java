@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.matcher;
 
-import com.intellij.openapi.ui.FixedSizeButton;
-import org.junit.Test;
-
-import javax.swing.*;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import com.intellij.openapi.ui.FixedSizeButton;
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
+import org.junit.Test;
 
 /**
  * Tests for {@link FluentMatcher}.

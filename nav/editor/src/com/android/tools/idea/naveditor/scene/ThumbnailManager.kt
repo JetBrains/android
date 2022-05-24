@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration
@@ -24,6 +23,7 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
@@ -36,7 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.image.BufferedImage
-import java.util.HashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 

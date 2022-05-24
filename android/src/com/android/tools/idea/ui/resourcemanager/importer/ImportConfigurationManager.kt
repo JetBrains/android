@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.ResourceQualifier
-import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.ui.resourcemanager.model.MatcherEntry
+import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage

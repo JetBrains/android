@@ -160,7 +160,7 @@ val missedDeadlineJank = JBColor.namedColor("Profiler.missedDeadlineJank", JBCol
 /**
  * Color of deadline-missed jank event when not hovered
  */
-val fadedMissedDeadlineJank = JBColor.namedColor("Profiler.fadedMissedDaedlineJank", JBColor(0xf8cbcf, 0xf8cbcf))
+val fadedMissedDeadlineJank = JBColor.namedColor("Profiler.fadedMissedDaedlineJank", JBColor(0xf8cbcf, 0x553333))
 
 /**
  * Color of jank events other than deadline-missed when hovered
@@ -170,4 +170,29 @@ val otherJank = JBColor.namedColor("Profiler.otherJank", JBColor(0xe1a336, 0xe1a
 /**
  * Color of jank events other than deadline-missed when not hovered
  */
-val fadedOtherJank = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xf6e3c3, 0xf6e3c3))
+val fadedOtherJank = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xf6e3c3, 0x555533))
+
+/**
+ * Color of good-frame event when hovered
+ */
+val goodFrame = JBColor.namedColor("Profiler.otherJank", JBColor(0x36a336, 0x36a336))
+
+/**
+ * Color of good-frame event when not hovered
+ */
+val fadedGoodFrame = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xc3e3c3, 0x335533))
+
+/**
+ * Neutral color of lifecycle event when selected
+ */
+val neutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.DARK_GRAY, Color.LIGHT_GRAY))
+
+/**
+ * Neutral color of lifecycle event when not selected
+ */
+val fadedNeutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.LIGHT_GRAY, Color.DARK_GRAY))
+
+/**
+ * Default track background color
+ */
+val trackBackground = JBColor.namedColor("Profiler.trackBackground", JBColor(0xffffff, 0x323232))

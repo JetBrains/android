@@ -25,8 +25,7 @@ import com.android.tools.idea.gradle.model.IdeBuildType;
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.util.EditorUtil;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -47,6 +46,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.io.IOException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.android.uipreview.EditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +54,11 @@ import org.jetbrains.annotations.Nullable;
  * Quickfix for the {@link com.android.tools.lint.checks.ManifestDetector#MOCK_LOCATION} error, which deletes a mock
  * location permission from a non-debug manifest and adds it to a debug specific one (which is created if possible)
  */
-public class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
+public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
+  public MoveToDebugManifestQuickFix() {
+    super("Move to debug-specific manifest");
+  }
+
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
@@ -94,7 +98,7 @@ public class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
     final Project project = module.getProject();
     final VirtualFile manifest = src.findFileByRelativePath(buildTypeName + '/' + ANDROID_MANIFEST_XML);
     Pair<String, VirtualFile> result =
-      ApplicationManager.getApplication().runWriteAction(new Computable<Pair<String, VirtualFile>>() {
+      ApplicationManager.getApplication().runWriteAction(new Computable<>() {
         @Override
         public Pair<String, VirtualFile> compute() {
           if (manifest == null) {
@@ -160,11 +164,5 @@ public class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return "Move to debug-specific manifest";
   }
 }

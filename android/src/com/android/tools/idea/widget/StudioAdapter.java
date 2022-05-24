@@ -112,7 +112,7 @@ class StudioAdapter implements AdbConnectionWidget.StudioAdapter {
         update.run();
       }
     };
-    ActionManager.getInstance().addTimerListener(0, myTimerListener);
+    ActionManager.getInstance().addTimerListener(myTimerListener);
   }
 
   @NotNull

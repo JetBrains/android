@@ -21,9 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEn
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.findMenuDialog
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType
-import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
-import org.fest.swing.finder.WindowFinder
 import org.fest.swing.fixture.JListFixture
 import javax.swing.JDialog
 

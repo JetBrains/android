@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import static com.android.SdkConstants.VIEW;
+
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -26,15 +28,12 @@ import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
-
-import static com.android.SdkConstants.VIEW;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Create a simple {@value com.android.SdkConstants#VIEW} tag with the size, mockup, and tools position attributes

@@ -26,7 +26,7 @@ import java.util.function.Supplier
  */
 class VsyncTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
   val vsyncCounterSeries: RangedContinuousSeries = RangedContinuousSeries(
-    "VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.getVsyncCounterValues() }))
+    "VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.vsyncCounterValues }))
 
   init {
     add(vsyncCounterSeries)

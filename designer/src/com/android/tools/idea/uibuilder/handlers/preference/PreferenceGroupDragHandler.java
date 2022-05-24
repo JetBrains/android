@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import static com.android.SdkConstants.FQCN_LIST_VIEW;
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
+
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.api.DragType;
@@ -23,20 +26,18 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.FQCN_LIST_VIEW;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
+import org.jetbrains.annotations.NotNull;
 
 abstract class PreferenceGroupDragHandler extends DragHandler {
   SceneComponent myGroup;

@@ -31,9 +31,9 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.FileUtils;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -223,7 +224,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       try {
         // NDK 10
         byte[] content = readAllBytes(releaseTxtFile.toPath());
-        return new String(content).trim();
+        return new String(content, StandardCharsets.UTF_8).trim();
       }
       catch (IOException e) {
         LOG.info("Could not read NDK version", e);

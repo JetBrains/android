@@ -24,7 +24,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
-import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -40,6 +39,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
@@ -70,7 +70,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.util.AndroidUtils
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
@@ -155,7 +154,7 @@ class DefaultModuleSystem(override val module: Module) :
     return Triple(emptyList(), dependenciesToAdd, "")
   }
 
-  override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
+  override fun getResourceModuleDependencies() = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
@@ -165,7 +164,9 @@ class DefaultModuleSystem(override val module: Module) :
     ModuleRootManager.getInstance(module)
       .orderEntries()
       .librariesOnly()
+      // Don't iterate *all* project modules *recursively*, as this is O(n*n) complexity, where n is the modules count.
       .recursively()
+      .exportedOnly()
       .forEachLibrary { library ->
         // Typically, a library xml looks like the following:
         //     <CLASSES>
@@ -214,7 +215,7 @@ class DefaultModuleSystem(override val module: Module) :
     return getPackageName(module)
   }
 
-  override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+  override fun getApplicationIdProvider(): ApplicationIdProvider {
     return NonGradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
   }
@@ -280,14 +281,9 @@ private class UserData<T>(
 
 fun getPackageName(module: Module): String? {
   val facet = AndroidFacet.getInstance(module) ?: return null
-  var rawPackageName: String? = null
 
-  if (AndroidManifestIndex.indexEnabled()) {
-    rawPackageName = DumbService.getInstance(module.project)
-      .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-  }
-
-  return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+  return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+         ?: getPackageNameByParsingPrimaryManifest(facet)
 }
 
 private fun getPackageNameFromIndex(facet: AndroidFacet): String? {

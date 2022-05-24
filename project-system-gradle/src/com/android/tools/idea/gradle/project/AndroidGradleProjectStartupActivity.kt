@@ -22,9 +22,10 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.shouldDisableForceUpgrades
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -34,7 +35,7 @@ import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCache
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.versionsShouldForcePluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -64,6 +65,7 @@ import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
@@ -78,6 +80,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
  */
 class AndroidGradleProjectStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
+    if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
@@ -265,10 +269,11 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val attachModelActions = holderModuleToDataNodePairs.flatMap { (module, moduleDataNode) ->
 
-    fun AndroidModuleModel.validate() =
-    // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
-      // depend on the state of the project information.
-      !shouldForcePluginUpgrade(project, modelVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+    fun GradleAndroidModel.validate() =
+      shouldDisableForceUpgrades() ||
+      GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
+        !versionsShouldForcePluginUpgrade(agpVersion, latestKnown)
+      }
 
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
@@ -298,8 +303,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     // module per source set we should replace this code with were we know the model will be living.
     fun <T> getModelForMaybeSourceSetDataNode() : (DataNode<*>, Key<T>) -> T? = { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
     listOf(
-      prepare(ANDROID_MODEL, getModelForMaybeSourceSetDataNode(), AndroidFacet::getInstance , AndroidModel::set, AndroidModuleModel::setModule,
-              validate = AndroidModuleModel::validate) ?: return,
+      prepare(ANDROID_MODEL, getModelForMaybeSourceSetDataNode(), AndroidFacet::getInstance, AndroidModel::set, GradleAndroidModel::setModule,
+              validate = GradleAndroidModel::validate) ?: return,
       prepare(JAVA_MODULE_MODEL, ::getModelFromDataNode, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return

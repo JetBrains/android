@@ -1,6 +1,6 @@
 PROJECT                       : testImportNoSync
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : corretto-<JAVA_VERSION>
+        Version                       : Amazon Corretto version <JDK_VERSION>
     MODULE                        : testImportNoSync
         LinkedProjectId               : :
         LinkedProjectPath             : <PROJECT>

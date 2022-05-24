@@ -121,7 +121,7 @@ class NlATFIncludeIssue(
     get() {
       val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
         var attr = include.getAttribute(TOOLS_URI, ATTR_IGNORE)
-        attr = if (attr != null && attr.isNotEmpty()) {
+        attr = if (!attr.isNullOrEmpty()) {
           "$attr,$ATTR_IGNORE_A11Y_LINTS"
         } else {
           ATTR_IGNORE_A11Y_LINTS
@@ -229,7 +229,7 @@ open class NlAtfIssue(
 
         val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
           var attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE)
-          if (attr != null && attr.isNotEmpty()) {
+          if (!attr.isNullOrEmpty()) {
             attr = "$attr,${result.mSourceClass}"
           } else {
             attr = result.mSourceClass

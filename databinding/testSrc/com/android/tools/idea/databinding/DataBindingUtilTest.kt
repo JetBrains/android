@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.projectsystem.EP_NAME
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.DATA_BINDING_LIB
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult

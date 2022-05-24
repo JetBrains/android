@@ -27,6 +27,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * An instruction for rendering an URL. It wraps a {@link HyperlinkLabel} which supports all the proper formatting and interactions users
@@ -89,5 +90,11 @@ public final class HyperlinkInstruction extends RenderInstruction {
     myHyperlinkLabel.setBounds(bounds);
     myHyperlinkLabel.paint(g2d);
     g2d.translate(-bounds.x, -bounds.y);
+  }
+
+  @TestOnly
+  @NotNull
+  public String getDisplayText() {
+    return myHyperlinkLabel.getText();
   }
 }

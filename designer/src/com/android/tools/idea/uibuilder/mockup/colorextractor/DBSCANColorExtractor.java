@@ -16,10 +16,15 @@
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 
 /**

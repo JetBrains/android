@@ -17,16 +17,18 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONTINUE_BUILD_OPTION;
 
-import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.CommandLineTokenizer;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 @State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
@@ -34,7 +36,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   public boolean CONTINUE_FAILED_BUILD = true;
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidGradleBuildConfiguration.class);
+    return project.getService(AndroidGradleBuildConfiguration.class);
   }
 
   @Nullable
@@ -50,7 +52,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
 
   @NotNull
   public String[] getCommandLineOptions() {
-    List<String> options = Lists.newArrayList();
+    List<String> options = new ArrayList<>();
     CommandLineTokenizer tokenizer = new CommandLineTokenizer(COMMAND_LINE_OPTIONS);
     while(tokenizer.hasMoreTokens()) {
       options.add(tokenizer.nextToken());
@@ -58,6 +60,6 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
     if (CONTINUE_FAILED_BUILD && !options.contains(CONTINUE_BUILD_OPTION)) {
       options.add(CONTINUE_BUILD_OPTION);
     }
-    return ArrayUtil.toStringArray(options);
+    return ArrayUtilRt.toStringArray(options);
   }
 }

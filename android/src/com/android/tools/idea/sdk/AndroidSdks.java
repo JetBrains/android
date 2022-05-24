@@ -26,14 +26,11 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refres
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.refreshAndFindChild;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
@@ -46,7 +43,7 @@ import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -60,6 +57,7 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -376,8 +374,8 @@ public class AndroidSdks {
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
     if (sdkPath != null && needsAnnotationsJarInClasspath(target)) {
-      File annotationsJarPath = new File(sdkPath, toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
-      VirtualFile annotationsJar = findFileInJarFileSystem(annotationsJarPath);
+      File annotationsJarPath = new File(sdkPath, FileUtilRt.toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
+      VirtualFile annotationsJar = findFileInJarFileSystem(annotationsJarPath.getPath());
       if (annotationsJar != null) {
         result.add(new OrderRoot(annotationsJar, CLASSES));
       }
@@ -394,8 +392,8 @@ public class AndroidSdks {
     if (platformFolder != null) {
       VirtualFile androidJar = refreshAndFindChild(platformFolder, FN_FRAMEWORK_LIBRARY);
       if (androidJar != null) {
-        File androidJarPath = virtualToIoFile(androidJar);
-        VirtualFile androidJarRoot = findFileInJarFileSystem(androidJarPath);
+        Path androidJarPath = androidJar.toNioPath();
+        VirtualFile androidJarRoot = findFileInJarFileSystem(androidJarPath.toString());
         if (androidJarRoot != null) {
           result.add(androidJarRoot);
         }
@@ -428,7 +426,7 @@ public class AndroidSdks {
   private VirtualFile getRoot(@NotNull OptionalLibrary library) {
     Path jar = library.getJar();
     if (jar != null) {
-      return findFileInJarFileSystem(mySdkData.getSdkHandler().getFileOp().toFile(jar));
+      return findFileInJarFileSystem(jar.toString());
     }
     return null;
   }
@@ -457,26 +455,20 @@ public class AndroidSdks {
   }
 
   @Nullable
-  private static File findJavadocFolder(@NotNull File folder) {
-    File docsFolder = new File(folder, join(FD_DOCS, FD_DOCS_REFERENCE));
-    return docsFolder.isDirectory() ? docsFolder : null;
-  }
-
-  @Nullable
   private static VirtualFile findFileInLocalFileSystem(@NotNull String path) {
     return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(path));
   }
 
   @Nullable
-  private static VirtualFile findFileInJarFileSystem(@NotNull File path) {
-    String canonicalPath = toCanonicalPath(path.getPath());
+  private static VirtualFile findFileInJarFileSystem(@NotNull String path) {
+    String canonicalPath = toCanonicalPath(path);
     return JarFileSystem.getInstance().refreshAndFindFileByPath(canonicalPath + JAR_SEPARATOR);
   }
 
   @NotNull
   public String chooseNameForNewLibrary(@NotNull IAndroidTarget target) {
     if (target.isPlatform()) {
-      return SDK_NAME_PREFIX + target.getVersion().toString() + " Platform";
+      return SDK_NAME_PREFIX + target.getVersion() + " Platform";
     }
     IAndroidTarget parentTarget = target.getParent();
     String name = SDK_NAME_PREFIX;

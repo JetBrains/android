@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 public class EventStreamServer implements Disposable {
 
   @NotNull private final String myServerName;
-  @NotNull private final BlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<Common.Event>();
+  @NotNull private final BlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   @NotNull private final Map<String, ByteString> myByteCache = new HashMap<>();
 
   @NotNull private final Object myServerLock = new Object();

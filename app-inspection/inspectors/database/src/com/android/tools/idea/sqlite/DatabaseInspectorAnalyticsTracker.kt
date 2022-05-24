@@ -19,13 +19,12 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 
 interface DatabaseInspectorAnalyticsTracker {
   companion object {
     fun getInstance(project: Project): DatabaseInspectorAnalyticsTracker {
-      return ServiceManager.getService(project, DatabaseInspectorAnalyticsTracker::class.java)
+      return project.getService(DatabaseInspectorAnalyticsTracker::class.java)
     }
   }
 

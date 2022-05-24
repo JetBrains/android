@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.run.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 public class MultiUserUtilsTest {
   @Test
@@ -87,7 +93,7 @@ public class MultiUserUtilsTest {
         fail(String.format("This mock device only supports the '%s' shell command)", cmd));
       }
 
-      byte[] bytes = amCurrentUserOutput.getBytes(Charsets.UTF_8);
+      byte[] bytes = amCurrentUserOutput.getBytes(StandardCharsets.UTF_8);
 
       IShellOutputReceiver receiver = (IShellOutputReceiver)invocation.getArguments()[1];
       receiver.addOutput(bytes, 0, bytes.length);

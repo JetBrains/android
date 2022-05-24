@@ -23,10 +23,11 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtilities;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * A Base class for TopDown, BottomUp, CallChart and FlameChart details view.

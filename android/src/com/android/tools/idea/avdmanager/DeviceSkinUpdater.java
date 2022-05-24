@@ -181,16 +181,20 @@ final class DeviceSkinUpdater {
   }
 
   private @NotNull Path getStudioDeviceSkins(@NotNull Path device) {
-    if (device.equals(device.getFileSystem().getPath("AndroidWearRound"))) {
-      return myStudioSkins.resolve("wear_round");
+    if (device.equals(device.getFileSystem().getPath("WearLargeRound"))) {
+      return myStudioSkins.resolve("wearos_large_round");
     }
 
-    if (device.equals(device.getFileSystem().getPath("AndroidWearRoundChin320x290"))) {
-      return myStudioSkins.resolve("wear_round_chin_320_290");
+    if (device.equals(device.getFileSystem().getPath("WearSmallRound"))) {
+      return myStudioSkins.resolve("wearos_small_round");
     }
 
-    if (device.equals(device.getFileSystem().getPath("AndroidWearSquare"))) {
-      return myStudioSkins.resolve("wear_square");
+    if (device.equals(device.getFileSystem().getPath("WearSquare"))) {
+      return myStudioSkins.resolve("wearos_square");
+    }
+
+    if (device.equals(device.getFileSystem().getPath("WearRect"))) {
+      return myStudioSkins.resolve("wearos_rect");
     }
 
     return myStudioSkins.resolve(device);

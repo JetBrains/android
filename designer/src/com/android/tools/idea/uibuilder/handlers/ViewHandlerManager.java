@@ -30,8 +30,6 @@ import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,10 +40,13 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidSlowOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -64,10 +65,10 @@ public class ViewHandlerManager implements Disposable {
   private static final String HANDLER_CLASS_SUFFIX = "Handler";
 
   private final Project myProject;
-  private final Map<String, ViewHandler> myHandlers = Maps.newHashMap();
+  private final Map<String, ViewHandler> myHandlers = new HashMap<>();
   public static final ViewHandler NONE = new ViewHandler();
-  private final Map<ViewHandler, List<ViewAction>> myToolbarActions = Maps.newHashMap();
-  private final Map<ViewHandler, List<ViewAction>> myMenuActions = Maps.newHashMap();
+  private final Map<ViewHandler, List<ViewAction>> myToolbarActions = new HashMap<>();
+  private final Map<ViewHandler, List<ViewAction>> myMenuActions = new HashMap<>();
 
   @NotNull
   public static ViewHandlerManager get(@NotNull Project project) {
@@ -250,11 +251,12 @@ public class ViewHandlerManager implements Disposable {
       }
 
       try {
-        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
+        PsiClass[] viewClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() -> findClassesForViewTag(myProject, viewTag));
         if (viewClasses.length > 0) {
           String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          PsiClass[] handlerClasses =
-            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+          PsiClass[] handlerClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() ->
+            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject))
+          );
 
           if (handlerClasses.length == 0) {
             // No view handler found for this class; look up the custom view and get the handler for its
@@ -301,7 +303,7 @@ public class ViewHandlerManager implements Disposable {
   public List<ViewAction> getToolbarActions(@NotNull ViewHandler handler) {
     List<ViewAction> actions = myToolbarActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       handler.addToolbarActions(actions);
       myToolbarActions.put(handler, actions);
     }
@@ -323,7 +325,7 @@ public class ViewHandlerManager implements Disposable {
   public List<ViewAction> getPopupMenuActions(@NotNull SceneComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       if (handler.addPopupMenuActions(component, actions)) {
         myMenuActions.put(handler, actions);
       }

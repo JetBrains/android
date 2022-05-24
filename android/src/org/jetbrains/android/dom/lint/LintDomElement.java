@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.lint;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
-
 import java.util.List;
 
 @DefinesXml

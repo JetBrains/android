@@ -33,7 +33,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/BuildToolsVersionExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testCompileSdkVersion() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersion"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -41,7 +41,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testCompileSdkVersionPreview() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersionPreview"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -49,7 +49,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionPreviewExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testCompileSdkVersionVariable() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersionVariable"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -65,7 +65,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/FlavorDimensionsExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testMaxSdkVersion() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MaxSdkVersion"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -73,7 +73,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/MaxSdkVersionExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testMinSdkVersionPreview() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MinSdkVersionPreview"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -81,7 +81,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/MinSdkVersionPreviewExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testMinSdkVersion() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MinSdkVersion"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -161,7 +161,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ResConfigsExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testTargetSdkVersion() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TargetSdkVersion"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
@@ -169,7 +169,7 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TargetSdkVersionExpected"))
   }
 
-  @Test
+  // TODO(b/205806471) @Test
   fun testTargetSdkVersionPreview() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TargetSdkVersionPreview"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))

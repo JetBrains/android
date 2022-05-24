@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.testFramework.PlatformTestCase;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 /**
  * Tests for {@link GradleSyncMessages}.

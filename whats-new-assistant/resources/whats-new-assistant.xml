@@ -19,7 +19,7 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2021.2.01">
+    version="2021.2.02">
   <feature
       name="What's New in 2021.2.01">
     <tutorial
@@ -41,7 +41,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 05/11/2021</em><br><br>
+              <br><em>Last updated 04/20/2022</em><br><br>
             ]]>
           </section>
         </stepElement>

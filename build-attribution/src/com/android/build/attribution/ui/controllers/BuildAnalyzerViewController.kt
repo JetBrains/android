@@ -32,6 +32,7 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -48,18 +49,29 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.lang.properties.IProperty
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.colors.CodeInsightColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
+import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.ui.RangeBlinker
 import org.jetbrains.android.refactoring.disableJetifier
 import java.time.Duration
+import java.util.function.Supplier
 
 class BuildAnalyzerViewController(
   val model: BuildAnalyzerViewModel,
@@ -214,13 +226,56 @@ class BuildAnalyzerViewController(
     analytics.runCheckJetifierTaskClicked(duration)
   }
 
-  override fun turnJetifierOffInProperties() {
+  override fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>) {
     val duration = runAndMeasureDuration {
       WriteCommandAction.runWriteCommandAction(project) {
-        project.disableJetifier()
+        project.disableJetifier { property ->
+          if (property == null) {
+            invokeLater {
+              val feedbackBalloonRelativePoint = sourceRelativePointSupplier.get()
+              val message = "'android.enableJetifier' property is not found in 'gradle.properties'. Was it already removed?"
+              createPropertyRemovalFeedbackBalloon(message, MessageType.ERROR)
+                .show(feedbackBalloonRelativePoint, Balloon.Position.below)
+            }
+          }
+          else {
+            invokeLater {
+              val openFileDescriptor = OpenFileDescriptor(project, property.propertiesFile.virtualFile,
+                                                          property.psiElement.textRange.endOffset)
+              FileEditorManagerEx.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
+                blinkPropertyTextInEditor(editor, property)
+                val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
+                val message = "'android.enableJetifier' property is now set to false.<br/>" +
+                              "Please, remove it after reviewing any associated comments."
+                createPropertyRemovalFeedbackBalloon(message, MessageType.INFO)
+                  .show(pointInEditor, Balloon.Position.atRight)
+              }
+            }
+          }
+        }
       }
     }
     analytics.turnJetifierOffClicked(duration)
+  }
+
+  private fun blinkPropertyTextInEditor(editor: Editor, property: IProperty) {
+    val blinkingAttributes = EditorColorsManager.getInstance().globalScheme
+      .getAttributes(CodeInsightColors.BLINKING_HIGHLIGHTS_ATTRIBUTES)
+    val rangeBlinker = RangeBlinker(editor, blinkingAttributes, 6)
+    rangeBlinker.resetMarkers(listOf(property.psiElement.textRange))
+    rangeBlinker.startBlinking()
+  }
+
+  private fun createPropertyRemovalFeedbackBalloon(messageHtml: String, type: MessageType) = JBPopupFactory.getInstance()
+    .createHtmlTextBalloonBuilder(messageHtml, type) {}
+    .setHideOnClickOutside(true)
+    .setHideOnAction(false)
+    .setHideOnFrameResize(false)
+    .setHideOnKeyOutside(false)
+    .createBalloon()
+
+  override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction {
+    return FindSelectedLibVersionDeclarationAction(selectionSupplier, project, analytics)
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
@@ -278,7 +333,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 
   companion object {
     fun getInstance(project: Project): ConfigurationCacheTestBuildFlowRunner {
-      return ServiceManager.getService(project, ConfigurationCacheTestBuildFlowRunner::class.java)
+      return project.getService(ConfigurationCacheTestBuildFlowRunner::class.java)
     }
   }
 

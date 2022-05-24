@@ -15,18 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import static com.android.tools.idea.uibuilder.LayoutTestCase.getTestDataPath;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-
-import static com.android.tools.idea.uibuilder.LayoutTestCase.getTestDataPath;
+import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
+import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class ColorExtractorTestApp implements ColorExtractor.ColorExtractorCallback {
 

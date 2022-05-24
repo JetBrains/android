@@ -18,22 +18,20 @@ package com.android.tools.idea.sdk;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SdkMerger {
   private static final Logger LOG = Logger.getInstance(SdkMerger.class);
@@ -61,7 +59,7 @@ public class SdkMerger {
         }
       }
       try {
-        FileUtil.copyDir(FileOpUtils.toFileUnsafe(pkg.srcPkg.getLocation()),
+        FileUtil.copyDir(pkg.srcPkg.getLocation().toFile(),
                          new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {
@@ -100,7 +98,7 @@ public class SdkMerger {
                                                           @NotNull File destDir,
                                                           @Nullable ProgressIndicator progress) {
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
-    Collection<MergeablePackage> results = Lists.newArrayList();
+    Collection<MergeablePackage> results = new ArrayList<>();
 
     AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, srcDir.toPath());
     AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, destDir.toPath());

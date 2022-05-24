@@ -109,8 +109,7 @@ fun AndroidStudioEvent.Builder.setApplicationId(surface: DesignSurface?): Androi
 
 internal fun getApplicationId(facet: AndroidFacet): String? {
   return try {
-    @Suppress("DEPRECATION")
-    facet.getModuleSystem().getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse().packageName
+    facet.getModuleSystem().getApplicationIdProvider().packageName
   }
   catch (e: ApkProvisionException) {
     Logger.getInstance(CommonUsageTracker.javaClass).warn(e)

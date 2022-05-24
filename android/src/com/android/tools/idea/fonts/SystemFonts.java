@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.fonts;
 
-import com.android.ide.common.fonts.*;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.MutableFontDetail;
 import com.google.common.primitives.Ints;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 
 /**
  * There are TTF files loaded from the jar file which can be used to display

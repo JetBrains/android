@@ -16,9 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
@@ -49,7 +47,6 @@ class SurfaceState {
    * This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field directly,
    * use [saveFileScale] and [loadFileScale] instead.
    */
-  @field:Suppress("MemberVisibilityCanBePrivate")
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
 
   @Transient

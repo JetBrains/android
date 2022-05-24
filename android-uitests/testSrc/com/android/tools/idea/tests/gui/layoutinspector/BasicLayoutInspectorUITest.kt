@@ -15,42 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector
 
-import com.android.SdkConstants.ATTR_BACKGROUND_TINT
-import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import com.android.flags.junit.SetFlagRule
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.resources.ResourceType
-import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture
-import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
-import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
-import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
-import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Common
-import com.google.common.truth.Truth.assertThat
-import com.intellij.notification.EventLog
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.core.MouseButton
-import org.fest.swing.data.TableCell
-import org.fest.swing.timing.Wait
-import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
-import java.awt.Color
-import java.awt.event.KeyEvent.VK_SPACE
-import java.net.Socket
-import java.util.ArrayDeque
-import java.util.concurrent.TimeUnit
 
 private const val PROJECT_NAME = "LayoutTest"
 private const val LAYOUT_ID = 1L

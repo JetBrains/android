@@ -1,9 +1,8 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Information about an styleable resource.

@@ -26,8 +26,8 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import org.jetbrains.android.AndroidTestBase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class NlAnalyticsManagerTest : AndroidTestBase() {
 

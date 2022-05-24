@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;

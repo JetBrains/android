@@ -28,12 +28,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.Sket
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -124,7 +119,7 @@ public class SketchParser {
    */
   @Nullable
   public static <T> T parseJson(@NotNull InputStream in, @NotNull Type typeOfT) {
-    try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
+    try (Reader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       return gson.fromJson(reader, typeOfT);
     }
     catch (Exception e) {

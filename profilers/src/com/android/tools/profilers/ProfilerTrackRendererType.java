@@ -64,9 +64,13 @@ public enum ProfilerTrackRendererType {
    */
   ANDROID_FRAME_EVENT,
   /**
-   * For janky frame event
+   * For shared timeline event
    */
-  JANKY_FRAME,
+  ANDROID_FRAME_TIMELINE_EVENT,
+  /**
+   * For deadline text
+   */
+  ANDROID_FRAME_DEADLINE_TEXT,
   /**
    * For Custom Event Visualization user events.
    */

@@ -35,7 +35,6 @@ import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
-import com.google.common.base.Charsets;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
@@ -50,6 +49,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -307,7 +307,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
         public void addOutput(byte[] data, int offset, int length) {
-          String s = new String(data, offset, length, Charsets.UTF_8);
+          String s = new String(data, offset, length, StandardCharsets.UTF_8);
           if (s.contains("Perfd Segmentation Fault:")) {
             reportTransportSegmentationFault(s);
           }

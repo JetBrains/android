@@ -19,9 +19,11 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.SdkConstants;
+import com.android.io.CancellableFileIo;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +42,22 @@ public class SdkPaths {
    * @return the validation result.
    */
   @NotNull
-  public static ValidationResult validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
+  public static ValidationResult validateAndroidSdk(@Nullable Path sdkPath, boolean includePathInMessage) {
     return validatedSdkPath(sdkPath, "SDK", false, includePathInMessage);
+  }
+
+  /** @see #validateAndroidSdk(Path, boolean) */
+  @Deprecated
+  @NotNull
+  public static ValidationResult validateAndroidSdk(@Nullable File sdkFile, boolean includePathInMessage) {
+    return validateAndroidSdk(sdkFile == null ? null : sdkFile.toPath(), includePathInMessage);
+  }
+
+  /** @see #validateAndroidNdk(Path, boolean) */
+  @NotNull
+  @Deprecated
+  public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+    return validateAndroidNdk(ndkPath == null ? null : ndkPath.toPath(), includePathInMessage);
   }
 
   /**
@@ -52,7 +68,7 @@ public class SdkPaths {
    * @return the validation result.
    */
   @NotNull
-  public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+  public static ValidationResult validateAndroidNdk(@Nullable Path ndkPath, boolean includePathInMessage) {
     if (ndkPath != null) {
       Validator.Result result = PathValidator.forAndroidNdkLocation().validate(ndkPath);
       Validator.Severity severity  = result.getSeverity();
@@ -62,11 +78,11 @@ public class SdkPaths {
     }
     ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
     if (validationResult.success && ndkPath != null) {
-      File toolchainsDirPath = new File(ndkPath, "toolchains");
-      if (!toolchainsDirPath.isDirectory()) {
+      Path toolchainsDirPath = ndkPath.resolve("toolchains");
+      if (!CancellableFileIo.isDirectory(toolchainsDirPath)) {
         String message;
         if (includePathInMessage) {
-          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath);
         }
         else {
           message = "NDK does not contain any toolchains.";
@@ -78,7 +94,7 @@ public class SdkPaths {
   }
 
   @NotNull
-  private static ValidationResult validatedSdkPath(@Nullable File sdkPath,
+  private static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
                                                    @NotNull String sdkName,
                                                    boolean checkForWritable,
                                                    boolean includePathInMessage) {
@@ -87,19 +103,19 @@ public class SdkPaths {
     }
 
     String cause = null;
-    if (!sdkPath.isDirectory()) {
+    if (!CancellableFileIo.isDirectory(sdkPath)) {
       cause = "does not belong to a directory.";
     }
-    else if (!sdkPath.canRead()) {
+    else if (!CancellableFileIo.isReadable(sdkPath)) {
       cause = "is not readable.";
     }
-    else if (checkForWritable && !sdkPath.canWrite()) {
+    else if (checkForWritable && !CancellableFileIo.isWritable(sdkPath)) {
       cause = "is not writable.";
     }
     if (isNotEmpty(cause)) {
       String message;
       if (includePathInMessage) {
-        message = String.format("The %1$s path\n'%2$s'\n%3$s", sdkName, sdkPath.getPath(), cause);
+        message = String.format("The %1$s path\n'%2$s'\n%3$s", sdkName, sdkPath, cause);
       }
       else {
         message = String.format("The %1$s path %2$s", sdkName, cause);
@@ -107,11 +123,11 @@ public class SdkPaths {
       return ValidationResult.error(message);
     }
 
-    File platformsDirPath = new File(sdkPath, SdkConstants.FD_PLATFORMS);
-    if (!platformsDirPath.isDirectory()) {
+    Path platformsDirPath = sdkPath.resolve(SdkConstants.FD_PLATFORMS);
+    if (!CancellableFileIo.isDirectory(platformsDirPath)) {
       String message;
       if (includePathInMessage) {
-        message = String.format("The %1$s at\n'%2$s'\ndoes not contain any platforms.", sdkName, sdkPath.getPath());
+        message = String.format("The %1$s at\n'%2$s'\ndoes not contain any platforms.", sdkName, sdkPath);
       }
       else {
         message = String.format("%1$s does not contain any platforms.", sdkName);

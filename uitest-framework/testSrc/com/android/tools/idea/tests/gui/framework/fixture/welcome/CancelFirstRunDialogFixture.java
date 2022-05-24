@@ -18,10 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import javax.swing.JDialog;
+import javax.swing.JRadioButton;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class CancelFirstRunDialogFixture extends AbstractWizardFixture<CancelFirstRunDialogFixture> {
   CancelFirstRunDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {

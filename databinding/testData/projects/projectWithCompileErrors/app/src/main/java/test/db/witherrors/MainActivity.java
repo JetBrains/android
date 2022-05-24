@@ -1,9 +1,8 @@
 package test.db.witherrors;
 
 import android.app.Activity;
-import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
-
+import androidx.databinding.DataBindingUtil;
 import test.db.witherrors.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity {

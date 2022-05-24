@@ -16,6 +16,9 @@
 package org.jetbrains.android.refactoring;
 
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
@@ -36,7 +39,6 @@ import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -60,23 +62,19 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
-import java.util.stream.Collectors;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-
-import java.util.*;
-
-import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private final String myFilter;
@@ -114,7 +112,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<LintProblemData>>> map) {
-    final List<PsiElement> elements = Lists.newArrayList();
+    final List<PsiElement> elements = new ArrayList<>();
 
     // Make sure lint didn't put extra issues into the map
     for (Issue issue : Lists.newArrayList(map.keySet())) {
@@ -128,7 +126,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     for (Issue issue : new Issue[]{UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS}) {
       Map<File, List<LintProblemData>> fileListMap = map.get(issue);
       if (fileListMap != null && !fileListMap.isEmpty()) {
-        Map<File, PsiFile> files = Maps.newHashMap();
+        Map<File, PsiFile> files = new HashMap<>();
         for (File file : fileListMap.keySet()) {
           VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
           if (virtualFile != null) {
@@ -244,7 +242,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
           starts.add(problem.getTextRange().getStartOffset());
         }
       }
-      starts.sort(Collections.<Integer>reverseOrder());
+      starts.sort(Collections.reverseOrder());
       for (Integer offset : starts) {
         if (psiFile.isValid()) {
           XmlAttribute attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute.class, false);
@@ -267,7 +265,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private Map<Issue, Map<File, List<LintProblemData>>> computeUnusedMap() {
-    Map<Issue, Map<File, List<LintProblemData>>> map = Maps.newHashMap();
+    Map<Issue, Map<File, List<LintProblemData>>> map = new HashMap<>();
 
     Set<Issue> issues;
     if (myIncludeIds) {

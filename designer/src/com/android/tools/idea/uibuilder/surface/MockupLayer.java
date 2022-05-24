@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Layer build to be on top of the BluePrint ScreenView displaying

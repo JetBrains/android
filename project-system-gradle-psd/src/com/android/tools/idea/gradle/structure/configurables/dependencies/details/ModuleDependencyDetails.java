@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
-import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jdesktop.swingx.JXLabel;
@@ -52,7 +51,7 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
     myGoToLabel.setHyperlinkText("See Dependencies");
     myGoToLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         assert myDependency != null;
         myContext.getMainConfigurable().navigateTo(
           myContext

@@ -21,13 +21,13 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -178,7 +178,7 @@ public class TutorialCard extends CardViewPanel {
       StringBuilder sb = new StringBuilder();
       String descriptionContent = myTutorial.getDescription();
       if (myTutorial.hasLocalHTMLPaths()) {
-        descriptionContent = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), descriptionContent);
+        descriptionContent = UIUtils.addLocalHTMLPaths(myTutorial.getResourceClass(), descriptionContent);
       }
       sb.append("<p class=\"description\">").append(descriptionContent);
       if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
@@ -200,7 +200,7 @@ public class TutorialCard extends CardViewPanel {
       List<? extends StepData> steps = myTutorial.getSteps();
       if (!steps.isEmpty()) {
         contents.add(new TutorialStep(steps.get(myStepIndex), myStepIndex, myListener,
-                                      myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths()), c);
+                                      myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths(), myTutorial.getResourceClass()), c);
         c.gridy++;
       }
     }
@@ -209,8 +209,9 @@ public class TutorialCard extends CardViewPanel {
       int numericLabel = 0;
 
       for (StepData step : myTutorial.getSteps()) {
-        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener,
-                                                    myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths());
+        TutorialStep stepDisplay =
+          new TutorialStep(step, numericLabel, myListener,
+                           myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths(), myTutorial.getResourceClass());
         contents.add(stepDisplay, c);
         c.gridy++;
         numericLabel++;
@@ -223,7 +224,7 @@ public class TutorialCard extends CardViewPanel {
 
     if (!myHideChooserAndNavigationBar) {
       // remove insets for footer.
-      c.insets = JBUI.emptyInsets();
+      c.insets = JBInsets.emptyInsets();
       contents.add(new FooterNav(), c);
     }
 
@@ -300,9 +301,9 @@ public class TutorialCard extends CardViewPanel {
       JPanel containerPanel = new JPanel(new BorderLayout());
       containerPanel.setBorder(JBUI.Borders.empty(5));
 
-      myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
+      myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, this::handleStepButtonClick);
       containerPanel.add(myPrevButton, BorderLayout.LINE_START);
-      myNextButton = new StepButton("Next", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
+      myNextButton = new StepButton("Next", StepButton.Direction.NEXT, this::handleStepButtonClick);
       containerPanel.add(myNextButton, BorderLayout.LINE_END);
       add(containerPanel);
 

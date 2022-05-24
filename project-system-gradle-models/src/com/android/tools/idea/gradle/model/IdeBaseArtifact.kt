@@ -33,24 +33,12 @@ interface IdeBaseArtifact : Serializable {
    */
   val assembleTaskName: String
 
-  /*
+  /**
    * Returns the folder containing the class files. This is the output of the java compilation.
    *
    * @return a folder.
    */
-  val classesFolder: File
-
-  /**
-   * Folders or jars containing additional classes (e.g., R.jar or those registered by third-party
-   * plugins like Kotlin).
-   */
-  val additionalClassesFolders: Collection<File>
-
-  /**
-   * Returns the folder containing resource files that classes form this artifact expect to find
-   * on the classpath.
-   */
-  val javaResourcesFolder: File?
+  val classesFolder: Collection<File>
 
   /**
    * A SourceProvider specific to the variant. This can be null if there is no flavors as the
@@ -91,6 +79,7 @@ interface IdeBaseArtifact : Serializable {
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
   val level2Dependencies: IdeDependencies
+  val unresolvedDependencies: List<IdeUnresolvedDependencies>
 
   // See: http://b/71706169
   fun addGeneratedSourceFolder(generatedSourceFolder: File)

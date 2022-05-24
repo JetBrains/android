@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.observable;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.list.MapExpression;
-import com.android.tools.idea.observable.collections.ObservableList;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.Arrays;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class BindingsManagerTest {
 
@@ -74,7 +73,7 @@ public final class BindingsManagerTest {
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
-    bindings.bind(stringList, new MapExpression<Integer, String>(numericList) {
+    bindings.bind(stringList, new MapExpression<>(numericList) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -156,7 +155,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<>();
     ObservableList<Integer> src = new ObservableList<>();
 
-    bindings.bind(dest, new MapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -212,7 +211,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<>();
     ObservableList<Integer> src = new ObservableList<>();
 
-    bindings.bind(dest, new MapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {

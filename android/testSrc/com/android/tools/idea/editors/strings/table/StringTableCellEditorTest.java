@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.intellij.ui.JBColor;
+import java.awt.event.ActionEvent;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.event.ActionEvent;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public final class StringTableCellEditorTest {
   private JTextField myComponent;

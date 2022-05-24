@@ -18,12 +18,10 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.Enumeration;
 import java.util.function.Function;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A tree node used in {@link SdkUpdaterConfigurable}. Represents a summary view of several packages.

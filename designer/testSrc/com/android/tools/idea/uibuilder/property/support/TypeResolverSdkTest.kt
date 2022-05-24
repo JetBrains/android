@@ -158,6 +158,22 @@ class TypeResolverSdkTest {
   }
 
   @Test
+  fun testMaterial3ViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, "material/material")
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
+    val report = Report(MATERIAL_HEADER)
+    for (folder in psiPackage.subPackages) {
+      folder.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
+      folder.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    }
+    report.dumpReport(report.totalErrors > 0)
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
   fun testRecyclerViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, RECYCLER_VIEW_V7_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)

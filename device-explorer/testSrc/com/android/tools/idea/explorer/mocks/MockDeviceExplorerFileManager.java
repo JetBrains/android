@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
+import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +51,8 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final Set<DeviceFileSystem> myDevices = new HashSet<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<VirtualFile> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
+  @Nullable private RuntimeException myOpenFileInEditorError;
 
   public MockDeviceExplorerFileManager(
     @NotNull Project project,
@@ -57,7 +61,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     @NotNull Supplier<Path> defaultPath) {
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath);
+    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath::get);
   }
 
   @NotNull
@@ -68,7 +72,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     myDevices.add(entry.getFileSystem());
 
     ListenableFuture<VirtualFile> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<VirtualFile>() {
+    myEdtExecutor.addCallback(futureResult, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable VirtualFile result) {
         myDownloadFileEntryCompletionTracker.produce(result);
@@ -84,13 +88,22 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @Override
-  public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
+  public ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile) {
     return myFileManagerImpl.deleteFile(virtualFile);
   }
 
   @Override
   public @NotNull Path getPathForEntry(@NotNull DeviceFileEntry entry, @NotNull Path destinationPath) {
     return myFileManagerImpl.getPathForEntry(entry, destinationPath);
+  }
+
+  @Override
+  public @NotNull ListenableFuture<Void> openFile(@NotNull Path localPath) {
+    myOpenFileInEditorTracker.produce(localPath);
+    if (myOpenFileInEditorError != null) {
+      return Futures.immediateFailedFuture(myOpenFileInEditorError);
+    }
+    return myFileManagerImpl.openFile(localPath);
   }
 
   @NotNull
@@ -132,5 +145,14 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull
   public FutureValuesTracker<VirtualFile> getDownloadFileEntryCompletionTracker() {
     return myDownloadFileEntryCompletionTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<Path> getOpenFileInEditorTracker() {
+    return myOpenFileInEditorTracker;
+  }
+
+  public void setOpenFileInEditorError(@Nullable RuntimeException e) {
+    myOpenFileInEditorError = e;
   }
 }

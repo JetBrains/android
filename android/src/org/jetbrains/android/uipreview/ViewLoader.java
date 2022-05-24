@@ -22,38 +22,39 @@ import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
-import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.facet.Facet;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.dom.manifest.Manifest;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -70,10 +71,8 @@ public class ViewLoader {
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
 
-  private static final ViewLoaderExtension[] EMPTY_EXTENSION_LIST = new ViewLoaderExtension[0];
-
   @NotNull private final Module myModule;
-  @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
+  @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<>();
   /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
   /** Classes that have been modified after compilation. */
@@ -82,16 +81,16 @@ public class ViewLoader {
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */
   @NotNull private IRenderLogger myLogger;
-  @NotNull private final ModuleClassLoader myModuleClassLoader;
+  @NotNull private final ClassLoader myClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull ModuleClassLoader classLoader) {
+                    @NotNull ClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
-    myModuleClassLoader = classLoader;
+    myClassLoader = classLoader;
   }
 
   /**
@@ -105,20 +104,8 @@ public class ViewLoader {
 
   @Nullable
   private static String getRClassName(@NotNull final Module module) {
-    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return null;
-      }
-
-      final Manifest manifest = Manifest.getMainManifest(facet);
-      if (manifest == null) {
-        return null;
-      }
-
-      final String packageName = manifest.getPackage().getValue();
-      return packageName == null ? null : packageName + '.' + R_CLASS;
-    });
+    String packageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
+    return packageName == null ? null : packageName + '.' + R_CLASS;
   }
 
   /**
@@ -132,13 +119,13 @@ public class ViewLoader {
     // right namespace.
     if (CLASS_RECYCLER_VIEW_ADAPTER.newName().equals(className)) {
       className = RecyclerViewHelper.CN_ANDROIDX_CUSTOM_ADAPTER;
-      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
-      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+      constructorSignature = ArrayUtilRt.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     else if (CLASS_RECYCLER_VIEW_ADAPTER.oldName().equals(className)) {
       className = RecyclerViewHelper.CN_SUPPORT_CUSTOM_ADAPTER;
-      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
-      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+      constructorSignature = ArrayUtilRt.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     return loadClass(className, constructorSignature, constructorArgs, false);
   }
@@ -167,7 +154,6 @@ public class ViewLoader {
 
   @Nullable
   private Object loadClass(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs, boolean isView) {
-    assert myLogger != null;
     Class<?> aClass = myLoadedClasses.get(className);
 
     if (LOG.isDebugEnabled()) {
@@ -176,13 +162,11 @@ public class ViewLoader {
 
     try {
       if (aClass != null) {
-        checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
       aClass = loadClass(className, isView);
 
       if (aClass != null) {
-        checkModified(className);
         if (myLoadingClasses.count(aClass) > ALLOWED_NESTED_VIEWS) {
           throw new InstantiationException(
             "The layout involves creation of " + className + " over " + ALLOWED_NESTED_VIEWS + " levels deep. Infinite recursion?");
@@ -239,30 +223,10 @@ public class ViewLoader {
   }
 
   @NotNull
-  private ViewLoaderExtension[] getExtensions() {
+  private List<ViewLoaderExtension> getExtensions() {
     ExtensionsArea area = myModule.getProject().getExtensionArea();
-    if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
-      return EMPTY_EXTENSION_LIST;
-    }
-    return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
-  }
-
-  /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
-  private void checkModified(@NotNull String fqcn) {
-    if (DumbService.getInstance(myModule.getProject()).isDumb()) {
-      // If the index is not ready, we can not check the modified time since it requires accessing the PSI
-      return;
-    }
-
-    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
-      myRecentlyModifiedClasses.add(fqcn);
-      RenderProblem.Html problem = RenderProblem.create(WARNING);
-      HtmlBuilder builder = problem.getHtmlBuilder();
-      String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
-      builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
-                      myLogger.getLinkManager().createBuildProjectUrl());
-      myLogger.addMessage(problem);
-    }
+    ExtensionPoint<ViewLoaderExtension> point = area.getExtensionPointIfRegistered(ViewLoaderExtension.EP_NAME.getName());
+    return point == null ? Collections.emptyList() : point.getExtensionList();
   }
 
   @NotNull
@@ -381,13 +345,13 @@ public class ViewLoader {
 
     try {
       for (ViewLoaderExtension extension : getExtensions()) {
-        Class<?> loadedClass = extension.loadClass(className, myModuleClassLoader);
+        Class<?> loadedClass = extension.loadClass(className, myClassLoader);
         if (loadedClass != null) {
           return loadedClass;
         }
       }
 
-      return myModuleClassLoader.loadClass(className);
+      return myClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
@@ -414,7 +378,7 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      return ApplicationManager.getApplication().runReadAction((Computable<Object>)() -> {
+      return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
         final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
         PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
 
@@ -477,40 +441,49 @@ public class ViewLoader {
    * @see ResourceIdManager#getFinalIdsUsed()
    */
   public void loadAndParseRClassSilently() {
-    final String rClassName = getRClassName(myModule);
-    try {
-      if (rClassName == null) {
-        LOG.info(String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
-        return;
-      }
-      myLogger.setResourceClass(rClassName);
-      loadAndParseRClass(rClassName);
-    }
-    catch (ClassNotFoundException | NoClassDefFoundError e) {
-      myLogger.setMissingResourceClass();
-    }
-    catch (InconvertibleClassError e) {
-      assert rClassName != null;
-      myLogger.addIncorrectFormatClass(rClassName, e);
-    }
+    // All the ids are loaded into the idManager for the "app module".
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+    idManager.resetCompiledIds();
+    Stream.concat(
+        Stream.of(myModule),
+        // Get all project (not external libraries) dependencies
+        AndroidDependenciesCache.getAllAndroidDependencies(myModule, false).stream().map(Facet::getModule))
+      .map(ViewLoader::getRClassName)
+      .forEach((rClassName) -> {
+        try {
+          if (rClassName == null) {
+            LOG.info(
+              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
+            return;
+          }
+          myLogger.setResourceClass(rClassName);
+          loadAndParseRClass(rClassName, idManager);
+        }
+        catch (ClassNotFoundException | NoClassDefFoundError e) {
+          myLogger.setMissingResourceClass();
+        }
+        catch (InconvertibleClassError e) {
+          assert rClassName != null;
+          myLogger.addIncorrectFormatClass(rClassName, e);
+        }
+      });
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException, InconvertibleClassError {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
 
     if (aClass == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("  The R class is not loaded.");
       }
 
-      final boolean isClassLoaded = myModuleClassLoader.isClassLoaded(className);
-      aClass = myModuleClassLoader.loadClass(className);
+      final boolean isClassLoaded = hasLoadedClass(className);
+      aClass = myClassLoader.loadClass(className);
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
@@ -542,6 +515,6 @@ public class ViewLoader {
    * Returns true if this ViewLoaded has loaded the given class.
    */
   public boolean hasLoadedClass(@NotNull String classFqn) {
-    return myModuleClassLoader.isClassLoaded(classFqn);
+    return myLoadedClasses.containsKey(classFqn);
   }
 }

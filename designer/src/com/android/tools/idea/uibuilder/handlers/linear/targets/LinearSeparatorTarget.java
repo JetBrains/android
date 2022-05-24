@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
-import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
-import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
+import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 /**
  * Displays a separator in between LinearLayout's children and used as a target when dropping

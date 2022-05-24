@@ -57,7 +57,7 @@ public class NlRhsConfigToolbarFixture {
   public void clickIssuePanelButton() {
     Robot robot = myNlEditorFixture.robot();
     ActionButton button = waitUntilShowing(
-      robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      robot, myToolBar.getComponent(), new GenericTypeMatcher<>(ActionButton.class) {
         @Override
         protected boolean isMatching(@NotNull ActionButton component) {
           return component.getAction() == ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_ISSUE_PANEL);

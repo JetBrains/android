@@ -17,11 +17,10 @@ package com.android.tools.idea.run.editor;
 
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
+import java.awt.event.ActionListener;
+import javax.swing.JComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ActionListener;
 
 public class RunConfigurationEditorContext implements DeployTargetConfigurableContext {
   private final ConfigurationModuleSelector myModuleSelector;

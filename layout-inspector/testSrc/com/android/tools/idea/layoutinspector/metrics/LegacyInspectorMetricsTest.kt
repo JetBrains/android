@@ -18,14 +18,11 @@ package com.android.tools.idea.layoutinspector.metrics
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -50,20 +47,18 @@ class LegacyInspectorMetricsTest {
   private val windowIdsRetrievedLock = CountDownLatch(1)
 
   private val windowIds = mutableListOf<String>()
-  private val legacyClientProvider = object : InspectorClientProvider {
-    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-      val loader = Mockito.mock(LegacyTreeLoader::class.java)
-      Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
-        windowIdsRetrievedLock.countDown()
-        windowIds
-      }
-      val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
-      client.launchMonitor = launchMonitor
-      return client
+  private val legacyClientProvider = InspectorClientProvider { params, inspector ->
+    val loader = Mockito.mock(LegacyTreeLoader::class.java)
+    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
+      windowIdsRetrievedLock.countDown()
+      windowIds
     }
+    val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+    client.launchMonitor = launchMonitor
+    client
   }
 
-  private val inspectorRule = LayoutInspectorRule(legacyClientProvider)
+  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!

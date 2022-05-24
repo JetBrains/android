@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics;
 
-import com.intellij.ide.util.PropertiesComponent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;

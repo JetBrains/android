@@ -15,36 +15,36 @@
  */
 package com.android.tools.adtui.device;
 
+import static com.android.utils.XmlUtils.getSubTags;
+
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.utils.XmlUtils.getSubTags;
 
 /**
  * Descriptor for a device frame picture (background, shadow, reflection) which can be
@@ -68,7 +68,7 @@ public class DeviceArtDescriptor {
     // In the IDE distribution, this should be in plugins/android/resources/FN_BASE
     String base = FileUtil.join(PathManager.getHomePath(), "plugins", "android", "resources");
     if (StudioPathManager.isRunningFromSources()) {
-      base = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources");
+      base = FileUtil.join(PathManager.getCommunityHomePath(), "android", "artwork", "resources");
     }
     File dir = new File(base, FN_BASE);
     if (dir.exists() && dir.isDirectory()) {
@@ -84,7 +84,7 @@ public class DeviceArtDescriptor {
   }
 
   private static List<File> getDescriptorFiles(@Nullable File[] additionalRoots) {
-    Set<File> roots = new HashSet<File>();
+    Set<File> roots = new HashSet<>();
 
     File base = getBundledDescriptorsFolder();
     if (base != null) {
@@ -95,7 +95,7 @@ public class DeviceArtDescriptor {
       Collections.addAll(roots, additionalRoots);
     }
 
-    List<File> files = new ArrayList<File>(roots.size());
+    List<File> files = new ArrayList<>(roots.size());
     for (File root : roots) {
       File file = getDescriptorFile(root);
       if (file != null) {
@@ -108,11 +108,11 @@ public class DeviceArtDescriptor {
 
   public static List<DeviceArtDescriptor> getDescriptors(@Nullable File[] folders) {
     List<File> files = getDescriptorFiles(folders);
-    List<DeviceArtDescriptor> result = Lists.newArrayList();
+    List<DeviceArtDescriptor> result = new ArrayList<>();
 
     for (File file : files)
       try {
-        String xml = Files.toString(file, Charsets.UTF_8);
+        String xml = Files.toString(file, StandardCharsets.UTF_8);
         Document document = XmlUtils.parseDocumentSilently(xml, false);
         if (document != null) {
           File baseFolder = file.getParentFile();

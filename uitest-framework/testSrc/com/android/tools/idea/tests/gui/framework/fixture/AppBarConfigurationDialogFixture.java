@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 public class AppBarConfigurationDialogFixture extends DialogFixture {
   private AppBarConfigurationDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
@@ -54,7 +55,7 @@ public class AppBarConfigurationDialogFixture extends DialogFixture {
   public AppBarConfigurationDialogFixture waitForPreview() {
     waitForBackgroundTasks(robot());
     waitUntilShowing(robot(),
-                   Matchers.byName(JBLabel.class, "CollapsedPreview").and(new GenericTypeMatcher<JBLabel>(JBLabel.class) {
+                   Matchers.byName(JBLabel.class, "CollapsedPreview").and(new GenericTypeMatcher<>(JBLabel.class) {
                      @Override
                      protected boolean isMatching(@NotNull JBLabel component) {
                        return component.getIcon() != null;

@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.quickfix
 
-import com.android.sdklib.SdkVersionInfo.*
+import com.android.sdklib.SdkVersionInfo.getBuildCode
 
 
 fun getVersionField(api: Int, fullyQualified: Boolean): String = getBuildCode(api)?.let {

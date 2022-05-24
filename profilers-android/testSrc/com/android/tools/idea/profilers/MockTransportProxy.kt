@@ -23,8 +23,8 @@ import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
 import io.grpc.ManagedChannel
 import io.grpc.netty.NettyChannelBuilder
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.LinkedBlockingDeque
 

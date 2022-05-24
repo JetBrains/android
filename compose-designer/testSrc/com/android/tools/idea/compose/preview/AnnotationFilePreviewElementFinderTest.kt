@@ -115,6 +115,10 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         fun Preview5() {
         }
 
+        @[Composable Preview]
+        fun Preview6() {
+        }
+
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
         @Composable
         @Preview(name = "Preview with parameters")
@@ -152,8 +156,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         fun OtherFilePreview1() {
         }
 
-        @Composable
-        @Preview
+        @[Composable Preview]
         fun OtherFilePreview2() {
         }
       """.trimIndent())
@@ -163,7 +166,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
     val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList() }
-    assertEquals(7, elements.size)
+    assertEquals(8, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
@@ -243,10 +246,24 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[5].let {
-      assertEquals("Preview with parameters", it.displaySettings.name)
+      assertEquals("Preview6", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview6", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("Preview", it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[6].let {
+      assertEquals("Preview with parameters", it.displaySettings.name)
+    }
+
+    elements[7].let {
       assertEquals("FQN", it.displaySettings.name)
     }
   }
@@ -263,13 +280,23 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         @$PREVIEW_TOOLING_PACKAGE.Preview
         fun Preview1() {
         }
+
+        @[Composable $PREVIEW_TOOLING_PACKAGE.Preview]
+        fun Preview2() {
+        }
       """.trimIndent())
 
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-    elements.single().run {
-      assertEquals("TestKt.Preview1", composableMethodFqn)
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    assertEquals(2, elements.size)
+
+    elements[0].let{
+      assertEquals("TestKt.Preview1", it.composableMethodFqn)
+    }
+
+    elements[1].let{
+      assertEquals("TestKt.Preview2", it.composableMethodFqn)
     }
   }
 

@@ -44,7 +44,7 @@ public abstract class Expression<T> extends AbstractObservableValue<T> implement
 
   @NotNull
   public static <T> Expression<T> create(@NotNull Supplier<? extends T> valueSupplier, @NotNull ObservableValue<?>... values) {
-    return new Expression<T>(values) {
+    return new Expression<>(values) {
       @Override
       @NotNull
       public T get() {

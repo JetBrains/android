@@ -30,11 +30,11 @@ import com.intellij.util.messages.MessageBusConnection
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class BuildAnalyzerShowActionStateManagerTest {
 

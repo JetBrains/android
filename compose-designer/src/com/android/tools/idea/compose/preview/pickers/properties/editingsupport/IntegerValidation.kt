@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 
 /**
  * Validates for non-negative integers, but shows a warning for 'zero' values.
@@ -34,7 +34,7 @@ val IntegerStrictValidator = createIntegerValidator(IntegerValidatorType.STRICT)
  * Creates an [EditingValidation] instance that validates for positive (>0) integer numbers.
  */
 private fun createIntegerValidator(type: IntegerValidatorType): EditingValidation = validator@{ editedValue: String? ->
-  if (editedValue == null || editedValue.isBlank()) return@validator EDITOR_NO_ERROR
+  if (editedValue.isNullOrBlank()) return@validator EDITOR_NO_ERROR
   val trimmedValue = editedValue.trim()
 
   val numberValue =

@@ -15,7 +15,15 @@
  */
 package com.android.tools.property.ptable2.item
 
-import com.android.tools.property.ptable2.*
+import com.android.tools.property.ptable2.DefaultPTableCellEditor
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableCellEditor
+import com.android.tools.property.ptable2.PTableCellEditorProvider
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.android.tools.property.ptable2.impl.PTableModelImpl
 import org.mockito.Mockito
 import javax.swing.JPanel
@@ -67,6 +75,7 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   var countOfIsCellEditable = 0
   var supportInserts = false
   var supportDeletes = false
+  var hasCustomCursors = false
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     countOfIsCellEditable++
@@ -75,6 +84,8 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
       PTableColumn.VALUE -> item.name != "readonly" && item.name != "new" && !readOnly
     }
   }
+
+  override fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean = hasCustomCursors
 
   fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
     items.clear()

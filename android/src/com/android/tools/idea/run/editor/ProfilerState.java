@@ -16,23 +16,21 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  public static final String ANDROID_PROFILER_STATE_ID = "android.profilers.state";
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
   public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024*2; // 2KB
 

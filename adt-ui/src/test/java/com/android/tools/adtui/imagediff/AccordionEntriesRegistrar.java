@@ -16,11 +16,12 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.AccordionLayout;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 
 class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
 

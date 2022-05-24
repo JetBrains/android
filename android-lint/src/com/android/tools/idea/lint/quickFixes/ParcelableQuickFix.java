@@ -21,7 +21,7 @@ import static com.intellij.psi.CommonClassNames.JAVA_UTIL_ARRAY_LIST;
 import static com.intellij.psi.CommonClassNames.JAVA_UTIL_LIST;
 
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -69,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>Remove existing implementation and redo the code generation.</li>
  * </ul>
  */
-public class ParcelableQuickFix implements LintIdeQuickFix {
+public class ParcelableQuickFix extends DefaultLintQuickFix {
   private static final String CREATOR =
     "public static final android.os.Parcelable.Creator<%1$s> CREATOR = new android.os.Parcelable.Creator<%1$s>() {\n" +
     "  @Override\n" +
@@ -111,18 +111,11 @@ public class ParcelableQuickFix implements LintIdeQuickFix {
     REIMPLEMENT,
   }
 
-  private final String myName;
   private final Operation myOperation;
 
   public ParcelableQuickFix(String name, Operation operation) {
-    myName = name;
+    super(name);
     myOperation = operation;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myName;
   }
 
   @Override

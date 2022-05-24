@@ -42,7 +42,7 @@
         <CLASSES />
         <JAVADOC />
         <NATIVE>
-          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android-uitests/native/testing" />
+          <root url="file://$WORKSPACE_ROOT$/bazel-bin/tools/adt/idea/android-uitests/native/testing" />
         </NATIVE>
         <SOURCES />
       </library>
@@ -55,7 +55,7 @@
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
@@ -66,6 +66,7 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.navigator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
   </component>
 </module>

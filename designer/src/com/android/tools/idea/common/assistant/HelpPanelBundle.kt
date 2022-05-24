@@ -86,7 +86,7 @@ private constructor (private var project: Project) : ToolWindowManagerListener, 
   private val currMetric: AssistantPanelMetricsTracker? get() = metrics[currActionId]
 
   init {
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, this)
+    project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, this)
     Disposer.register(project, this)
   }
 

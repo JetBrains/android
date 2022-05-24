@@ -179,7 +179,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // small.
     if (availableWidth > 1.0f) {
       String text = generateFittingText(
-        node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
+        node.getData(), myType, s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
       float textPositionX = MARGIN_PX + (float)drawingArea.getX();
       float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
       g.drawString(text, textPositionX, textPositionY);
@@ -191,7 +191,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private static String generateFittingText(CaptureNodeModel model, Predicate<String> textFitsPredicate) {
+  private static String generateFittingText(CaptureNodeModel model, CaptureDetails.Type chartType, Predicate<String> textFitsPredicate) {
     String classOrNamespace = "";
     String separator = "";
     if (model instanceof CppFunctionModel) {
@@ -203,6 +203,8 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       separator = ".";
     }
 
+    // In Call Chart, we display the name with suffix. In Flame Chart, we display the name without.
+    String nodeName = chartType == CaptureDetails.Type.CALL_CHART ? model.getNameWithSuffix() : model.getName();
     if (!separator.isEmpty() && !classOrNamespace.isEmpty()) {
       // String#split receives a regex. As "." is a special regex character, we need to handle the case.
       String[] classElements = classOrNamespace.split(separator.equals(".") ? "\\." : separator);
@@ -223,7 +225,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
           }
           textBuilder.append(separator);
         }
-        textBuilder.append(model.getName());
+        textBuilder.append(nodeName);
         String text = textBuilder.toString();
         if (textFitsPredicate.test(text)) {
           return text;
@@ -231,7 +233,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       }
     }
 
-    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate);
+    return AdtUiUtils.shrinkToFit(nodeName, textFitsPredicate);
   }
 
   public interface TextFitsPredicate {

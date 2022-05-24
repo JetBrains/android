@@ -42,19 +42,19 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
   private static final String ICONS_PATH = "images/material/icons/";
 
   public void testDialogWithInitialIcon() throws IOException {
-    URL iconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
+    URL iconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/style1_my_icon_2_24.xml");
     assertThat(iconUrl).isNotNull();
 
     VdIcon initialIcon = new VdIcon(iconUrl);
     IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
 
-    assertThat(pickerDialog.getSelectedIcon().getName()).isEqualTo("my_icon_2.xml");
+    assertThat(pickerDialog.getSelectedIcon().getName()).isEqualTo("style1_my_icon_2_24.xml");
     pickerDialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
   public void testSelectedIconAfterStyleChange() throws IOException {
-    URL style1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
-    URL style2IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style2/my_icon_2/my_icon_2.xml");
+    URL style1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/style1_my_icon_2_24.xml");
+    URL style2IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style2/my_icon_1/style2_my_icon_1_24.xml");
 
     VdIcon initialIcon = new VdIcon(style1IconUrl);
     IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
@@ -66,13 +66,14 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
         box.setSelectedIndex(1);
       }
     });
+    // Selection changes to icon 1 since the style is part of the name, so it technically cannot find an icon with the same name as before
     assertThat(pickerDialog.getSelectedIcon().getURL()).isEqualTo(style2IconUrl);
     pickerDialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
   public void testSelectedIconAfterCategoryChange() throws IOException {
-    URL category1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_1/my_icon_1.xml");
-    URL category3IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
+    URL category1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_1/style1_my_icon_1_24.xml");
+    URL category3IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/style1_my_icon_2_24.xml");
 
     VdIcon initialIcon = new VdIcon(category1IconUrl);
     IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
@@ -91,14 +92,14 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
   public void testFiltering() {
     IconPickerDialog dialog = getInitializedIconPickerDialog(null);
 
-    dialog.setFilter("1");
+    dialog.setFilter("icon 1");
     assertThat(tableToString(dialog.getTable())).isEqualTo(
-      "my icon 1                                                                                                               \n"
+      "style1 my icon 1                                                                                                        \n"
     );
 
-    dialog.setFilter("2");
+    dialog.setFilter("icon 2");
     assertThat(tableToString(dialog.getTable())).isEqualTo(
-      "my icon 2                                                                                                               \n"
+      "style1 my icon 2                                                                                                        \n"
     );
     dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }

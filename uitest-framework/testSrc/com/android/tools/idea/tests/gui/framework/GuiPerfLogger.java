@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Benchmark;
+import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import org.jetbrains.annotations.NotNull;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-
-import javax.swing.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.time.Instant;
+import javax.swing.Timer;
+import org.jetbrains.annotations.NotNull;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /**
  * Helper class for logging UI test benchmark data.

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import java.io.File;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 public class GradleScriptStub implements GradleScript {
   @Nullable private final File mySourceFile;

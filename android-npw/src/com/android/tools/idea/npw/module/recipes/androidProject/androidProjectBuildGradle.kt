@@ -15,10 +15,21 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.tools.idea.wizard.template.GradlePluginVersion
+import com.android.tools.idea.wizard.template.renderIf
 
-fun androidProjectBuildGradle(): String {
+
+fun androidProjectBuildGradle(
+  generateKotlin: Boolean,
+  kotlinVersion: String,
+  gradlePluginVersion: GradlePluginVersion): String {
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
+    plugins {
+        id 'com.android.application' version '$gradlePluginVersion' apply false
+        id 'com.android.library' version '$gradlePluginVersion' apply false
+        ${renderIf(generateKotlin) { "id 'org.jetbrains.kotlin.android' version '$kotlinVersion' apply false" }}
+    }
 
     task clean (type: Delete) {
         delete rootProject.buildDir
@@ -26,9 +37,17 @@ fun androidProjectBuildGradle(): String {
     """
 }
 
-fun androidProjectBuildGradleKts(): String {
+fun androidProjectBuildGradleKts(
+  generateKotlin: Boolean,
+  kotlinVersion: String,
+  gradlePluginVersion: GradlePluginVersion): String {
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
+    plugins {
+        id("com.android.application") version "$gradlePluginVersion" apply false
+        id("com.android.library") version "$gradlePluginVersion" apply false
+        ${renderIf(generateKotlin) { "id(\"org.jetbrains.kotlin.android\") version \"$kotlinVersion\" apply false" }}
+    }
 
     tasks.register("clean", Delete::class) {
         delete(rootProject.buildDir)

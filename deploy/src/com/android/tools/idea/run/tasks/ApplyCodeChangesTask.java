@@ -26,6 +26,7 @@ import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,8 +44,9 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param rerunOnSwapFailure rerun the app when swap fails
    */
   public ApplyCodeChangesTask(
-    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
+    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
+      Computable<String> installPathProvider) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
   }
 
   @NotNull

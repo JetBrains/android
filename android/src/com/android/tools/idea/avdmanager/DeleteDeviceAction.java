@@ -17,11 +17,9 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Action to delete a selected {@link Device}.

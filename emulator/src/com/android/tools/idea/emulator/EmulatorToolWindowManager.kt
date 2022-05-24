@@ -22,7 +22,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
-import com.android.tools.idea.run.AppDeploymentListener
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
@@ -154,8 +154,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                      }
                                    })
 
-    messageBusConnection.subscribe(AppDeploymentListener.TOPIC,
-                                   AppDeploymentListener { device, project ->
+    messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC,
+                                   DeviceHeadsUpListener { device, project ->
                                      if (project == this.project && device.isEmulator) {
                                        onDeploymentToEmulator(device)
                                      }
@@ -280,7 +280,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       showLiveIndicator(toolWindow)
     }
 
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
       isCloseable = true
@@ -324,7 +324,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   private fun createPlaceholderPanel() {
     val panel = PlaceholderPanel(project)
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel, panel.title, false).apply {
       tabName = panel.title
       isCloseable = false
@@ -411,6 +411,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   private inner class ToggleDeviceFrameAction : ToggleAction("Show Device Frame"), DumbAware {
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      val panel = selectedPanel
+      event.presentation.isEnabled = panel is EmulatorToolWindowPanel && panel.emulator.emulatorConfig.skinFolder != null
+    }
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return deviceFrameVisible
     }
@@ -421,6 +428,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private inner class ToggleZoomToolbarAction : ToggleAction("Show Zoom Controls"), DumbAware {
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return zoomToolbarIsVisible
     }

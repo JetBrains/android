@@ -17,8 +17,8 @@ package com.android.tools.idea.lint.quickFixes;
 
 import com.android.resources.Density;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,11 +35,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
-public class ConvertToDpQuickFix implements LintIdeQuickFix {
+public class ConvertToDpQuickFix extends DefaultLintQuickFix {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix");
   private static final Pattern PX_ATTR_VALUE_PATTERN = Pattern.compile("(\\d+)px");
 
   private static int ourPrevDpi = Density.DEFAULT_DENSITY;
+
+  public ConvertToDpQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.convert.to.dp"));
+  }
 
   @Override
   public boolean startInWriteAction() {
@@ -157,11 +161,5 @@ public class ConvertToDpQuickFix implements LintIdeQuickFix {
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return contextType != AndroidQuickfixContexts.BatchContext.TYPE &&
            PsiTreeUtil.getParentOfType(startElement, XmlTag.class) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.convert.to.dp");
   }
 }

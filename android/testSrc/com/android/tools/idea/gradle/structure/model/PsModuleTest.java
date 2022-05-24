@@ -15,6 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
@@ -30,17 +44,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.IOException;
-import org.hamcrest.Matcher;
-
 import java.util.List;
+import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
-
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PsModuleTest extends AndroidGradleTestCase {
 
@@ -69,6 +75,11 @@ public class PsModuleTest extends AndroidGradleTestCase {
   }
 
   public void testLocalRepositories() throws Exception {
+    if (AndroidGradleTests.shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio();
+      return; // IDEA does not use local repositories during testing
+    }
+
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
     PsProject psProject = new PsProjectImpl(getProject(), new CachingRepositorySearchFactory());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");

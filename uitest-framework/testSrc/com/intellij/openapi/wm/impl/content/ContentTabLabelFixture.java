@@ -53,7 +53,7 @@ public class ContentTabLabelFixture {
 
     @NotNull
   public static ContentTabLabelFixture find(@NotNull Robot robot, @Nullable Container root, @NotNull ComponentMatcher matcher, long secondsToWait) {
-    ContentTabLabel label = GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<ContentTabLabel>(ContentTabLabel.class) {
+    ContentTabLabel label = GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<>(ContentTabLabel.class) {
       @Override
       protected boolean isMatching(@NotNull ContentTabLabel component) {
         return matcher.matches(component);

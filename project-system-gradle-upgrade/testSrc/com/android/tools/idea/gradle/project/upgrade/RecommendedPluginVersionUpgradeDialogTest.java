@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
 import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
 import java.awt.event.ActionEvent;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeDialog}.

@@ -17,9 +17,9 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class MainMemoryProfilerStageViewFake extends MainMemoryProfilerStageView {
   public MainMemoryProfilerStageViewFake(@NotNull StudioProfilersView profilersView,

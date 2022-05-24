@@ -18,13 +18,13 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.HighlightedRegion;
 import com.intellij.ui.HyperlinkLabel;
+import java.awt.FontMetrics;
+import java.awt.Point;
+import java.util.ArrayList;
 import org.fest.reflect.core.Reflection;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-import java.awt.FontMetrics;
-import java.awt.Point;
-import java.util.ArrayList;
 
 public class HyperlinkLabelFixture extends JComponentFixture<HyperlinkLabelFixture, HyperlinkLabel> {
   public HyperlinkLabelFixture(@NotNull Robot robot, @NotNull HyperlinkLabel target) {

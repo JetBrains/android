@@ -17,11 +17,10 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
@@ -47,7 +46,7 @@ import org.jetbrains.kotlin.idea.util.module
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
-  : AnAction(message("action.deploy.title"), message("action.deploy.description"), RUN_ON_DEVICE), CustomComponentAction {
+  : AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
@@ -62,8 +61,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled &&
-                               isNoLibraryAndroidModule
+    e.presentation.isVisible = isNoLibraryAndroidModule
     e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
   }
 
@@ -91,6 +89,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
                                    }
     (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
       .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
+    RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 

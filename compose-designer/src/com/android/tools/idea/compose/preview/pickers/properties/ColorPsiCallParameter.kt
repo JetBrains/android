@@ -2,7 +2,7 @@ package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.res.colorToStringWithAlpha
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
@@ -13,7 +13,7 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
+import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.constants.LongValue

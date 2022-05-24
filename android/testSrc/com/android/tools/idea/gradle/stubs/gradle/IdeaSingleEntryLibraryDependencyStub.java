@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import java.io.File;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 public class IdeaSingleEntryLibraryDependencyStub implements IdeaSingleEntryLibraryDependency {
   @NotNull private final File myFile;

@@ -15,6 +15,4 @@
  */
 package com.android.tools.idea.gradle.model
 
-import java.lang.RuntimeException
-
 class UnusedModelMethodException(methodName: String) : RuntimeException("Method '$methodName' is not used by the IDE")

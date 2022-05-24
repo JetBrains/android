@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.Description;
-import org.junit.runner.manipulation.Filter;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.Description;
+import org.junit.runner.manipulation.Filter;
 
 public class TestGroupFilterTest {
 

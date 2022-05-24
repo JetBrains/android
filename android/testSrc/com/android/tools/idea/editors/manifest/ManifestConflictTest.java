@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_ATTRIBUTE;
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_MIN_SDK;
+
 import com.android.manifmerger.MergingReport;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.testing.TestProjectPaths.*;
 
 public class ManifestConflictTest extends AndroidGradleTestCase {
 
@@ -36,22 +36,6 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
 
   public void testResolveAttributeConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_ATTRIBUTE);
-    String[] errors = getErrorHtml();
-    assertEquals(1, errors.length);
-    clickLink(errors[0], 0);
-    assertEquals(0, getErrorHtml().length);
-  }
-
-  public void testResolveBuildPackageConflict() throws Exception {
-    loadProject(MANIFEST_CONFLICT_BUILD_PACKAGE);
-    String[] errors = getErrorHtml();
-    assertEquals(1, errors.length);
-    clickLink(errors[0], 0);
-    assertEquals(0, getErrorHtml().length);
-  }
-
-  public void testResolveFlavorPackageConflict() throws Exception {
-    loadProject(MANIFEST_CONFLICT_FLAVOR_PACKAGE);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);

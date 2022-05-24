@@ -219,6 +219,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
 
     addDependency(module, artifact)
+    // Also add on an extra dependency for special cases.
+    getMavenClassRegistry()
+      .findExtraArtifacts(artifact)
+      .forEach { addDependency(module, it.key, it.value) }
 
     // Also add dependent annotation processor?
     if (module.getModuleSystem().canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {

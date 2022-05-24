@@ -26,14 +26,13 @@ import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser;
 import com.android.utils.ILogger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A parser for Gradle's final error message on failed builds. It is of the form:

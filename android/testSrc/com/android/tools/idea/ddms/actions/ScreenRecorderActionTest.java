@@ -134,8 +134,8 @@ public final class ScreenRecorderActionTest {
 
     AvdInfo virtualDevice = new AvdInfo(
       "Pixel_2_XL_API_28",
-      new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.ini"),
-      "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd",
+      Paths.get("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.ini"),
+      Paths.get("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd"),
       Mockito.mock(ISystemImage.class),
       null);
 

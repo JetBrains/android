@@ -26,8 +26,8 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
 

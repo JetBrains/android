@@ -17,9 +17,9 @@ package com.android.tools.idea.ui;
 
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.ui.LayeredIcon;
+import javax.swing.Icon;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public final class Icons {
   private Icons() {

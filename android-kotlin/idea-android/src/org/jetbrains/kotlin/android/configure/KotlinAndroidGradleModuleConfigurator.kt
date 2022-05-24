@@ -1,12 +1,8 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the license/LICENSE.txt file.
- */
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package org.jetbrains.kotlin.android.configure
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.DependencyManagementException
@@ -24,15 +20,18 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.idea.configuration.AndroidGradle
-import org.jetbrains.kotlin.idea.configuration.GradleBuildScriptManipulator
-import org.jetbrains.kotlin.idea.configuration.KotlinWithGradleConfigurator
+import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
+import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
+import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
+import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
+import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
 import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime
-import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
@@ -40,20 +39,17 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override val targetPlatform: TargetPlatform = JvmPlatforms.defaultJvmPlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform(): org.jetbrains.kotlin.resolve.TargetPlatform = JvmPlatforms.CompatJvmPlatform
-
     override val presentableText: String = "Android with Gradle"
 
-    public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == AndroidGradle
+    public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == BuildSystemType.AndroidGradle
 
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
-    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
-        val manipulator = getManipulator(file, false)
+    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: IdeKotlinVersion): Boolean {
+        val manipulator = KotlinGradleFacadeImpl.getManipulator(file, false)
         val module = ModuleUtil.findModuleForPsiElement(file)?: return false
         val sdk = ModuleRootManager.getInstance(module).sdk
         val jvmTarget = getJvmTarget(sdk, version)
@@ -77,7 +73,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-    override fun getStdlibArtifactName(sdk: Sdk?, version: String): String {
+    override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
         if (sdk != null && hasJreSpecificRuntime(version)) {
             val sdkVersion = sdk.version
             if (sdkVersion != null && sdkVersion.isAtLeast(JavaSdkVersion.JDK_1_8)) {
@@ -98,8 +94,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     private fun addDependency(manipulator: GradleBuildScriptManipulator<*>, groupId: String, artifactId: String, version: String) {
         manipulator.addKotlinLibraryToModuleBuildScript(
-          DependencyScope.COMPILE,
-          ExternalLibraryDescriptor(groupId, artifactId, version, version))
+            null,
+            DependencyScope.COMPILE,
+            ExternalLibraryDescriptor(groupId, artifactId, version, version),
+        )
     }
 
     // Return version string of the specified dependency if module depends on it, and null otherwise.

@@ -15,15 +15,14 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
 
 public class IntegerConverter extends ResolvingConverter<String> {
   public static final IntegerConverter INSTANCE = new IntegerConverter();

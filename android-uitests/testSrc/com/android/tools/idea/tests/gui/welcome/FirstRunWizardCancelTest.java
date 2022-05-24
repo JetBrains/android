@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.welcome;
 
+import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.welcome.FirstRunWizardFixture;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class FirstRunWizardCancelTest {

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.io.CancellableFileIo
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
-import com.android.repository.io.FileOpUtils
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.observable.ui.TextProperty
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.install.ComponentInstaller
@@ -34,6 +34,7 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
@@ -47,6 +48,8 @@ import com.intellij.ui.layout.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.util.containers.isEmpty
+import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
@@ -56,6 +59,7 @@ import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.event.KeyEvent
 import java.io.File
+import java.nio.file.Paths
 import javax.accessibility.AccessibleContext
 import javax.swing.AbstractCellEditor
 import javax.swing.JCheckBox
@@ -181,7 +185,7 @@ class SdkComponentsStep(
 
   inner class SdkPathValidator : Validator<String> {
     override fun validate(value: String): Validator.Result {
-      val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(File(value))
+      val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(Paths.get(value))
 
       if (defaultValidatorResult.severity == Validator.Severity.ERROR) {
         return defaultValidatorResult
@@ -214,7 +218,7 @@ class SdkComponentsStep(
   }
 
 
-  override fun getPreferredFocusComponent(): JComponent? = componentsTable
+  override fun getPreferredFocusComponent(): JComponent = componentsTable
 
   // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
   lateinit var componentInstaller: ComponentInstaller
@@ -242,7 +246,7 @@ class SdkComponentsStep(
   }
 
   private fun loadingError() {
-    componentDescription.text = "There was an error while loading a list of components. Please try to restart Android Studio."
+    componentDescription.text = "There was an error while loading a list of components. Please try to restart ${ApplicationNamesInfo.getInstance().fullProductName}."
   }
 
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {
@@ -440,7 +444,7 @@ fun getDiskSpace(path: String?): String {
     "$available (drive $driveName)"
   }
   else {
-    available.toString()
+    available
   }
 }
 
@@ -463,5 +467,5 @@ fun isNonEmptyNonSdk(path: String?): Boolean {
     return false
   }
   val file = File(path)
-  return file.exists() && FileOpUtils.create().listFiles(file).isNotEmpty() && AndroidSdkData.getSdkData(file) == null
+  return file.exists() && !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() && AndroidSdkData.getSdkData(file) == null
 }

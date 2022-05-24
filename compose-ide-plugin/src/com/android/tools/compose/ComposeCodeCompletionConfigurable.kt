@@ -19,8 +19,7 @@ import com.intellij.application.options.editor.CheckboxDescriptor
 import com.intellij.application.options.editor.checkBox
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.PropertyBinding
-import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.*
 
 /**
  * Provides additional options in Settings | Editor | Code Completion section.
@@ -32,8 +31,7 @@ class ComposeCodeCompletionConfigurable : BoundConfigurable("Compose") {
 
   private val checkboxDescriptor = CheckboxDescriptor(
     ComposeBundle.message("compose.enable.insertion.handler"),
-    PropertyBinding({ settings.state.isComposeInsertHandlerEnabled }, { settings.state.isComposeInsertHandlerEnabled = it })
-  )
+    settings.state::isComposeInsertHandlerEnabled)
 
   override fun createPanel(): DialogPanel {
     return panel {

@@ -16,14 +16,17 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.Memory
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.LoadTraceRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
 import com.android.tools.profilers.IdeProfilerServices
+import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModel
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
@@ -32,8 +35,8 @@ import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -58,49 +61,69 @@ class TraceProcessorServiceImpl(
 
     @JvmStatic
     fun getInstance(): TraceProcessorService {
-      return ServiceManager.getService(TraceProcessorServiceImpl::class.java)
+      return ApplicationManager.getApplication().getService(TraceProcessorServiceImpl::class.java)
+    }
+
+    /**
+     * Creates request builders for querying CPU data, and a model to collect the result
+     * when these requests are executed.
+     */
+    private fun cpuDataRequest(processes: List<ProcessModel>,
+                               selectedProcess: ProcessModel,
+                               modelBuilder: TraceProcessorModel.Builder): List<RequestBuilder> {
+      fun androidFrameTimelineRequest(id: Long, handle: (TraceProcessor.AndroidFrameTimelineResult) -> Unit ) =
+        RequestBuilder({ setAndroidFrameTimelineRequest(
+          QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(id))},
+                       { handle(it.androidFrameTimelineResult) })
+      val requests = mutableListOf(
+        // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
+        RequestBuilder({ processMetadataRequest = QueryParameters.ProcessMetadataParameters.getDefaultInstance() },
+                       { modelBuilder.addProcessMetadata(it.processMetadataResult) }),
+        // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
+        RequestBuilder({ schedRequest = QueryParameters.SchedulingEventsParameters.getDefaultInstance() },
+                       { modelBuilder.addSchedulingEvents(it.schedResult) }),
+        // Query all CPU data.
+        RequestBuilder({ cpuCoreCountersRequest = QueryParameters.CpuCoreCountersParameters.getDefaultInstance() },
+                       { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }),
+        // Query Android frame events.
+        // Use the selected process name as layer name hint, e.g. com.example.app/MainActivity#0.
+        RequestBuilder({ setAndroidFrameEventsRequest(
+          QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint(selectedProcess.name) )},
+                       { modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult) }),
+        // Query Android FrameTimeline events.
+        androidFrameTimelineRequest(selectedProcess.id.toLong(), modelBuilder::addAndroidFrameTimelineEvents)
+      )
+
+      processes.find {
+        it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
+      }?.id?.let { surfaceflingerId ->
+        requests.add(androidFrameTimelineRequest(surfaceflingerId.toLong(),
+                                                 modelBuilder::indexSurfaceflingerFrameTimelineEvents))
+      }
+
+      // Now let's add the queries that we limit for the processes we're interested in:
+      for (id in processes.map { it.id }) {
+        requests.add(RequestBuilder({
+                                      setTraceEventsRequest(
+                                        QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())) },
+                                    { modelBuilder.addTraceEvents(it.traceEventsResult) }))
+        requests.add(RequestBuilder({
+                                      setProcessCountersRequest(
+                                        QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())) },
+                                    { modelBuilder.addProcessCounters(it.processCountersResult) }))
+      }
+      return requests
     }
 
     @VisibleForTesting
-    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>, selectedProcess: ProcessModel): QueryBatchRequest {
-      val queryBuilder = QueryBatchRequest.newBuilder()
-        // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
-        .addQuery(QueryParameters.newBuilder()
-                    .setTraceId(traceId)
-                    .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
-        // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
-        .addQuery(QueryParameters.newBuilder()
-                    .setTraceId(traceId)
-                    .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
-        // Query all CPU data.
-        .addQuery(QueryParameters.newBuilder()
-                    .setTraceId(traceId)
-                    .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
-        // Query Android frame events.
-        // Use the selected process name as layer name hint, e.g. com.example.app/MainActivity#0.
-        .addQuery(QueryParameters.newBuilder()
-                    .setTraceId(traceId)
-                    .setAndroidFrameEventsRequest(
-                      QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint(selectedProcess.name)))
-        // Query Android FrameTimeline events.
-        .addQuery(QueryParameters.newBuilder()
-                    .setTraceId(traceId)
-                    .setAndroidFrameTimelineRequest(
-                      QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(selectedProcess.id.toLong())))
+    fun buildCpuDataRequestProto(traceId: Long, processes: List<ProcessModel>, selectedProcess: ProcessModel): QueryBatchRequest =
+      buildBatchQuery(traceId, cpuDataRequest(processes, selectedProcess, TraceProcessorModel.Builder()))
 
-      // Now let's add the queries that we limit for the processes we're interested in:
-      for (id in processIds) {
-        queryBuilder.addQuery(QueryParameters.newBuilder()
-                                .setTraceId(traceId)
-                                .setTraceEventsRequest(QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
-        queryBuilder.addQuery(QueryParameters.newBuilder()
-                                .setTraceId(traceId)
-                                .setProcessCountersRequest(
-                                  QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())))
+    private fun buildBatchQuery(traceId: Long, requestBuilders: List<RequestBuilder>): QueryBatchRequest =
+      with(QueryBatchRequest.newBuilder()) {
+        requestBuilders.forEach { (setUp, _) -> addQuery(QueryParameters.newBuilder().setTraceId(traceId).apply(setUp)) }
+        build()
       }
-
-      return queryBuilder.build()
-    }
   }
 
   override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
@@ -151,63 +174,45 @@ class TraceProcessorServiceImpl(
     }
   }
 
-  override fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel> {
-    val methodStopwatch = Stopwatch.createStarted(ticker)
-    val query = QueryBatchRequest.newBuilder()
-      // Query metadata for all processes.
-      .addQuery(QueryParameters.newBuilder()
-                  .setTraceId(traceId)
-                  .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
-      .build()
-
-    LOGGER.info("TPD Service: Querying process metadata for trace $traceId.")
-    val queryStopwatch = Stopwatch.createStarted(ticker)
-    val queryResult = executeBatchQuery(traceId, query, ideProfilerServices)
-    queryStopwatch.stop()
-    val queryTimeMs = queryStopwatch.elapsed(TimeUnit.MILLISECONDS)
-
-    if (!queryResult.completed) {
-      methodStopwatch.stop()
-      val methodTimeMs = methodStopwatch.elapsed(TimeUnit.MILLISECONDS)
-      ideProfilerServices.featureTracker.trackTraceProcessorProcessMetadata(TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_FAILED,
-                                                                            methodTimeMs, queryTimeMs)
-      val failureReason = queryResult.failure!!
-      LOGGER.info("TPD Service: Fail to get process metadata for trace $traceId: ${failureReason.message}")
-      throw RuntimeException("TPD Service: Fail to get process metadata for trace $traceId: ${failureReason.message}", failureReason)
+  override fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel> =
+    TraceProcessorModel.Builder().let { modelBuilder ->
+      handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorProcessMetadata,
+                    RequestBuilder({ processMetadataRequest = QueryParameters.ProcessMetadataParameters.getDefaultInstance() },
+                             { modelBuilder.addProcessMetadata(it.processMetadataResult) }))
+      modelBuilder.build().getProcesses()
     }
-
-    val response = queryResult.response!!
-    var queryError = false
-    response.resultList.forEach {
-      if (!it.ok) {
-        queryError = true
-        LOGGER.warn("TPD Service: Process metadata query error - ${it.failureReason} - ${it.error}")
-      }
-    }
-
-    val modelBuilder = TraceProcessorModel.Builder()
-    response.resultList
-      .filter { it.hasProcessMetadataResult() }
-      .forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
-    val model = modelBuilder.build()
-
-    // Report metrics for OK or ERROR query
-    methodStopwatch.stop()
-    val methodTimeMs = methodStopwatch.elapsed(TimeUnit.MILLISECONDS)
-    val queryStatus =
-      if (queryError) TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_ERROR
-      else TraceProcessorDaemonQueryStats.QueryReturnStatus.OK
-    ideProfilerServices.featureTracker.trackTraceProcessorProcessMetadata(queryStatus, methodTimeMs, queryTimeMs)
-
-    return model.getProcesses()
-  }
 
   override fun loadCpuData(traceId: Long,
-                           processIds: List<Int>,
+                           processes: List<ProcessModel>,
                            selectedProcess: ProcessModel,
-                           ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
+                           ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter =
+    TraceProcessorModel.Builder().also { modelBuilder ->
+      val requests = cpuDataRequest(processes, selectedProcess, modelBuilder)
+      handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorCpuData, *requests.toTypedArray())
+    }.build()
+
+  override fun loadMemoryData(traceId: Long,
+                              abi: String,
+                              memorySet: NativeMemoryHeapSet,
+                              ideProfilerServices: IdeProfilerServices) {
+    val converter = HeapProfdConverter(abi, memorySet, WindowsNameDemangler())
+    handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorMemoryData,
+                  RequestBuilder({ memoryRequest = Memory.AllocationDataRequest.getDefaultInstance() },
+                                 { converter.populateHeapSet(it.memoryEvents)}))
+  }
+
+  /**
+   * Execute a batch request, handling each result.
+   *
+   * The implementation assumes the batch's results come in the same order
+   * as the requests.
+   */
+  private fun handleRequest(traceId: Long,
+                            ideProfilerServices: IdeProfilerServices,
+                            trackFeature: (FeatureTracker, TraceProcessorDaemonQueryStats.QueryReturnStatus, Long, Long) -> Unit,
+                            vararg requestBuilders: RequestBuilder) {
     val methodStopwatch = Stopwatch.createStarted(ticker)
-    val queryProto = buildCpuDataRequestProto(traceId, processIds, selectedProcess)
+    val queryProto = buildBatchQuery(traceId, requestBuilders.asList())
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
     val queryStopwatch = Stopwatch.createStarted(ticker)
@@ -218,8 +223,8 @@ class TraceProcessorServiceImpl(
     if (!queryResult.completed) {
       methodStopwatch.stop()
       val methodTimeMs = methodStopwatch.elapsed(TimeUnit.MILLISECONDS)
-      ideProfilerServices.featureTracker.trackTraceProcessorCpuData(TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_FAILED,
-                                                                    methodTimeMs, queryTimeMs)
+      trackFeature(ideProfilerServices.featureTracker, TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_FAILED,
+                   methodTimeMs, queryTimeMs)
       val failureReason = queryResult.failure!!
       LOGGER.info("TPD Service: Fail to get cpu data for trace $traceId: ${failureReason.message}")
       throw RuntimeException("TPD Service: Fail to get cpu data for trace $traceId: ${failureReason.message}", failureReason)
@@ -234,20 +239,7 @@ class TraceProcessorServiceImpl(
       }
     }
 
-    val modelBuilder = TraceProcessorModel.Builder()
-    response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
-    response.resultList.filter { it.hasTraceEventsResult() }.forEach { modelBuilder.addTraceEvents(it.traceEventsResult) }
-    response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
-    response.resultList.filter { it.hasCpuCoreCountersResult() }.forEach { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }
-    response.resultList.filter { it.hasProcessCountersResult() }.forEach { modelBuilder.addProcessCounters(it.processCountersResult) }
-    response.resultList.filter { it.hasAndroidFrameEventsResult() }.forEach {
-      modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult)
-    }
-    response.resultList.filter { it.hasAndroidFrameTimelineResult() }.forEach {
-      modelBuilder.addAndroidFrameTimelineEvents(it.androidFrameTimelineResult)
-    }
-
-    val model = modelBuilder.build()
+    (response.resultList zip requestBuilders).forEach { (result, request) -> request.handle(result) }
 
     // Report metrics for OK or ERROR query
     methodStopwatch.stop()
@@ -255,57 +247,7 @@ class TraceProcessorServiceImpl(
     val queryStatus =
       if (queryError) TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_ERROR
       else TraceProcessorDaemonQueryStats.QueryReturnStatus.OK
-    ideProfilerServices.featureTracker.trackTraceProcessorCpuData(queryStatus, methodTimeMs, queryTimeMs)
-
-    return model
-  }
-
-  override fun loadMemoryData(traceId: Long,
-                              abi: String,
-                              memorySet: NativeMemoryHeapSet,
-                              ideProfilerServices: IdeProfilerServices) {
-    val methodStopwatch = Stopwatch.createStarted(ticker)
-    val converter = HeapProfdConverter(abi, memorySet, WindowsNameDemangler())
-    val query = QueryBatchRequest.newBuilder()
-      .addQuery(QueryParameters.newBuilder()
-                  .setTraceId(traceId)
-                  .setMemoryRequest(Memory.AllocationDataRequest.getDefaultInstance()))
-      .build()
-
-    LOGGER.info("TPD Service: Querying process metadata for trace $traceId.")
-    val queryStopwatch = Stopwatch.createStarted(ticker)
-    val queryResult = executeBatchQuery(traceId, query, ideProfilerServices)
-    queryStopwatch.stop()
-    val queryTimeMs = queryStopwatch.elapsed(TimeUnit.MILLISECONDS)
-
-    if (!queryResult.completed) {
-      methodStopwatch.stop()
-      val methodTimeMs = methodStopwatch.elapsed(TimeUnit.MILLISECONDS)
-      ideProfilerServices.featureTracker.trackTraceProcessorMemoryData(TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_FAILED,
-                                                                       methodTimeMs, queryTimeMs)
-      val failureReason = queryResult.failure!!
-      LOGGER.info("TPD Service: Fail to get memory data for trace $traceId: ${failureReason.message}")
-      throw RuntimeException("TPD Service: Fail to get memory data for trace $traceId: ${failureReason.message}", failureReason)
-    }
-
-    val response = queryResult.response!!
-    var queryError = false
-    response.resultList.forEach {
-      if (!it.ok) {
-        queryError = true
-        LOGGER.warn("TPD Service: Load memory data query error - ${it.failureReason} - ${it.error}")
-      }
-    }
-
-    response.resultList.filter { it.hasMemoryEvents() }.forEach { converter.populateHeapSet(it.memoryEvents) }
-
-    // Report metrics for OK or ERROR query
-    methodStopwatch.stop()
-    val methodTimeMs = methodStopwatch.elapsed(TimeUnit.MILLISECONDS)
-    val queryStatus =
-      if (queryError) TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_ERROR
-      else TraceProcessorDaemonQueryStats.QueryReturnStatus.OK
-    ideProfilerServices.featureTracker.trackTraceProcessorMemoryData(queryStatus, methodTimeMs, queryTimeMs)
+    trackFeature(ideProfilerServices.featureTracker, queryStatus, methodTimeMs, queryTimeMs)
   }
 
   override fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String> {
@@ -371,5 +313,7 @@ class TraceProcessorServiceImpl(
   }
 
   override fun dispose() {}
-}
 
+  private data class RequestBuilder(val setUpQuery: QueryParameters.Builder.() -> Unit,
+                                    val handle: (QueryResult) -> Unit)
+}

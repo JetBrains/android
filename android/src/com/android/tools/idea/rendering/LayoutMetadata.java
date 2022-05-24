@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROID_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NUM_COLUMNS;
+import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.GRID_VIEW;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_AUTO_FIT;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
@@ -23,7 +34,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -36,16 +46,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
@@ -320,7 +327,7 @@ public class LayoutMetadata {
     // Also set the values on the same elements in any resource variations
     // of the same layout
     // TODO: This should be done after a brief delay, say 50ms
-    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<List<XmlTag>>() {
+    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       @Nullable
       public List<XmlTag> compute() {
@@ -338,7 +345,7 @@ public class LayoutMetadata {
           }
 
           PsiManager manager = PsiManager.getInstance(project);
-          List<XmlTag> list = Lists.newArrayList();
+          List<XmlTag> list = new ArrayList<>();
 
           for (VirtualFile file : variations) {
             PsiFile psiFile = manager.findFile(file);
@@ -365,7 +372,7 @@ public class LayoutMetadata {
     });
 
     if (list != null && !list.isEmpty()) {
-      List<PsiFile> affectedFiles = Lists.newArrayList();
+      List<PsiFile> affectedFiles = new ArrayList<>();
       for (XmlTag tag : list) {
         PsiFile psiFile = tag.getContainingFile();
         if (psiFile != null) {

@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.DRAWABLE_PREFIX;
+
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.SdkConstants.*;
 
 public final class SearchItemHandler extends MenuHandler {
   private static final String SEARCH_ICON = "ic_search_black_24dp";

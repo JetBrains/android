@@ -65,7 +65,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
     availableThreads = captureTrees.keys
     threadIdToNode = captureTrees.mapKeys { it.key.id }
     // If the trace is empty, use [NO_THREAD_ID].
-    mainThreadId = (availableThreads.find { it.isMainThread } ?: captureTrees.maxBy { it.value.duration }?.key)?.id ?: NO_THREAD_ID
+    mainThreadId = (availableThreads.find { it.isMainThread } ?: captureTrees.maxByOrNull { it.value.duration }?.key)?.id ?: NO_THREAD_ID
     clockType = threadIdToNode[mainThreadId]?.clockType ?: ClockType.GLOBAL
     unabbreviatedTrees = threadIdToNode.values.associateWith { it.children.toList() }
   }

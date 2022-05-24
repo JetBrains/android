@@ -22,12 +22,11 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -50,6 +49,7 @@ import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.request.ClassPrepareRequest;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * handle.
  */
 public class AndroidPositionManager extends PositionManagerImpl {
-  private static Logger LOG = Logger.getInstance(AndroidPositionManager.class);
+  private static final Logger LOG = Logger.getInstance(AndroidPositionManager.class);
 
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
   private final DebugProcessImpl myDebugProcess;
@@ -208,7 +208,7 @@ public class AndroidPositionManager extends PositionManagerImpl {
 
   private static Map<AndroidVersion, VirtualFile> createSourcesByApiLevel() {
     Collection<? extends LocalPackage> sourcePackages = getAllPlatformSourcePackages();
-    Map<AndroidVersion, VirtualFile> sourcesByApi = Maps.newHashMap();
+    Map<AndroidVersion, VirtualFile> sourcesByApi = new HashMap<>();
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
@@ -236,7 +236,7 @@ public class AndroidPositionManager extends PositionManagerImpl {
 
   @Nullable
   private static String getRelPathFromSourceRoot(@NotNull Project project, @NotNull PsiFile file) {
-    ProjectFileIndex fileIndex = ProjectFileIndex.SERVICE.getInstance(project);
+    ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
     VirtualFile sourceRoot = fileIndex.getSourceRootForFile(file.getVirtualFile());
     if (sourceRoot == null) {
       LOG.debug("Could not determine source root for file: " + file.getVirtualFile().getPath());

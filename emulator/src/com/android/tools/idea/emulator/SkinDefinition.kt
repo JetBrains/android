@@ -257,56 +257,56 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       val marginBottom = cropBounds.bottom - displayBottom
 
       val images = mutableListOf<AnchoredImage>()
-      run {
+      if (marginRight > 0) {
         // Right side.
         val rect = Rectangle(displayRight, displayTop, marginRight, displaySize.height)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayRight, rect.y - displayTop)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.TOP_RIGHT, offset))
       }
-      run {
+      if (marginRight > 0 && marginTop > 0) {
         // Top right corner.
         val rect = Rectangle(displayRight, cropBounds.y, marginRight, marginTop)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayRight, rect.y - displayTop)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.TOP_RIGHT, offset))
       }
-      run {
+      if (marginTop > 0) {
         // Top side.
         val rect = Rectangle(displayLeft, cropBounds.y, displaySize.width, marginTop)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayLeft, rect.y - displayTop)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.TOP_LEFT, offset))
       }
-      run {
+      if (marginLeft > 0 && marginTop > 0) {
         // Top left corner.
         val rect = Rectangle(cropBounds.x, cropBounds.y, marginLeft, marginTop)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayLeft, rect.y - displayTop)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.TOP_LEFT, offset))
       }
-      run {
+      if (marginLeft > 0) {
         // Left side.
         val rect = Rectangle(cropBounds.x, displayTop, marginLeft, displaySize.height)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayLeft, rect.y - displayTop)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.TOP_LEFT, offset))
       }
-      run {
+      if (marginLeft > 0 && marginBottom > 0) {
         // Bottom left corner.
         val rect = Rectangle(cropBounds.x, displayBottom, marginLeft, marginBottom)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayLeft, rect.y - displayBottom)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.BOTTOM_LEFT, offset))
       }
-      run {
+      if (marginBottom > 0) {
         // Bottom side.
         val rect = Rectangle(displayLeft, displayBottom, displaySize.width, marginBottom)
         val image = background.cropped(rect)
         val offset = Point(rect.x - displayLeft, rect.y - displayBottom)
         images.add(AnchoredImage(image, rect.size, AnchorPoint.BOTTOM_LEFT, offset))
       }
-      run {
+      if (marginRight > 0 && marginBottom > 0) {
         // Bottom right corner.
         val rect = Rectangle(displayRight, displayBottom, marginRight, marginBottom)
         val image = background.cropped(rect)
@@ -431,7 +431,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
     @JvmStatic
     private fun BufferedImage.cropped(cropBounds: Rectangle): BufferedImage {
-      return getCroppedImage(this, cropBounds, -1)
+        return getCroppedImage(this, cropBounds, -1)
     }
 
     @JvmStatic

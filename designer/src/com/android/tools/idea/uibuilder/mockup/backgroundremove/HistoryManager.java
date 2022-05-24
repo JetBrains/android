@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.mockup.backgroundremove;
 
 import com.android.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayDeque;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class to save object for undo/redo by saving a maximum of object set by setMax

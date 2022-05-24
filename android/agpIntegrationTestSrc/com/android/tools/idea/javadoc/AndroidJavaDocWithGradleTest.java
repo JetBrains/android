@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.javadoc;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidTestUtils;
-import com.intellij.codeInsight.documentation.DocumentationManager;
-import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidTestUtils;
+import com.intellij.codeInsight.documentation.DocumentationManager;
+import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
   @NotNull
   private VirtualFile findFile(@NotNull String path) {
-    File filePath = new File(getProject().getBasePath(), FileUtil.toSystemDependentName(path));
+    File filePath = new File(getProject().getBasePath(), FileUtilRt.toSystemDependentName(path));
     VirtualFile file = findFileByIoFile(filePath, true);
     assertNotNull("File '" + path + "' not found.", file);
     return file;

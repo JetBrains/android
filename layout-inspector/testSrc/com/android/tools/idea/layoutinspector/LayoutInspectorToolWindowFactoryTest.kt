@@ -16,35 +16,56 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
+import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.project.TestProjectManager
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TemporaryDirectory
+import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.`when`
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
@@ -96,13 +117,14 @@ class LayoutInspectorToolWindowFactoryTest {
 
   private val disposableRule = DisposableRule()
 
-  private val inspectorRule = LayoutInspectorRule(LegacyClientProvider(disposableRule.disposable), projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)),
+                                                  projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
     it.name == LEGACY_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
-
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {
@@ -175,23 +197,13 @@ class LayoutInspectorToolWindowFactoryTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(model.processes).hasSize(3)
   }
-}
-
-class LayoutInspectorToolWindowFactorySettingsTest {
-  @get:Rule
-  val projectRule = ProjectRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
-  val adbRule = FakeAdbRule()
 
   @Test
   fun toolWindowFactoryCreatesCorrectSettings() {
-    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), disposableRule.disposable)
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
-    LayoutInspectorToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+    inspectorRule.projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
+    `when`(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
+    LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
       ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
@@ -201,5 +213,98 @@ class LayoutInspectorToolWindowFactorySettingsTest {
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
     val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
     assertThat(contentPanel.viewSettings).isInstanceOf(InspectorDeviceViewSettings::class.java)
+  }
+}
+
+@Ignore("b/205981893")
+class LayoutInspectorToolWindowFactoryDisposeTest {
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val adbRule = FakeAdbRule()
+
+  @Test
+  fun testResetSelectedProcessAfterProjectIsClosed() = runBlocking {
+    val device = MODERN_DEVICE
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
+                         DeviceState.HostConnectionType.USB)
+    ApplicationManager.getApplication().replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
+    val service = AppInspectionDiscoveryService.instance
+    val discovery = TestProcessDiscovery()
+    val apiServices: AppInspectionApiServices = mock()
+    val target: AppInspectionTarget = mock()
+    `when`(service.apiServices).thenReturn(apiServices)
+    `when`(service.apiServices.processDiscovery).thenReturn(discovery)
+    `when`(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(target)
+    `when`(apiServices.launchInspector(any())).thenReturn(mock())
+    `when`(target.getLibraryVersions(any())).thenReturn(emptyList())
+
+    // In this test we want to close the project BEFORE the tear down of this test method.
+    // Existing project rules do not allow this since they assume the project is closed in the tear down.
+    // Create and close the project explicitly instead:
+    val project = createProject()
+    val defaultError = System.err
+    try {
+      val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+      LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
+      val component = toolWindow.contentManager.selectedContent?.component!!
+      waitForCondition(25L, TimeUnit.SECONDS) {
+        ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+      }
+      val deviceViewPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewPanel>()
+      val deviceViewContentPanel = ComponentUtil.flatten(deviceViewPanel).firstIsInstance<DeviceViewContentPanel>()
+      val processes = deviceViewPanel.processes!!
+      RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
+
+      val modelUpdatedLatch = ReportingCountDownLatch(1)
+      deviceViewContentPanel.inspectorModel.modificationListeners.add { _, _, _ ->  modelUpdatedLatch.countDown() }
+      discovery.fireConnected(MODERN_PROCESS)
+      modelUpdatedLatch.await(1L, TimeUnit.SECONDS)
+
+      // In this test we want to close the project BEFORE the tear down of this test method.
+      // Existing project rules do not allow this since they assume the project is closed in the tear down.
+      // Create and close the project explicitly instead:
+      runInEdtAndWait {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
+
+      // Collect standard error output to look for AlreadyDisposedExceptions
+      val bytes = ByteArrayOutputStream()
+      System.setErr(PrintStream(bytes))
+
+      closeProject(project)
+
+      // This should not cause already disposed errors:
+      processes.selectedProcess = null
+
+      // The already disposed errors happens on various worker threads. Wait a tiny bit...
+      Thread.sleep(20)
+      val errors = bytes.toString()
+      assertThat(errors).named(errors).doesNotContain("AlreadyDisposedException")
+    }
+    finally {
+      System.setErr(defaultError)
+      if (project.isOpen) {
+        closeProject(project)
+      }
+    }
+  }
+
+  private fun createProject(): ProjectEx {
+    val projectFile = TemporaryDirectory.generateTemporaryPath("project_dispose_project${ProjectFileType.DOT_DEFAULT_EXTENSION}")
+    val options = createTestOpenProjectOptions(runPostStartUpActivities = false).copy(preloadServices = false)
+    return (ProjectManager.getInstance() as TestProjectManager).openProject(projectFile, options) as ProjectEx
+  }
+
+  private fun closeProject(project: Project) {
+    runInEdtAndWait {
+      PlatformTestUtil.forceCloseProjectWithoutSaving(project)
+      Disposer.dispose(project)
+    }
   }
 }

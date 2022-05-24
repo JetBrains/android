@@ -18,7 +18,16 @@
     <androidLaunchTaskContributor implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerLaunchTaskContributor" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerConfigurableProvider" />
+
+    <projectService
+        serviceInterface="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTracker"
+        serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
+  </extensions>
+
   <projectListeners>
     <listener class="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </projectListeners>
+
 </idea-plugin>

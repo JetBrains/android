@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+
 import com.android.Version;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 
 public class BuildEnvironment {
 

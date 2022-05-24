@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
@@ -25,9 +28,6 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class NlComponentUtilTest extends AndroidTestCase {
   private NlModel myModel;
@@ -49,7 +49,7 @@ public class NlComponentUtilTest extends AndroidTestCase {
   @NotNull
   private NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
-    NlComponentHelper.INSTANCE.registerComponent(result);
+    NlComponentRegistrar.INSTANCE.accept(result);
     return result;
   }
 

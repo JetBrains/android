@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.observable.collections;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.CountListener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "WhileLoopReplaceableByForEach"})
 public final class ObservableListTest {
@@ -484,7 +483,7 @@ public final class ObservableListTest {
     CountListener listener = new CountListener();
     numericList.addListener(listener);
 
-    numericList.setAll(ImmutableSet.<Integer>of());
+    numericList.setAll(ImmutableSet.of());
 
     assertThat(numericList).isEmpty();
     assertThat(listener.getCount()).isEqualTo(1);

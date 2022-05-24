@@ -443,7 +443,7 @@ public class ScoutProbabilities {
         // build ourConverts of widgets open from each direction
         for (int j = 0; j < directions.length; j++) {
             Direction direction = directions[j];
-            ArrayList<ScoutWidget> tmp = new ArrayList<ScoutWidget>();
+            ArrayList<ScoutWidget> tmp = new ArrayList<>();
             for (int i = 1; i < list.length; i++) {
                 ScoutWidget widget = list[i];
                 if (widget.isGuideline()) {

@@ -42,7 +42,6 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
   data class TestParams(val project: String, val flagEnabled: Boolean, val mode: SafeArgsMode)
 
   companion object {
-    @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val parameters = listOf(

@@ -33,7 +33,7 @@ const val TEMP_ANIMATED_SELECTOR_FOLDER = "drawable-temp"
 /**
  * A temp Animated Vector drawable file which is created for previewing transitions in animated selector file.
  */
-object AnimatedStateListTempFile : DrawableFileType(setOf()) {
+object AnimatedStateListTempFileType : DrawableFileType(setOf()) {
   override fun isResourceTypeOf(file: PsiFile): Boolean {
     return file is XmlFile &&
            ApplicationManager.getApplication().runReadAction(Computable { file.parent?.name == TEMP_ANIMATED_SELECTOR_FOLDER })

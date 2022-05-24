@@ -16,8 +16,7 @@
 package com.android.tools.property.ptable;
 
 import com.intellij.util.ui.AbstractTableCellEditor;
-
-import javax.swing.*;
+import javax.swing.JComponent;
 
 public abstract class PTableCellEditor extends AbstractTableCellEditor {
   public JComponent getPreferredFocusComponent() {

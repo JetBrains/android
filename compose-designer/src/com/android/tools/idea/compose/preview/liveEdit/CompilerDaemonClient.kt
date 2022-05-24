@@ -18,6 +18,26 @@ package com.android.tools.idea.compose.preview.liveEdit
 import com.intellij.openapi.Disposable
 
 /**
+ * Class that represents the result of a compilation request.
+ */
+sealed class CompilationResult {
+  /**
+   * The compilation was successful.
+   */
+  object Success: CompilationResult()
+
+  /**
+   * The daemon returned an error. [code] contains the error code returned by the daemon.
+   */
+  data class DaemonError(val code: Int): CompilationResult()
+
+  /**
+   * An exception happened while trying to execute the request. This could have happened before the request arrive to the daemon.
+   * [e] will contain the exception if available.
+   */
+  data class RequestException(val e: Throwable? = null): CompilationResult()
+}
+/**
  * Interface to implement by specific implementations that can talk to compiler daemons.
  */
 interface CompilerDaemonClient : Disposable {
@@ -27,7 +47,7 @@ interface CompilerDaemonClient : Disposable {
   val isRunning: Boolean
 
   /**
-   * Sends the given compilation requests and returns if it was successful.
+   * Sends the given compilation requests and returns a [CompilationResult] indicating the result.
    */
-  suspend fun compileRequest(args: List<String>): Boolean
+  suspend fun compileRequest(args: List<String>): CompilationResult
 }

@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -51,13 +52,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
@@ -168,7 +168,7 @@ class ResourceExplorerListViewModelImpl(
   override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
     val displayedModuleNames = mutableSetOf(facet.module.name)
     if (filterOptions.isShowModuleDependencies) {
-      displayedModuleNames.addAll(AndroidUtils.getAndroidResourceDependencies(facet.module).map { it.module.name })
+      displayedModuleNames.addAll(AndroidDependenciesCache.getAndroidResourceDependencies(facet.module).map { it.module.name })
     }
 
     ModuleManager.getInstance(facet.module.project).modules.filter { module ->

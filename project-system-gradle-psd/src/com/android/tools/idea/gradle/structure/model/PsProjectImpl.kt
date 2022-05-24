@@ -17,17 +17,19 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.TestOnly
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import javax.swing.Icon
 
@@ -66,10 +68,17 @@ class PsProjectImpl(
     moduleCollection = PsModuleCollection(this)
   }
 
-  override fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository> =
+  override fun getPluginArtifactRepositories(): Collection<ArtifactRepository> =
     (parsedModel
        .projectBuildModel
        ?.buildscript()
+       ?.repositories()
+       ?.repositories()
+       .orEmpty()
+       .mapNotNull { it.toArtifactRepository() } +
+     parsedModel
+       .projectSettingsModel
+       ?.pluginManagement()
        ?.repositories()
        ?.repositories()
        .orEmpty()
@@ -149,3 +158,10 @@ class PsProjectImpl(
     newGradleVersion = value
   }
 }
+
+@TestOnly
+fun PsProjectImpl.testResolve() {
+  // NOTE: The timeout is intentionally too high as in the test environment it may initially take longer to resolve all variants.
+  refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(90, TimeUnit.SECONDS))
+}
+

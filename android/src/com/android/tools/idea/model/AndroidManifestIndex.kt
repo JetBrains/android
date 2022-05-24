@@ -42,7 +42,6 @@ import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
 import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
@@ -110,9 +109,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
   companion object {
     @JvmField
     val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
-
-    @JvmStatic
-    fun indexEnabled() = StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
 
     /**
      * Returns corresponding [AndroidFacet]s by given key(package name)
@@ -185,10 +181,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     @JvmStatic
     private fun checkIndexAccessibleFor(project: Project): Boolean {
       return when {
-        !indexEnabled() -> {
-          LOG.error("Manifest index was queried even though it's disabled.")
-          false
-        }
         !ApplicationManager.getApplication().isReadAccessAllowed -> {
           LOG.error("Manifest index queried outside of a read action.")
           false
@@ -224,7 +216,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
   override fun getInputFilter() = InputFilter
 
   object InputFilter : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
-    override fun acceptInput(file: VirtualFile) = indexEnabled() && file.name == FN_ANDROID_MANIFEST_XML
+    override fun acceptInput(file: VirtualFile) = file.name == FN_ANDROID_MANIFEST_XML
   }
 
   object Indexer : DataIndexer<String, AndroidManifestRawText, FileContent> {

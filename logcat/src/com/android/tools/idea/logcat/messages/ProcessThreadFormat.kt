@@ -21,10 +21,19 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
  * Provides formatting for the process & thread ids
  */
 internal data class ProcessThreadFormat(val style: Style = BOTH, val enabled: Boolean = true) {
-  enum class Style(val format: (Int, Int) -> String) {
-    PID({ pid: Int, _: Int -> "%-5d ".format(pid) }),
-    BOTH({ pid: Int, tid: Int -> "%5d-%-5d ".format(pid, tid) }),
+  enum class Style(val format: (Int, Int) -> String, val width: Int) {
+    /**
+     * #####
+     */
+    PID({ pid: Int, _: Int -> "%-5d ".format(pid) }, "##### ".length),
+
+    /**
+     * #####-#####
+     */
+    BOTH({ pid: Int, tid: Int -> "%5d-%-5d ".format(pid, tid) }, "#####-##### ".length),
   }
 
   fun format(pid: Int, tid: Int) = if (enabled) style.format(pid, tid) else ""
+
+  fun width() = if (enabled) style.width else 0
 }

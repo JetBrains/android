@@ -1,6 +1,6 @@
 ModelVersion                  : <AGP_VERSION>
 ProjectType                   : PROJECT_TYPE_APP
-CompileTarget                 : android-30
+CompileTarget                 : android-<SDK_VERSION>
 BuildFolder                   : <ROOT>/app/build [-]
 buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
 IsBaseSplit                   : true
@@ -20,6 +20,7 @@ LintOptions
     IsIgnoreWarnings              : false
     IsWarningsAsErrors            : false
     IsIgnoreTestSources           : false
+    IsIgnoreTestFixturesSources   : false
     IsCheckGeneratedSources       : false
     IsCheckReleaseBuilds          : true
     IsExplainIssues               : true
@@ -53,7 +54,7 @@ VariantNames                  : paidBarSpecialRelease
 VariantNames                  : paidOtherBarSpecialRelease
 FlavorDimensions              : foo
 FlavorDimensions              : bar
-BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
 DynamicFeatures               : :dyn_feature
 ViewBindingOptions
     Enabled                       : false
@@ -62,6 +63,13 @@ DependenciesInfo
     IncludeInBundle               : true
 DefaultConfig
     ProductFlavor
+        Name                          : main
+        ApplicationIdSuffix           : defaultSuffix
+        VersionNameSuffix             : vns
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         ApplicationId                 : com.example.psd.sample.app.default
         VersionCode                   : 1
         VersionName                   : 1.0
@@ -72,8 +80,8 @@ DefaultConfig
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : 30
-            ApiString                     : 30
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         VectorDrawables
             UseSupportLibrary             : false
     SourceProvider
@@ -122,6 +130,7 @@ DefaultConfig
                 ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
 BuildTypes
     BuildType
+        Name                          : debug
         IsDebuggable                  : true
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -174,6 +183,12 @@ BuildTypes
                 JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
     BuildType
+        Name                          : release
+        ApplicationIdSuffix           : suffix
+        VersionNameSuffix             : vsuffix
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         IsDebuggable                  : false
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -195,22 +210,6 @@ BuildTypes
         ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
     ExtraSourceProviders
         ExtraSourceProvider
-            ArtifactName                  : _android_test_
-            SourceProvider
-                Name                          : androidTestRelease
-                Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
-                JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
-                KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
-                KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
-                ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
-                AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
-                ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
-                AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
-                JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
-    ExtraSourceProviders
-        ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
                 Name                          : testRelease
@@ -226,6 +225,8 @@ BuildTypes
                 JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
     BuildType
+        Name                          : specialRelease
+        VersionNameSuffix             : vnsSpecial
         IsDebuggable                  : false
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -247,22 +248,6 @@ BuildTypes
         ShadersDirectories            : <ROOT>/app/src/specialRelease/shaders [-]
     ExtraSourceProviders
         ExtraSourceProvider
-            ArtifactName                  : _android_test_
-            SourceProvider
-                Name                          : androidTestSpecialRelease
-                Manifest                      : <ROOT>/app/src/androidTestSpecialRelease/AndroidManifest.xml [-]
-                JavaDirectories               : <ROOT>/app/src/androidTestSpecialRelease/java [-]
-                KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/java [-]
-                KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/kotlin [-]
-                ResourcesDirectories          : <ROOT>/app/src/androidTestSpecialRelease/resources [-]
-                AidlDirectories               : <ROOT>/app/src/androidTestSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestSpecialRelease/rs [-]
-                ResDirectories                : <ROOT>/app/src/androidTestSpecialRelease/res [-]
-                AssetsDirectories             : <ROOT>/app/src/androidTestSpecialRelease/assets [-]
-                JniLibsDirectories            : <ROOT>/app/src/androidTestSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestSpecialRelease/shaders [-]
-    ExtraSourceProviders
-        ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
                 Name                          : testSpecialRelease
@@ -279,6 +264,7 @@ BuildTypes
                 ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
 ProductFlavors
     ProductFlavor
+        Name                          : basic
         Dimension                     : foo
         ApplicationId                 : com.example.psd.sample.app
         VectorDrawables
@@ -327,6 +313,8 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
     ProductFlavor
+        Name                          : paid
+        VersionNameSuffix             : vnsFoo
         Dimension                     : foo
         ApplicationId                 : com.example.psd.sample.app.paid
         VersionCode                   : 2
@@ -391,6 +379,8 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
     ProductFlavor
+        Name                          : bar
+        ApplicationIdSuffix           : barSuffix
         Dimension                     : bar
         VectorDrawables
     SourceProvider
@@ -438,6 +428,7 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
     ProductFlavor
+        Name                          : otherBar
         Dimension                     : bar
         resourceConfigurations        : en
         resourceConfigurations        : hdpi
@@ -613,23 +604,35 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-bar-debug
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vns
+        VersionNameWithSuffix         : 1.0vns
         TestApplicationId             : com.example.psd.sample.app.default.test
         ProductFlavors                : basic
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicBarDebugSources
             AssembleTaskName              : assembleBasicBarDebug
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarDebugSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
             VariantSourceProvider
                 Name                          : basicBarDebug
                 Manifest                      : <ROOT>/app/src/basicBarDebug/AndroidManifest.xml [-]
@@ -1281,18 +1284,22 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicBarDebugAndroidTestSources
             AssembleTaskName              : assembleBasicBarDebugAndroidTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
             VariantSourceProvider
                 Name                          : androidTestBasicBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestBasicBarDebug/AndroidManifest.xml [-]
@@ -1952,11 +1959,11 @@ IdeVariants
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarDebugUnitTestSources
             AssembleTaskName              : assembleBasicBarDebugUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarDebug
                 Manifest                      : <ROOT>/app/src/testBasicBarDebug/AndroidManifest.xml [-]
@@ -2607,14 +2614,26 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-otherBar-debug
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoo
+        VersionNameWithSuffix         : 2.0vnsvnsFoo
         TestApplicationId             : com.example.psd.sample.app.paid.test
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : paid
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -2623,14 +2642,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidOtherBarDebugSources
             AssembleTaskName              : assemblePaidOtherBarDebug
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebug/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/paidOtherBarDebug/AndroidManifest.xml [-]
@@ -3282,18 +3301,22 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidOtherBarDebugAndroidTestSources
             AssembleTaskName              : assemblePaidOtherBarDebugAndroidTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidOtherBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidOtherBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
             VariantSourceProvider
                 Name                          : androidTestPaidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestPaidOtherBarDebug/AndroidManifest.xml [-]
@@ -3953,11 +3976,11 @@ IdeVariants
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarDebugUnitTestSources
             AssembleTaskName              : assemblePaidOtherBarDebugUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarDebug/AndroidManifest.xml [-]
@@ -4608,11 +4631,23 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-bar-debug
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoo
+        VersionNameWithSuffix         : 2.0vnsvnsFoo
         TestApplicationId             : com.example.psd.sample.app.paid.test
         ProductFlavors                : paid
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -4621,14 +4656,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidBarDebugSources
             AssembleTaskName              : assemblePaidBarDebug
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarDebugSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebug/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
             VariantSourceProvider
                 Name                          : paidBarDebug
                 Manifest                      : <ROOT>/app/src/paidBarDebug/AndroidManifest.xml [-]
@@ -5280,18 +5315,22 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidBarDebugAndroidTestSources
             AssembleTaskName              : assemblePaidBarDebugAndroidTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebugAndroidTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
             VariantSourceProvider
                 Name                          : androidTestPaidBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestPaidBarDebug/AndroidManifest.xml [-]
@@ -5951,11 +5990,11 @@ IdeVariants
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarDebugUnitTestSources
             AssembleTaskName              : assemblePaidBarDebugUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarDebugUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarDebug
                 Manifest                      : <ROOT>/app/src/testPaidBarDebug/AndroidManifest.xml [-]
@@ -6606,23 +6645,35 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-bar-specialRelease
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vnsvnsSpecial
+        VersionNameWithSuffix         : 1.0vnsvnsSpecial
         TestApplicationId             : com.example.psd.sample.app.default.test
         ProductFlavors                : basic
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicBarSpecialReleaseSources
             AssembleTaskName              : assembleBasicBarSpecialRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/specialRelease [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarSpecialRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/specialRelease [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
             VariantSourceProvider
                 Name                          : basicBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/basicBarSpecialRelease/AndroidManifest.xml [-]
@@ -7273,15 +7324,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarSpecialReleaseUnitTestSources
             AssembleTaskName              : assembleBasicBarSpecialReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarSpecialReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testBasicBarSpecialRelease/AndroidManifest.xml [-]
@@ -7932,14 +7987,26 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-otherBar-specialRelease
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoovnsSpecial
+        VersionNameWithSuffix         : 2.0vnsvnsFoovnsSpecial
         TestApplicationId             : com.example.psd.sample.app.paid.test
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : paid
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -7948,14 +8015,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidOtherBarSpecialReleaseSources
             AssembleTaskName              : assemblePaidOtherBarSpecialRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/specialRelease [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarSpecialRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/specialRelease [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/paidOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -8606,15 +8673,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarSpecialReleaseUnitTestSources
             AssembleTaskName              : assemblePaidOtherBarSpecialReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -9265,14 +9336,29 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-otherBar-release
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoovsuffix
+        VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
         TestApplicationId             : com.example.psd.sample.app.paid.test
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : paid
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -9281,14 +9367,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidOtherBarReleaseSources
             AssembleTaskName              : assemblePaidOtherBarRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/release [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/release [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarRelease
                 Manifest                      : <ROOT>/app/src/paidOtherBarRelease/AndroidManifest.xml [-]
@@ -9940,15 +10026,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarReleaseUnitTestSources
             AssembleTaskName              : assemblePaidOtherBarReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidOtherBarReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarRelease
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarRelease/AndroidManifest.xml [-]
@@ -10599,26 +10689,38 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-otherBar-specialRelease
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vnsvnsSpecial
+        VersionNameWithSuffix         : 1.0vnsvnsSpecial
         TestApplicationId             : com.example.psd.sample.app.default.test
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : basic
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicOtherBarSpecialReleaseSources
             AssembleTaskName              : assembleBasicOtherBarSpecialRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/specialRelease [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarSpecialRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/specialRelease [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/basicOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -11269,15 +11371,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarSpecialReleaseUnitTestSources
             AssembleTaskName              : assembleBasicOtherBarSpecialReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -11928,26 +12034,38 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-otherBar-debug
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vns
+        VersionNameWithSuffix         : 1.0vns
         TestApplicationId             : com.example.psd.sample.app.default.test
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : basic
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicOtherBarDebugSources
             AssembleTaskName              : assembleBasicOtherBarDebug
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebug/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/basicOtherBarDebug/AndroidManifest.xml [-]
@@ -12599,18 +12717,22 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicOtherBarDebugAndroidTestSources
             AssembleTaskName              : assembleBasicOtherBarDebugAndroidTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicOtherBar/debug [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicOtherBar/debug [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
             VariantSourceProvider
                 Name                          : androidTestBasicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestBasicOtherBarDebug/AndroidManifest.xml [-]
@@ -13270,11 +13392,11 @@ IdeVariants
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarDebugUnitTestSources
             AssembleTaskName              : assembleBasicOtherBarDebugUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarDebug/AndroidManifest.xml [-]
@@ -13925,23 +14047,38 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-bar-release
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vnsvsuffix
+        VersionNameWithSuffix         : 1.0vnsvsuffix
         TestApplicationId             : com.example.psd.sample.app.default.test
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ProductFlavors                : basic
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicBarReleaseSources
             AssembleTaskName              : assembleBasicBarRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/release [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/release [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
             VariantSourceProvider
                 Name                          : basicBarRelease
                 Manifest                      : <ROOT>/app/src/basicBarRelease/AndroidManifest.xml [-]
@@ -14593,15 +14730,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarReleaseUnitTestSources
             AssembleTaskName              : assembleBasicBarReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarRelease
                 Manifest                      : <ROOT>/app/src/testBasicBarRelease/AndroidManifest.xml [-]
@@ -15252,26 +15393,41 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-otherBar-release
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
+        VersionCode                   : 1
+        VersionNameSuffix             : vnsvsuffix
+        VersionNameWithSuffix         : 1.0vnsvsuffix
         TestApplicationId             : com.example.psd.sample.app.default.test
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
         ProductFlavors                : basic
         ProductFlavors                : otherBar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         MainArtifact
             Name                          : MAIN
             CompileTaskName               : compileBasicOtherBarReleaseSources
             AssembleTaskName              : assembleBasicOtherBarRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/release [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/release [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarRelease
                 Manifest                      : <ROOT>/app/src/basicOtherBarRelease/AndroidManifest.xml [-]
@@ -15923,15 +16079,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarReleaseUnitTestSources
             AssembleTaskName              : assembleBasicOtherBarReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicOtherBarReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarRelease
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarRelease/AndroidManifest.xml [-]
@@ -16582,11 +16742,26 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-bar-release
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoovsuffix
+        VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
         TestApplicationId             : com.example.psd.sample.app.paid.test
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ProductFlavors                : paid
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -16595,14 +16770,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidBarReleaseSources
             AssembleTaskName              : assemblePaidBarRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/release [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/release [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
             VariantSourceProvider
                 Name                          : paidBarRelease
                 Manifest                      : <ROOT>/app/src/paidBarRelease/AndroidManifest.xml [-]
@@ -17254,15 +17429,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarReleaseUnitTestSources
             AssembleTaskName              : assemblePaidBarReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarRelease
                 Manifest                      : <ROOT>/app/src/testPaidBarRelease/AndroidManifest.xml [-]
@@ -17913,11 +18092,23 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-bar-specialRelease
         InstantAppCompatible          : false
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
+        VersionCode                   : 2
+        VersionNameSuffix             : vnsvnsFoovnsSpecial
+        VersionNameWithSuffix         : 2.0vnsvnsFoovnsSpecial
         TestApplicationId             : com.example.psd.sample.app.paid.test
         ProductFlavors                : paid
         ProductFlavors                : bar
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -17926,14 +18117,14 @@ IdeVariants
             Name                          : MAIN
             CompileTaskName               : compilePaidBarSpecialReleaseSources
             AssembleTaskName              : assemblePaidBarSpecialRelease
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/specialRelease [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarSpecialRelease/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
+            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/specialRelease [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
             VariantSourceProvider
                 Name                          : paidBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/paidBarSpecialRelease/AndroidManifest.xml [-]
@@ -18584,15 +18775,19 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarSpecialReleaseUnitTestSources
             AssembleTaskName              : assemblePaidBarSpecialReleaseUnitTest
-            ClassFolder                   : <ROOT>/app/build/intermediates/javac/paidBarSpecialReleaseUnitTest/classes [-]
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialReleaseUnitTest/out [-]
-            AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialReleaseUnitTest/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testPaidBarSpecialRelease/AndroidManifest.xml [-]

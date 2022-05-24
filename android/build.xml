@@ -30,16 +30,7 @@
     </target>
 
     <target name="bazel-dependencies" unless="${skip.bazel.dependencies}">
-        <exec executable="${bazel}" dir="${workspace}" failonerror="true">
-            <arg value="build" />
-            <arg value="//tools/adt/idea/android:artifacts" />
-            <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
-        </exec>
-        <exec executable="${bazel}" dir="${workspace}" failonerror="true">
-            <arg value="build" />
-            <arg value="@blaze//third_party/intellij/bazel/plugin/proto:proto_deps" />
-            <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
-        </exec>
+
     </target>
 
     <condition property="build.gradle.plugin">

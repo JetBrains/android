@@ -19,7 +19,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A file type for testing data-binding.
@@ -54,7 +53,6 @@ public class DbFileType extends LanguageFileType {
     return EXT;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return AllIcons.FileTypes.Custom;

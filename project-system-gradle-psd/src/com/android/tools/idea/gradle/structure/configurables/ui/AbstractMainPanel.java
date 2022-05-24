@@ -21,11 +21,10 @@ import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateCompo
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator, CrossModuleUiStateComponent {
   @NotNull private final PsProject myProject;

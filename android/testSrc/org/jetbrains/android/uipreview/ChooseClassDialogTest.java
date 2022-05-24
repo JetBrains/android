@@ -15,13 +15,14 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.SdkConstants.CLASS_AD_VIEW;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.FQCN_IMAGE_VIEW;
+
 import com.intellij.psi.PsiClass;
+import java.util.function.Predicate;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.util.function.Predicate;
-
-import static com.android.SdkConstants.*;
 
 public class ChooseClassDialogTest extends AndroidTestCase {
   public void testIsPublicAndUnRestricted() {

@@ -17,10 +17,9 @@ package com.android.tools.idea.apk.viewer;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.BinaryLightVirtualFile;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Path;
 
 /**
  * Implementation of an in-memory {@link VirtualFile} that correctly implements the {#getParent()} method.

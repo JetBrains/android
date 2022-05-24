@@ -19,6 +19,7 @@ import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
@@ -77,18 +78,18 @@ class MaterialIconsDownloaderTest {
     // Setup mocked DownloadFileService, this will write a 'downloaded' file to the 'Downloads' directory when called properly
     val mockDownloadableFileService = projectRule.mockService(DownloadableFileService::class.java)
     val fileDescription = DownloadableFileDescriptionImpl(
-      ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon/my_icon"), "tmp")
+      ICON_DOWNLOAD_URL, FileUtilRt.toSystemDependentName("style1/my_icon/my_icon"), "tmp")
     val mockDownloader = Mockito.mock(FileDownloader::class.java)
     Mockito.`when`(mockDownloader.download(downloadDir)).thenAnswer {
       // Write file with the new file contents to the 'downloads' directory
-      val downloadedFile = downloadDir.resolve(FileUtil.toSystemDependentName(fileDescription.defaultFileName)).apply {
+      val downloadedFile = downloadDir.resolve(FileUtilRt.toSystemDependentName(fileDescription.defaultFileName)).apply {
         parentFile.mkdirs()
         writeText(NEW_VD)
       }
       return@thenAnswer listOf(Pair(downloadedFile, fileDescription))
     }
     Mockito.`when`(mockDownloadableFileService.createFileDescription(
-      ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon/style1_my_icon_24.tmp"))).thenReturn(fileDescription)
+      ICON_DOWNLOAD_URL, FileUtilRt.toSystemDependentName("style1/my_icon/style1_my_icon_24.tmp"))).thenReturn(fileDescription)
     Mockito.`when`(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
     materialIconsDownloader = MaterialIconsDownloader(OLD_METADATA, NEW_METADATA)
   }

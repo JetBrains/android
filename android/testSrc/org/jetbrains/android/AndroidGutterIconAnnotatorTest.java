@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -60,8 +61,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
+@SuppressWarnings("UseJBColor")
 public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -82,12 +83,43 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/ic_launcher.png", "res/drawable/ic_launcher.png");
+    myFixture.copyFileToProject("annotator/customDrawable.xml", "res/drawable/customDrawable.xml");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("annotator/themes.xml", "res/values/themes.xml");
   }
 
   @Override
   protected boolean isIconRequired() {
     return true;
+  }
+
+  public void testMacroWithLiteral() {
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?macroColorAttr", XmlAttributeValue.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(171, 193, 35)));
+  }
+
+  public void testItemWithLiteral() {
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?colorPrimary", XmlAttributeValue.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(171, 193, 35)));
+  }
+
+  public void testMacroTags() {
+    // Reference the value of the macro tag which is a color literal, to a color.
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "3F5BBB", XmlTag.class);
+    checkHighlightInfoColor(highlightInfo, new Color(63, 91, 187));
+
+    // Macro tag that references a color
+    HighlightInfo colorHighlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "@color/color2", XmlTag.class);
+    checkHighlightInfoColors(colorHighlightInfo, ImmutableList.of(new Color(48, 63, 159)));
+
+    // Color tag that references a macro, that references a color
+    HighlightInfo macroHighlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "@macro/macro2", XmlTag.class);
+    checkHighlightInfoColors(macroHighlightInfo, ImmutableList.of(new Color(48, 63, 159)));
   }
 
   public void testDrawableInManifest() throws IOException {
@@ -258,18 +290,33 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoImage(highlightInfo, "annotator/ic_actionModeCutDrawable_thumbnail.png");
   }
 
-  public void testAnimatedSelectorFallbackIcon() throws Exception {
-    // Reference to an animated selector drawable from a layout file.
+  public void testAnimatedSelectorRenderedIcon() throws Exception {
+    // Reference to an animated selector drawable from a layout file, rendered by layoutlib
     HighlightInfo highlightInfo =
       findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "@drawable/animated_selector", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_rendered_image.png");
+  }
+
+  public void testBrokenDrawableFallbackIcon() throws Exception {
+    // Reference to a broken custom drawable from a layout file, not rendered by layoutlib, so the fallback icon is used
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "@drawable/customDrawable", XmlAttributeValue.class);
     checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
   }
 
-  public void testColorThemeAttributeNoGutterRenderer() {
+  public void testColorThemeAttribute() {
     // Reference to a color theme attribute from a layout file.
     HighlightInfo highlightInfo =
-      findHighlightInfo("res/layout/color_test.xml", "?android:attr/actionMenuTextColor", XmlAttributeValue.class);
-    assertThat(highlightInfo.getGutterIconRenderer()).isNull();
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?android:attr/actionMenuTextColor", XmlAttributeValue.class);
+
+    //noinspection InspectionUsingGrayColors
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(
+      new Color(255, 255, 255, 128),
+      new Color(255, 255, 255, 255),
+      new Color(0, 0, 0),
+      new Color(0, 0, 0),
+      new Color(0, 0, 0),
+      new Color(255, 255, 255)));
   }
 
   public void testDrawableGutterActionInCode() throws IOException {
@@ -320,6 +367,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
     AnAction action = ((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction();
     assertThat(action).isInstanceOf(NavigationTargetProvider.class);
+    assert action != null;
     return ((NavigationTargetProvider)action).getNavigationTarget();
   }
 
@@ -328,7 +376,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     if (!expected.isAbsolute()) {
       expected = new File(getTestDataPath(), expectedImage);
     }
-    checkHighlightInfoImage(highlightInfo, VfsUtil.findFileByIoFile(expected, false));
+    checkHighlightInfoImage(highlightInfo, Objects.requireNonNull(VfsUtil.findFileByIoFile(expected, false)));
   }
 
   private void checkHighlightInfoImage(@NotNull HighlightInfo highlightInfo, @NotNull VirtualFile expectedImage) throws IOException {
@@ -340,7 +388,8 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
 
     // Go through the same process as the real annotator, to handle retina correctly.
-    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet));
+    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(
+      Objects.requireNonNull(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet)));
     assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 
@@ -365,7 +414,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(icon).isInstanceOf(MultipleColorIcon.class);
     MultipleColorIcon colorIcon = (MultipleColorIcon)icon;
     List<Color> color = colorIcon.getColors();
-    assertThat(color).isEqualTo(expectedColors);;
+    assertThat(color).isEqualTo(expectedColors);
   }
 
   @NotNull

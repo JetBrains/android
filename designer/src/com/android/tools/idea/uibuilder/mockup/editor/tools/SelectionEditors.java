@@ -19,16 +19,21 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.SelectionLayer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.text.NumberFormat;
+import java.util.Locale;
+import javax.swing.BorderFactory;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import java.awt.*;
-import java.text.NumberFormat;
-import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Display the text fields to edit the selection of the {@link MockupViewPanel}.

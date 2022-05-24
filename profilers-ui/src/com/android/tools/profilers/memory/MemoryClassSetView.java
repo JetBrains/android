@@ -334,7 +334,7 @@ public final class MemoryClassSetView extends AspectObserver {
     assert myTree != null && myCaptureObject != null && myClassSet != null;
 
     Comparator<MemoryObjectTreeNode<MemoryObject>> comparator = myTreeRoot == null ? myInitialComparator : myTreeRoot.getComparator();
-    myTreeRoot = new LazyMemoryObjectTreeNode<MemoryObject>(myClassSet, true) {
+    myTreeRoot = new LazyMemoryObjectTreeNode<>(myClassSet, true) {
       @Override
       public int computeChildrenCount() {
         return myClassSet.getInstancesCount();
@@ -522,10 +522,10 @@ public final class MemoryClassSetView extends AspectObserver {
                                         boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         if (value instanceof MemoryObjectTreeNode &&
-            ((MemoryObjectTreeNode)value).getAdapter() instanceof InstanceObject) {
+            ((MemoryObjectTreeNode<?>)value).getAdapter() instanceof InstanceObject) {
           CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
           myIsLeaked = leakFilter != null &&
-                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
+                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode<?>)value).getAdapter());
           String msg = "To investigate leak, select instance and see \"References\"";
           setToolTipText(myIsLeaked ? msg : null);
         }

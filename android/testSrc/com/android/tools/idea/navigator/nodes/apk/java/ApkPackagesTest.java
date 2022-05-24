@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.apk.debugging.ApkClass;
 import com.android.tools.idea.apk.debugging.ApkPackage;
 import com.android.tools.idea.navigator.nodes.apk.java.DexFileStructure.ApkPackages;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for {@link ApkPackages}.

@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbServiceImpl

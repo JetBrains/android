@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.pixelprobe.color.Colors;
-
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;

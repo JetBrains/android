@@ -15,7 +15,8 @@
  */
 package com.android.tools.property.ptable2
 
-import java.lang.IndexOutOfBoundsException
+import com.android.tools.property.ptable2.PTableColumn.NAME
+import com.android.tools.property.ptable2.PTableColumn.VALUE
 
 /**
  * Column enumeration specifying either the [NAME] or the [VALUE] column.

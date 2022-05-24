@@ -15,24 +15,31 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
+import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import java.awt.Color;
+import java.util.List;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
-import static com.intellij.ui.SimpleTextAttributes.*;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -51,7 +58,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
   }
 
   private void createAndSetColumnInfos() {
-    ColumnInfo<T, String> specColumnInfo = new ColumnInfo<T, String>("Dependency") {
+    ColumnInfo<T, String> specColumnInfo = new ColumnInfo<>("Dependency") {
       @Override
       @NotNull
       public String valueOf(T dependency) {
@@ -72,7 +79,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
       }
     };
 
-    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<T, String>("Configuration") {
+    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<>("Configuration") {
       @Override
       @Nullable
       public String valueOf(T dependency) {

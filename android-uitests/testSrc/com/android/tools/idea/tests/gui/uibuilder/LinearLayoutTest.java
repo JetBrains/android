@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
 import com.android.xml.XmlBuilder;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -30,13 +36,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class LinearLayoutTest {

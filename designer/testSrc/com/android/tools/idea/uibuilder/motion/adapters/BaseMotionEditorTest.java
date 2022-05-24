@@ -20,23 +20,21 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Bas
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.layout_16_xml;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.motion_scene_16_xml;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import junit.framework.TestCase;
-
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.text.JTextComponent;
+import junit.framework.TestCase;
 
 /**
  * Base class for MotionEditor Test providing a Mock Layout and MotionScene to test against
@@ -78,7 +76,7 @@ public class BaseMotionEditorTest extends TestCase {
     StringBuilder stringBuilder = new StringBuilder();
     String line = null;
 
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
       while ((line = bufferedReader.readLine()) != null) {
         stringBuilder.append(line);
       }

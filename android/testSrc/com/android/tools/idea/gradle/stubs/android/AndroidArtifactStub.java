@@ -27,8 +27,8 @@ import com.android.builder.model.InstantRun;
 import com.android.builder.model.NativeLibrary;
 import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
-  @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
+  @NotNull private final List<File> myGeneratedResourceFolders = new ArrayList<>();
   @NotNull private final List<AndroidArtifactOutput> myOutputs;
   @NotNull private String myApplicationId;
 

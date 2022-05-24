@@ -18,9 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.build
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchCurvePoint;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchCurvePoint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath;
 import java.awt.geom.Path2D;
 import org.jetbrains.annotations.NotNull;
 

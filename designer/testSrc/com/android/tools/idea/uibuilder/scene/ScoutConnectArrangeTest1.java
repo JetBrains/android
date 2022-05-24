@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TAG;
+import static com.android.SdkConstants.TEXT_VIEW;
+
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutConnectArrange;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Check that connections to parent if referenced by an id still works, also check the display list sorted result.

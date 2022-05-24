@@ -30,7 +30,14 @@ val DomElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this
  *
  * These classes shouldn't be used directly instead utility methods in ModuleUtil in intellij.android.core should be called.
  */
-data class LinkedAndroidModuleGroup(val holder: Module, val main: Module, val unitTest: Module?, val androidTest: Module?) {
-  fun getModules() = listOf(holder, main, unitTest, androidTest)
-  override fun toString(): String = "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, androidTest=${androidTest?.name}"
+data class LinkedAndroidModuleGroup(
+  val holder: Module,
+  val main: Module,
+  val unitTest: Module?,
+  val androidTest: Module?,
+  val testFixtures: Module?
+  ) {
+  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures)
+  override fun toString(): String =
+    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}"
 }

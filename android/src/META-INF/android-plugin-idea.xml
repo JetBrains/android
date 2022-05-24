@@ -1,0 +1,19 @@
+<!-- Copyright 2000-2022 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file. -->
+<idea-plugin>
+  <actions>
+    <group id="Android.SyncProject.ActionGroup">
+      <reference id="Android.SyncProject"/>
+      <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
+    </group>
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Note: in AndroidStudio this configurable has different groupId: build -->
+    <applicationConfigurable groupId="build.android" id="instant.run"
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+
+    <projectConfigurable groupId="build.android"
+                         instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
+                         order="last"/>
+  </extensions>
+</idea-plugin>

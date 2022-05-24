@@ -73,8 +73,8 @@ class ViewBindingCircularDependenciesTest {
     val module2BindingClassName = "com.example.module2.databinding.ActivityMainBinding"
 
     // Trigger initialization
-    ResourceRepositoryManager.getModuleResources(facet);
-    val javaPsiFacade = JavaPsiFacade.getInstance(project);
+    ResourceRepositoryManager.getModuleResources(facet)
+    val javaPsiFacade = JavaPsiFacade.getInstance(project)
 
     // Everything viewable from app module
     assertThat(javaPsiFacade.findClass(appBindingClassName, appScope)).isNotNull()

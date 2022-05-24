@@ -16,15 +16,13 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a property or variable declared or referenced by the ExtraPropertiesExtension
@@ -61,15 +59,24 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
   }
 
   // The following are TypeReferences used in calls to getValue and getRawValue.
-  TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
-  TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
-  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<BigDecimal>() {};
-  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
-  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
-  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
-  TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
-  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<ReferenceTo>() {};
-  TypeReference<InterpolatedText> INTERPOLATED_TEXT_TYPE = new TypeReference<InterpolatedText>() {};
+  TypeReference<String> STRING_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Integer> INTEGER_TYPE = new TypeReference<>() {
+  };
+  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<>() {
+  };
+  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Object> OBJECT_TYPE = new TypeReference<>() {
+  };
+  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<>() {
+  };
+  TypeReference<InterpolatedText> INTERPOLATED_TEXT_TYPE = new TypeReference<>() {
+  };
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found

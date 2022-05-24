@@ -17,16 +17,17 @@ package com.android.tools.idea.logcat;
 
 import com.android.tools.idea.ddms.DevicePanel;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.GroupLayout.Group;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.*;
+import com.intellij.ui.scale.JBUIScale;
+import java.awt.Component;
+import java.awt.LayoutManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.GroupLayout.Group;
+import javax.swing.JPanel;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSearchPanel extends JPanel {
   private final Component myDeviceComboBox;
@@ -50,7 +51,7 @@ final class DeviceAndSearchPanel extends JPanel {
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(@NotNull ComponentEvent event) {
-        setLayout(getWidth() > JBUI.scale(500) ? createWideLayout() : createNarrowLayout());
+        setLayout(getWidth() > JBUIScale.scale(500) ? createWideLayout() : createNarrowLayout());
       }
     });
   }

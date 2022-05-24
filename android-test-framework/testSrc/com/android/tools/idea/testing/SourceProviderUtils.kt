@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.getManifestFiles
@@ -69,6 +71,13 @@ fun Project.dumpSourceProviders(): String {
     fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>) =
       dumpPathsCore(name, getter) { it?.url }
 
+    fun IdeCustomSourceDirectory.dump() {
+      nest("CustomSourceDirectory") {
+        out(sourceTypeName)
+        out(directory.systemIndependentPath.toPrintablePath())
+      }
+    }
+
     fun IdeSourceProvider.dump() {
       out(name)
       nest {
@@ -83,6 +92,7 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
         dumpPaths("ShadersDirectories") { it.shadersDirectories }
         dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
+        customSourceDirectories.forEach { it.dump() }
       }
     }
 
@@ -130,7 +140,7 @@ fun Project.dumpSourceProviders(): String {
             val sourceProviderManager = SourceProviderManager.getInstance(facet)
             sourceProviderManager.mainIdeaSourceProvider.dump()
           }
-          val model = AndroidModuleModel.get(facet)
+          val model = GradleAndroidModel.get(facet)
 
           fun IdeSourceProvider.adjustedName() =
             if (name == "main") "_" else name
@@ -155,6 +165,10 @@ fun Project.dumpSourceProviders(): String {
             nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
             nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
             nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
+            nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
+            nest("GeneratedUnitTestSources:") { sourceProviderManager.generatedUnitTestSources.dump("GeneratedUnitTestSources") }
+            nest("GeneratedAndroidTestSources:") { sourceProviderManager.generatedAndroidTestSources.dump("GeneratedAndroidTestSources") }
+            nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
             nest(
               "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") { sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
             nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }

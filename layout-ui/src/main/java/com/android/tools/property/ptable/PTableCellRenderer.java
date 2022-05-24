@@ -18,11 +18,10 @@ package com.android.tools.property.ptable;
 
 import com.intellij.ui.SimpleColoredRenderer;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Component;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class PTableCellRenderer extends SimpleColoredRenderer implements TableCellRenderer {
 

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -23,20 +28,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmbeddedDistributionPaths {
   @NotNull
@@ -59,7 +60,7 @@ public class EmbeddedDistributionPaths {
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
+      File customRepoPath = new File(toCanonicalPath(FileUtilRt.toSystemDependentName(studioCustomRepo)));
       if (!customRepoPath.isDirectory()) {
         throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
       }
@@ -82,10 +83,9 @@ public class EmbeddedDistributionPaths {
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
       repoCandidates.add(Paths.get("..", "maven", "repo"));
 
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
       for (Path candidate : repoCandidates) {
         if (!candidate.isAbsolute()) {
-          candidate = Paths.get(sourcesRoot).resolve(candidate);
+          candidate = Paths.get(StudioPathManager.resolveDevPath(candidate.toString()));
         }
         File offlineRepo = candidate.toFile();
         if (offlineRepo.isDirectory()) {
@@ -99,12 +99,40 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform() {
+    final String path = "plugins/android/resources/profilers-transform.jar";
     if (StudioPathManager.isRunningFromSources()) {
       // Development build
-      return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
+      assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
+      return new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/profiler/transform/profilers-transform.jar"));
     } else {
-      return new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+      @Nullable File file = getOptionalIjPath(path);
+      if (file != null && file.exists()) {
+        return file;
+      }
+      return new File(PathManager.getHomePath(), path);
     }
+  }
+
+  public String findEmbeddedInstaller() {
+    final String path = "plugins/android/resources/installer";
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development mode
+      assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
+      return StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer");
+    } else {
+      File file = getOptionalIjPath(path);
+      if (file != null && file.exists()) {
+        return file.getAbsolutePath();
+      }
+    }
+    return new File(PathManager.getHomePath(), path).getAbsolutePath();
+  }
+
+  @Nullable
+  private File getOptionalIjPath(String path) {
+    // IJ does not bundle some large resources from android plugin, and downloads them on demand.
+    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+    return AndroidProfilerDownloader.getInstance().getHostDir(path);
   }
 
   /**
@@ -116,9 +144,8 @@ public class EmbeddedDistributionPaths {
     //noinspection IfStatementWithIdenticalBranches
     if (StudioPathManager.isRunningFromSources()) {
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
-      String relativePath = toSystemDependentName("tools/external/gradle");
-      File distributionPath = new File(toCanonicalPath(Paths.get(sourcesRoot, relativePath).toString()));
+      String relativePath = FileUtilRt.toSystemDependentName("tools/external/gradle");
+      File distributionPath = new File(toCanonicalPath(Paths.get(StudioPathManager.resolveDevPath(relativePath)).toString()));
       if (distributionPath.isDirectory()) {
         return distributionPath;
       }
@@ -185,9 +212,8 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
-      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
-      String relativePath = toSystemDependentName(jdkDevPath);
+      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(StudioPathManager.resolveDevPath("prebuilts/studio/jdk")).toString());
+      String relativePath = FileUtilRt.toSystemDependentName(jdkDevPath);
       Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {
         jdkRootPath = jdkRootPath.resolve("win");
@@ -220,6 +246,6 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   private static String getIdeHomePath() {
-    return toSystemDependentName(PathManager.getHomePath());
+    return FileUtilRt.toSystemDependentName(PathManager.getHomePath());
   }
 }

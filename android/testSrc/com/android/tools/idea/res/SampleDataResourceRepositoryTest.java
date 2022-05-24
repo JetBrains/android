@@ -31,7 +31,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +40,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Test for {@link SampleDataResourceRepository}.
@@ -331,7 +330,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
         sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +
                                                      "new2\n" +
                                                      "new3\n" +
-                                                     "new4\n").getBytes(Charsets.UTF_8));
+                                                     "new4\n").getBytes(StandardCharsets.UTF_8));
         PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
       }
       catch (IOException e) {

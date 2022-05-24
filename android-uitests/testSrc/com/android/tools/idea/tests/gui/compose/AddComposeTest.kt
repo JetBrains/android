@@ -65,7 +65,7 @@ class AddComposeTest {
       assertThat(this).doesNotContain("androidx.compose.ui:ui-tooling:")
     }
 
-    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module..."))
+    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextPhoneAndTabletModule()
       .setSourceLanguage(Kotlin)
       .selectMinimumSdkApi(28)

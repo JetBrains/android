@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Generates the list of valid constraint sets for a given list of widgets and returns
@@ -128,7 +127,7 @@ public class ConstraintSetGenerator {
    * @return best constraint set
    */
   public ConstraintSet findConstraintSet() {
-    this.myConnectionList = new ArrayList<WidgetPossibleConnections>();
+    this.myConnectionList = new ArrayList<>();
     for (int i = 1; i < this.myWidgetRecs.length; i++) {
       WidgetPossibleConnections possibleConnections = new WidgetPossibleConnections(this.myWidgetRecs[i]);
       this.myConnectionList.add(possibleConnections);
@@ -137,11 +136,11 @@ public class ConstraintSetGenerator {
       }
     }
 
-    this.myValidWidgets = new ArrayList<ArrayList<ConstrainedWidget>>();
+    this.myValidWidgets = new ArrayList<>();
     ArrayList<ConstrainedWidget> tempValid;
     for (WidgetPossibleConnections widget : this.myConnectionList) {
       tempValid = getValidConnectionCombinations(widget);
-      Collections.sort(tempValid, (a, b) -> b.compareTo(a));
+      tempValid.sort((a, b) -> b.compareTo(a));
       myValidWidgets.add(tempValid);
     }
 
@@ -149,7 +148,7 @@ public class ConstraintSetGenerator {
     for (ConstraintSet set : myConstraintSets) {
       set.calculateError();
     }
-    Collections.sort(myConstraintSets, (a, b) -> b.compareTo(a));
+    myConstraintSets.sort((a, b) -> b.compareTo(a));
     return myConstraintSets.get(0);
   }
 
@@ -167,7 +166,7 @@ public class ConstraintSetGenerator {
    * that don't generate loops. Returns the one with the smallest margin sum.
    */
   void generateConstraintSets() {
-    myConstraintSets = new ArrayList<ConstraintSet>();
+    myConstraintSets = new ArrayList<>();
 
     int[] minValid = new int[myNumberOfWidgets];
     double totalCombinations = 1;

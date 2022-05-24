@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
+import com.android.tools.idea.rendering.AndroidEditorAppearanceSettings;
 import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.nio.charset.StandardCharsets;
+import javax.swing.Icon;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
   public void testFlagIcons() throws Exception {
@@ -50,7 +49,7 @@ public class AndroidIconProviderTest extends AndroidTestCase {
   private void checkIcon(@NotNull String path, @Nullable String region) throws Exception {
     AndroidIconProvider provider = new AndroidIconProvider();
     VirtualFile file = myFixture.getTempDirFixture().createFile(path);
-    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes(StandardCharsets.UTF_8)));
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     int flags = 0;

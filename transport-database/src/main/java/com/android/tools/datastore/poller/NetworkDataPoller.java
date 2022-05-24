@@ -17,7 +17,14 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.NetworkProfiler.*;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpConnectionData;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpRangeRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.HttpRangeResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 

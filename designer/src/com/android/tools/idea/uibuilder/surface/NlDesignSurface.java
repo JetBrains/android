@@ -60,7 +60,6 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.lint.VisualLintService;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -69,9 +68,7 @@ import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutMana
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -91,7 +88,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
@@ -121,7 +117,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private boolean myShowModelName = false;
-    private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
@@ -203,19 +198,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @NotNull
     public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
       myActionManagerProvider = actionManagerProvider;
-      return this;
-    }
-
-    /**
-     * Specify if {@link NlDesignSurface} can edit editable content. For example, a xml layout file is a editable content. But
-     * an image drawable file is not editable, so {@link NlDesignSurface} cannot edit the image drawable file even we set
-     * editable for {@link NlDesignSurface}.
-     * <p>
-     * The default value is true (editable)
-     */
-    @NotNull
-    public Builder setEditable(boolean editable) {
-      myIsEditable = editable;
       return this;
     }
 
@@ -343,7 +325,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
-                                 myIsEditable,
                                  myShowModelName,
                                  mySceneManagerProvider,
                                  layoutManager,
@@ -420,6 +401,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
+  private float myRotateSurfaceDegree = Float.NaN;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
   @Nullable private LayoutScannerControl myScannerControl;
@@ -431,7 +413,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
-                          boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
@@ -446,7 +427,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           ZoomControlsPolicy zoomControlsPolicy,
                           boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable,
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
           selectionModel,
@@ -650,7 +631,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
       for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
-        manager.requestLayoutAndRender(false);
+        manager.requestLayoutAndRenderAsync(false);
       }
       revalidateScrollArea();
     }
@@ -769,12 +750,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     super.notifyComponentActivate(component, x, y);
   }
 
-  @NotNull
-  @Override
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return component -> NlComponentHelper.INSTANCE.registerComponent(component);
-  }
-
   public void setMockupVisible(boolean mockupVisible) {
     myMockupVisible = mockupVisible;
     repaint();
@@ -867,7 +842,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         });
 
         if (myShouldRunVisualLintService) {
-          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), myIssueModel);
+          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), myIssueModel, NlDesignSurface.this);
         }
       }
 
@@ -896,7 +871,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       "",
       false
     );
-    return requestSequentialRender(manager -> manager.requestRender().whenComplete((r, t) -> refreshProgressIndicator.processFinish()));
+    return forceRefresh().whenComplete((r, t) -> refreshProgressIndicator.processFinish());
   }
 
   @NotNull
@@ -905,7 +880,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return requestSequentialRender(manager -> {
       LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
       layoutlibSceneManager.forceReinflate();
-      return layoutlibSceneManager.requestRender();
+      return layoutlibSceneManager.requestRenderAsync();
     });
   }
 
@@ -1068,6 +1043,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myIsAnimationScrubbing = value;
   }
 
+  /**
+   * Set the rotation degree of the surface to simulate the phone rotation.
+   * @param value angle of the rotation.
+   */
+  public void setRotateSufaceDegree(float value) {
+    myRotateSurfaceDegree = value;
+  }
+
+  /**
+   * Return the rotation degree of the surface to simulate the phone rotation.
+   */
+  public float getRotateSurfaceDegree() {
+    return myRotateSurfaceDegree;
+  }
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
   /**

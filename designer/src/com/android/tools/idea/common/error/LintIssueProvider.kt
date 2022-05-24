@@ -19,6 +19,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.rendering.HtmlBuilderHelper
+import com.android.tools.lint.detector.api.Option
 import com.android.tools.lint.detector.api.TextFormat
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
@@ -54,6 +55,8 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       builder.newline().newline()
       builder.addHtml(issue.getExplanation(TextFormat.HTML))
       builder.newline()
+      val optionsHtml = Option.Companion.describe(issue.getOptions(), TextFormat.HTML)
+      builder.addHtml(optionsHtml)
       builder.newline()
       builder.beginItalic()
       builder.addHtml("Issue id: ")

@@ -61,7 +61,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -102,9 +101,11 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.1",
+        "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
         "@maven//:com.android.support.design_28.0.0",
+        "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.lint.lint-checks_26.5.0",
         "@maven//:com.google.android.material.material_1.4.0",
@@ -132,6 +133,9 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.5.2",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
@@ -163,8 +167,8 @@ local_old_agp_test(
     gradle_version = GRADLE_5_5,
     shard_count = 4,
     tags = [
-        "manual",  # b/199740328
         "block-network",
+        "manual",  # TODO(b/203803107): Re-enable this test when fixed.
         "no_test_mac",
         "no_test_windows",
     ],

@@ -23,17 +23,15 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
 import com.intellij.testFramework.rules.TempDirectory
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
 class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   @get:Rule
-  val tempDir = TempDirectory();
+  val tempDir = TempDirectory()
 
   private fun File.toVFile() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)!!
 

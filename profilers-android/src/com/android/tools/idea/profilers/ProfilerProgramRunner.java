@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
-import com.android.tools.idea.run.StudioProgramRunner;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.StudioProgramRunner;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunProfile;

@@ -53,6 +53,10 @@ data class ItemWithDisplayEnumValue(override val value: String, override val dis
   override fun toString() = value
 }
 
+data class EmptyDisplayEnumValue(override val display: String): EnumValueImpl() {
+  override fun toString() = ""
+}
+
 data class IndentedItemWithDisplayEnumValue(override val value: String, override val display: String) : EnumValueImpl() {
   override val indented
     get() = true

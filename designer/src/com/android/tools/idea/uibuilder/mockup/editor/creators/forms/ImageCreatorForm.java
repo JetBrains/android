@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators.forms;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * From to display options for {@link com.android.tools.idea.uibuilder.mockup.editor.creators.ImageViewCreator}

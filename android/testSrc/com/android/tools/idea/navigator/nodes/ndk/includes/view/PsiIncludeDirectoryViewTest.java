@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertContainsAllFilesAsChildren;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertDoesNotContainAnyFilesAsChildren;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.getChildNodesForIncludes;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.testFramework.PlatformTestCase;
-import org.junit.ClassRule;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
+import org.junit.ClassRule;
 
 public class PsiIncludeDirectoryViewTest extends PlatformTestCase {
   @ClassRule

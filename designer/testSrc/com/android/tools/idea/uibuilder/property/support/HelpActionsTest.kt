@@ -30,13 +30,13 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,11 +45,11 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.eq
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class HelpActionsTest {
 
@@ -91,7 +91,7 @@ class HelpActionsTest {
     @Suppress("DEPRECATION")
     val tag = util.components[0].tagDeprecated
     util.loadProperties()
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, util.properties[ANDROID_URI, ATTR_TEXT])
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, util.properties[ANDROID_URI, ATTR_TEXT])
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
     verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP), eq(true))

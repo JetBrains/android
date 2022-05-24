@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual.colorblindmode
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
-import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.android.tools.idea.uibuilder.visual.ColorBlindModeModelsProvider
 import org.intellij.lang.annotations.Language
 
@@ -35,7 +34,7 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateColorBlindModeModels() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = ColorBlindModeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)

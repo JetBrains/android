@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
@@ -62,7 +62,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     Module module = getModule();
 
     Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(project);
 
     File jarFilePath = createTempFile("fake.jar", "");
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
@@ -93,7 +93,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     createLibrary(jarFilePath);
 
     Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(project);
 
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));

@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.actions.license;
 
-import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.android.AndroidTestBase;
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.AndroidTestBase;
+import org.junit.Test;
 
 public class LicenseTextCollectorTest {
   @Test

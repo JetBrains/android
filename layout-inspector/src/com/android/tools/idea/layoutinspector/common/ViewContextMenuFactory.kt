@@ -34,8 +34,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.containers.toArray
 import com.intellij.util.text.nullize
-import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPopupMenu

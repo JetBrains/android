@@ -18,19 +18,21 @@ package com.android.tools.idea.testartifacts.scopes;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import gnu.trove.TObjectIntHashMap;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +72,17 @@ public class FileRootSearchScope extends GlobalSearchScope {
       return accept(virtualFile);
     }
     return false;
+  }
+
+  public boolean acceptAncestor(@NotNull VirtualFile fileDirectory) {
+    AtomicBoolean found = new AtomicBoolean(false);
+    boolean result = myDirRootPaths.forEach(file -> {
+      if (FileUtil.isAncestor(fileDirectory.getPath(), file.getPath(), false)) {
+        found.set(true);
+      }
+      return true;
+    });
+    return found.get();
   }
 
   @Override
@@ -164,7 +177,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   @Contract(value = "_, _ -> new", pure = true)
   @NotNull
   private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, boolean add) {
-    Set<File> roots = Sets.newHashSet();
+    Set<File> roots = new HashSet<>();
     myDirRootPaths.forEach(file -> {
       roots.add(file);
       return true;

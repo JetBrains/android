@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.util.*;
-
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.*;
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT;
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH;
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT;
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_WRAP_WIDTH;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.pixelToDP;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutHorizontalBiasPercent;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutVerticalBiasPercent;
+
+import com.android.SdkConstants;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Main Wrapper class for Constraint Widgets
@@ -50,7 +55,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   NlComponent mNlComponent;
   private boolean mKeepExistingConnections = true;
   private Rectangle mRectangle;
-  HashMap<String, ScoutWidget> myChildMap = new HashMap<String, ScoutWidget>();
+  HashMap<String, ScoutWidget> myChildMap = new HashMap<>();
   private static final String ATT_LL = SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
   private static final String ATT_LR = SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
   private static final String ATT_RL = SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;

@@ -19,8 +19,8 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class Gradle2RequiredIssueCheckerTest : AndroidGradleTestCase() {
   private val gradle2RequiredIssueChecker = Gradle2RequiredIssueChecker()

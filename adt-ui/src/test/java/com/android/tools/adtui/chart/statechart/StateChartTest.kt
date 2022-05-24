@@ -29,7 +29,6 @@ import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.geom.Rectangle2D
-import java.util.EnumMap
 
 class StateChartTest {
   @Test

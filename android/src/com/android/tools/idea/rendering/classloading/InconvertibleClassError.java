@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getMinorVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.rendering.classloading.ClassConverter.*;
 
 /**
  * Exception thrown when we attempt to load a class that cannot be converted by

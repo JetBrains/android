@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
+import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.testing.FileSubject;
@@ -27,23 +37,14 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.io.File;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
-import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SmaliFileNotificationProvider}.
@@ -56,8 +57,7 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Project project = getProject();
-    myNotificationProvider = new SmaliFileNotificationProvider(project);
+    myNotificationProvider = new SmaliFileNotificationProvider();
   }
 
   @Override
@@ -76,21 +76,21 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
     VirtualFile rSmaliFile = findFileByIoFile(rSmaliFilePath, true);
     assertNotNull(rSmaliFile);
 
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor);
+    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor, getProject());
     assertNotNull(notificationPanel);
   }
 
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
     EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(
-      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), myFileEditor);
+      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), myFileEditor, myProject);
     assertNull(notificationPanel);
   }
 
   private void loadProject(@NotNull String relativePath) throws Exception {
     Project project = getProject();
 
-    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
+    File root = new File(getTestDataPath(), FileUtilRt.toSystemDependentName(relativePath));
     assertTrue(root.getPath(), root.exists());
     File projectRootPath = getBaseDirPath(project);
     copyDir(root, projectRootPath);

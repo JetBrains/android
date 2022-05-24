@@ -5,12 +5,11 @@ import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class ManualTargetChooser {
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */

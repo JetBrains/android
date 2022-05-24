@@ -15,9 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Timer;
 
 /**
  * Timer which tries to tick at a rate to match the passed in fps. Each tick, it will report how

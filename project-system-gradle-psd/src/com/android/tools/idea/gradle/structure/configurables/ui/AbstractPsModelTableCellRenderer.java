@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.intellij.ui.ColoredTableCellRenderer;
+import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class AbstractPsModelTableCellRenderer<T extends PsModel> extends ColoredTableCellRenderer {
   @NotNull private final T myModel;

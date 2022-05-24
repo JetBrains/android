@@ -272,7 +272,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                                      result.getConsoleHyperlinkInfo());
           }
 
-          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, myErrorNotificationListener)
+          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR).setListener(myErrorNotificationListener)
             .setImportant(true).notify(myProject);
 
           // Show the tool window when we have an error.
@@ -283,7 +283,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
 
         // Notify listeners of the deployment.
-        myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
+        myProject.getMessageBus().syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, myProject);
       }
 
       // Update the indicator progress.
@@ -292,7 +292,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
-    notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION, null)
+    notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION)
       .setImportant(false).notify(myProject);
 
     return true;

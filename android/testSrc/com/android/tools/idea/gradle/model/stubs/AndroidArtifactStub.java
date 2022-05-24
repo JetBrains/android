@@ -17,12 +17,25 @@ package com.android.tools.idea.gradle.model.stubs;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.CodeShrinker;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.InstantRun;
+import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.TestOptions;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
     @NonNull private final Collection<AndroidArtifactOutput> myOutputs;

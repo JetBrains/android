@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.build;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -30,7 +31,7 @@ public class SubProjectsDslElement extends GradleDslBlockElement {
   @NotNull
   @Override
   protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return GradleBuildFile.CHILD_PROPERTIES_ELEMENTS_MAP;
+    return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
   }
 
   public SubProjectsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

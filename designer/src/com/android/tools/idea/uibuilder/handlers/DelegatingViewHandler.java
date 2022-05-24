@@ -24,13 +24,12 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
+import java.util.List;
+import java.util.Map;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
-import java.util.Map;
 
 public class DelegatingViewHandler extends ViewHandler {
   private final ViewHandler myHandler;

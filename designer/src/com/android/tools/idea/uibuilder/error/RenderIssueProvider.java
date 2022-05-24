@@ -15,25 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.common.error.IssueSource;
-import com.android.tools.idea.common.model.NlModel;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueProvider;
+import com.android.tools.idea.common.error.IssueSource;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.annotation.HighlightSeverity;
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.TestOnly;
 
 public class RenderIssueProvider extends IssueProvider {
   @NotNull private final RenderErrorModel myRenderErrorModel;

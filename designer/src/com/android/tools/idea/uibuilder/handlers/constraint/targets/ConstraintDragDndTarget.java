@@ -34,11 +34,10 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Point;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implements a target managing dragging on a dnd temporary widget

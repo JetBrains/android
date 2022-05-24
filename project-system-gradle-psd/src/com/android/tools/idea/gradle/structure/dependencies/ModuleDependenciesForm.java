@@ -15,37 +15,39 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
+
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ui.CheckboxTree;
-import com.intellij.ui.CheckboxTreeAdapter;
+import com.intellij.ui.CheckboxTreeListener;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
-
 class ModuleDependenciesForm {
   @NotNull private final CheckboxTree myPossibleDependenciesTree;
-  @NotNull private final Set<PsModule> mySelectedModules = Sets.newHashSet();
+  @NotNull private final Set<PsModule> mySelectedModules = new HashSet<>();
 
   private JPanel myMainPanel;
   private JBScrollPane myModulesScrollPane;
@@ -74,7 +76,7 @@ class ModuleDependenciesForm {
     CheckedTreeNode root = new CheckedTreeNode(null);
 
     List<PsModule> modules = findAvailableModules(module);
-    Collections.sort(modules, new PsModelNameComparator<>());
+    modules.sort(new PsModelNameComparator<>());
 
     modules.forEach(m -> {
       CheckedTreeNode node = new CheckedTreeNode(m);
@@ -83,7 +85,7 @@ class ModuleDependenciesForm {
     });
 
     myPossibleDependenciesTree = new CheckboxTree(cellRenderer, root);
-    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeAdapter() {
+    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeListener() {
       @Override
       public void nodeStateChanged(@NotNull CheckedTreeNode node) {
         Object data = node.getUserObject();
@@ -113,7 +115,7 @@ class ModuleDependenciesForm {
 
   @NotNull
   private static List<PsModule> findAvailableModules(@NotNull PsModule module) {
-    List<PsModule> modules = Lists.newArrayList();
+    List<PsModule> modules = new ArrayList<>();
     List<PsModule> dependencies = getModuleDependencies(module);
     module.getParent().forEachModule(m -> {
       if (module != m && !dependencies.contains(m) && module.canDependOn(m)) {
@@ -126,7 +128,7 @@ class ModuleDependenciesForm {
   @NotNull
   private static List<PsModule> getModuleDependencies(@NotNull PsModule module) {
     PsProject project = module.getParent();
-    List<PsModule> dependencies = Lists.newArrayList();
+    List<PsModule> dependencies = new ArrayList<>();
     if (module instanceof PsAndroidModule) {
       ((PsAndroidModule)module).getDependencies().forEachModuleDependency(dependency -> {
         String name = dependency.getName();

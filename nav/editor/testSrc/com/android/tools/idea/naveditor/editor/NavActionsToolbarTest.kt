@@ -18,14 +18,14 @@ package com.android.tools.idea.naveditor.editor
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.util.Collections
 
 class NavActionsToolbarTest : NavTestCase() {

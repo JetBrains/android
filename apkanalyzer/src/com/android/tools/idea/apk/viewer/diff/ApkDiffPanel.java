@@ -96,7 +96,7 @@ public class ApkDiffPanel {
       });
     }
 
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
@@ -114,7 +114,7 @@ public class ApkDiffPanel {
         return ApkDiffParser.createTreeNode(archiveContext1, archiveContext2);
       }
     });
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
@@ -131,7 +131,7 @@ public class ApkDiffPanel {
     myTree.setRootVisible(true); // show root node only when showing LoadingNode
     myTree.setPaintBusy(true);
 
-    Convertor<TreePath, String> convertor = new Convertor<TreePath, String>() {
+    Convertor<TreePath, String> convertor = new Convertor<>() {
       @Override
       public String convert(TreePath path) {
         ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());

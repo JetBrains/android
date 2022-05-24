@@ -55,7 +55,6 @@ internal class SplittingPanel(
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
   private val popupActionGroup = SimpleActionGroup().apply {
-    name = "Foobar"
     add(SplitPanelAction(VERTICAL))
     add(SplitPanelAction(HORIZONTAL))
     add(ClosePanelAction())

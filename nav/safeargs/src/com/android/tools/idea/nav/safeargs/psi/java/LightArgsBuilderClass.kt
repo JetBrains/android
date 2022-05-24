@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
-import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier

@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.logcat.LogCatMessage
 import java.time.ZoneId
 
+
 /**
  * Formats [LogCatMessage]'s into a [TextAccumulator]
  */
@@ -30,6 +31,8 @@ internal class MessageFormatter(private val formattingOptions: FormattingOptions
   private var previousPid: Int? = null
 
   fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+    // Replace each newline with a newline followed by the indentation of the message portion
+    val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 5)
     for (message in messages) {
       val header = message.header
       val tag = header.tag
@@ -40,7 +43,7 @@ internal class MessageFormatter(private val formattingOptions: FormattingOptions
       textAccumulator.accumulate(formattingOptions.tagFormat.format(tag, previousTag), logcatColors.getTagColor(tag), tag)
       textAccumulator.accumulate(formattingOptions.appNameFormat.format(appName, header.pid, previousPid), hint = appName)
       textAccumulator.accumulate(" ${header.logLevel.priorityLetter} ", logcatColors.getLogLevelColor(header.logLevel))
-      textAccumulator.accumulate(" ${message.message}\n")
+      textAccumulator.accumulate(" ${message.message.replace("\n", newline)}\n", logcatColors.getMessageColor(header.logLevel))
 
       previousTag = tag
       previousPid = header.pid

@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.ui.ConflictsDialog;
 import com.intellij.ui.EditorTextField;
+import java.io.File;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.text.JTextComponent;
-import java.io.File;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 
 public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDialog> {
   @NotNull

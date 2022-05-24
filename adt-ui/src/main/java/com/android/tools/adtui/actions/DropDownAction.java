@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -44,11 +45,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Button Action with a drop down popup and a text.
+ * Button Action with a dropdown popup and a text.
  *
  * <p> It extend {@link DefaultActionGroup} so action can be added to the popup using the {{@link #add(AnAction)}} method.
- * <p> If a class needs to update the popup actions dynamically, it can subclass this call and override the {@link #updateActions()}
- * method. This method will be called before opening the popup menu
+ * <p> If a class needs to update the popup actions dynamically, it can extend this class and override the {@link #updateActions} method.
+ * This method will be called before opening the popup menu
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
@@ -85,31 +86,62 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   public void actionPerformed(@NotNull AnActionEvent eve) {
     ActionButton button = getActionButton(eve);
-    if (button == null) {
+    updateActions(eve.getDataContext());
+    if (getChildrenCount() == 0) {
       return;
     }
-    updateActions(eve.getDataContext());
-    JPanel componentPopup = createCustomComponentPopup();
-    if (componentPopup == null) {
-      showPopupMenu(eve, button);
+    if (button == null) {
+      if (!isPerformableWithoutActionButton()) {
+        return;
+      }
+      // This means this action is not performed by the action button. For example, it is performed by shortcut key or IJ's search bar.
+      // In this case, we show a JBPopup.
+      updateActions(eve.getDataContext());
+      JPanel componentPopup = createCustomComponentPopup();
+      JBPopup popup;
+      if (componentPopup != null) {
+        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(componentPopup, componentPopup).createPopup();
+      }
+      else {
+        popup = JBPopupFactory.getInstance()
+          .createActionGroupPopup(eve.getPresentation().getText(), this, eve.getDataContext(), false, null, 10);
+      }
+      Project project = eve.getProject();
+      if (project != null) {
+        popup.showCenteredInCurrentWindow(project);
+      }
+      else {
+        popup.showInBestPositionFor(eve.getDataContext());
+      }
     }
     else {
-      showJBPopup(eve, button, componentPopup);
+      JPanel componentPopup = createCustomComponentPopup();
+      if (componentPopup == null) {
+        showPopupMenu(eve, button);
+      }
+      else {
+        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(componentPopup, componentPopup).createPopup();
+        Component owner = eve.getInputEvent().getComponent();
+        Point location = owner.getLocationOnScreen();
+        location.translate(0, owner.getHeight());
+        popup.showInScreenCoordinates(owner, location);
+      }
     }
+  }
+
+  /**
+   * Return if this dropdown action can be performed without using {@link ActionButton}. For example, this action is registered to and
+   * performed by action system.<br>
+   * If it is performable, the content of this dropdown wil be shown as a popup dialog.
+   */
+  protected boolean isPerformableWithoutActionButton() {
+    return false;
   }
 
   private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
     JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
     JBPopupMenu.showBelow(button, component);
-  }
-
-  private static void showJBPopup(@NotNull AnActionEvent eve, @NotNull ActionButton button, @NotNull JPanel componentPopup) {
-    JBPopup popup = createJBPopup(componentPopup);
-    Component owner = eve.getInputEvent().getComponent();
-    Point location = owner.getLocationOnScreen();
-    location.translate(0, owner.getHeight());
-    popup.showInScreenCoordinates(owner, location);
   }
 
   private static ActionButton getActionButton(@NotNull AnActionEvent eve) {
@@ -140,12 +172,6 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
         }
       };
     }
-  }
-
-  @NotNull
-  private static JBPopup createJBPopup(@NotNull JPanel content) {
-    JBPopupFactory popupFactory = JBPopupFactory.getInstance();
-    return popupFactory.createComponentPopupBuilder(content, content).createPopup();
   }
 
   /**

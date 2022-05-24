@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
+
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -22,8 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 
 public class OpenPluginBuildFileHyperlink extends NotificationHyperlink {
   public OpenPluginBuildFileHyperlink() {

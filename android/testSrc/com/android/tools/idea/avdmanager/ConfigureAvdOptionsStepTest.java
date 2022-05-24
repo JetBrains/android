@@ -18,10 +18,10 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.GpuMode.OFF;
 import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
@@ -35,7 +35,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -45,17 +44,19 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -63,12 +64,8 @@ import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.rules.TemporaryFolder;
 
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
-
-  private static final String SDK_LOCATION = "/sdk";
-  private static final String AVD_LOCATION = "/avd";
 
   private AvdInfo myQAvdInfo;
   private AvdInfo myMarshmallowAvdInfo;
@@ -76,41 +73,41 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private AvdInfo myZuluAvdInfo;
   private AvdInfo myExtensionsAvdInfo;
   private ISystemImage mySnapshotSystemImage;
-  private final Map<String, String> myPropertiesMap = Maps.newHashMap();
+  private final Map<String, String> myPropertiesMap = new HashMap<>();
   private Device myFoldable;
   private Device myAutomotive;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
 
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
     // Q image (API 29)
     String qPath = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp);
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, sdkRoot.resolve("qSysImg"));
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsQ.setAbi("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails) detailsQ);
-    fileOp.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, sdkRoot.resolve("mSysImg"));
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
-    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Preview image
     String previewPath = "system-images;android-ZZZ;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, sdkRoot.resolve("previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -118,24 +115,23 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
     pkgPreview.setTypeDetails((TypeDetails) detailsPreview);
-    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
     String zuluPath = "system-images;android-Z;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp);
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, sdkRoot.resolve("zSysImg"));
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails)detailsZulu);
-    fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
-
+    InMemoryFileSystems.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image that contains SDK extensions and is not the base SDK
     String extensionsPath = "system-images;android-32-3;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, fileOp);
+    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, sdkRoot.resolve("extensionSysImg"));
     DetailsTypes.SysImgDetailsType detailsExtensions =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsExtensions.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -144,14 +140,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsExtensions.setExtensionLevel(3);
     detailsExtensions.setBaseExtension(false);
     pkgExtensions.setTypeDetails((TypeDetails)detailsExtensions);
-    fileOp.recordExistingFile(pkgExtensions.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgExtensions.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu, pkgExtensions));
 
-    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(sdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
@@ -174,15 +170,15 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", QImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), QImage, myPropertiesMap);
     myMarshmallowAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), marshmallowImage, myPropertiesMap);
     myPreviewAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), NPreviewImage, myPropertiesMap);
     myZuluAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", ZuluImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), ZuluImage, myPropertiesMap);
     myExtensionsAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", extensionsImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), extensionsImage, myPropertiesMap);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -204,17 +200,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   }
 
   public void testGpuOtherMode() {
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
+    assertEquals(SWIFT, gpuOtherMode(23, true, true));
 
-    assertEquals(OFF, gpuOtherMode(22, false, true, false));
-    assertEquals(OFF, gpuOtherMode(22, true, true, false));
-    assertEquals(OFF, gpuOtherMode(22, true, false, false));
-    assertEquals(OFF, gpuOtherMode(23, true, false, false));
+    assertEquals(OFF, gpuOtherMode(22, false, true));
+    assertEquals(OFF, gpuOtherMode(22, true, true));
+    assertEquals(OFF, gpuOtherMode(22, true, false));
+    assertEquals(OFF, gpuOtherMode(23, true, false));
 
-    assertEquals(OFF, gpuOtherMode(22, true, true, true));
-    assertEquals(OFF, gpuOtherMode(23, true, false, true));
-    assertEquals(OFF, gpuOtherMode(23, false, false, true));
+    assertEquals(OFF, gpuOtherMode(23, false, false));
   }
 
   public void testAutomotiveDevice() {
@@ -303,59 +296,57 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   }
 
   public void testPopulateSnapshotList() throws Exception {
-    TemporaryFolder tempFolder = new TemporaryFolder();
-    tempFolder.create();
-    File snapAvdDir = tempFolder.newFolder("proto_avd");
+    Path snapAvdDir = InMemoryFileSystems.createInMemoryFileSystemAndFolder("proto_avd");
     AvdInfo snapshotAvdInfo =
-      new AvdInfo("snapAvd", new File("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
+      new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
     ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
 
-    File snapshotDir = new File(snapAvdDir, "snapshots");
-    assertThat(snapshotDir.mkdir()).isTrue();
+    Path snapshotDir = snapAvdDir.resolve("snapshots");
+    Files.createDirectories(snapshotDir);
     SnapshotOuterClass.Image.Builder imageBuilder = SnapshotOuterClass.Image.newBuilder();
     SnapshotOuterClass.Image anImage = imageBuilder.build();
 
-    File snapNewestDir = new File(snapshotDir, "snapNewest");
-    assertThat(snapNewestDir.mkdir()).isTrue();
+    Path snapNewestDir = snapshotDir.resolve("snapNewest");
+    Files.createDirectories(snapNewestDir);
     SnapshotOuterClass.Snapshot.Builder newestBuilder = SnapshotOuterClass.Snapshot.newBuilder();
     newestBuilder.addImages(anImage);
     newestBuilder.setCreationTime(1_500_300_000L);
     SnapshotOuterClass.Snapshot protoNewestBuf = newestBuilder.build();
-    File protoNewestFile = new File(snapNewestDir, "snapshot.pb");
-    OutputStream protoNewestOutputStream = new FileOutputStream(protoNewestFile);
+    Path protoNewestFile = snapNewestDir.resolve("snapshot.pb");
+    OutputStream protoNewestOutputStream = Files.newOutputStream(protoNewestFile);
     protoNewestBuf.writeTo(protoNewestOutputStream);
 
-    File snapSelectedDir = new File(snapshotDir, "snapSelected");
-    assertThat(snapSelectedDir.mkdir()).isTrue();
+    Path snapSelectedDir = snapshotDir.resolve("snapSelected");
+    Files.createDirectories(snapSelectedDir);
     SnapshotOuterClass.Snapshot.Builder selectedBuilder = SnapshotOuterClass.Snapshot.newBuilder();
     selectedBuilder.addImages(anImage);
     selectedBuilder.setCreationTime(1_500_200_000L);
     SnapshotOuterClass.Snapshot protoSelectedBuf = selectedBuilder.build();
-    File protoSelectedFile = new File(snapSelectedDir, "snapshot.pb");
-    OutputStream protoSelectedOutputStream = new FileOutputStream(protoSelectedFile);
+    Path protoSelectedFile = snapSelectedDir.resolve("snapshot.pb");
+    OutputStream protoSelectedOutputStream = Files.newOutputStream(protoSelectedFile);
     protoSelectedBuf.writeTo(protoSelectedOutputStream);
 
-    File snapOldestDir = new File(snapshotDir, "snapOldest");
-    assertThat(snapOldestDir.mkdir()).isTrue();
+    Path snapOldestDir = snapshotDir.resolve("snapOldest");
+    Files.createDirectories(snapOldestDir);
     SnapshotOuterClass.Snapshot.Builder oldestBuilder = SnapshotOuterClass.Snapshot.newBuilder();
     oldestBuilder.addImages(anImage);
     oldestBuilder.setCreationTime(1_500_100_000L);
     SnapshotOuterClass.Snapshot protoOldestBuf = oldestBuilder.build();
-    File protoOldestFile = new File(snapOldestDir, "snapshot.pb");
-    OutputStream protoOldestOutputStream = new FileOutputStream(protoOldestFile);
+    Path protoOldestFile = snapOldestDir.resolve("snapshot.pb");
+    OutputStream protoOldestOutputStream = Files.newOutputStream(protoOldestFile);
     protoOldestBuf.writeTo(protoOldestOutputStream);
 
-    File snapQuickDir = new File(snapshotDir, "default_boot");
-    assertThat(snapQuickDir.mkdir()).isTrue();
+    Path snapQuickDir = snapshotDir.resolve("default_boot");
+    Files.createDirectories(snapQuickDir);
     SnapshotOuterClass.Snapshot.Builder quickBootBuilder = SnapshotOuterClass.Snapshot.newBuilder();
     quickBootBuilder.addImages(anImage);
     quickBootBuilder.setCreationTime(1_500_000_000L);
     SnapshotOuterClass.Snapshot protoQuickBuf = quickBootBuilder.build();
-    File protoQuickFile = new File(snapQuickDir, "snapshot.pb");
-    OutputStream protoQuickOutputStream = new FileOutputStream(protoQuickFile);
+    Path protoQuickFile = snapQuickDir.resolve("snapshot.pb");
+    OutputStream protoQuickOutputStream = Files.newOutputStream(protoQuickFile);
     protoQuickBuf.writeTo(protoQuickOutputStream);
 
     List<String> snapshotList = optionsStep.getSnapshotNamesList("snapSelected");

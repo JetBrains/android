@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.computeGradlePluginUpgradeState;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND;
@@ -80,23 +81,38 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0-beta02", "7.1.0-alpha01", Collections.emptyList(), FORCE, "7.1.0-alpha01"},
       {"7.0.0-beta02", "7.1.0", Collections.emptyList(), FORCE, "7.1.0"},
 
-      // If the latest known version is earlier than or equal to the current version, there should be no upgrade
+      // If the latest known version is equal to the current version, there should be no upgrade.
       {"7.0.0-alpha01", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha01"},
-      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha02"},
       {"7.0.0-beta01", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta01"},
-      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta02"},
-      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta01"},
       {"7.0.0-rc01", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
-      {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
-      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
-      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
       {"7.0.0", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.1", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.1"},
-      {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
       // Even if the set of published versions contains later versions.
       {"7.0.0", "7.0.0", Collections.singletonList("7.0.1"), NO_UPGRADE, "7.0.0"},
+
+      // If the latest known version is earlier than the current version, but they are in the same rc/stable series, there should be no
+      // upgrade.
+      {"7.0.1", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.1"},
+      {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
+      {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
+
+      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series, there should be
+      // a downgrade.
+      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
+      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
+      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
+      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE, "7.0.0-beta02"},
+      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
+      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
+      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
+      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+
+      // Versions earlier than our minimum supported version should force an upgrade.
+      {"3.1.0", "7.0.0", Collections.emptyList(), FORCE, "7.0.0"},
+      // If we know of published versions earlier than our latestKnownVersion, prefer to upgrade to those.
+      {"3.1.0", "3.2.0", Arrays.asList("3.2.0", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "7.0.0"), FORCE, "3.2.0"},
     });
   }
 
@@ -120,7 +136,7 @@ public class ComputeGradlePluginUpgradeStateTest {
 
   @Test
   public void testComputeGradlePluginUpgradeState() {
-    GradlePluginUpgradeState state = GradlePluginUpgrade.computeGradlePluginUpgradeState(current, latestKnown, published);
+    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published);
     assertEquals("computing upgrade state from " + current + " to " + latestKnown + " with published versions " + published,
                  new GradlePluginUpgradeState(importance, expectedTarget), state);
   }

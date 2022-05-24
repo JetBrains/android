@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.frame
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
-
-import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
 

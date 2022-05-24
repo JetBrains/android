@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -55,7 +56,8 @@ public class IntellijDataViewer implements DataViewer {
    */
 
   public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
-    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH)));
+    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH),
+                                                  StandardCharsets.UTF_8));
     textArea.setLineWrap(true);
     textArea.setFont(AdtUiUtils.DEFAULT_FONT.biggerOn(3f));
     textArea.setEditable(false);
@@ -84,7 +86,7 @@ public class IntellijDataViewer implements DataViewer {
       // content and the user will see a mysterious "NO PREVIEW" message without any information
       // on why. The Document class allows you to change a setting to allow \r, but this breaks
       // soft wrapping in the editor.
-      String contentStr = new String(content).replace("\r\n", "\n");
+      String contentStr = new String(content, StandardCharsets.UTF_8).replace("\r\n", "\n");
 
       Style style = Style.RAW;
       Document document = null;

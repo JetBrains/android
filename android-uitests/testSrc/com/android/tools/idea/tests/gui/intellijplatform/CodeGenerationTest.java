@@ -128,12 +128,12 @@ public class CodeGenerationTest {
   private JListFixture getList(@NotNull String className) {
     JBList jbList =
       GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
-                                          null, new GenericTypeMatcher<JBList>(JBList.class) {
-        @Override
-        protected boolean isMatching(@NotNull JBList list) {
-          return list.getClass().getName().equals(className);
-        }
-      });
+                                          null, new GenericTypeMatcher<>(JBList.class) {
+          @Override
+          protected boolean isMatching(@NotNull JBList list) {
+            return list.getClass().getName().equals(className);
+          }
+        });
     return new JListFixture(guiTest.robot(), jbList);
   }
 }

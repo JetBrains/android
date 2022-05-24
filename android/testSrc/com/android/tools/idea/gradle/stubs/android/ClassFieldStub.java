@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.ClassField;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class ClassFieldStub implements ClassField {
   @NotNull private final String myType;

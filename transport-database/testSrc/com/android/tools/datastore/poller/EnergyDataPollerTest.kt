@@ -45,8 +45,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
 
 class EnergyDataPollerTest : DataStorePollerTest() {

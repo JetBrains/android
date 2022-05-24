@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix;
 import com.intellij.openapi.util.Ref;
@@ -23,8 +25,6 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtureTestCase {
   public void testNotApplicableInJavaModules() {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -24,7 +23,7 @@ class ProjectSyncModificationTracker(val project: Project) : ModificationTracker
   private val tracker = SimpleModificationTracker()
 
   init {
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+    project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         tracker.incModificationCount()
       }
@@ -33,7 +32,7 @@ class ProjectSyncModificationTracker(val project: Project) : ModificationTracker
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, ProjectSyncModificationTracker::class.java)!!
+    fun getInstance(project: Project) = project.getService(ProjectSyncModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = tracker.modificationCount

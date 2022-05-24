@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PsdModuleModels implements GradleModuleModels {
   @NotNull private final String myName;

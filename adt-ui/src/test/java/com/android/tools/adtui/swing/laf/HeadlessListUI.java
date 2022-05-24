@@ -17,15 +17,16 @@ package com.android.tools.adtui.swing.laf;
 
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
-
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
-import javax.swing.plaf.basic.BasicListUI;
-import java.awt.*;
+import java.awt.HeadlessException;
+import java.awt.List;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
+import javax.swing.plaf.basic.BasicListUI;
 
 /**
  * A stubbed {@link BasicListUI} for use in headless unit tests, where some functionality is

@@ -25,12 +25,12 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.io.File
 
 class TransportFileManagerTest {

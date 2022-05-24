@@ -35,7 +35,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateWindowSizeDeviceModels() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = WindowSizeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)

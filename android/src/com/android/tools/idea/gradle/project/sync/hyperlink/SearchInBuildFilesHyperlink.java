@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.intellij.find.impl.FindInProjectUtil.StringUsageTarget;
+import static com.intellij.find.impl.FindInProjectUtil.findUsages;
+import static com.intellij.find.impl.FindInProjectUtil.setupProcessPresentation;
+import static com.intellij.find.impl.FindInProjectUtil.setupViewPresentation;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;
-import com.intellij.find.impl.FindInProjectUtil.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Factory;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.usages.*;
+import com.intellij.usages.FindUsagesProcessPresentation;
+import com.intellij.usages.Usage;
+import com.intellij.usages.UsageInfo2UsageAdapter;
+import com.intellij.usages.UsageSearcher;
+import com.intellij.usages.UsageTarget;
+import com.intellij.usages.UsageViewManager;
+import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.AdapterProcessor;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.find.impl.FindInProjectUtil.*;
 
 public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
   @NotNull private final String myTextToFind;
@@ -74,14 +82,14 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
 
     UsageTarget usageTarget = new StringUsageTarget(project, findModel);
 
-    usageViewManager.searchAndShowUsages(new UsageTarget[]{usageTarget}, new Factory<UsageSearcher>() {
+    usageViewManager.searchAndShowUsages(new UsageTarget[]{usageTarget}, new Factory<>() {
       @Override
       public UsageSearcher create() {
         return new UsageSearcher() {
           @Override
           public void generate(@NotNull final Processor<? super Usage> processor) {
             AdapterProcessor<UsageInfo, Usage> consumer =
-              new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
+              new AdapterProcessor<>(processor, UsageInfo2UsageAdapter.CONVERTER);
             findUsages(findModelCopy, project, consumer, processPresentation);
           }
         };

@@ -16,6 +16,10 @@
 
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
@@ -24,21 +28,22 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.*;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TextComponentAccessor;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.util.List;
-
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SelectNdkDialog extends DialogWrapper {
   private boolean myHasBeenEdited = false;

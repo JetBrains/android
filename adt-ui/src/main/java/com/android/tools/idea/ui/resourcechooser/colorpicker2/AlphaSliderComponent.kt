@@ -18,8 +18,9 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 import com.android.tools.adtui.util.GraphicsUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
-
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.Rectangle
 import kotlin.math.max
 import kotlin.math.min
 

@@ -64,7 +64,7 @@ public class DisposerExplorer {
    */
   @NotNull
   private static Collection<Disposable> getTreeRootsInternal() {
-    return getFieldValue(Disposer.getTree(), "myRootObjects");
+    return getObjectNodeDisposableChildren(getFieldValue(Disposer.getTree(), "myRootNode"));
   }
 
   @NotNull
@@ -82,16 +82,21 @@ public class DisposerExplorer {
       if (objectNode == null) {
         return ImmutableList.of();
       }
-      List<?> childNodes = getObjectNodeChildren(objectNode);
-      if (childNodes.isEmpty()) {
-        return ImmutableList.of();
-      }
-      ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
-      for (Object node : childNodes) {
-        builder.add(getObjectNodeDisposable(node));
-      }
-      return builder.build();
+      return getObjectNodeDisposableChildren(objectNode);
     }
+  }
+
+  @NotNull
+  private static ImmutableList<Disposable> getObjectNodeDisposableChildren(@NotNull Object objectNode) {
+    List<?> childNodes = getObjectNodeChildren(objectNode);
+    if (childNodes.isEmpty()) {
+      return ImmutableList.of();
+    }
+    ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
+    for (Object node : childNodes) {
+      builder.add(getObjectNodeDisposable(node));
+    }
+    return builder.build();
   }
 
   /**
@@ -182,15 +187,7 @@ public class DisposerExplorer {
   @NotNull
   public static VisitResult visitTree(@NotNull Visitor visitor) {
     synchronized (treeLock) {
-      Map<Disposable, ?> objectToNodeMap = getObjectToNodeMap();
-      for (Disposable root : getTreeRootsInternal()) {
-        Object rootNode = objectToNodeMap.get(root);
-        VisitResult result = visitSubtree(rootNode, visitor);
-        if (result == VisitResult.ABORT) {
-          return result;
-        }
-      }
-      return VisitResult.CONTINUE;
+      return visitSubtree(getFieldValue(Disposer.getTree(), "myRootNode"), visitor);
     }
   }
 
@@ -242,17 +239,17 @@ public class DisposerExplorer {
 
   @NotNull
   private static Map<Disposable, ?> getObjectToNodeMap() {
-    return getFieldValue(Disposer.getTree(), "myObject2NodeMap");
+    return getFieldValue(Disposer.getTree(), "myObject2ParentNode");
   }
 
   @Nullable
   private static Object getObjectNode(@NotNull Disposable disposable) {
-    return getObjectToNodeMap().get(disposable);
+    return getObjectNodeChildren(getObjectToNodeMap().get(disposable)).stream().filter(n->getObjectNodeDisposable(n) == disposable).findFirst().get();
   }
 
   @Nullable
   private static Object getObjectNodeParent(@NotNull Object objectNode) {
-    return getFieldValue(objectNode, "myParent");
+    return getObjectToNodeMap().get(getObjectNodeDisposable(objectNode));
   }
 
   @NotNull

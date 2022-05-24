@@ -2,7 +2,7 @@ MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -22,6 +22,7 @@ MODULE                        : project.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -55,7 +56,7 @@ MODULE                        : project.app
     VariantNames                  : paidOtherBarSpecialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DynamicFeatures               : :dyn_feature
     ViewBindingOptions
         Enabled                       : false
@@ -64,6 +65,13 @@ MODULE                        : project.app
         IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
+            Name                          : main
+            ApplicationIdSuffix           : defaultSuffix
+            VersionNameSuffix             : vns
+            ManifestPlaceholders
+                aa                            : aaa
+                bb                            : bbb
+                cc                            : true
             ApplicationId                 : com.example.psd.sample.app.default
             VersionCode                   : 1
             VersionName                   : 1.0
@@ -74,8 +82,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -124,6 +132,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -176,6 +185,12 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
+            ApplicationIdSuffix           : suffix
+            VersionNameSuffix             : vsuffix
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+            ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -197,22 +212,6 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -228,6 +227,8 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
         BuildType
+            Name                          : specialRelease
+            VersionNameSuffix             : vnsSpecial
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -249,22 +250,6 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/specialRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestSpecialRelease
-                    Manifest                      : <ROOT>/app/src/androidTestSpecialRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/androidTestSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/androidTestSpecialRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestSpecialRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestSpecialRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/androidTestSpecialRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/androidTestSpecialRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/androidTestSpecialRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestSpecialRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testSpecialRelease
@@ -281,6 +266,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
     ProductFlavors
         ProductFlavor
+            Name                          : basic
             Dimension                     : foo
             ApplicationId                 : com.example.psd.sample.app
             VectorDrawables
@@ -329,6 +315,8 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
         ProductFlavor
+            Name                          : paid
+            VersionNameSuffix             : vnsFoo
             Dimension                     : foo
             ApplicationId                 : com.example.psd.sample.app.paid
             VersionCode                   : 2
@@ -393,6 +381,8 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
         ProductFlavor
+            Name                          : bar
+            ApplicationIdSuffix           : barSuffix
             Dimension                     : bar
             VectorDrawables
         SourceProvider
@@ -440,6 +430,7 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
         ProductFlavor
+            Name                          : otherBar
             Dimension                     : bar
             resourceConfigurations        : en
             resourceConfigurations        : hdpi
@@ -615,23 +606,35 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : basic-bar-debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             MaxSdkVersion                 : 26
+            VersionCode                   : 1
+            VersionNameSuffix             : vns
+            VersionNameWithSuffix         : 1.0vns
             TestApplicationId             : com.example.psd.sample.app.default.test
             ProductFlavors                : basic
             ProductFlavors                : bar
+            ManifestPlaceholders
+                aa                            : aaa
+                bb                            : bbb
+                cc                            : true
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileBasicBarDebugSources
                 AssembleTaskName              : assembleBasicBarDebug
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicBarDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
                 VariantSourceProvider
                     Name                          : basicBarDebug
                     Manifest                      : <ROOT>/app/src/basicBarDebug/AndroidManifest.xml [-]
@@ -1262,14 +1265,14 @@ MODULE                        : project.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicBarDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestBasicBarDebug
                     Manifest                      : <ROOT>/app/src/androidTestBasicBarDebug/AndroidManifest.xml [-]
@@ -1984,11 +1987,11 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicBarDebugUnitTestSources
                 AssembleTaskName              : assembleBasicBarDebugUnitTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
                 VariantSourceProvider
                     Name                          : testBasicBarDebug
                     Manifest                      : <ROOT>/app/src/testBasicBarDebug/AndroidManifest.xml [-]
@@ -2581,10 +2584,13 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2604,6 +2610,7 @@ MODULE                        : project.dyn_feature
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2625,11 +2632,12 @@ MODULE                        : project.dyn_feature
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2678,6 +2686,7 @@ MODULE                        : project.dyn_feature
                     ShadersDirectories            : <ROOT>/dyn_feature/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2730,6 +2739,7 @@ MODULE                        : project.dyn_feature
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2749,22 +2759,6 @@ MODULE                        : project.dyn_feature
             AssetsDirectories             : <ROOT>/dyn_feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/dyn_feature/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/dyn_feature/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/dyn_feature/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/dyn_feature/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/dyn_feature/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2804,18 +2798,21 @@ MODULE                        : project.dyn_feature
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -2828,14 +2825,14 @@ MODULE                        : project.dyn_feature
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -2856,11 +2853,11 @@ MODULE                        : project.dyn_feature
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -2868,11 +2865,16 @@ MODULE                        : project.dyn_feature
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.dyn_feature.androidTest
+MODULE                        : project.dyn_feature.main
+MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
+MODULE                        : project.jav.main
+MODULE                        : project.jav.test
 MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2892,6 +2894,7 @@ MODULE                        : project.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2913,19 +2916,20 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VersionCode                   : 1
             VersionName                   : 1.0
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2974,6 +2978,7 @@ MODULE                        : project.lib
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -3026,6 +3031,10 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/lib/proguard-rules.txt
+            ConsumerProguardFiles         : <ROOT>/lib/other.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -3045,22 +3054,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/lib/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3098,19 +3091,26 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -3638,14 +3638,14 @@ MODULE                        : project.lib
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -4183,11 +4183,11 @@ MODULE                        : project.lib
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -4711,10 +4711,13 @@ MODULE                        : project.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4734,6 +4737,7 @@ MODULE                        : project.nested1
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -4755,11 +4759,12 @@ MODULE                        : project.nested1
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4808,6 +4813,7 @@ MODULE                        : project.nested1
                     ShadersDirectories            : <ROOT>/nested1/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -4860,6 +4866,7 @@ MODULE                        : project.nested1
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -4879,22 +4886,6 @@ MODULE                        : project.nested1
             AssetsDirectories             : <ROOT>/nested1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/nested1/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested1/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4932,18 +4923,21 @@ MODULE                        : project.nested1
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -4955,14 +4949,14 @@ MODULE                        : project.nested1
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -4985,11 +4979,11 @@ MODULE                        : project.nested1
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -4998,10 +4992,11 @@ MODULE                        : project.nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5021,6 +5016,7 @@ MODULE                        : project.nested1.deep
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -5042,11 +5038,12 @@ MODULE                        : project.nested1.deep
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VersionCode                   : 1
             resourceConfigurations        : en
             resourceConfigurations        : fr
@@ -5098,6 +5095,7 @@ MODULE                        : project.nested1.deep
                     ShadersDirectories            : <ROOT>/nested1/deep/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5150,6 +5148,7 @@ MODULE                        : project.nested1.deep
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5169,22 +5168,6 @@ MODULE                        : project.nested1.deep
             AssetsDirectories             : <ROOT>/nested1/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/deep/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/nested1/deep/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/deep/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/deep/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested1/deep/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5222,20 +5205,24 @@ MODULE                        : project.nested1.deep
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
+            VersionCode                   : 1
             ResourceConfigurations        : en
             ResourceConfigurations        : fr
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -5247,14 +5234,14 @@ MODULE                        : project.nested1.deep
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -5277,11 +5264,11 @@ MODULE                        : project.nested1.deep
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -5290,10 +5277,15 @@ MODULE                        : project.nested1.deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested1.deep.androidTest
+MODULE                        : project.nested1.deep.main
+MODULE                        : project.nested1.deep.unitTest
+MODULE                        : project.nested1.main
+MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5313,6 +5305,7 @@ MODULE                        : project.nested2
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -5337,11 +5330,12 @@ MODULE                        : project.nested2
     VariantNames                  : basicRelease
     VariantNames                  : paidRelease
     FlavorDimensions              : foo
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5390,6 +5384,7 @@ MODULE                        : project.nested2
                     ShadersDirectories            : <ROOT>/nested2/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5442,6 +5437,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5463,22 +5459,6 @@ MODULE                        : project.nested2
             ShadersDirectories            : <ROOT>/nested2/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/nested2/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTestRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -5495,6 +5475,7 @@ MODULE                        : project.nested2
                     ShadersDirectories            : <ROOT>/nested2/src/testRelease/shaders [-]
     ProductFlavors
         ProductFlavor
+            Name                          : basic
             Dimension                     : foo
             VectorDrawables
         SourceProvider
@@ -5542,6 +5523,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testBasic/shaders [-]
         ProductFlavor
+            Name                          : paid
             Dimension                     : foo
             VectorDrawables
         SourceProvider
@@ -5617,19 +5599,23 @@ MODULE                        : project.nested2
             BuildType                     : debug
             DisplayName                   : basic-debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
+            VersionNameSuffix             :
             ProductFlavors                : basic
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileBasicDebugSources
                 AssembleTaskName              : assembleBasicDebug
-                ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicDebugSources
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
                 VariantSourceProvider
                     Name                          : basicDebug
                     Manifest                      : <ROOT>/nested2/src/basicDebug/AndroidManifest.xml [-]
@@ -5654,14 +5640,14 @@ MODULE                        : project.nested2
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicDebugAndroidTest
-                ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestBasicDebug
                     Manifest                      : <ROOT>/nested2/src/androidTestBasicDebug/AndroidManifest.xml [-]
@@ -5697,11 +5683,11 @@ MODULE                        : project.nested2
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicDebugUnitTestSources
                 AssembleTaskName              : assembleBasicDebugUnitTest
-                ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
                 VariantSourceProvider
                     Name                          : testBasicDebug
                     Manifest                      : <ROOT>/nested2/src/testBasicDebug/AndroidManifest.xml [-]
@@ -5723,10 +5709,11 @@ MODULE                        : project.nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5746,6 +5733,7 @@ MODULE                        : project.nested2.deep
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -5767,11 +5755,12 @@ MODULE                        : project.nested2.deep
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5820,6 +5809,7 @@ MODULE                        : project.nested2.deep
                     ShadersDirectories            : <ROOT>/nested2/deep/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5872,6 +5862,7 @@ MODULE                        : project.nested2.deep
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -5891,22 +5882,6 @@ MODULE                        : project.nested2.deep
             AssetsDirectories             : <ROOT>/nested2/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/deep/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/nested2/deep/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/deep/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/deep/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/deep/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5944,18 +5919,21 @@ MODULE                        : project.nested2.deep
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -5967,14 +5945,14 @@ MODULE                        : project.nested2.deep
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -5997,11 +5975,11 @@ MODULE                        : project.nested2.deep
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -6010,11 +5988,15 @@ MODULE                        : project.nested2.deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.deep.androidTest
+MODULE                        : project.nested2.deep.main
+MODULE                        : project.nested2.deep.unitTest
+MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6034,6 +6016,7 @@ MODULE                        : project.nested2.trans.deep2
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -6055,11 +6038,12 @@ MODULE                        : project.nested2.trans.deep2
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6108,6 +6092,7 @@ MODULE                        : project.nested2.trans.deep2
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : true
             IsRenderscriptDebuggable      : false
@@ -6160,6 +6145,7 @@ MODULE                        : project.nested2.trans.deep2
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -6179,22 +6165,6 @@ MODULE                        : project.nested2.trans.deep2
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/nested2/trans/deep2/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/trans/deep2/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6232,18 +6202,21 @@ MODULE                        : project.nested2.trans.deep2
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -6255,14 +6228,14 @@ MODULE                        : project.nested2.trans.deep2
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -6285,11 +6258,11 @@ MODULE                        : project.nested2.trans.deep2
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -6298,3 +6271,7 @@ MODULE                        : project.nested2.trans.deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.trans.deep2.androidTest
+MODULE                        : project.nested2.trans.deep2.main
+MODULE                        : project.nested2.trans.deep2.unitTest
+MODULE                        : project.nested2.unitTest

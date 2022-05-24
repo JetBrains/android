@@ -106,7 +106,11 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
         return null;
       }
       ResourceType type = reference.getResourceType();
-      if (type != ResourceType.COLOR && type != ResourceType.DRAWABLE && type != ResourceType.MIPMAP && type != ResourceType.ATTR) {
+      if (type != ResourceType.COLOR &&
+          type != ResourceType.DRAWABLE &&
+          type != ResourceType.MIPMAP &&
+          type != ResourceType.ATTR &&
+          type != ResourceType.MACRO) {
         return null;
       }
       return new FileAnnotationInfo.AnnotatableElement(reference, element);

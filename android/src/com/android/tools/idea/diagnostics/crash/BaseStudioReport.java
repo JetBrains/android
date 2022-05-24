@@ -20,9 +20,8 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-
 import java.util.Map;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 /** Crash report that uses Android Studio product id. */
 public abstract class BaseStudioReport extends CrashReport {

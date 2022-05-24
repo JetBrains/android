@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import java.io.File;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 public class BuildIdentifierStub implements BuildIdentifier {
   @NotNull private final File myRootDir;

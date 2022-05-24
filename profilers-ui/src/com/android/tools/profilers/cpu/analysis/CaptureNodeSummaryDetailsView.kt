@@ -103,9 +103,10 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
     }
 
     // Wrap everything in a collapsible panel.
-    return HideablePanel(HideablePanel.Builder("All Occurrences (${nodeStats.count})", panel)
-                           .setPanelBorder(JBUI.Borders.empty())
-                           .setContentBorder(JBUI.Borders.empty(8, 0, 0, 0))).apply {
+    return HideablePanel.Builder("All Occurrences (${nodeStats.count})", panel)
+      .setPanelBorder(JBUI.Borders.empty())
+      .setContentBorder(JBUI.Borders.empty(8, 0, 0, 0))
+      .build().apply {
       background = primaryContentBackground
     }
   }

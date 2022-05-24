@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.gradle.adtimport;
 
 import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
@@ -33,9 +34,6 @@ import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_REPLACED
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_RISKY_PROJECT_LOCATION;
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_UNHANDLED;
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_USER_HOME_PROGUARD;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertAbout;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 import static org.junit.Assert.assertNotEquals;
@@ -48,15 +46,13 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ImportUtil;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.idea.testing.AndroidGradleTests;
-import com.android.tools.idea.util.PropertiesFiles;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
@@ -67,10 +63,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -193,7 +192,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\t\t</variable>\n"
                 + "\t</variableList>\n"
                 + "</projectDescription>",
-                new File(projectDir, ".project"), UTF_8);
+                new File(projectDir, ".project"), StandardCharsets.UTF_8);
 
     GradleImport importer = new GradleImport();
     EclipseProject project = EclipseProject.getProject(importer, projectDir);
@@ -258,7 +257,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "org.eclipse.jdt.core.compiler.problem.assertIdentifier=error\n"
                 + "org.eclipse.jdt.core.compiler.problem.enumIdentifier=error\n"
                 + "org.eclipse.jdt.core.compiler.source=1.6\n"
-                + "org.eclipse.jdt.core.formatter.tabulation.char=space", prefs, UTF_8);
+                + "org.eclipse.jdt.core.formatter.tabulation.char=space", prefs, StandardCharsets.UTF_8);
     File global2 = var4.getParentFile();
     prefs = new File(workspace, ".metadata" + separator +
                                 ".plugins" + separator +
@@ -270,7 +269,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "eclipse.preferences.version=1\n"
                 + "pathvariable.MY_GLOBAL_VAR_2="
                 + global2.getPath().replace(separatorChar, '/').replace(":", "\\:") + "\n"
-                + "version=1", prefs, UTF_8);
+                + "version=1", prefs, StandardCharsets.UTF_8);
 
     importer.setEclipseWorkspace(workspace);
 
@@ -406,14 +405,14 @@ public class GradleImportTest extends AndroidTestCase {
 
     // Remove <uses-sdk ...>
     File manifestFile = new File(projectDir, FN_ANDROID_MANIFEST_XML);
-    String manifestContents = Files.asCharSource(manifestFile, UTF_8).read();
+    String manifestContents = Files.asCharSource(manifestFile, StandardCharsets.UTF_8).read();
     int index = manifestContents.indexOf("<uses-sdk");
     int endIndex = manifestContents.indexOf('>', index);
     assertFalse(index == -1);
     assertFalse(endIndex == -1);
     manifestContents = manifestContents.substring(0, index) +
                        manifestContents.substring(endIndex + 1);
-    Files.write(manifestContents, manifestFile, UTF_8);
+    Files.write(manifestContents, manifestFile, StandardCharsets.UTF_8);
 
     File imported = checkProject(projectDir, ""
                                              + MSG_HEADER
@@ -840,7 +839,7 @@ public class GradleImportTest extends AndroidTestCase {
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
                  + "apply plugin: 'java'\n",
-                 Files.asCharSource(new File(imported, "javaLib" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "javaLib" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     // Let's peek at some of the key files to make sure we codegen'ed the right thing
@@ -861,7 +860,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                  + "    }\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -891,7 +890,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':lib2')\n"
                  + "    compile project(':javaLib')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -917,14 +916,14 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':lib1')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "lib2" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "lib2" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
     assertEquals(""
                  + "include ':javaLib'\n"
                  + "include ':lib1'\n"
                  + "include ':lib2'\n"
                  + "include ':app'\n",
-                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "settings.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -1095,7 +1094,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile 'com.android.support:appcompat-v7:22.+'\n"
                  + "    compile 'com.android.support:gridlayout-v7:22.+'\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read().replace(NL, "\n"));
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), StandardCharsets.UTF_8).read().replace(NL, "\n"));
 
     deleteDir(projectDir);
     deleteDir(imported);
@@ -1183,7 +1182,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile files('libs/android-support-v7-appcompat.jar')\n"
                  + "    compile files('libs/android-support-v7-gridlayout.jar')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "Test1" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "Test1" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(projectDir);
@@ -1213,7 +1212,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "LOCAL_SRC_FILES := hello-jni.c\n"
                 + "\n"
                 + "include $(BUILD_SHARED_LIBRARY)",
-                makefile, UTF_8);
+                makefile, StandardCharsets.UTF_8);
     new File(jni, "Application.mk").createNewFile();
     new File(jni, "HelloJni.cpp").createNewFile();
     new File(jni, "hello-jni.c").createNewFile();
@@ -1232,7 +1231,7 @@ public class GradleImportTest extends AndroidTestCase {
     Files.write(
       escapeProperty("sdk.dir", sdkLocation.getPath()) + "\n" +
       escapeProperty("ndk.dir", ndkLocation.getPath()) + "\n",
-      new File(projectDir, FN_LOCAL_PROPERTIES), UTF_8);
+      new File(projectDir, FN_LOCAL_PROPERTIES), StandardCharsets.UTF_8);
 
     File imported = checkProject(projectDir,
                                  ""
@@ -1312,7 +1311,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "testJni" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "testJni" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     assertEquals(sdkLocation.getPath(),
@@ -1418,7 +1417,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "  </application>\n"
                 + "\n"
                 + "</manifest>",
-                new File(tests, FN_ANDROID_MANIFEST_XML), UTF_8);
+                new File(tests, FN_ANDROID_MANIFEST_XML), StandardCharsets.UTF_8);
     File testSrc = new File(tests, "src");
     testSrc.mkdirs();
     File testPkg = new File(testSrc, "mytestpkg");
@@ -1508,7 +1507,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    androidTestCompile files('libs/myTestSupportLib.jar')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -1550,7 +1549,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "  </application>\n"
                 + "\n"
                 + "</manifest>",
-                new File(tests, FN_ANDROID_MANIFEST_XML), UTF_8);
+                new File(tests, FN_ANDROID_MANIFEST_XML), StandardCharsets.UTF_8);
     File testSrc = new File(tests, "src");
     testSrc.mkdirs();
     File testPkg = new File(testSrc, "mytestpkg");
@@ -1689,7 +1688,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'\n"
                  + "    compile 'com.android.support:support-v4:18.+'\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -1836,7 +1835,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\t<classpathentry combineaccessrules=\"false\" kind=\"src\" path=\"/android-support-v7-appcompat\"/>\n"
                 + "\t<classpathentry kind=\"output\" path=\"bin/classes\"/>\n"
                 + "</classpath>",
-                classpath, UTF_8);
+                classpath, StandardCharsets.UTF_8);
 
     //noinspection SpellCheckingInspection
     File imported = checkProject(projectDir,
@@ -1888,7 +1887,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\t<classpathentry exported=\"true\" kind=\"lib\" path=\"" + guavaPath.getAbsoluteFile().getCanonicalFile().getPath() + "\"/>\n"
                 + "\t<classpathentry kind=\"output\" path=\"bin\"/>\n"
                 + "</classpath>",
-                new File(lib1, ".classpath"), UTF_8);
+                new File(lib1, ".classpath"), StandardCharsets.UTF_8);
     createEclipseSettingsFile(lib1, "1.6");
 
     // Make Java Library 2
@@ -1906,7 +1905,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\t<classpathentry combineaccessrules=\"false\" kind=\"src\" path=\"/Library1\"/>\n"
                 + "\t<classpathentry kind=\"output\" path=\"bin\"/>\n"
                 + "</classpath>",
-                new File(lib2, ".classpath"), UTF_8);
+                new File(lib2, ".classpath"), StandardCharsets.UTF_8);
     createEclipseSettingsFile(lib2, "1.7");
 
     // Make Android Library Project 1
@@ -1928,7 +1927,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\t<classpathentry combineaccessrules=\"false\" exported=\"true\" kind=\"src\" path=\"/Library1\"/>\n"
                 + "\t<classpathentry combineaccessrules=\"false\" exported=\"true\" kind=\"src\" path=\"/Library2\"/>\n"
                 + "\t<classpathentry kind=\"output\" path=\"bin/classes\"/>\n"
-                + "</classpath>", new File(androidLib, ".classpath"), UTF_8);
+                + "</classpath>", new File(androidLib, ".classpath"), StandardCharsets.UTF_8);
     createProjectProperties(androidLib, "android-18", null, true, null,
                             // Note how Android library projects don't point to non-Android projects
                             // in the project.properties file; only via the .classpath file!
@@ -2118,7 +2117,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile 'com.google.guava:guava:13.0.1'\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2145,7 +2144,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':androidLibrary')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "androidApp" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "androidApp" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -2173,7 +2172,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':library1')\n"
                  + "    compile project(':library2')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "androidLibrary" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "androidLibrary" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -2183,7 +2182,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile 'com.google.guava:guava:13.0.1'\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2195,7 +2194,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':library1')\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "library2" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "library2" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     // TODO: Should this ONLY include the root module?
@@ -2204,7 +2203,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "include ':library2'\n"
                  + "include ':androidLibrary'\n"
                  + "include ':androidApp'\n",
-                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "settings.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection ConstantConditions
@@ -2224,7 +2223,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                  + "    }\n"
                  + "}\n" ,
-                 Files.asCharSource(new File(imported, "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -2425,7 +2424,7 @@ public class GradleImportTest extends AndroidTestCase {
     assertEquals(""
                  + "include ':app'\n"
                  + "include ':test2'\n",
-                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "settings.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(moduleDir);
@@ -2524,7 +2523,7 @@ public class GradleImportTest extends AndroidTestCase {
     library1.mkdirs();
     File location = new File(library1, ".location");
     byte[] data = ("blahblahblahURI//" + SdkUtils.fileToUrl(library1AbsDir) +
-                   "\000blahblahblah").getBytes(UTF_8);
+                   "\000blahblahblah").getBytes(StandardCharsets.UTF_8);
     Files.write(data, location);
 
     final AtomicReference<GradleImport> importReference = new AtomicReference<>();
@@ -2586,7 +2585,7 @@ public class GradleImportTest extends AndroidTestCase {
     library1.mkdirs();
     File location = new File(library1, ".location");
     byte[] data = ("blahblahblahURI//" + SdkUtils.fileToUrl(library1AbsDir) +
-                   "\000blahblahblah").getBytes(UTF_8);
+                   "\000blahblahblah").getBytes(StandardCharsets.UTF_8);
     Files.write(data, location);
 
     final AtomicReference<GradleImport> importReference = new AtomicReference<>();
@@ -2639,7 +2638,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "        <classpathentry exported=\"true\" kind=\"con\" path=\"com.android.ide.eclipse.adt.LIBRARIES\"/>\n"
                 + "        <classpathentry exported=\"true\" kind=\"con\" path=\"com.android.ide.eclipse.adt.DEPENDENCIES\"/>\n"
                 + "        <classpathentry kind=\"output\" path=\"bin/classes\"/>\n"
-                + "</classpath>", classPath, UTF_8);
+                + "</classpath>", classPath, StandardCharsets.UTF_8);
 
     final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
@@ -2677,7 +2676,7 @@ public class GradleImportTest extends AndroidTestCase {
     File manifest = new File(projectDir, "AndroidManifest.xml");
     Files.write(""
                 + "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<x>\n", manifest, UTF_8);
+                + "<x>\n", manifest, StandardCharsets.UTF_8);
 
     final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
@@ -2712,7 +2711,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "split.density=false\n"
                 + "# Project target.\n"
                 + "target=android-16\n",
-                new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+                new File(projectDir, FN_PROJECT_PROPERTIES), StandardCharsets.UTF_8);
 
     File proguard = new File(projectDir, "proguard");
     proguard.mkdirs();
@@ -2721,7 +2720,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "-dontusemixedcaseclassnames\n"
                 + "-dontskipnonpubliclibraryclasses\n"
                 + "-dontpreverify\n",
-                new File(proguard, "proguard.pro"), UTF_8);
+                new File(proguard, "proguard.pro"), StandardCharsets.UTF_8);
     new File(projectDir, "proguard-project.txt").createNewFile();
 
     File imported = checkProject(projectDir,
@@ -2783,7 +2782,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(projectDir);
@@ -2816,11 +2815,11 @@ public class GradleImportTest extends AndroidTestCase {
                 + "  </application>\n"
                 + "\n"
                 + "</manifest>",
-                new File(projectDir, FN_ANDROID_MANIFEST_XML), UTF_8);
+                new File(projectDir, FN_ANDROID_MANIFEST_XML), StandardCharsets.UTF_8);
 
     Files.write("# blah blah blah\n"
                 + "target=android-L\n",
-                new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+                new File(projectDir, FN_PROJECT_PROPERTIES), StandardCharsets.UTF_8);
 
     File imported = checkProject(projectDir,
                                  ""
@@ -2854,7 +2853,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read()
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), StandardCharsets.UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -2872,7 +2871,7 @@ public class GradleImportTest extends AndroidTestCase {
     // Write project.properties file which points to the add-on
     Files.write("# Project target.\n" +
                 "target=Google Inc.:Google APIs:18\n",
-                new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+                new File(projectDir, FN_PROJECT_PROPERTIES), StandardCharsets.UTF_8);
 
     File imported = checkProject(projectDir,
                                  ""
@@ -2906,7 +2905,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read().replace(NL, "\n"));
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), StandardCharsets.UTF_8).read().replace(NL, "\n"));
 
     deleteDir(root);
     deleteDir(imported);
@@ -3031,10 +3030,10 @@ public class GradleImportTest extends AndroidTestCase {
     assertEquals(xml, Files.asCharSource(xmlFile, windows1252).read());
 
     // Make sure that these contents don't happen to be the same regardless of encoding
-    assertNotEquals(java, Files.asCharSource(appFile, UTF_8).read());
-    assertNotEquals(java, Files.asCharSource(lib1File, UTF_8).read());
-    assertNotEquals(java, Files.asCharSource(lib2File, UTF_8).read());
-    assertNotEquals(xml, Files.asCharSource(xmlFile, UTF_8).read());
+    assertNotEquals(java, Files.asCharSource(appFile, StandardCharsets.UTF_8).read());
+    assertNotEquals(java, Files.asCharSource(lib1File, StandardCharsets.UTF_8).read());
+    assertNotEquals(java, Files.asCharSource(lib2File, StandardCharsets.UTF_8).read());
+    assertNotEquals(xml, Files.asCharSource(xmlFile, StandardCharsets.UTF_8).read());
 
     // Write App project specific encoding, and file specific encoding
     File file = new File(root, "App" + separator + ".settings" + separator
@@ -3107,11 +3106,11 @@ public class GradleImportTest extends AndroidTestCase {
     assertTrue(newLib2File.exists());
     assertTrue(newXmlFile.exists());
 
-    assertEquals(java, Files.asCharSource(newAppFile, UTF_8).read());
-    assertEquals(java, Files.asCharSource(newLib1File, UTF_8).read());
-    assertEquals(java, Files.asCharSource(newLib2File, UTF_8).read());
-    assertNotEquals(xml, Files.asCharSource(newXmlFile, UTF_8).read()); // references old encoding
-    assertEquals(xml.replace(windows1252.name(), "utf-8"), Files.asCharSource(newXmlFile, UTF_8).read());
+    assertEquals(java, Files.asCharSource(newAppFile, StandardCharsets.UTF_8).read());
+    assertEquals(java, Files.asCharSource(newLib1File, StandardCharsets.UTF_8).read());
+    assertEquals(java, Files.asCharSource(newLib2File, StandardCharsets.UTF_8).read());
+    assertNotEquals(xml, Files.asCharSource(newXmlFile, StandardCharsets.UTF_8).read()); // references old encoding
+    assertEquals(xml.replace(windows1252.name(), "utf-8"), Files.asCharSource(newXmlFile, StandardCharsets.UTF_8).read());
 
     deleteDir(root);
     deleteDir(imported);
@@ -3219,13 +3218,13 @@ public class GradleImportTest extends AndroidTestCase {
     createProjectProperties(projectDir, "android-19", null, null, null,
                             Collections.emptyList());
     // Append unresolved library project references
-    String s = Files.asCharSource(new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8).read();
+    String s = Files.asCharSource(new File(projectDir, FN_PROJECT_PROPERTIES), StandardCharsets.UTF_8).read();
     s += "\n";
     s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 1) + "=../appcompat_v7\n";
     s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 2) + "=../support-v4\n";
     //noinspection SpellCheckingInspection
     s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 3) + "=../extras/android/compatibility/v7/gridlayout\n";
-    Files.write(s, new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+    Files.write(s, new File(projectDir, FN_PROJECT_PROPERTIES), StandardCharsets.UTF_8);
 
     File imported = checkProject(projectDir,
                                  ""
@@ -3266,7 +3265,7 @@ public class GradleImportTest extends AndroidTestCase {
                 "org.eclipse.jdt.core.compiler.problem.assertIdentifier=error\n" +
                 "org.eclipse.jdt.core.compiler.problem.enumIdentifier=error\n" +
                 "org.eclipse.jdt.core.compiler.source=" +
-                languageLevel, file, UTF_8);
+                languageLevel, file, StandardCharsets.UTF_8);
   }
 
   interface ImportCustomizer {
@@ -3321,15 +3320,15 @@ public class GradleImportTest extends AndroidTestCase {
     importer.getSummary().setWrapErrorMessages(false);
 
     if (isImport) {
-      Map<File, File> map = Maps.newHashMap();
+      Map<File, File> map = new HashMap<>();
       map.put(adtProjectDir, destDir);
       importer.exportIntoProject(gradleProjectDir, true, true, map);
     }
     else {
       importer.exportProject(destDir, false);
-      updateGradle(destDir);
+      AndroidGradleTests.createGradleWrapper(destDir, GRADLE_LATEST_VERSION);
     }
-    String summary = Files.asCharSource(new File(gradleProjectDir, ImportUtil.IMPORT_SUMMARY_TXT), UTF_8).read();
+    String summary = Files.asCharSource(new File(gradleProjectDir, ImportUtil.IMPORT_SUMMARY_TXT), StandardCharsets.UTF_8).read();
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
@@ -3364,13 +3363,6 @@ public class GradleImportTest extends AndroidTestCase {
            "        " + summary.substring(nextLineIndex + path.length());
   }
 
-  protected static void updateGradle(File projectRoot) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
-  }
-
   private static boolean isWindows() {
     return SdkUtils.startsWithIgnoreCase(System.getProperty("os.name"), "windows");
   }
@@ -3380,11 +3372,11 @@ public class GradleImportTest extends AndroidTestCase {
     if (!buildFile.exists()) {
       return;
     }
-    String contentsOrig = Files.asCharSource(buildFile, UTF_8).read();
+    String contentsOrig = Files.asCharSource(buildFile, StandardCharsets.UTF_8).read();
     String contents = contentsOrig;
     contents = contents.replaceAll("jcenter\\(\\)", "");
     if (!contents.equals(contentsOrig)) {
-      Files.write(contents, buildFile, UTF_8);
+      Files.write(contents, buildFile, StandardCharsets.UTF_8);
     }
   }
 
@@ -3395,7 +3387,7 @@ public class GradleImportTest extends AndroidTestCase {
       return;
     }
     File pwd = base.getAbsoluteFile();
-    List<String> args = Lists.newArrayList();
+    List<String> args = new ArrayList<>();
     args.add(gradlew.getAbsolutePath());
     String customizedGradleHome = System.getProperty("gradle.user.home");
     if (customizedGradleHome != null) {
@@ -3534,7 +3526,7 @@ public class GradleImportTest extends AndroidTestCase {
     sb.append("\t\t<nature>org.eclipse.jdt.core.javanature</nature>\n"
               + "\t</natures>\n"
               + "</projectDescription>\n");
-    Files.write(sb.toString(), new File(projectDir, ".project"), UTF_8);
+    Files.write(sb.toString(), new File(projectDir, ".project"), StandardCharsets.UTF_8);
   }
 
   private static void createClassPath(
@@ -3559,7 +3551,7 @@ public class GradleImportTest extends AndroidTestCase {
       sb.append("\t<classpathentry kind=\"output\" path=\"").append(output.getPath()).append("\"/>\n");
     }
     sb.append("</classpath>");
-    Files.write(sb.toString(), new File(projectDir, ".classpath"), UTF_8);
+    Files.write(sb.toString(), new File(projectDir, ".classpath"), StandardCharsets.UTF_8);
   }
 
   private static void createProjectProperties(
@@ -3625,7 +3617,7 @@ public class GradleImportTest extends AndroidTestCase {
       sb.append(escaped).append("\n");
     }
 
-    Files.write(sb.toString(), new File(projectDir, "project.properties"), UTF_8);
+    Files.write(sb.toString(), new File(projectDir, "project.properties"), StandardCharsets.UTF_8);
   }
 
   private static String escapeProperty(@NonNull String key, @NonNull String value)
@@ -3676,7 +3668,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     sb.append("\n"
               + "</manifest>\n");
-    Files.write(sb.toString(), new File(projectDir, ANDROID_MANIFEST_XML), UTF_8);
+    Files.write(sb.toString(), new File(projectDir, ANDROID_MANIFEST_XML), StandardCharsets.UTF_8);
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -3684,7 +3676,7 @@ public class GradleImportTest extends AndroidTestCase {
                                        String contents) throws IOException {
     File file = new File(projectDir, relative.replace('/', separatorChar));
     file.getParentFile().mkdirs();
-    Files.write(contents, file, UTF_8);
+    Files.write(contents, file, StandardCharsets.UTF_8);
     return file;
   }
 
@@ -3753,7 +3745,7 @@ public class GradleImportTest extends AndroidTestCase {
                 + "\n"
                 + "    <string name=\"app_name\">Unit Test</string>\n"
                 + "\n"
-                + "</resources>", strings, UTF_8);
+                + "</resources>", strings, StandardCharsets.UTF_8);
   }
 
   private static void createDefaultIcon(File dir) throws IOException {
@@ -3779,7 +3771,7 @@ public class GradleImportTest extends AndroidTestCase {
                   "    <stroke android:width=\"1dp\" color=\"#ff000000\"/>\n" +
                   "    <padding android:left=\"1dp\" android:top=\"1dp\"\n" +
                   "        android:right=\"1dp\" android:bottom=\"1dp\" />\n" +
-                  "</shape>", icon, UTF_8);
+                  "</shape>", icon, StandardCharsets.UTF_8);
     }
   }
 
@@ -3789,7 +3781,7 @@ public class GradleImportTest extends AndroidTestCase {
     strings.getParentFile().mkdirs();
     Files.write(""
                 + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-                + "<merge/>\n", strings, UTF_8);
+                + "<merge/>\n", strings, StandardCharsets.UTF_8);
   }
 
   private static void deleteDir(File root) {

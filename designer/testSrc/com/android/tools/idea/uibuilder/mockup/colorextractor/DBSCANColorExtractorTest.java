@@ -16,14 +16,12 @@
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import junit.framework.TestCase;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.imageio.ImageIO;
+import junit.framework.TestCase;
 
 public class DBSCANColorExtractorTest extends TestCase {
   public void testRunClustering() throws Exception {

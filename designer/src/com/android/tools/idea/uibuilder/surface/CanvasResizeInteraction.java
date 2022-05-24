@@ -41,9 +41,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.reference.SoftReference;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.Cursor;
@@ -57,6 +57,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class CanvasResizeInteraction extends Interaction {
   @NotNull private final Configuration myConfiguration;
   private final OrientationLayer myOrientationLayer;
   private final SizeBucketLayer mySizeBucketLayer;
-  private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
+  private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();
@@ -116,7 +117,7 @@ public class CanvasResizeInteraction extends Interaction {
    * Threshold used to force a resize of the surface when getting close to the border. If the mouse gets closer than
    * 2*myResizeTriggerThreshold to the border of the surface, the surface will be extended by myResizeTriggerThreshold
    */
-  private final int myResizeTriggerThreshold = JBUI.scale(200);
+  private final int myResizeTriggerThreshold = JBUIScale.scale(200);
 
   public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
@@ -469,7 +470,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         myOrientationImage = image;
       }
-      UIUtil.drawImage(g2d, image, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, image);
     }
 
     public synchronized void reset() {
@@ -548,7 +549,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         buckets.put(screenSizeBucket, new SoftReference<>(bucket));
       }
-      UIUtil.drawImage(g2d, bucket, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, bucket);
     }
 
     @NotNull

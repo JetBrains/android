@@ -23,13 +23,14 @@ import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
+import com.intellij.util.net.NetUtils;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -208,8 +209,8 @@ public class StudioDownloader implements Downloader {
       Files.createDirectories(interimDownload.getParent());
 
       try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(interimDownload, StandardOpenOption.APPEND, StandardOpenOption.CREATE))) {
-        StudioNetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
-                                         request.getConnection().getContentLengthLong());
+        NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
+                                   request.getConnection().getContentLengthLong());
       }
 
       try {

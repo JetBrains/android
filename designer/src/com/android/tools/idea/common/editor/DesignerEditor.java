@@ -18,7 +18,6 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -33,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a generic designer editor. Subclasses are specific editors (e.g. navigation, layout), and should have their own ID (specified
  * through {@link #getEditorId()}) and create their {@link DesignerEditorPanel} using {@link #createEditorPanel()}.
  */
-public abstract class DesignerEditor extends UserDataHolderBase implements FileEditor {
+public abstract class DesignerEditor extends UserDataHolderBase implements FileEditor, SplitEditorPreviewNotificationHandler {
 
   protected final Project myProject;
   protected final VirtualFile myFile;
@@ -108,12 +107,6 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
 
   @Nullable
   @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
   }
@@ -122,5 +115,13 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
   @Override
   public VirtualFile getFile() {
     return myFile;
+  }
+
+  @Override
+  public void updateNotifications() {
+    DesignerEditorPanel currentPanel = myEditorPanel;
+    if (currentPanel != null) {
+      currentPanel.updateNotifications(getFile(), this, myProject);
+    }
   }
 }

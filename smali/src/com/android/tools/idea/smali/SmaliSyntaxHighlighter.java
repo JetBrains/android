@@ -15,15 +15,27 @@
  */
 package com.android.tools.idea.smali;
 
+import static com.android.tools.idea.smali.SmaliHighlighterColors.BRACES_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.COMMENT_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.JAVA_IDENTIFIER_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.KEYWORD_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.NUMBER_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.PARENTHESES_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.STRING_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliTokenSets.ACCESS_MODIFIER_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.BRACES_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.COMMENT_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.KEYWORD_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.NUMBER_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.PARENTHESES_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.STRING_TOKENS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.JAVA_IDENTIFIER;
+
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.smali.SmaliHighlighterColors.*;
-import static com.android.tools.idea.smali.SmaliTokenSets.*;
-import static com.android.tools.idea.smali.psi.SmaliTypes.JAVA_IDENTIFIER;
 
 public class SmaliSyntaxHighlighter extends SyntaxHighlighterBase {
   static final TextAttributesKey[] COMMENT_ATTR_KEYS = new TextAttributesKey[]{COMMENT_ATTR_KEY};

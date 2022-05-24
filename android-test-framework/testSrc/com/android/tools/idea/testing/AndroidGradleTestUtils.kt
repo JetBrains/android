@@ -23,13 +23,14 @@ import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -39,6 +40,7 @@ import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
+import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
@@ -64,6 +66,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -88,7 +91,6 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -97,6 +99,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.android.utils.combineAsCamelCase
 import com.android.utils.cxx.CompileCommandsEncoder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
@@ -104,6 +107,7 @@ import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -120,8 +124,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -131,6 +137,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -142,6 +149,7 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -232,10 +240,15 @@ interface AndroidProjectStubBuilder {
   val defaultConfig: IdeProductFlavorContainerImpl
   val debugBuildType: IdeBuildTypeContainerImpl?
   val releaseBuildType: IdeBuildTypeContainerImpl?
+  val flavorDimensions: List<String>?
   val dynamicFeatures: List<String>
   val viewBindingOptions: IdeViewBindingOptionsImpl
   val dependenciesInfo: IdeDependenciesInfoImpl
   val supportsBundleTask: Boolean
+  fun productFlavors(dimension: String): List<IdeProductFlavorImpl>
+  fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl
+  fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl>
+
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl>?
   fun mainArtifact(variant: String): IdeAndroidArtifactImpl
@@ -271,24 +284,30 @@ data class AndroidProjectBuilder(
   val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildReleaseSourceProviderStub() },
   val debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildDebugBuildTypeStub() },
   val releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildReleaseBuildTypeStub() },
+  val flavorDimensions: AndroidProjectStubBuilder.() -> List<String>? = { null },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl = { buildViewBindingOptions() },
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
-  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
-  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
-    { variant -> buildAndroidTestArtifactStub(variant) },
-  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl =
-    { variant -> buildUnitTestArtifactStub(variant) },
-  val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
-    { variant -> buildTestFixturesArtifactStub(variant) },
+  val productFlavorsStub:  AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl> = { dimension -> emptyList() },
+  val productFlavorSourceProviderStub:  AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl =
+    { flavor -> sourceProvider(flavor) },
+  val productFlavorContainersStub:  AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl> =
+    { dimension -> buildProductFlavorContainersStub(dimension) },
+  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildAndroidTestArtifactStub(variant) },
+  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeJavaArtifactImpl = { variant -> buildUnitTestArtifactStub(variant) },
+  val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildTestFixturesArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
   val ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel? = { null }
 ) {
-
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
 
@@ -331,6 +350,9 @@ data class AndroidProjectBuilder(
   fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl?) =
     copy(releaseBuildType = releaseBuildType)
 
+  fun withFlavorDimensions(flavorDimensions: AndroidProjectStubBuilder.() -> List<String>?) =
+    copy(flavorDimensions = flavorDimensions)
+
   fun withDynamicFeatures(dynamicFeatures: AndroidProjectStubBuilder.() -> List<String>) =
     copy(dynamicFeatures = dynamicFeatures)
 
@@ -339,6 +361,15 @@ data class AndroidProjectBuilder(
 
   fun withSupportsBundleTask(supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean) =
     copy(supportsBundleTask = supportsBundleTask)
+
+  fun withProductFlavors(productFlavors: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl>) =
+    copy(productFlavorsStub = productFlavors)
+
+  fun withProductFlavorSourceProvider(productFlavorSourceProvider: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl) =
+    copy(productFlavorSourceProviderStub = productFlavorSourceProvider)
+
+  fun withProductFlavorContainers(productFlavorContainers: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl>) =
+    copy(productFlavorContainersStub = productFlavorContainers)
 
   fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl) =
     copy(mainArtifactStub = mainArtifactStub)
@@ -387,10 +418,14 @@ data class AndroidProjectBuilder(
         override val defaultConfig: IdeProductFlavorContainerImpl = defaultConfig()
         override val debugBuildType: IdeBuildTypeContainerImpl? = debugBuildType()
         override val releaseBuildType: IdeBuildTypeContainerImpl? = releaseBuildType()
+        override val flavorDimensions: List<String>? = flavorDimensions()
         override val dynamicFeatures: List<String> = dynamicFeatures()
         override val viewBindingOptions: IdeViewBindingOptionsImpl = viewBindingOptions()
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
         override val supportsBundleTask: Boolean = supportsBundleTask()
+        override fun productFlavors(dimension: String): List<IdeProductFlavorImpl> = productFlavorsStub(dimension)
+        override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
+        override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(dimension)
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
         override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl> = androidLibraryDependencyList(variant)
         override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
@@ -437,7 +472,8 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     myAssetsDirectories = emptyList(),
     myJniLibsDirectories = emptyList(),
     myMlModelsDirectories = emptyList(),
-    myShadersDirectories = emptyList()
+    myShadersDirectories = emptyList(),
+    myCustomSourceDirectories = emptyList(),
   )
 }
 
@@ -465,6 +501,9 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderI
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider("release", moduleBasePath.resolve("src/release"))
 
+fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
+  sourceProvider(name, moduleBasePath.resolve("src/$name"))
+
 private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl = IdeSourceProviderImpl(
   myName = name,
   myFolder = rootDir,
@@ -478,7 +517,8 @@ private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl =
   myAssetsDirectories = listOf("assets"),
   myJniLibsDirectories = listOf("jniLibs"),
   myMlModelsDirectories = listOf("ml"),
-  myShadersDirectories = listOf("shaders")
+  myShadersDirectories = listOf("shaders"),
+  myCustomSourceDirectories = listOf(IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")),
 )
 
 fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePluginProjectFlagsImpl =
@@ -571,9 +611,16 @@ fun AndroidProjectStubBuilder.buildViewBindingOptions(): IdeViewBindingOptionsIm
 fun AndroidProjectStubBuilder.buildDependenciesInfo(): IdeDependenciesInfoImpl =
   IdeDependenciesInfoImpl(includeInApk = true, includeInBundle = true)
 
+fun AndroidProjectStubBuilder.buildProductFlavorContainersStub(dimension: String): List<IdeProductFlavorContainerImpl> {
+  return this
+    .productFlavors(dimension)
+    .map { flavor ->
+      val sourceProvider = this.productFlavorSourceProvider(flavor.name)
+      IdeProductFlavorContainerImpl(flavor, sourceProvider, extraSourceProviders = emptyList())
+    }
+}
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
   val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
@@ -592,15 +639,14 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     name = IdeArtifactName.MAIN,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("sources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/$variant/classes"),
-    additionalClassesFolders = classFolders,
-    javaResourcesFolder = buildPath.resolve("intermediates/java_res/$variant/out"),
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/$variant/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideSetupTask1", "ideSetupTask2"),
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
@@ -617,12 +663,12 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 
 fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val dependenciesStub = buildDependenciesStub()
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
@@ -630,15 +676,14 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     name = IdeArtifactName.ANDROID_TEST,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
-    additionalClassesFolders = classFolders,
-    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
@@ -655,12 +700,12 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 
 fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf(),
   dependencies: IdeDependenciesImpl = buildDependenciesStub(),
   mockablePlatformJar: File? = null
 ): IdeJavaArtifactImpl {
@@ -668,22 +713,20 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     name = IdeArtifactName.UNIT_TEST,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
     assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
-    additionalClassesFolders = classFolders,
-    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}UnitTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = true,
     level2Dependencies = dependencies,
+    unresolvedDependencies = emptyList(),
     mockablePlatformJar = mockablePlatformJar
   )
 }
 
 fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val dependenciesStub = buildDependenciesStub()
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("testFixtures")
@@ -691,15 +734,14 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     name = IdeArtifactName.TEST_FIXTURES,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("testFixturesSources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}testFixtures/classes"),
-    additionalClassesFolders = classFolders,
-    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}testFixtures/out"),
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}testFixtures/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideTestFixturesSetupTask1", "ideTestFixturesSetupTask2"),
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
@@ -716,43 +758,84 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 
 fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantImpl> {
-  return listOfNotNull(debugBuildType, releaseBuildType)
-    .map {
-      val buildType = it.buildType
-      val variant = buildType.name
-      IdeVariantImpl(
-        variant,
-        variant,
-        mainArtifact(variant),
-        unitTestArtifact(variant),
-        androidTestArtifact(variant),
-        testFixturesArtifact(variant),
-        variant,
-        listOf(),
-        minSdkVersion = defaultConfig.productFlavor.minSdkVersion ?: IdeApiVersionImpl(1, null, "1"),
-        targetSdkVersion = defaultConfig.productFlavor.targetSdkVersion,
-        maxSdkVersion = defaultConfig.productFlavor.maxSdkVersion,
-        versionCode = defaultConfig.productFlavor.versionCode,
-        versionNameWithSuffix = defaultConfig.productFlavor.versionName + defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
-        versionNameSuffix = buildType.versionNameSuffix,
-        instantAppCompatible = false,
-        vectorDrawablesUseSupportLibrary = defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
-        resourceConfigurations = defaultConfig.productFlavor.resourceConfigurations,
-        resValues = defaultConfig.productFlavor.resValues,
-        proguardFiles = defaultConfig.productFlavor.proguardFiles + buildType.proguardFiles,
-        consumerProguardFiles = defaultConfig.productFlavor.consumerProguardFiles + buildType.consumerProguardFiles,
-        manifestPlaceholders = defaultConfig.productFlavor.manifestPlaceholders + buildType.manifestPlaceholders,
-        testApplicationId = defaultConfig.productFlavor.testApplicationId,
-        testInstrumentationRunner = defaultConfig.productFlavor.testInstrumentationRunner,
-        testInstrumentationRunnerArguments = defaultConfig.productFlavor.testInstrumentationRunnerArguments,
-        testedTargetVariants = listOf(),
-        deprecatedPreMergedApplicationId = defaultConfig.productFlavor.applicationId + defaultConfig.productFlavor.applicationIdSuffix.orEmpty() + buildType.applicationIdSuffix.orEmpty(),
-      )
+  val dimensions = this.flavorDimensions.orEmpty()
+  fun combineVariants(dimensionIndex: Int = 0): List<List<IdeProductFlavorImpl>> {
+    return when (dimensionIndex) {
+      dimensions.size -> listOf(emptyList())
+      else -> {
+        val tails = combineVariants(dimensionIndex + 1)
+        val thisDimension = this.productFlavors(dimensions[dimensionIndex])
+        thisDimension.flatMap { flavor -> tails.map { tail -> listOf(flavor) + tail }}
+      }
     }
+  }
+
+  val flavorSequences = combineVariants()
+  return flavorSequences.flatMap { flavors ->
+    listOfNotNull(debugBuildType, releaseBuildType)
+      .map {
+        val buildType = it.buildType
+        val flavorNames = flavors.map { it.name }
+        val variant = (flavorNames + buildType.name).combineAsCamelCase()
+        IdeVariantImpl(
+          variant,
+          variant,
+          mainArtifact(variant),
+          unitTestArtifact(variant),
+          androidTestArtifact(variant),
+          testFixturesArtifact(variant),
+          buildType.name,
+          flavorNames,
+          minSdkVersion = flavors.firstNotNullResult { it.minSdkVersion }
+                          ?: defaultConfig.productFlavor.minSdkVersion
+                          ?: IdeApiVersionImpl(1, null, "1"),
+          targetSdkVersion = flavors.firstNotNullResult { it.targetSdkVersion }
+                             ?: defaultConfig.productFlavor.targetSdkVersion,
+          maxSdkVersion = flavors.firstNotNullResult { it.maxSdkVersion }
+                          ?: defaultConfig.productFlavor.maxSdkVersion,
+          versionCode = flavors.firstNotNullResult { it.versionCode }
+                        ?: defaultConfig.productFlavor.versionCode,
+          versionNameWithSuffix = (flavors.firstNotNullResult { it.versionName } ?: defaultConfig.productFlavor.versionName) +
+                                  defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
+          versionNameSuffix = buildType.versionNameSuffix,
+          instantAppCompatible = false,
+          vectorDrawablesUseSupportLibrary = flavors.firstNotNullResult { it.vectorDrawables?.useSupportLibrary }
+                                             ?: defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
+          resourceConfigurations = (defaultConfig.productFlavor.resourceConfigurations + flavors.flatMap { it.resourceConfigurations })
+            .distinct(),
+          resValues = (defaultConfig.productFlavor.resValues.entries +flavors.flatMap { it.resValues.entries })
+            .associate { it.key to it.value },
+          proguardFiles = (defaultConfig.productFlavor.proguardFiles + flavors.flatMap { it.proguardFiles } + buildType.proguardFiles)
+            .distinct(),
+          consumerProguardFiles = (defaultConfig.productFlavor.consumerProguardFiles + flavors.flatMap { it.proguardFiles } + buildType.consumerProguardFiles)
+            .distinct(),
+          manifestPlaceholders = (defaultConfig.productFlavor.manifestPlaceholders.entries +
+                                  flavors.flatMap { it.manifestPlaceholders.entries } +
+                                  buildType.manifestPlaceholders.entries
+                                 )
+            .associate { it.key to it.value },
+          testApplicationId = flavors.firstNotNullResult { it.testApplicationId }
+                              ?: defaultConfig.productFlavor.testApplicationId,
+          testInstrumentationRunner = flavors.firstNotNullResult { it.testInstrumentationRunner }
+                                      ?: defaultConfig.productFlavor.testInstrumentationRunner,
+          testInstrumentationRunnerArguments = (defaultConfig.productFlavor.testInstrumentationRunnerArguments.entries +
+                                                flavors.flatMap { it.testInstrumentationRunnerArguments.entries }
+                                               )
+            .associate { it.key to it.value },
+          testedTargetVariants = listOf(),
+          deprecatedPreMergedApplicationId = (flavors.firstNotNullResult { it.applicationId }
+                                              ?: defaultConfig.productFlavor.applicationId
+                                             ) +
+                                             defaultConfig.productFlavor.applicationIdSuffix.orEmpty() +
+                                             buildType.applicationIdSuffix.orEmpty(),
+        )
+      }
+  }
 }
 
 fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
@@ -762,14 +845,14 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
   val buildTypes = listOfNotNull(debugBuildType, releaseBuildType)
   return IdeAndroidProjectImpl(
-    modelVersion = agpVersion,
+    agpVersion = agpVersion,
     name = projectName,
     projectType = projectType,
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,
-    productFlavors = listOf(),
+    productFlavors = this.flavorDimensions.orEmpty().flatMap { this.productFlavorContainers(it) },
     variantNames = this.variants.map { it.name },
-    flavorDimensions = listOf(),
+    flavorDimensions = this.flavorDimensions.orEmpty(),
     compileTarget = getLatestAndroidPlatform(),
     bootClasspath = listOf(),
     signingConfigs = listOf(),
@@ -1000,7 +1083,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
-    val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
+    val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName
     val moduleBasePath = rootProjectBasePath.resolve(gradlePath.substring(1).replace(':', File.separatorChar))
     FileUtils.mkdirs(moduleBasePath)
     val moduleDataNode = when (moduleBuilder) {
@@ -1097,9 +1180,9 @@ private fun createAndroidModuleDataNode(
   )
 
   moduleDataNode.addChild(
-    DataNode<AndroidModuleModel>(
+    DataNode<GradleAndroidModel>(
       AndroidProjectKeys.ANDROID_MODEL,
-      AndroidModuleModel.create(
+      GradleAndroidModel.create(
         moduleName,
         moduleBasePath,
         androidProject,
@@ -1247,7 +1330,7 @@ interface GradleIntegrationTest {
    */
   @JvmDefault
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-    val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    val testDataDirectory = TestUtils.resolveWorkspacePath(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
   }
 }
@@ -1274,6 +1357,9 @@ fun GradleIntegrationTest.prepareGradleProject(
                                                      kotlinVersion,
                                                      *getAdditionalRepos().toTypedArray())
     })
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+    println("Test project $testProjectPath prepared at '$projectPath'")
+  }
   return projectPath
 }
 
@@ -1314,14 +1400,24 @@ private fun <T> openPreparedProject(
   verifyOpened: (Project) -> Unit,
   action: (Project) -> T
 ): T {
+  // Use per-project code style settings so we never modify the IDE defaults.
+  CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
   fun body(): T {
     val project = runInEdtAndGet {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-      val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      val project = ProjectUtil.openOrImport(
+        projectPath.toPath(),
+        OpenProjectTask(
+          projectToClose = null,
+          forceOpenInNewFrame = true,
+          beforeInit = { project -> injectBuildOutputDumpingBuildViewManager(project, project) }
+        )
+      )!!
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      project.maybeOutputDiagnostics()
       project
     }
     try {
@@ -1331,7 +1427,7 @@ private fun <T> openPreparedProject(
     finally {
       runInEdtAndWait {
         PlatformTestUtil.saveProject(project, true)
-        ProjectUtil.closeAndDispose(project)
+        ProjectManager.getInstance().closeAndDispose(project)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
     }
@@ -1359,7 +1455,11 @@ private fun verifySyncedSuccessfully(project: Project) {
     .flatMap { it.syncIssues() }
     .filter { it.severity == SyncIssue.SEVERITY_ERROR }
   if (errors.isNotEmpty()) {
-    throw IllegalStateException(errors.joinToString(separator = "\n") { it.message })
+    throw IllegalStateException(
+      errors.joinToString(separator = "\n") {
+        "${it.message}\n${it.data}\n  ${it.multiLineMessage?.joinToString("\n  ")}\n"
+      }
+    )
   }
 }
 
@@ -1466,10 +1566,9 @@ private fun setupDataNodesForSelectedVariant(
 private fun createGradleProjectPathToModuleDataMap(
   buildId: String,
   moduleNodes: Collection<DataNode<ModuleData>>
-): Map<GradleProjectPath, ModuleData> {
+): Map<GradleProjectPath, DataNode<out ModuleData>> {
   return moduleNodes
-    .map { moduleDataNode -> moduleDataNode.data }
-    .associateBy { moduleData -> GradleProjectPath(buildId, moduleData.id) }
+    .associateBy { moduleData -> GradleProjectPath(buildId, moduleData.data.id, IdeModuleSourceSet.MAIN) }
 }
 
 fun injectBuildOutputDumpingBuildViewManager(
@@ -1516,8 +1615,8 @@ inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableF
 }
 
 // HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"
-fun updatePluginsResolutionManagement(origContent: String): String {
-  fun findPluginVersion(pluginId: String): String? = origContent.lines()
+fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: String): String {
+  fun findPluginVersion(pluginId: String): String? = pluginDefinitions.lines()
     .firstOrNull { it.contains(pluginId) && it.contains("version") }
     ?.replace(" apply false", "")?.replace("'", "")
     ?.substringAfterLast(" ")
@@ -1542,3 +1641,15 @@ fun updatePluginsResolutionManagement(origContent: String): String {
 
   return origContent.replace("pluginManagement {", "pluginManagement { $pluginsResolutionStrategy")
 }
+
+private fun Project.maybeOutputDiagnostics() {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+    println("Libraries:>")
+    LibraryTablesRegistrar.getInstance()
+      .getLibraryTable(this)
+      .libraries
+      .sortedBy { it.name }
+      .forEach { println(it.name) }
+  }
+}
+

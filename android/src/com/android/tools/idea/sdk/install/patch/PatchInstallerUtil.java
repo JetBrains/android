@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.utils.FileUtils;
 import com.android.io.CancellableFileIo;
 import com.android.repository.api.Dependency;
 import com.android.repository.api.LocalPackage;
@@ -27,6 +26,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
+import com.android.utils.FileUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;

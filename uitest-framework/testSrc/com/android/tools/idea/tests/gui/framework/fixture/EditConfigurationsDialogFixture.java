@@ -19,7 +19,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLa
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitTreeForPopup;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.intellij.psi.impl.DebugUtil.sleep;
 
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -33,14 +32,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import org.fest.swing.cell.JComboBoxCellReader;
-import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +88,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
 
   @NotNull
   public EditConfigurationsDialogFixture clickAddNewConfigurationButton() {
-    ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         if (!button.isShowing()) return false;

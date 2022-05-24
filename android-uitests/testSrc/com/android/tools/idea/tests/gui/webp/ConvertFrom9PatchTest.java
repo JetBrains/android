@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -27,6 +30,12 @@ import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -40,15 +49,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.swing.*;
-
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ConvertFrom9PatchTest {
@@ -92,7 +92,7 @@ public class ConvertFrom9PatchTest {
     FileChooserDialogFixture.find(ideFrame.robot())
       .clickOk();
 
-    GenericTypeMatcher<JDialog> matcher = new GenericTypeMatcher<JDialog>(JDialog.class) {
+    GenericTypeMatcher<JDialog> matcher = new GenericTypeMatcher<>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         if (Matchers.byType(JDialog.class).matches(dialog)) {

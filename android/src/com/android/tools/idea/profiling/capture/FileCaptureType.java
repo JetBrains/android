@@ -17,9 +17,8 @@ package com.android.tools.idea.profiling.capture;
 
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public abstract class FileCaptureType extends CaptureType {
   @NotNull private String myName;

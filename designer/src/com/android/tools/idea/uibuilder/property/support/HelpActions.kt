@@ -25,14 +25,15 @@ import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.util.text.nullize
 
 const val DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/"
@@ -92,6 +93,7 @@ object HelpActions {
    * If no description of the property is known the method returns just the name of the
    * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
    */
+  @NlsSafe
   fun createHelpText(property: NlPropertyItem, allowEmptyDescription: Boolean): String {
     val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
     if (description.isEmpty() && !allowEmptyDescription) {

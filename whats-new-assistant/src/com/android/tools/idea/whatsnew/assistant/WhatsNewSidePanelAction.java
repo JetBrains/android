@@ -85,7 +85,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
   private WhatsNewToolWindowListener newWhatsNewToolWindowListener(@NotNull Project project) {
     WhatsNewToolWindowListener listener = new WhatsNewToolWindowListener(project, myProjectToListenerMap);
-    project.getMessageBus().connect(project).subscribe(ToolWindowManagerListener.TOPIC, listener);
+    project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, listener);
     return listener;
   }
 
@@ -101,7 +101,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       isOpen = true; // Start off as opened so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
-      project.getMessageBus().connect(project).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      project.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {
@@ -115,10 +115,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
           WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
         }
       });
-    }
-
-    @Override
-    public void toolWindowRegistered(@NotNull String id) {
     }
 
     @Override

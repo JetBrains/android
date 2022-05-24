@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu.config
 
-import com.android.tools.profiler.proto.Cpu
-
 /**
  * Configuration used when a trace is imported and the configuration is unknown.
  */

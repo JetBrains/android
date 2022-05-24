@@ -56,7 +56,6 @@ import com.android.xml.AndroidManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -67,6 +66,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -109,6 +109,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -468,7 +469,7 @@ public class RenderErrorContributor {
     if (logger.seenTagPrefix(TAG_RESOURCES_PREFIX)) {
       // Do we have errors in the res/ files?
       // See if it looks like we have aapt problems
-      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == XmlFileType.INSTANCE);
+      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, XmlFileType.INSTANCE));
       if (haveResourceErrors) {
         summary = "Resource errors";
         builder.addBold("This project contains resource errors, so aapt did not succeed, " +
@@ -477,7 +478,7 @@ public class RenderErrorContributor {
       }
     }
     else if (myResult.hasRequestedCustomViews()) {
-      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == JavaFileType.INSTANCE);
+      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, JavaFileType.INSTANCE));
       if (hasJavaErrors) {
         summary = "Compilation errors";
         builder.addBold("This project contains Java compilation errors, " +
@@ -677,7 +678,7 @@ public class RenderErrorContributor {
   private void addRefreshAction(@NotNull HtmlBuilder builder) {
     builder.newlineIfNecessary()
       .newline()
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl()).newline();
   }
@@ -784,11 +785,11 @@ public class RenderErrorContributor {
   private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
-    if (messages.isEmpty()) {
+    if (messages == null || messages.isEmpty()) {
       return;
     }
 
-    Set<String> seenTags = Sets.newHashSet();
+    Set<String> seenTags = new HashSet<>();
     for (RenderProblem message : messages) {
       String tag = message.getTag();
       if (tag != null && seenTags.contains(tag)) {
@@ -1093,11 +1094,11 @@ public class RenderErrorContributor {
     builder.endList();
 
     builder
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "build", " the project.",
                     myLinkManager.createBuildProjectUrl())
       .newline()
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl())
       .newline();
@@ -1335,7 +1336,7 @@ public class RenderErrorContributor {
             String matchText = clz.getText();
             final Pattern LAYOUT_FIELD_PATTERN = Pattern.compile("R\\.layout\\.([a-z0-9_]+)");
             Matcher matcher = LAYOUT_FIELD_PATTERN.matcher(matchText);
-            Set<String> layouts = Sets.newTreeSet();
+            Set<String> layouts = new TreeSet<>();
             int index = 0;
             while (true) {
               if (matcher.find(index)) {

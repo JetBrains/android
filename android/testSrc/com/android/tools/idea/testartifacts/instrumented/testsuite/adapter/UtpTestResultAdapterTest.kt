@@ -399,8 +399,12 @@ class UtpTestResultAdapterTest {
     }
     verify(mockListener).onTestSuiteScheduled(argThatWrapper(deviceMatcher1))
     verify(mockListener).onTestSuiteScheduled(argThatWrapper(deviceMatcher2))
-    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher1), any())
-    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher2), any())
+    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher1), argThat {
+      it.testCaseCount == 1
+    })
+    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher2), argThat {
+      it.testCaseCount == 1
+    })
     verify(mockListener).onTestCaseStarted(argThatWrapper(deviceMatcher1), any(), argThatWrapper(testCaseMatcher1))
     verify(mockListener).onTestCaseFinished(argThatWrapper(deviceMatcher1), any(), argThatWrapper(testCaseMatcher1))
     verify(mockListener).onTestCaseStarted(argThatWrapper(deviceMatcher2), any(), argThatWrapper(testCaseMatcher2))

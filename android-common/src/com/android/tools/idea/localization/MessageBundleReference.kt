@@ -17,7 +17,6 @@ package com.android.tools.idea.localization
 
 import com.intellij.AbstractBundle
 import com.intellij.reference.SoftReference
-import org.jetbrains.annotations.Nls
 import java.lang.ref.Reference
 import java.util.ResourceBundle
 import java.util.function.Supplier

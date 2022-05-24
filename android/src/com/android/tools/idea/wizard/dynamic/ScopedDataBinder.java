@@ -26,7 +26,6 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
@@ -41,6 +40,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -125,17 +125,17 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   private final Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
 
   // Map of keys to custom value derivations
-  private final Map<Key, ValueDeriver> myValueDerivers = Maps.newHashMap();
+  private final Map<Key, ValueDeriver> myValueDerivers = new HashMap<>();
 
   // Table mapping components and keys to bindings
   private final Table<JComponent, Key<?>, ComponentBinding<?, ?>> myComponentBindings = HashBasedTable.create();
 
   // Record of keys that have already been changed or updated during a round to prevent
   // recursive derivations.
-  private final Set<Key> myGuardedKeys = Sets.newHashSet();
+  private final Set<Key> myGuardedKeys = new HashSet<>();
 
   // Record of keys that the user has manually edited
-  private final Set<Key> myUserEditedKeys = Sets.newHashSet();
+  private final Set<Key> myUserEditedKeys = new HashSet<>();
 
   // Flags to guard against cyclical updates
   private boolean myAlreadySavingState;
@@ -289,7 +289,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      Object selectedObject = ((JComboBox)component).getSelectedItem();
+      Object selectedObject = ((JComboBox<?>)component).getSelectedItem();
       if (selectedObject instanceof ApiComboBoxItem) {
         ApiComboBoxItem selectedItem = (ApiComboBoxItem)selectedObject;
         newValue = selectedItem.getData();
@@ -372,7 +372,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
 
     @Nullable
     protected static Set<Key<?>> makeSetOf(Key<?>... elements) {
-      Set<Key<?>> keys = new HashSet<Key<?>>(elements.length);
+      Set<Key<?>> keys = new HashSet<>(elements.length);
       Collections.addAll(keys, elements);
       return keys;
     }
@@ -545,7 +545,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
       if (item instanceof ApiComboBoxItem) {
-        item = ((ApiComboBoxItem)item).getData();
+        item = ((ApiComboBoxItem<?>)item).getData();
       }
       if (Objects.equal(item, value)) {
         index = i;
@@ -658,7 +658,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
         ((JCheckBox)component).removeItemListener(this);
       }
       else if (component instanceof JComboBox) {
-        ((JComboBox)component).removeActionListener(this);
+        ((JComboBox<?>)component).removeActionListener(this);
       }
       else if (component instanceof JTextField) {
         ((JTextField)component).getDocument().removeDocumentListener(this);

@@ -24,6 +24,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.Messages
@@ -33,8 +34,6 @@ import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.proxy.CommonProxy
 import java.io.IOException
 import javax.swing.JRootPane
-
-val log = logger<AndroidStudioWelcomeScreenProvider>()
 
 /**
  * Shows a wizard first time Android Studio is launched.
@@ -122,7 +121,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
           if (e.toString().contains("crypto")) {
             message += "; check your JDK/JRE installation / consider running on a newer version."
           }
-          log.warn(message, e)
+          logger<AndroidStudioWelcomeScreenProvider>().warn(message, e)
         }
       } while (retryConnection)
     }
@@ -133,7 +132,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
 
     private fun promptUserForProxy(): Boolean {
       val selection = Messages.showIdeaMessageDialog(
-        null, "Unable to access Android SDK add-on list", "Android Studio First Run",
+        null, "Unable to access Android SDK add-on list", ApplicationNamesInfo.getInstance().fullProductName + " First Run",
         arrayOf("Setup Proxy", "Cancel"), 1, Messages.getErrorIcon(), null
       )
       val showSetupProxy = selection == 0

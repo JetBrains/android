@@ -16,12 +16,12 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
-import com.google.common.annotations.VisibleForTesting
 
 enum class PairingFeature(val minVersion: Int) {
   // Applicable to phone
-  // TODO(b/200178792): Enable it with the correct version for C
-  COMPANION_EMULATOR_ACTIVITY(Int.MAX_VALUE /*773302904*/),
+  // Until this version becomes available publicly, it can be downloaded from
+  // https://drive.google.com/file/d/1NoeiVCzLcDrdnkYmAilcWloR1RRleryt/view?usp=sharing&resourcekey=0-kD6zowQGavs9vipS_HOaHw
+  COMPANION_EMULATOR_ACTIVITY(773385010),
 
   // Applicable to phone/watch
   REFRESH_EMULATOR_CONNECTION(213013000),
@@ -30,7 +30,14 @@ enum class PairingFeature(val minVersion: Int) {
   MULTI_WATCH_SINGLE_PHONE_PAIRING(213204000),
 
   // Applicable to watch
-  REVERSE_PORT_FORWARD(210915000)
+  REVERSE_PORT_FORWARD(210915000),
+
+  // Applicable to phone/watch
+  GET_PAIRING_STATUS(214412000),
+
+  // Application to phone.
+  // This is to help the user with post-pairing actions needed on some older companions.
+  COMPANION_SKIP_AND_FINISH_FIXED(773393865)
 }
 
 private const val GMSCORE_APP_ID = "com.google.android.gms"
@@ -40,7 +47,7 @@ private const val OEM_COMPANION_PROPERTY_KEY = "ro.oem.companion_package"
 
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
-private suspend fun IDevice.getVersionCode(appId: String) =
+private suspend fun IDevice.getAppVersionCode(appId: String) =
   VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
 
 suspend fun IDevice.getCompanionAppIdForWatch(): String {
@@ -55,19 +62,19 @@ suspend fun IDevice.getCompanionAppIdForWatch(): String {
   return OEM_COMPANION_FALLBACK_APP_ID
 }
 
-suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String?): Boolean {
+suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String? = null): Boolean {
   return when (pairingFeature) {
     PairingFeature.COMPANION_EMULATOR_ACTIVITY ->
-      if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID) {
-        (getVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
-      }
-      else {
-        true
-      }
+      companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
+        (getAppVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
     PairingFeature.REFRESH_EMULATOR_CONNECTION,
+    PairingFeature.GET_PAIRING_STATUS,
     PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING,
     PairingFeature.REVERSE_PORT_FORWARD ->
-      (getVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
+      (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
+    PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED ->
+      companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
+      (getAppVersionCode(OEM_COMPANION_FALLBACK_APP_ID) ?: 0) >= PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED.minVersion
   }
 }
 

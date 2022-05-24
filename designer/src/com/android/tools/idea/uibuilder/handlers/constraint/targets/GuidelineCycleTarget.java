@@ -28,10 +28,9 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * Implements the guideline cycle

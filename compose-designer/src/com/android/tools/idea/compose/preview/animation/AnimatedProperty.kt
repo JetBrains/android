@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.idea.compose.preview.animation.AnimatedProperty.AnimatedComponent
 import java.util.SortedMap
 
 private const val CURVES_SIMILARITY = 0.015

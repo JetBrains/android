@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.google.common.truth.Truth.assertThat;
+
+import java.awt.Dialog;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JDialog;
+import javax.swing.JTree;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
@@ -22,13 +29,6 @@ import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
 
 /** Fixture for {@link com.android.tools.idea.run.editor.AndroidProcessChooserDialog}. */
 public class AndroidProcessChooserDialogFixture extends ComponentFixture<AndroidProcessChooserDialogFixture, JDialog>

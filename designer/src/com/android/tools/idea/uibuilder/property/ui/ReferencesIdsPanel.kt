@@ -48,11 +48,11 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
   init {
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
     table = PFormTable(dataModel)
-    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     table.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
-    table.dragEnabled = true;
-    table.dropMode = DropMode.INSERT_ROWS;
-    table.transferHandler = ReferencesTransferHandler(table);
+    table.dragEnabled = true
+    table.dropMode = DropMode.INSERT_ROWS
+    table.transferHandler = ReferencesTransferHandler(table)
     add(table)
     updateUI()
   }

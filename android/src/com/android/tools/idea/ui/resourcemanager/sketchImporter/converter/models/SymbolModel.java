@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.model
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

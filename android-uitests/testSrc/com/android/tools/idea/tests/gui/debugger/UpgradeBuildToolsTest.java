@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -28,7 +36,11 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.concurrent.TimeUnit;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.DialogFixture;
@@ -40,19 +52,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
-import java.util.Collections;
-import java.util.Enumeration;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class UpgradeBuildToolsTest extends DebuggerTestBase {

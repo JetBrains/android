@@ -20,9 +20,7 @@ import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryA
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -37,7 +35,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 public class SpecificActivityLocator extends ActivityLocator {
   @NotNull
@@ -66,8 +63,7 @@ public class SpecificActivityLocator extends ActivityLocator {
   }
 
   /**
-   * Try to query from {@link AndroidManifestIndex} if {@link AndroidManifestIndex#indexEnabled}
-   * Else it falls back to the original paths that we get from MergedManifestSnapshot
+   * Try to query from {@link AndroidManifestIndex}.
    * @throws ActivityLocatorException if the specified activity is invalid
    */
   @Override
@@ -90,13 +86,7 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     PsiClass specifiedActivityClass = JavaExecutionUtil.findMainClass(project, myActivityName, mySearchScope);
-
-    if (AndroidManifestIndex.indexEnabled()) {
-      validateBasedOnManifestIndex(activityClass, specifiedActivityClass);
-      return;
-    }
-
-    validateBasedOnMergedManifestSnapshot(activityClass, specifiedActivityClass);
+    validateBasedOnManifestIndex(activityClass, specifiedActivityClass);
   }
 
   private void validateBasedOnManifestIndex(@NotNull PsiClass activityClass, @Nullable PsiClass specifiedActivityClass)
@@ -109,24 +99,6 @@ public class SpecificActivityLocator extends ActivityLocator {
 
     validateHelper(activityClass, specifiedActivityClass, activityWrappers::findActivityByName, activityWrappers::findAliasByName);
 
-  }
-
-  private void validateBasedOnMergedManifestSnapshot(@NotNull PsiClass activityClass, @Nullable PsiClass specifiedActivityClass)
-    throws ActivityLocatorException {
-    // If we're on EDT, use a potentially stale manifest to prevent blocking the UI while recomputing a fresh manifest.
-    boolean onEdt = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode();
-    MergedManifestSnapshot manifest = getMergedManifest(myFacet, onEdt);
-    if (manifest == null) return;
-
-    validateHelper(activityClass, specifiedActivityClass, name -> {
-      Element element = manifest.findActivity(name);
-      if (element == null) return null;
-      return DefaultActivityLocator.ActivityWrapper.get(element);
-    }, name -> {
-      Element element = manifest.findActivityAlias(name);
-      if (element == null) return null;
-      return DefaultActivityLocator.ActivityWrapper.get(element);
-    });
   }
 
   private void validateHelper(@NotNull PsiClass activityClass,

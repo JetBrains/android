@@ -70,7 +70,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
   }
 
   private fun pickMostRelevantId(resolveResultList: Array<out ResolveResult>, context: ConvertContext): ResolveResult? {
-    return resolveResultList.asSequence().minWith(Comparator.comparing<ResolveResult, Boolean> {
+    return resolveResultList.asSequence().minWithOrNull(Comparator.comparing<ResolveResult, Boolean> {
       it.element?.containingFile != context.file
     }.thenComparing(
       Comparator.comparing { ((it.element as? XmlAttributeValue)?.parent as? XmlAttribute)?.name != PREFIX_ANDROID + RESOURCE_CLZ_ID })

@@ -17,7 +17,6 @@ import com.android.tools.idea.naveditor.editor.AddDestinationMenu
 import com.android.tools.idea.naveditor.editor.DESTINATION_MENU_MAIN_PANEL_NAME
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewFragmentWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.findMenuDialog
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers

@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ATTR_CLASS;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VIEW_TAG;
+
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.List;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
 

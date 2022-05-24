@@ -207,7 +207,7 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
         label.font = font
         label.border = indent
       }
-      val placeholder = JLabel();
+      val placeholder = JLabel()
       placeholder.font = font
       placeholder.text = "XXXX"
       val columnSize = placeholder.preferredSize

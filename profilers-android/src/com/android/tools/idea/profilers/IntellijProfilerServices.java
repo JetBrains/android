@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
@@ -28,7 +29,6 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.codenavigation.IntellijNavSource;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -79,7 +79,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
-import org.apache.xmlbeans.impl.xb.ltgfmt.Code;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,9 +112,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myTemporaryPreferences = new TemporaryProfilerPreferences();
     myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
 
-    myCodeNavigator = new CodeNavigator(
-        new IntellijNavSource(project, nativeSymbolizer),
-        CodeNavigator.Companion.getApplicationExecutor());
+    myCodeNavigator = new CodeNavigator(new IntelliJNavSource(project, nativeSymbolizer),
+                                        CodeNavigator.Companion.getApplicationExecutor());
     myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
   }
 

@@ -15,6 +15,14 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_WIN;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_RESOURCE_TEXT;
+import static com.android.tools.idea.gradle.util.ImportUtil.IMPORT_SUMMARY_TXT;
+
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -26,9 +34,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.ImportUtil.IMPORT_SUMMARY_TXT;
 
 /**
  * Spelling strategy for text and property files which is used to mask out typos in

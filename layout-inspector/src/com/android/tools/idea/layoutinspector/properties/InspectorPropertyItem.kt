@@ -227,8 +227,7 @@ open class InspectorPropertyItem(
         property.lookup.resourceLookup.resolveAsIcon(property, view)?.let { return it }
         val value = property.value
         val color = value?.let { parseColor(value) } ?: return null
-        // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
-        return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
+        return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
       }
   }
 }

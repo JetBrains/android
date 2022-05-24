@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Set of insets - distances to outer left, top, right and bottom edges. These objects

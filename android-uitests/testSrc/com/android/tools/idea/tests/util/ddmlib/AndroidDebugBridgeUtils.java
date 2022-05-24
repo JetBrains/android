@@ -23,7 +23,6 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.List;
 import org.fest.swing.timing.Wait;

@@ -25,11 +25,11 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
+import java.util.Optional;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Optional;
 
 /**
  * Wizard step for selecting a {@link SystemImage} from the installed images in the SDK.
@@ -49,7 +49,7 @@ public class ChooseSystemImageStep extends ModelWizardStep<AvdOptionsModel> {
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Select a system image");
     FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
 
-    myChooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
+    myChooseImagePanel.addSystemImageListener(new Consumer<>() {
       @Override
       public void consume(SystemImageDescription systemImage) {
         getModel().systemImage().setNullableValue(systemImage);
@@ -59,7 +59,7 @@ public class ChooseSystemImageStep extends ModelWizardStep<AvdOptionsModel> {
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myValidatorPanel.registerValidator(getModel().systemImage(), new Validator<Optional<SystemImageDescription>>() {
+    myValidatorPanel.registerValidator(getModel().systemImage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<SystemImageDescription> value) {

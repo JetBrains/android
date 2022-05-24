@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createOrReplaceBasicExpression;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
+
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -22,9 +25,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createOrReplaceBasicExpression;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
 
 /**
  * The default transform used by {@link GradlePropertyModel}.

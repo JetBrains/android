@@ -41,9 +41,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.any
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.CompletableFuture
@@ -51,7 +49,7 @@ import java.util.concurrent.CompletableFuture
 class TestSceneManager(model: NlModel,
                        surface: DesignSurface,
                        sceneComponentProvider: SceneComponentHierarchyProvider? = null)
-  : SceneManager(model, surface, false, sceneComponentProvider, null) {
+  : SceneManager(model, surface, sceneComponentProvider, null) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)
 
   override fun getSceneScalingFactor(): Float = 1f
@@ -60,8 +58,8 @@ class TestSceneManager(model: NlModel,
     throw UnsupportedOperationException()
   }
 
-  override fun requestRender(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
-  override fun requestLayout(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun requestRenderAsync(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
   override fun layout(animate: Boolean) {}
   override fun getSceneDecoratorFactory(): SceneDecoratorFactory = object : SceneDecoratorFactory() {
     override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR

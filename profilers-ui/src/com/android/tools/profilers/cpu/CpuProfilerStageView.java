@@ -25,6 +25,7 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.DismissibleMessage;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
@@ -35,8 +36,6 @@ import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
-import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
@@ -51,8 +50,6 @@ import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
@@ -73,19 +70,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     DETAILS("*", 1),
 
     /**
-     * Sizing string for the frames portion of the details view.
-     */
-    FRAME("Fit", 0),
-
-    /**
-     * Sizing string for the kernel portion of the details view.
-     */
-    KERNEL("Fit", 1),
-
-    /**
      * Sizing string for the threads portion of the details view.
      */
-    THREADS("*", 2);
+    THREADS("*", 0);
 
     @NotNull private final String myRowRule;
     private final int myRow;
@@ -111,24 +98,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   private static final float SPLITTER_DEFAULT_RATIO = 0.2f;
 
-  /**
-   * When we are showing the kernel data we want to increase the size of the kernel and threads view. This in turn reduces
-   * the size of the view used for the CallChart, FlameChart, ect..
-   */
-  private static final float KERNEL_VIEW_SPLITTER_RATIO = 0.75f;
-
   private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.cpu.message";
 
   private final CpuProfilerStage myStage;
 
   @NotNull private final CpuThreadsView myThreads;
-  @NotNull private final CpuKernelsView myCpus;
-  @NotNull private final CpuFramesView myFrames;
 
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
-   * This will be null if {@link FeatureConfig::isCpuCaptureStageEnabled}
+   * This will be null if {@link FeatureConfig ::isCpuCaptureStageEnabled}
    */
   @NotNull private final JBSplitter mySplitter;
 
@@ -142,20 +121,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     super(profilersView, stage);
     myStage = stage;
     myThreads = new CpuThreadsView(myStage);
-    myCpus = new CpuKernelsView(myStage);
-    myFrames = new CpuFramesView(myStage);
-    myUsageView = new CpuUsageView.NormalModeView(myStage);
-
-
+    myUsageView = new CpuUsageView(myStage);
     myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
 
     getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
-    getTooltipBinder().bind(CpuKernelTooltip.class, (stageView, tooltip) -> new CpuKernelTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(CpuThreadsTooltip.class, (stageView, tooltip) -> new CpuThreadsTooltipView(stageView.getComponent(), tooltip));
-    getTooltipBinder().bind(CpuFrameTooltip.class, (stageView, tooltip) -> new CpuFrameTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -247,39 +220,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel cpuStatePanel = new JBPanel(cpuStateLayout);
 
     cpuStatePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    cpuStateLayout.setRowSizing(PanelSizing.FRAME.getRow(), PanelSizing.FRAME.getRowRule());
-    cpuStateLayout.setRowSizing(PanelSizing.KERNEL.getRow(), PanelSizing.KERNEL.getRowRule());
     cpuStateLayout.setRowSizing(PanelSizing.THREADS.getRow(), PanelSizing.THREADS.getRowRule());
 
     //region CpuThreadsView
     myTooltipComponent.registerListenersOn(myThreads.getComponent());
     cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(PanelSizing.THREADS.getRow(), 0));
-    //endregion
-
-    //region CpuKernelsView
-    myCpus.getComponent().addComponentListener(new ComponentAdapter() {
-      // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
-      // the first component occupies. For when we are showing Kernel elements we want to take up more space
-      // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
-      // adjust the proportion of the splitter accordingly.
-
-      @Override
-      public void componentShown(ComponentEvent e) {
-        mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
-      }
-
-      @Override
-      public void componentHidden(ComponentEvent e) {
-        mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
-      }
-    });
-    myTooltipComponent.registerListenersOn(myCpus.getComponent());
-    cpuStatePanel.add(myCpus.getComponent(), new TabularLayout.Constraint(PanelSizing.KERNEL.getRow(), 0));
-    //endregion
-
-    //region CpuFramesView
-    myTooltipComponent.registerListenersOn(myFrames.getComponent());
-    cpuStatePanel.add(myFrames.getComponent(), new TabularLayout.Constraint(PanelSizing.FRAME.getRow(), 0));
     //endregion
 
     return cpuStatePanel;
@@ -305,10 +250,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   /**
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
-   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   * See {@code RangeTooltipComponent#myShowSeekComponent}
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
+    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip;
   }
 }

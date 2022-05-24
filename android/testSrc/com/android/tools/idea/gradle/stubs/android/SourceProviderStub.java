@@ -16,26 +16,25 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.SourceProvider;
+import com.android.builder.model.v2.CustomSourceDirectory;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class SourceProviderStub implements SourceProvider {
-  @NotNull private final Set<File> myAidlDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myAssetsDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myJavaDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myKotlinDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myAidlDirectories = new HashSet<>();
+  @NotNull private final Set<File> myAssetsDirectories = new HashSet<>();
+  @NotNull private final Set<File> myJavaDirectories = new HashSet<>();
+  @NotNull private final Set<File> myKotlinDirectories = new HashSet<>();
+  @NotNull private final Set<File> myCppDirectories = new HashSet<>();
+  @NotNull private final Set<File> myCDirectories = new HashSet<>();
+  @NotNull private final Set<File> myRenderscriptDirectories = new HashSet<>();
+  @NotNull private final Set<File> myResDirectories = new HashSet<>();
+  @NotNull private final Set<File> myResourcesDirectories = new HashSet<>();
 
   @NotNull String myName = "test";
   @NotNull File myManifestFile;
@@ -225,6 +224,12 @@ public class SourceProviderStub implements SourceProvider {
   @Override
   @NotNull
   public Collection<File> getMlModelsDirectories() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
+  public Collection<CustomSourceDirectory> getCustomDirectories() {
     return Collections.emptyList();
   }
 }

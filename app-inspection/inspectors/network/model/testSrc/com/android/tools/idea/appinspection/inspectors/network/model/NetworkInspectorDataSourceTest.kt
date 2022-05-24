@@ -123,6 +123,55 @@ class NetworkInspectorDataSourceTest {
   }
 
   @Test
+  fun searchHttpData(): Unit = runBlocking {
+    // Request that starts in the selection range but ends outside of it.
+    val httpEvent = Event.newBuilder().setTimestamp(1002).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(1).setHttpRequestStarted(
+        HttpConnectionEvent.RequestStarted.newBuilder().setFields("a").setMethod("http").setTrace("abc").setUrl(
+          "www.google.com"))).build()
+    val httpEvent2 = Event.newBuilder().setTimestamp(3000).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(1).setHttpRequestCompleted(
+        HttpConnectionEvent.RequestCompleted.getDefaultInstance())).build()
+
+    // Request that starts outside of the range, but ends inside of it.
+    val httpEvent3 = Event.newBuilder().setTimestamp(44).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(2).setHttpRequestStarted(
+        HttpConnectionEvent.RequestStarted.newBuilder().setFields("a").setMethod("http").setTrace("abc").setUrl(
+          "www.google.com"))).build()
+    val httpEvent4 = Event.newBuilder().setTimestamp(1534).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(2).setHttpRequestCompleted(
+        HttpConnectionEvent.RequestCompleted.getDefaultInstance())).build()
+
+    // Request that starts and ends outside the range, but spans over it.
+    val httpEvent5 = Event.newBuilder().setTimestamp(55).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(3).setHttpRequestStarted(
+        HttpConnectionEvent.RequestStarted.newBuilder().setFields("a").setMethod("http").setTrace("abc").setUrl(
+          "www.google.com"))).build()
+    val httpEvent6 = Event.newBuilder().setTimestamp(4500).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(3).setHttpRequestCompleted(
+        HttpConnectionEvent.RequestCompleted.getDefaultInstance())).build()
+
+    // Request that starts and ends outside and not overlap the range.
+    val httpEvent7 = Event.newBuilder().setTimestamp(58).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(4).setHttpRequestStarted(
+        HttpConnectionEvent.RequestStarted.newBuilder().setFields("a").setMethod("http").setTrace("abc").setUrl(
+          "www.google.com"))).build()
+    val httpEvent8 = Event.newBuilder().setTimestamp(67).setHttpConnectionEvent(
+      HttpConnectionEvent.newBuilder().setConnectionId(4).setHttpRequestCompleted(
+        HttpConnectionEvent.RequestCompleted.getDefaultInstance())).build()
+
+    val testMessenger = TestMessenger(scope, flowOf(httpEvent.toByteArray(), httpEvent2.toByteArray(), httpEvent3.toByteArray(),
+                                                    httpEvent4.toByteArray(), httpEvent5.toByteArray(), httpEvent6.toByteArray(),
+                                                    httpEvent7.toByteArray(), httpEvent8.toByteArray()))
+    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    testMessenger.await()
+
+    val httpEvents = dataSource.queryForHttpData(Range(1.0, 2.0))
+    assertThat(httpEvents).hasSize(6)
+    assertThat(httpEvents).containsNoneOf(httpEvent7, httpEvent8)
+  }
+
+  @Test
   fun cleanUpChannelOnDispose() = runBlocking<Unit> {
     val testMessenger = TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
     val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)

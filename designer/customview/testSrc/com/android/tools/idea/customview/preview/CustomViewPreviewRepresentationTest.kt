@@ -30,9 +30,9 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.registerServiceInstance
 import junit.framework.TestCase
 import org.mockito.AdditionalAnswers.returnsSecondArg
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.anyString
 import org.mockito.MockitoAnnotations
 
 class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase() {

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,7 +47,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
     LocalResourceRepository main = ResourceRepositoryManager.getModuleResources(facet);
 
     // List of module facets the given module depends on.
-    List<AndroidFacet> dependencies = AndroidUtils.getAndroidResourceDependencies(facet.getModule());
+    List<AndroidFacet> dependencies = AndroidDependenciesCache.getAndroidResourceDependencies(facet.getModule());
     if (dependencies.isEmpty()) {
       return Collections.singletonList(main);
     }

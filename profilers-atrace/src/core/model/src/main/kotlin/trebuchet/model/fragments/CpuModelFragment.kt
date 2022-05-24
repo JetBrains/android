@@ -17,7 +17,6 @@
 package trebuchet.model.fragments
 
 import trebuchet.model.CpuProcessSlice
-import trebuchet.model.base.Slice
 
 
 class CpuModelFragment(var id: Int) {

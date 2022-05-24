@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.getDpValue;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.decorator.SceneFrameFactory;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawNlComponentFrame;
-import com.android.tools.idea.common.scene.decorator.SceneFrameFactory;
 import com.android.tools.idea.common.scene.draw.DrawNlDraggingComponentFrame;
 import com.android.tools.idea.flags.StudioFlags;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.getDpValue;
 
 /**
  * A {@link SceneFrameFactory} specific to the layout editor.

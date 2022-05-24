@@ -26,7 +26,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -58,7 +57,7 @@ public class AndroidNotification {
 
   @NotNull
   public static AndroidNotification getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidNotification.class);
+    return project.getService(AndroidNotification.class);
   }
 
   public AndroidNotification(@NotNull Project project) {
@@ -133,7 +132,8 @@ public class AndroidNotification {
                                 @NotNull NotificationType type,
                                 @NotNull NotificationGroup group,
                                 @Nullable NotificationListener listener) {
-    Notification notification = group.createNotification(title, text, type, listener);
+    Notification notification = group.createNotification(title, text, type);
+    if (listener != null) notification.setListener(listener);
     Runnable notificationTask = () -> {
       if (myProject.isDisposed()) {
         return;
@@ -192,7 +192,7 @@ public class AndroidNotification {
         .createBalloon(jFrame.getRootPane(), notification, false, true, BalloonLayoutData.fullContent(), project);
 
     // bottom-right corner
-    balloon.show(new PositionTracker<Balloon>(jFrame.getRootPane()) {
+    balloon.show(new PositionTracker<>(jFrame.getRootPane()) {
       @Override
       public RelativePoint recalculateLocation(@NotNull Balloon balloon) {
         Dimension jFrameSize = jFrame.getSize();

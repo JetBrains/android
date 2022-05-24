@@ -17,8 +17,8 @@ package com.android.tools.idea.observable.expressions.integer;
 
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.IntValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**

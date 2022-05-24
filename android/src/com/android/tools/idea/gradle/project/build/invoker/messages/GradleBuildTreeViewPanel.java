@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker.messages;
 
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.util.ui.UIUtil.getParentOfType;
+import static com.intellij.util.ui.tree.TreeUtil.promiseSelectFirst;
+
 import com.google.common.base.Joiner;
-import com.intellij.ide.errorTreeView.*;
+import com.intellij.ide.errorTreeView.ErrorTreeElement;
+import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
+import com.intellij.ide.errorTreeView.ErrorTreeNodeDescriptor;
+import com.intellij.ide.errorTreeView.ErrorViewTreeBuilder;
+import com.intellij.ide.errorTreeView.NavigatableMessageElement;
+import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,20 +38,16 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.containers.Convertor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.util.Locale;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.Locale;
-
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.util.ui.UIUtil.getParentOfType;
-import static com.intellij.util.ui.tree.TreeUtil.promiseSelectFirst;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tree view displayed in the "Messages" window. The difference between this one and the original one is that this one displays messages as
@@ -78,7 +84,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     scrollPane = MultilineTreeCellRenderer.installRenderer(myTree, new MessageTreeRenderer());
     parent.add(scrollPane, BorderLayout.CENTER);
 
-    new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
+    new TreeSpeedSearch(myTree, new Convertor<>() {
       @Override
       public String convert(TreePath treePath) {
         Object last = treePath.getLastPathComponent();

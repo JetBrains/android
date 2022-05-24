@@ -16,7 +16,9 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.google.common.annotations.VisibleForTesting
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.LinearGradientPaint
 import java.awt.geom.Point2D
 import kotlin.math.max
 import kotlin.math.min

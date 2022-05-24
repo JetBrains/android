@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.common.fixtures;
 
-import com.android.tools.idea.common.LayoutTestUtilities;
-
-import java.awt.event.KeyEvent;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.common.LayoutTestUtilities;
+import java.awt.event.KeyEvent;
 
 public class KeyEventBuilder {
   private final int myKeyCode;

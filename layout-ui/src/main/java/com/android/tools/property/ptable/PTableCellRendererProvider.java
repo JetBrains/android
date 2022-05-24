@@ -15,9 +15,8 @@
  */
 package com.android.tools.property.ptable;
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 public interface PTableCellRendererProvider {
 

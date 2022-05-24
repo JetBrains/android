@@ -16,24 +16,25 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.parser.ViewNodeParser;
-import com.android.tools.property.ptable.PTable;
-import com.android.tools.property.ptable.PTableItem;
-import com.android.tools.property.ptable.PTableModel;
 import com.android.tools.idea.editors.layoutInspector.DefaultNoEditHandler;
 import com.android.tools.idea.editors.layoutInspector.EditHandler;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITTableCellEditorProvider;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.swing.RowSorter;
 import org.junit.After;
 import org.junit.Before;
@@ -68,7 +69,7 @@ public class PropertiesTablePanelTest {
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
-    return text.getBytes();
+    return text.getBytes(StandardCharsets.UTF_8);
   }
 
   @After

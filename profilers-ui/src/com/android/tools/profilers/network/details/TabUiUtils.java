@@ -15,23 +15,27 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Font;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A collection of common UI constants, components, and utility methods shared throughout the
@@ -39,14 +43,14 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
  */
 final class TabUiUtils {
 
-  public static final int SCROLL_UNIT = JBUI.scale(10);
+  public static final int SCROLL_UNIT = JBUIScale.scale(10);
   // Padding to be aligned with the tab title on the left.
   public static final int HORIZONTAL_PADDING = 15;
 
   // TODO(b/109661512): Move vgap scale into TabularLayout
-  public static final int TAB_SECTION_VGAP = JBUI.scale(5);
-  public static final int PAGE_VGAP = JBUI.scale(28);
-  public static final int SECTION_VGAP = JBUI.scale(10);
+  public static final int TAB_SECTION_VGAP = JBUIScale.scale(5);
+  public static final int PAGE_VGAP = JBUIScale.scale(28);
+  public static final int SECTION_VGAP = JBUIScale.scale(10);
 
   public static final String SECTION_TITLE_HEADERS = "Headers";
 

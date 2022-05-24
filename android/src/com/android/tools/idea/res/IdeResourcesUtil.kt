@@ -25,9 +25,7 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_APP_PKG
-import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
-import com.android.SdkConstants.ANDROID_PREFIX
 import com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.ANDROID_VIEW_PKG
 import com.android.SdkConstants.ANDROID_WEBKIT_PKG
@@ -41,7 +39,6 @@ import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
-import com.android.SdkConstants.FD_RES_VALUES
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
@@ -71,8 +68,8 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -87,7 +84,6 @@ import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
 import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
@@ -108,7 +104,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
@@ -492,8 +488,8 @@ private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int,
   val colors = resolveMultipleColors(value, project)
   return when (colors.size) {
     0 -> null
-    1 -> ColorIcon(size, colors.first(), false).scale(JBUIScale.scale(1f))
-    else -> ColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())).scale(JBUIScale.scale(1f))
+    1 -> JBUIScale.scaleIcon(ColorIcon(size, colors.first(), false))
+    else -> JBUIScale.scaleIcon(ColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())))
   }
 }
 
@@ -502,7 +498,7 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
 }
 
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
-  val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
+  val bitmap = AndroidAnnotatorUtil.pickSmallestDpiFile(resolveDrawable(value, project)) ?: return null
   return GutterIconCache.getInstance().getIcon(bitmap, this, facet)
 }
 
@@ -873,8 +869,8 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
     return name
   }
   val facet = AndroidFacet.getInstance(module) ?: return name
-  val androidModel = AndroidModuleModel.get(facet) ?: return name
-  val resourcePrefix = androidModel.androidProject.resourcePrefix ?: return name
+  val androidModel = AndroidModel.get(facet) ?: return name
+  val resourcePrefix = androidModel.resourcePrefix ?: return name
   return if (name != null) {
     if (name.startsWith(resourcePrefix)) name else computeResourceName(resourcePrefix, name, folderType)
   }
@@ -885,54 +881,6 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
 
 fun clamp(i: Int, min: Int, max: Int): Int {
   return i.coerceIn(min, max)
-}
-
-/**
- * Returns the list of all resource names that can be used as a value for one of the [ResourceType] in completionTypes,
- * optionally sorting/not sorting the results.
- */
-@JvmOverloads
-fun getCompletionFromTypes(
-  facet: AndroidFacet, completionTypes: Set<ResourceType>,
-  sort: Boolean = true
-): List<String> {
-  val types = Sets.newEnumSet(completionTypes, ResourceType::class.java)
-
-  // Use drawables for mipmaps
-  if (types.contains(ResourceType.MIPMAP)) {
-    types.add(ResourceType.DRAWABLE)
-  }
-  else if (types.contains(ResourceType.DRAWABLE)) {
-    types.add(ResourceType.MIPMAP)
-  }
-
-  val completionTypesContainsColor = types.contains(ResourceType.COLOR)
-  if (types.contains(ResourceType.DRAWABLE)) {
-    // The Drawable type accepts colors as value but not color state lists.
-    types.add(ResourceType.COLOR)
-  }
-
-  val repoManager = ResourceRepositoryManager.getInstance(facet)
-  val appResources = repoManager.appResources
-  val frameworkResources = repoManager.getFrameworkResources(emptySet())
-
-  val resources = ArrayList<String>(500)
-  for (type in types) {
-    // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
-    // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
-    // For any other ResourceType, we always include file resources.
-    val includeFileResources = type != ResourceType.COLOR || completionTypesContainsColor
-    if (frameworkResources != null) {
-      addFrameworkItems(resources, type, includeFileResources, frameworkResources)
-    }
-    addProjectItems(resources, type, includeFileResources, appResources, facet)
-  }
-
-  if (sort) {
-    resources.sortWith(Comparator(::compareResourceReferences))
-  }
-
-  return resources
 }
 
 /**
@@ -952,59 +900,6 @@ fun findIdsInFile(file: PsiFile): Set<String> {
     }
   })
   return ids
-}
-
-/**
- * Comparator function for resource references (e.g. `@foo/bar`).
- * Sorts project resources higher than framework resources.
- */
-fun compareResourceReferences(resource1: String, resource2: String): Int {
-  val framework1 = if (resource1.startsWith(ANDROID_PREFIX)) 1 else 0
-  val framework2 = if (resource2.startsWith(ANDROID_PREFIX)) 1 else 0
-  val delta = framework1 - framework2
-  return if (delta != 0) delta else resource1.compareTo(resource2, ignoreCase = true)
-}
-
-private fun addFrameworkItems(
-  destination: MutableList<String>,
-  type: ResourceType,
-  includeFileResources: Boolean,
-  frameworkResources: ResourceRepository
-) {
-  val items = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type)
-  for (item in items) {
-    if (!includeFileResources) {
-      val dirName = item.source?.parentFileName
-      if (dirName != null && !dirName.startsWith(FD_RES_VALUES)) {
-        continue
-      }
-    }
-
-    destination.add(PREFIX_RESOURCE_REF + ANDROID_NS_NAME_PREFIX + type.getName() + '/'.toString() + item.name)
-  }
-}
-
-// TODO(namespaces): require more information here as context for namespaced lookup
-private fun addProjectItems(
-  destination: MutableList<String>,
-  type: ResourceType,
-  includeFileResources: Boolean,
-  repository: LocalResourceRepository,
-  facet: AndroidFacet
-) {
-  val namespace = ResourceNamespace.TODO()
-  for (entry in repository.getResources(namespace, type).asMap().entries) {
-    val resourceName = entry.key
-    if (!isAccessible(namespace, type, resourceName, facet)) {
-      continue
-    }
-    val items = entry.value
-    if (!includeFileResources && items.firstOrNull()?.isFileBased == true) {
-      continue
-    }
-
-    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName)
-  }
 }
 
 /**
@@ -1266,17 +1161,6 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
   return prefix!!
 }
 
-/**
- * Comparator which orders [PsiElement] items into a priority order most suitable for presentation
- * to the user; for example, it prefers base resource folders such as `values/` over resource
- * folders such as `values-en-rUS`
- */
-@JvmField
-val RESOURCE_ELEMENT_COMPARATOR = Comparator { e1: PsiElement, e2: PsiElement ->
-  val delta = compareResourceFiles(e1.containingFile, e2.containingFile)
-  if (delta != 0) delta else e1.textOffset - e2.textOffset
-}
-
 fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
   if (context.language !== XMLLanguage.INSTANCE) {
     return false
@@ -1362,10 +1246,10 @@ fun findStyleableAttrFieldsForStyleable(facet: AndroidFacet, styleableName: Stri
  * are dropped after the repository is updated.
  */
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
-  ApplicationManager.getApplication().invokeLater {
+  ApplicationManager.getApplication().invokeLater({
     psiManager.dropResolveCaches()
     psiManager.dropPsiCaches()
-  }
+  }, psiManager.project.disposed)
 }
 
 private fun findResourceFieldsFromClass(
@@ -1996,7 +1880,7 @@ private fun findOrCreateResourceFile(
   dirName: String
 ): VirtualFile? {
   val dir = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName)
-  val dirPath = FileUtil.toSystemDependentName(resDir.path + '/' + dirName)
+  val dirPath = FileUtilRt.toSystemDependentName(resDir.path + '/' + dirName)
   if (dir == null) {
     AndroidUtils.reportError(project, AndroidBundle.message("android.cannot.create.dir.error", dirPath))
     return null
@@ -2067,13 +1951,13 @@ fun getReferredResourceOrManifestField(
   localOnly: Boolean
 ): ReferredResourceFieldInfo? {
   val resFieldName = exp.referenceName
-  if (resFieldName == null || resFieldName.isEmpty()) {
+  if (resFieldName.isNullOrEmpty()) {
     return null
   }
   var qExp: PsiExpression = exp.qualifierExpression as? PsiReferenceExpression ?: return null
   val resClassReference = qExp as PsiReferenceExpression
   val resClassName = resClassReference.referenceName
-  if (resClassName == null || resClassName.isEmpty() || className != null && className != resClassName) {
+  if (resClassName.isNullOrEmpty() || className != null && className != resClassName) {
     return null
   }
   qExp = resClassReference.qualifierExpression ?: return null
@@ -2152,60 +2036,6 @@ fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
       }
     }
     file1.path.compareTo(file2.path)
-  }
-  else if (file1 != null) {
-    -1
-  }
-  else {
-    1
-  }
-}
-
-/**
- * Utility method suitable for Comparator implementations which order resource files,
- * which will sort files by base folder followed by alphabetical configurations. Prioritizes
- * XML files higher than non-XML files. (Resource file folders are sorted by folder configuration
- * order.)
- */
-fun compareResourceFiles(file1: PsiFile?, file2: PsiFile?): Int {
-  return if (file1 === file2) {
-    0
-  }
-  else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === XmlFileType.INSTANCE
-    val xml2 = file2.fileType === XmlFileType.INSTANCE
-    if (xml1 != xml2) {
-      return if (xml1) -1 else 1
-    }
-    val parent1 = file1.parent
-    val parent2 = file2.parent
-    if (parent1 != null && parent2 != null && parent1 !== parent2) {
-      val parentName1 = parent1.name
-      val parentName2 = parent2.name
-      val qualifier1 = parentName1.indexOf('-') != -1
-      val qualifier2 = parentName2.indexOf('-') != -1
-      if (qualifier1 != qualifier2) {
-        return if (qualifier1) 1 else -1
-      }
-      if (qualifier1) { // Sort in FolderConfiguration order
-        val config1 = FolderConfiguration.getConfigForFolder(parentName1)
-        val config2 = FolderConfiguration.getConfigForFolder(parentName2)
-        if (config1 != null && config2 != null) {
-          return config1.compareTo(config2)
-        }
-        else if (config1 != null) {
-          return -1
-        }
-        else if (config2 != null) {
-          return 1
-        }
-        val delta = parentName1.compareTo(parentName2)
-        if (delta != 0) {
-          return delta
-        }
-      }
-    }
-    file1.name.compareTo(file2.name)
   }
   else if (file1 != null) {
     -1
@@ -2486,7 +2316,7 @@ fun findOrCreateStateListFiles(
         fileName += DOT_XML
       }
       for (dirName in dirNames) {
-        val dirPath = FileUtil.toSystemDependentName(resDir.path + '/' + dirName)
+        val dirPath = FileUtilRt.toSystemDependentName(resDir.path + '/' + dirName)
         val dir: VirtualFile = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName)
                                ?: throw IOException("cannot make " + resDir + File.separatorChar + dirName)
         var file = dir.findChild(fileName)

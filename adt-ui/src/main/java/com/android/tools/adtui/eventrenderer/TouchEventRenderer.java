@@ -17,12 +17,15 @@ package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 public class TouchEventRenderer<E> implements EventRenderer<E> {
 

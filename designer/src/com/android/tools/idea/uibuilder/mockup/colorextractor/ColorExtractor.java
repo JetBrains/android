@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Asynchronously extract the meaningful myColor of an image.

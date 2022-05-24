@@ -42,7 +42,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
-import java.util.Comparator
 import java.util.EnumMap
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
@@ -190,9 +189,10 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
 
   @Synchronized
   fun loadCompiledIds(klass: Class<*>) {
-    val mapping = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
-    loadIdsFromResourceClass(klass, into = mapping)
-    compiledIds = mapping
+    if (compiledIds == null) {
+      compiledIds = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
+    }
+    loadIdsFromResourceClass(klass, into = compiledIds!!)
   }
 
   private fun loadFrameworkIds(): SingleNamespaceIdMapping {
@@ -306,6 +306,13 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
         }
       }
     }
+  }
+
+  /**
+   * Resets the currently loaded compiled ids. Call this method before start loading new compiled ids via [loadCompiledIds].
+   */
+  fun resetCompiledIds() {
+    compiledIds = null
   }
 
   /**

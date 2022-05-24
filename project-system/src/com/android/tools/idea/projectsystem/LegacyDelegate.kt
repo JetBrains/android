@@ -126,6 +126,8 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val mlModelsDirectoryUrls: Collection<String> get() = emptySet()
   override val mlModelsDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || javaClass != other.javaClass) return false
@@ -148,6 +150,10 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
     currentAndroidTestSourceProviders = emptyList(),
     currentTestFixturesSourceProviders = emptyList(),
     currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(mainSourceProvider),
-    mainAndFlavorSourceProviders = listOf(mainSourceProvider)
+    mainAndFlavorSourceProviders = listOf(mainSourceProvider),
+    generatedSources = createMergedSourceProvider(ScopeType.MAIN, emptyList()),
+    generatedUnitTestSources = createMergedSourceProvider(ScopeType.UNIT_TEST, emptyList()),
+    generatedAndroidTestSources = createMergedSourceProvider(ScopeType.ANDROID_TEST, emptyList()),
+    generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList())
   )
 }

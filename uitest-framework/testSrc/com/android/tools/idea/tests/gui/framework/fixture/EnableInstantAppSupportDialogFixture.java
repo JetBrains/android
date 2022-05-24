@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
-import com.android.tools.idea.gradle.actions.EnableInstantAppsSupportDialog;
+import com.android.tools.idea.actions.EnableInstantAppsSupportDialog;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 

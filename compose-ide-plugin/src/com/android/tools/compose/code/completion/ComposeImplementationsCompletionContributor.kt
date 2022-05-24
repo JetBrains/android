@@ -49,7 +49,6 @@ import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -60,8 +59,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 /**
  * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
@@ -99,7 +96,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
   }
 
   private fun getKotlinClass(project: Project, classFqName: String): KtClassOrObject? {
-    return KotlinFullClassNameIndex.getInstance()
+    return KotlinFullClassNameIndex
       .get(classFqName, project, project.allScope())
       .firstOrNull()
       .safeAs<KtClassOrObject>()

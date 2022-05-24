@@ -45,7 +45,6 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.ui.resourcemanager.CollectionParam
 import com.android.tools.idea.ui.resourcemanager.IntParam
 import com.android.tools.idea.ui.resourcemanager.TextParam
-import com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationViewModel
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Test

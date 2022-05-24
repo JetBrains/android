@@ -42,8 +42,7 @@ internal fun performAndWaitForSyncEnd(
 ) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
   val project = projectRule.project
-  project.messageBus
-    .connect(project)
+  project.messageBus.connect()
     .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         publishedResult.set(result)
@@ -139,6 +138,15 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "ktxTargets": [],
                 "fqcns": [
                   "androidx.camera.view.PreviewView"
+                ]
+              },
+              {
+                "groupId": "androidx.compose.ui",
+                "artifactId": "ui-tooling-preview",
+                "version": "1.0.5",
+                "ktxTargets": [],
+                "fqcns": [
+                  "androidx.compose.ui.tooling.preview.Preview"
                 ]
               }
             ]

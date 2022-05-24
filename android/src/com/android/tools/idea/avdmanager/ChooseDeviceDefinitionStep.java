@@ -25,10 +25,10 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Consumer;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Optional;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link ModelWizardStep} for selecting a device definition from the devices declared in the SDK
@@ -51,7 +51,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptions
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myValidatorPanel.registerValidator(getModel().device(), new Validator<Optional<Device>>() {
+    myValidatorPanel.registerValidator(getModel().device(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Device> value) {
@@ -61,7 +61,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptions
       }
     });
 
-    myDeviceDefinitionPanel.addDeviceListener(new Consumer<Device>() {
+    myDeviceDefinitionPanel.addDeviceListener(new Consumer<>() {
       @Override
       public void consume(Device device) {
         getModel().device().setNullableValue(device);

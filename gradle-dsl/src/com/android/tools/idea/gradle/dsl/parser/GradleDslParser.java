@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser;
 import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.NONE;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -29,11 +28,10 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A parser for BUILD.gradle files. Used to build up a {@link GradleBuildModel} from the underlying file.

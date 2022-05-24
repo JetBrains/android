@@ -32,7 +32,6 @@ import com.android.tools.idea.res.FloatResources
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.openapi.application.ApplicationManager
@@ -45,17 +44,16 @@ import com.intellij.psi.PsiEnumConstant
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
-import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.ui.MutableCollectionComboBoxModel
-import com.intellij.util.ui.UIUtil
+import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.Functions
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.kotlin.utils.doNothing
 import java.awt.CardLayout
 import java.awt.Dimension
-import java.lang.IllegalStateException
 import javax.swing.Action
 import javax.swing.JComponent
-import javax.swing.JList
 
 // open for testing
 open class AddArgumentDialog(private val existingComponent: NlComponent?, private val parent: NlComponent) : DialogWrapper(false) {
@@ -138,18 +136,16 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
     init()
     Type.values().forEach { dialogUI.myTypeComboBox.addItem(it) }
 
-    dialogUI.myTypeComboBox.setRenderer(object : ListCellRendererWrapper<Type>() {
-      override fun customize(list: JList<*>, value: Type, index: Int, isSelected: Boolean, hasFocus: Boolean) {
+    dialogUI.myTypeComboBox.setRenderer(SimpleListCellRenderer.create(
+      SimpleListCellRenderer.Customizer { label: JBLabel, value: Type, index: Int ->
         if (index == -1 && value.isCustom && selectedType == value) {
-          setText(type)
+          label.text = type
         }
         else {
-          setText(value.display)
+          label.text = value.display
         }
-        setBackground(UIUtil.getListBackground(isSelected, true))
-        setForeground(UIUtil.getListForeground(isSelected, true))
       }
-    })
+    ))
 
     dialogUI.myTypeComboBox.isEditable = false
 
@@ -208,11 +204,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
       }
     }
 
-    dialogUI.myDefaultValueComboBox.renderer = object : ListCellRendererWrapper<String>() {
-      override fun customize(list: JList<*>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value ?: "No default value")
-      }
-    }
+    dialogUI.myDefaultValueComboBox.renderer = SimpleListCellRenderer.create("No default value", Functions.id())
 
     dialogUI.myArrayCheckBox.addActionListener { event ->
       type = updateArgType(type)
@@ -279,7 +271,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
-        defaultValueComboModel.update(Lists.newArrayList<String>(null, "true", "false"))
+        defaultValueComboModel.update(listOf(null, "true", "false"))
       }
       selectedType == Type.CUSTOM_ENUM && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
@@ -317,7 +309,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
 
   public override fun doValidate(): ValidationInfo? {
     val name = name
-    if (name == null || name.isEmpty()) {
+    if (name.isNullOrEmpty()) {
       return ValidationInfo("Name must be set", dialogUI.myNameTextField)
     }
     if (parent.children.any { c ->
@@ -328,7 +320,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
       return ValidationInfo("Name must be unique", dialogUI.myNameTextField)
     }
     var newDefaultValue = defaultValue
-    if (newDefaultValue != null && !newDefaultValue.isEmpty() && !isArray) {
+    if (!newDefaultValue.isNullOrEmpty() && !isArray) {
       when (dialogUI.myTypeComboBox.selectedItem as Type) {
         Type.LONG -> {
           if (!newDefaultValue.endsWith("L")) {
@@ -389,7 +381,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
       realComponent.setTypeAndLog(type, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       var newDefaultValue = defaultValue
-      if (!isArray && newDefaultValue != null && !newDefaultValue.isEmpty()
+      if (!isArray && !newDefaultValue.isNullOrEmpty()
           && dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")) {
         newDefaultValue += "L"
       }

@@ -17,8 +17,7 @@ package com.android.tools.idea.editors.manifest;
 
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * @see com.intellij.openapi.vcs.actions.AnnotationColors

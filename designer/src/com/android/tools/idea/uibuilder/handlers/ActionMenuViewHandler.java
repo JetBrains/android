@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.SdkConstants.ATTR_DIVIDER;
 import static com.android.SdkConstants.ATTR_DIVIDER_PADDING;
+
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ActionMenuViewHandler extends LinearLayoutHandler {
   @Override

@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.structure
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.intellij.openapi.project.Project
 
 /**
  * Return true if Gradle plugin version supports side-by-side NDK

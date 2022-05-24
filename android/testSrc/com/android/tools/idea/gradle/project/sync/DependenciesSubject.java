@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.truth.Fact;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ExportableOrderEntry;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public abstract class DependenciesSubject<T  extends ExportableOrderEntry> extends Subject<DependenciesSubject<T>, Module> {
   @NotNull private final Map<DependencyScope, Map<String, T>> myDependenciesByNameAndScope = new HashMap<>();

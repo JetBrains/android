@@ -16,24 +16,27 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import org.jetbrains.annotations.NotNull;
 
 public class LayoutTreePanel extends JPanel implements ToolContent<LayoutInspectorContext>, InvalidationListener {
   @NotNull private final JScrollPane myTreePanel;

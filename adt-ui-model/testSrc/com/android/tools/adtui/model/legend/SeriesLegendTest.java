@@ -15,18 +15,22 @@
  */
 package com.android.tools.adtui.model.legend;
 
-import com.android.tools.adtui.model.*;
+import static org.junit.Assert.assertEquals;
+
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class SeriesLegendTest {
 

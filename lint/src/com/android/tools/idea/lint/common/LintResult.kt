@@ -21,7 +21,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
-import java.util.ArrayList
 
 sealed class LintResult {
   open fun getModule(): Module? = null

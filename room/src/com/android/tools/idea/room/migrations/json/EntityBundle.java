@@ -18,12 +18,12 @@ package com.android.tools.idea.room.migrations.json;
 import static com.android.tools.idea.room.migrations.json.SchemaEqualityUtil.checkSchemaEquality;
 
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This was copied from the Room Migration project. It is only a temporary solution and in the future we will try to use the real classes.

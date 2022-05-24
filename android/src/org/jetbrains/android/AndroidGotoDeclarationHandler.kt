@@ -34,7 +34,6 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import java.util.ArrayList
 
 /**
  * GotoDeclarationHandler for Resources. This class handles multiple cases:

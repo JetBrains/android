@@ -15,18 +15,25 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_PADDING;
+import static com.android.SdkConstants.UNIT_DIP;
+import static com.android.SdkConstants.UNIT_DP;
+import static com.android.SdkConstants.UNIT_IN;
+import static com.android.SdkConstants.UNIT_MM;
+import static com.android.SdkConstants.UNIT_PT;
+import static com.android.SdkConstants.UNIT_PX;
+import static com.android.SdkConstants.UNIT_SP;
+
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A custom version of the {@link LayoutPsiPullParser} which

@@ -16,9 +16,8 @@
 package org.jetbrains.android.dom.animator;
 
 import com.intellij.util.xml.SubTagList;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 @Styleable("PropertyValuesHolder")
 public interface PropertyValuesHolder extends AnimatorElement {

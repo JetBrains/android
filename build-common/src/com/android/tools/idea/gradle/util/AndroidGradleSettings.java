@@ -19,15 +19,14 @@ import com.android.SdkConstants;
 import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods related to Gradle-specific Android settings.

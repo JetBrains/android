@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.projectsystem.gradle.actions;
 
+import static com.android.tools.idea.project.AndroidNotification.BALLOON_GROUP;
+import static com.intellij.notification.NotificationType.WARNING;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil;
@@ -30,14 +33,10 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.project.AndroidNotification.BALLOON_GROUP;
-import static com.intellij.notification.NotificationType.WARNING;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FixAndroidRunConfigurationsAction extends DumbAwareAction {
   public final static String ID = "Android.FixAndroidRunConfigurations";

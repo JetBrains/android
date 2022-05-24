@@ -22,14 +22,12 @@ import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
@@ -71,7 +69,7 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
                                                            @NotNull FileEditor fileEditor,
                                                            @NotNull Project project) {
       if (fileEditor instanceof LayoutInspectorEditor && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()) {
-        EditorNotificationPanel panel = new EditorNotificationPanel();
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
         panel.setText("Using API 29? Try out the new Live Layout Inspector.");
 
         if (fileEditor.getUserData(HIDDEN_KEY) != null || PropertiesComponent.getInstance().isTrueValue(DISABLE_KEY)) {
@@ -152,12 +150,6 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   public void setState(@NotNull FileEditorState state) {
   }
 
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
-  }
-
   @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
@@ -177,13 +169,12 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Override
-  public void selectNotify() {
+  public @NotNull VirtualFile getFile() {
+    return myVirtualFile;
   }
 
-  @Nullable
   @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
+  public void selectNotify() {
   }
 
   @Override

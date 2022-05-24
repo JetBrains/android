@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
-import junit.framework.TestCase;
+import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
+import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_UNEXPECTED;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
-import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_UNEXPECTED;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import junit.framework.TestCase;
 
 public class RenderProblemTest extends TestCase {
   public void testCreateFull() {

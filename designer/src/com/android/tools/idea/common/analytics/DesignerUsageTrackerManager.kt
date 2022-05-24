@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.analytics
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.surface.DesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.cache.CacheBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable

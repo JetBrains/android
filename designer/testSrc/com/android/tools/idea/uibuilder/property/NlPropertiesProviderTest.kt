@@ -35,12 +35,12 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 
 private const val CUSTOM_TAG = "com.example.PieChart"

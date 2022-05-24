@@ -23,9 +23,9 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.impl.model.util.FakeAsyncPropertyItem
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
-import com.android.tools.property.panel.impl.model.util.FakeAsyncPropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

@@ -16,7 +16,6 @@
 package com.android.tools.idea.debug;
 
 import com.android.sdklib.IAndroidTarget;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -34,7 +33,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
 
   @NotNull
   public static ResourceIdResolver getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ResourceIdResolver.class);
+    return project.getService(ResourceIdResolver.class);
   }
 
   private ProjectResourceIdResolver(@NotNull Project project) {

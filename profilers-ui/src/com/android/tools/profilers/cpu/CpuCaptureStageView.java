@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.ComboCheckBox;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiCursorType;
@@ -31,28 +32,25 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.adtui.ComboCheckBox;
-import com.android.tools.profilers.PathUtils;
+import com.android.tools.profilers.DropDownButton;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StringUtils;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
-import com.android.tools.profilers.cpu.analysis.FramesAtTopCpuAnalysisAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
@@ -60,9 +58,7 @@ import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
-import com.android.tools.profilers.DropDownButton;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
@@ -135,9 +131,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                          return Unit.INSTANCE;
                        },
                        "Apply",
-                       PathUtils::abbreviate)
+                       StringUtils::abbreviatePath)
   );
-  private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("Vsync guide", true);
+  private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("VSync guide", true);
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
@@ -152,7 +148,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setBorder(JBUI.Borders.empty());
-    myAnalysisPanel = new CpuAnalysisPanel(view, stage, FramesAtTopCpuAnalysisAdapter::new);
+    myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
     myVsyncBackgroundCheckBox.addItemListener(e -> {
@@ -176,11 +172,12 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(RssMemoryTooltip.class, RssMemoryTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(CpuFrequencyTooltip.class, CpuFrequencyTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(AndroidFrameEventTooltip.class, AndroidFrameEventTooltipView::new);
-    myTrackGroupList.getTooltipBinder().bind(JankyFrameTooltip.class, JankyFrameTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(AndroidFrameTimelineTooltip.class, AndroidFrameTimelineTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)
-      .onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
+      .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onTrackGroupSelectionChange)
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::updateTrackGroupList);
     updateComponents();
   }
 
@@ -416,6 +413,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
+    onActiveSelectionChange();
   }
 
   private void loadTrackGroupModels() {
@@ -430,33 +428,27 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private void onTrackGroupSelectionChange() {
-    // Remove the last selection if any.
-    if (getStage().getAnalysisModels().size() > 1) {
-      getStage().removeCpuAnalysisModel(getStage().getAnalysisModels().size() - 1);
-    }
-
-    // Merge all selected items' analysis models and provide one combined model to the analysis panel.
-    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
-    getStage().getMultiSelectionModel().getSelection().stream()
-      .map(CpuAnalyzable::getAnalysisModel)
-      .reduce(CpuAnalysisModel::mergeWith)
-      .ifPresent(getStage()::addCpuAnalysisModel);
-
-    // Now update track groups.
+    // Update track groups.
     updateTrackGroupList();
 
-    // Update selection range
-    if (selection.isEmpty()) {
-      getStage().getTimeline().getSelectionRange().clear();
-    }
-    else if (selection.get(0) instanceof CaptureNodeAnalysisModel) {
-      // Use the first item to determine selection type as all items in the selection model are of the same type.
-      Range selectedNodeRange = ((CaptureNodeAnalysisModel)selection.get(0)).getNodeRange();
-      getStage().getTimeline().getSelectionRange().set(selectedNodeRange);
-    }
+    onActiveSelectionChange();
 
     // Show/hide "Deselect All" label.
-    myDeselectAllToolbar.setVisible(!selection.isEmpty());
+    myDeselectAllToolbar.setVisible(!getStage().getMultiSelectionModel().getSelections().isEmpty());
+  }
+
+  private void onActiveSelectionChange() {
+    // Update selection range
+    Object selection = getStage().getMultiSelectionModel().getActiveSelectionKey();
+    Range selectionRange = getStage().getTimeline().getSelectionRange();
+    if (selection == null) {
+      selectionRange.clear();
+    } else if (selection instanceof CaptureNode) {
+      selectionRange.set(((CaptureNode)selection).getStart(), ((CaptureNode)selection).getEnd());
+    } else if (selection instanceof AndroidFrameTimelineEvent) {
+      selectionRange.set(((AndroidFrameTimelineEvent)selection).getExpectedStartUs(),
+                         ((AndroidFrameTimelineEvent)selection).getActualEndUs());
+    }
   }
 
   @VisibleForTesting

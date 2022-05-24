@@ -20,7 +20,6 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -30,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
+import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Duration

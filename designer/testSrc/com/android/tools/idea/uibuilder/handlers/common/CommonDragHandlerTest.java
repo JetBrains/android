@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.common;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -23,7 +24,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;

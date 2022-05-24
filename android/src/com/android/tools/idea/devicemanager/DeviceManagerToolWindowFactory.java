@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import static com.android.tools.idea.AndroidEnvironmentUtils.isAndroidEnvironment;
+
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePanel;
 import com.android.tools.idea.flags.StudioFlags;
@@ -40,7 +42,7 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get();
+    return StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() && isAndroidEnvironment(project);
   }
 
   @Override
@@ -55,14 +57,11 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
   }
 
   private static @NotNull JComponent newJBTabbedPane(@NotNull Project project, @NotNull Disposable parent) {
-    PhysicalDevicePanel panel = new PhysicalDevicePanel(project);
-    Disposer.register(parent, panel);
-
     JBTabbedPane pane = new JBTabbedPane();
     pane.setTabComponentInsets(JBUI.emptyInsets());
 
-    pane.addTab("Virtual", new VirtualDevicePanel(project));
-    pane.addTab("Physical", panel);
+    pane.addTab("Virtual", new VirtualDevicePanel(project, parent));
+    pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
 
     return pane;
   }

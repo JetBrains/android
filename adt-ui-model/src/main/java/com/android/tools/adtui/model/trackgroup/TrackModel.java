@@ -41,6 +41,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   private final int myId;
   private final boolean myIsCollapsible;
   private boolean myIsCollapsed;
+  private final boolean myIsDragEnabled;
 
   @NotNull private final AspectModel<Aspect> myAspectModel = new AspectModel<>();
 
@@ -58,6 +59,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     myHideHeader = builder.myHideHeader;
     myIsCollapsible = builder.myIsCollapsible;
     myIsCollapsed = builder.myIsCollapsed;
+    myIsDragEnabled = builder.myIsDragEnabled;
     myId = builder.myId;
     myActiveTooltipModel = builder.myDefaultTooltipModel;
   }
@@ -124,6 +126,10 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     return myIsCollapsible;
   }
 
+  public boolean isDragEnabled() {
+    return myIsDragEnabled;
+  }
+
   @NotNull
   public AspectModel<Aspect> getAspectModel() {
     return myAspectModel;
@@ -147,6 +153,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     private boolean myHideHeader;
     private boolean myIsCollapsed;
     private boolean myIsCollapsible;
+    private boolean myIsDragEnabled = true;
     private int myId;
     private TooltipModel myDefaultTooltipModel;
     private String myTitleTooltip;
@@ -184,6 +191,12 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     @NotNull
     public Builder<M, R> setCollapsible(boolean collapsible) {
       myIsCollapsible = collapsible;
+      return this;
+    }
+
+    @NotNull
+    public Builder<M, R> setDragEnabled(boolean enabled) {
+      myIsDragEnabled = enabled;
       return this;
     }
 

@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public interface AutoCompleteTextField {
   @NotNull

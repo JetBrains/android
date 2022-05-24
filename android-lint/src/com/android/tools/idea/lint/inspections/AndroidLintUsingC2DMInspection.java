@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.C2dmDetector;
 
 public class AndroidLintUsingC2DMInspection extends AndroidLintInspectionBase {

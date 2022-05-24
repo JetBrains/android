@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -48,6 +48,7 @@ class InspectorClientLauncher(
   private val clientCreators: List<(Params) -> InspectorClient?>,
   private val project: Project,
   private val parentDisposable: Disposable,
+  private val metrics: LayoutInspectorMetrics? = null,
   @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
 ) {
   companion object {
@@ -58,7 +59,7 @@ class InspectorClientLauncher(
     fun createDefaultLauncher(
       processes: ProcessesModel,
       model: InspectorModel,
-      stats: SessionStatistics,
+      metrics: LayoutInspectorMetrics,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
@@ -66,16 +67,17 @@ class InspectorClientLauncher(
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable)
+              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable)
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable) }
+          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable) }
         ),
         model.project,
-        parentDisposable)
+        parentDisposable,
+        metrics)
     }
   }
 
@@ -87,7 +89,9 @@ class InspectorClientLauncher(
 
   init {
     processes.addSelectedProcessListeners(executor) {
-      handleProcess(processes.selectedProcess, processes.isAutoConnected)
+      if (!project.isDisposed) {
+        handleProcess(processes.selectedProcess, processes.isAutoConnected)
+      }
     }
 
     Disposer.register(parentDisposable) {
@@ -103,7 +107,7 @@ class InspectorClientLauncher(
         override val isInstantlyAutoConnected: Boolean = isInstantlyAutoConnected
         override val disposable: Disposable = parentDisposable
       }
-
+      metrics?.setProcess(process)
       for (createClient in clientCreators) {
         val client = createClient(params)
         if (client != null) {
@@ -129,7 +133,7 @@ class InspectorClientLauncher(
       }
     }
 
-    if (!validClientConnected) {
+    if (!validClientConnected && !project.isDisposed) {
       val bannerService = InspectorBannerService.getInstance(project)
       // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
       val currentBanner = bannerService.notification

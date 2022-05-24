@@ -17,8 +17,8 @@ package com.android.tools.idea.avdmanager
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
@@ -35,7 +35,7 @@ internal class ColdBootNowAction(avdInfoProvider: AvdInfoProvider,
                                  private val logDeviceManagerEvents: Boolean) : AvdUiAction(avdInfoProvider,
                                                                                             "Cold Boot Now",
                                                                                             "Force one cold boot",
-                                                                                            AllIcons.Actions.Menu_open) {
+                                                                                            AllIcons.Actions.MenuOpen) {
   override fun actionPerformed(actionEvent: ActionEvent) {
     if (logDeviceManagerEvents) {
       val deviceManagerEvent = DeviceManagerEvent.newBuilder()

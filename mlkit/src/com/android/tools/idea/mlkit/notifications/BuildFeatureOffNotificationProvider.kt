@@ -56,7 +56,7 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
       return null
     }
 
-    val panel = EditorNotificationPanel()
+    val panel = EditorNotificationPanel(fileEditor)
     panel.text = BANNER_MESSAGE
     panel.createActionLabel("Enable Now") {
       if (Messages.OK == Messages.showOkCancelDialog(project, DIALOG_MESSAGE, DIALOG_TITLE,

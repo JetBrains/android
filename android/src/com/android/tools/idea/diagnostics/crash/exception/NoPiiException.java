@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics.crash.exception;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
-
 import java.io.PrintWriter;
 
 /**

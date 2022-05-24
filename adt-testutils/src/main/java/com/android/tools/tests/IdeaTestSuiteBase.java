@@ -15,21 +15,17 @@
  */
 package com.android.tools.tests;
 
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
-import com.intellij.testFramework.TestApplicationManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -49,12 +45,10 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setProperties() throws IOException {
-    if (!isUnbundledBazelTestTarget()) {
-      System.setProperty("idea.home.path", TestUtils.resolveWorkspacePath("tools/idea").toString());
-    }
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
+    System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
@@ -96,7 +90,7 @@ public class IdeaTestSuiteBase {
    */
   private static void setRealJdkPathForGradle() {
     try {
-      Path jdk = TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
+      Path jdk = TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
       if (Files.exists(jdk)) {
         Path file = jdk.resolve("BUILD").toRealPath();
         System.setProperty("studio.dev.jdk", file.getParent().toString());
@@ -112,7 +106,7 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
+    File outDir = TestUtils.resolveWorkspacePath(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -179,7 +173,7 @@ public class IdeaTestSuiteBase {
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
+    Path file = TestUtils.resolveWorkspacePath(relativePath);
     if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }
@@ -197,42 +191,5 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /** @return true if the current Bazel test uses unbundled SDK. */
-  public static boolean isUnbundledBazelTestTarget() {
-    String classPath = System.getProperty("java.class.path", "");
-    if (!classPath.endsWith("classpath.jar")) {
-      return containsPrebuiltSdk(classPath);
-    }
-
-    // Looks like using JAR Manifest for classpath.
-    Path dir = Paths.get(classPath).getParent();
-    try(JarFile jarFile = new JarFile(classPath)) {
-      Manifest mf = jarFile.getManifest();
-      String classPathList = mf.getMainAttributes().getValue("Class-Path");
-      String[] paths = classPathList.split(" ");
-      for (String path : paths) {
-        // Paths are relative to the directory of the classpath.jar file, and
-        // may contain symlinks, so we must convert them to realpath.
-        try {
-          String realPath = dir.resolve(path).toRealPath().toString();
-          if (containsPrebuiltSdk(realPath)) {
-            return true;
-          }
-        } catch (IOException e) {
-          // Fall through. Try the next path.
-        }
-      }
-    } catch (IOException|IllegalArgumentException e) {
-      return false;
-    }
-
-    return false;
-  }
-
-  private static boolean containsPrebuiltSdk(@NotNull String path) {
-    return path.contains("prebuilts/studio/intellij-sdk/") ||
-           path.contains("prebuilts\\studio\\intellij-sdk\\");
   }
 }

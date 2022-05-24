@@ -20,9 +20,8 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableSet;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull private final String myName;

@@ -24,14 +24,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ColorIcon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AnnotationsRenderer {
   public static class Result {
@@ -144,7 +143,7 @@ public class AnnotationsRenderer {
 
   @Nullable
   private static String getQualifiedName(final PsiAnnotation annotation) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<>() {
       @Override
       public String compute() {
         return annotation.getQualifiedName();

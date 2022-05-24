@@ -284,7 +284,7 @@ class FakeInspectorState(
           name = 119
           namespace = 210
           type = LayoutInspectorViewProtocol.Property.Type.COLOR
-          int32Value = 0x22FF00
+          int32Value = 0x4422FF00
           addAllResolutionStack(listOf(
             ViewResource(221, 210, 222),
           ))

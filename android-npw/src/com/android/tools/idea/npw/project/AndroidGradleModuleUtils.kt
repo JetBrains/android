@@ -24,6 +24,7 @@ import com.android.builder.model.SourceProvider
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.template.Parameter
@@ -74,7 +75,7 @@ fun setGradleWrapperExecutable(projectRoot: File) {
   FileUtil.setExecutable(gradlewFile)
 }
 
-/** Find the most appropriated Gradle Plugin version for the specified project. */
+/** Find the most appropriate Gradle Plugin version for the specified project. */
 @Slow
 fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): GradleVersion {
   val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
@@ -89,4 +90,10 @@ fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): Gradl
   // Use slow method
   val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
   return androidPluginInfo?.pluginVersion ?: defaultGradleVersion
+}
+
+/** Call detector to check whether Version Catalogs are in use.  Is (very occasionally) slow if cached value has been invalidated. */
+@Slow
+fun determineVersionCatalogUse(project: Project): Boolean {
+  return GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
 }

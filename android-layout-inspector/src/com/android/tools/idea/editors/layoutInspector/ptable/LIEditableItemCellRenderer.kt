@@ -16,9 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector.ptable
 
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel
-import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil

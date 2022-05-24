@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class MultilineStringEditorDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -54,7 +53,7 @@ public class MultilineStringEditorDialog extends DialogWrapper {
     }
 
     if (locale != null) {
-      myTranslationLabel.setText("Translation for " + LocaleMenuAction.getLocaleLabel(locale, false));
+      myTranslationLabel.setText("Translation for " + Locale.getLocaleLabel(locale, false));
       myTranslationTextField.setEnabled(true);
 
       if (translation != null) {

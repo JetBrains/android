@@ -15,26 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.DRAWABLE_PREFIX;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.checkDrawableExist;
+import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.createDrawable;
+
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ExtractBackgroundForm;
-import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.diagnostic.Logger;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.checkDrawableExist;
-import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.createDrawable;
 
 /**
  * Create an ImageView and displays option to export the selection as a drawable

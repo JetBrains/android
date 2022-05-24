@@ -31,6 +31,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
@@ -45,6 +46,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   val applicationRule: ApplicationRule = ApplicationRule()
 
   @get:Rule
+  val disposableRule: DisposableRule = DisposableRule()
+
+  @get:Rule
   val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
@@ -56,7 +60,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheAGPUpgradeRequiredPage() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       AGPUpdateRequired(currentVersion = GradleVersion.parse("4.2.0"), listOf(appPlugin)),
       TimeWithPercentage(100, 1000)
@@ -76,7 +80,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheIncompatiblePluginDetectedPageTwoRequireUpdate() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val compatiblePluginA = GradlePluginsData.PluginInfo(
       name = "Compatible Plugin A",
       pluginClasses = listOf(pluginA.idName),
@@ -109,7 +113,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheIncompatiblePluginDetectedPageTwoIncompatible() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val incompatiblePluginA = GradlePluginsData.PluginInfo(
       name = "Incompatible Plugin A",
       pluginClasses = listOf(pluginA.idName),
@@ -140,7 +144,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheIncompatiblePluginDetectedPageOneIncompatibleOneUpdate() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val compatiblePluginA = GradlePluginsData.PluginInfo(
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
@@ -173,7 +177,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheNoIncompatiblePluginsPage() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       NoIncompatiblePlugins(listOf(pluginA)),
       TimeWithPercentage(100, 1000)
@@ -202,7 +206,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCacheAfterTrialBuildPage() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       ConfigurationCacheCompatibilityTestFlow,
       TimeWithPercentage(100, 1000)
@@ -223,7 +227,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCachePluginRequireUpdatePage() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val compatiblePluginA = GradlePluginsData.PluginInfo(
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
@@ -249,7 +253,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
 
   @Test
   fun testConfigurationCachePluginNotCompatiblePage() {
-    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val incompatiblePluginA = GradlePluginsData.PluginInfo(
       name = "Incompatible Plugin A",
       pluginClasses = listOf(pluginA.idName),

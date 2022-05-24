@@ -1,3 +1,5 @@
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+
 /*
  * Copyright (C) 2021 The Android Open Source Project
  *
@@ -17,34 +19,55 @@ package com.android.tools.idea.debuggers.coroutine
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.deployer.Sites
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
-import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.intellij.openapi.module.Module
+import com.intellij.execution.Executor
+import com.intellij.execution.executors.DefaultDebugExecutor
 
 /**
  * Responsible for setting the am start options to start the coroutine debugger agent.
  */
 class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions): LaunchTask? {
+  override fun getTask(applicationId: String,
+                       configuration: AndroidRunConfigurationBase,
+                       device: IDevice,
+                       executor: Executor): LaunchTask? {
     return null
   }
 
-  override fun getAmStartOptions(module: Module, applicationId: String, launchOptions: LaunchOptions, device: IDevice): String {
+  override fun getAmStartOptions(applicationId: String,
+                                 configuration: AndroidRunConfigurationBase,
+                                 device: IDevice,
+                                 executor: Executor): String {
     if (!FlagController.isCoroutineDebuggerEnabled) {
       return ""
     }
 
-    if (!launchOptions.isDebug) {
+    if (DefaultDebugExecutor.EXECUTOR_ID != executor.id) {
       return ""
     }
 
-    // coroutine debugger is only available on api 28+
-    if (!device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.P)) {
+    // On api 27 the agent .so is not found at startup time.
+    // this is probably because there is no guarantee that the code_cache folder (where we put the .so) is created during app install.
+    // On api 28 the whole debugger hangs when attaching the agent.
+    // for now we're disabling it, but we could investigate this further and re-enable it later on.
+    // Since this check doesn't prevent the coroutine debugger panel from showing up, we should consider moving it into the agent.
+    if (!device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)) {
       return ""
     }
 
-    // TODO(b/182023182) make a public accessible method in Deployer to expose the sites values
-    return "--attach-agent /data/data/${applicationId}/code_cache/coroutine_debugger_agent.so"
+    val isCoroutineDebuggerEnabledInSettings = CoroutineDebuggerSettings.isCoroutineDebuggerEnabled()
+
+    CoroutineDebuggerAnalyticsTracker.getInstance(configuration.project).trackLaunchEvent(!isCoroutineDebuggerEnabledInSettings)
+
+    // coroutine debugger can be disabled from studio settings
+    if (!isCoroutineDebuggerEnabledInSettings) {
+      return ""
+    }
+
+    val appCodeCache = Sites.appCodeCache(applicationId)
+    return "--attach-agent ${appCodeCache}coroutine_debugger_agent.so"
   }
 }

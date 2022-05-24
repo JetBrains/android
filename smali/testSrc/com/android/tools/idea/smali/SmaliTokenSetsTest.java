@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.smali;
 
+import static com.android.tools.idea.smali.psi.SmaliTypes.CHAR;
+import static com.android.tools.idea.smali.psi.SmaliTypes.COMMENT;
+import static com.android.tools.idea.smali.psi.SmaliTypes.DOUBLE_QUOTED_STRING;
+import static com.android.tools.idea.smali.psi.SmaliTypes.FALSE;
+import static com.android.tools.idea.smali.psi.SmaliTypes.HEX_NUMBER;
+import static com.android.tools.idea.smali.psi.SmaliTypes.L_CURLY;
+import static com.android.tools.idea.smali.psi.SmaliTypes.L_PARENTHESIS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.REGULAR_NUMBER;
+import static com.android.tools.idea.smali.psi.SmaliTypes.R_CURLY;
+import static com.android.tools.idea.smali.psi.SmaliTypes.R_PARENTHESIS;
+import static com.android.tools.idea.smali.psi.SmaliTypes.TRUE;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.smali.psi.SmaliTypes;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.android.tools.idea.smali.psi.SmaliTypes.*;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Tests for {@link SmaliTokenSets}.

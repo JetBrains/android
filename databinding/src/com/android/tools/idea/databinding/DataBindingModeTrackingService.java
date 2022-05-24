@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ModificationTracker;
 import java.util.concurrent.atomic.AtomicLong;
 

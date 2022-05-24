@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.android.tools.adtui.workbench.*;
+import com.android.tools.adtui.workbench.AutoHide;
+import com.android.tools.adtui.workbench.Side;
+import com.android.tools.adtui.workbench.Split;
+import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.intellij.icons.AllIcons;
 

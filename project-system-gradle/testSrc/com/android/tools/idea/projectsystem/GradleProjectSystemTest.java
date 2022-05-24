@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.PlatformTestCase;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 public class GradleProjectSystemTest extends PlatformTestCase {
 
@@ -32,7 +36,7 @@ public class GradleProjectSystemTest extends PlatformTestCase {
     super.setUp();
     IdeComponents ideComponents = new IdeComponents(myProject);
     ideComponents.mockProjectService(GradleDependencyManager.class);
-    ideComponents.mockProjectService(GradleProjectBuilder.class);
+    ideComponents.mockProjectService(GradleBuildInvoker.class);
 
     GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
@@ -44,6 +48,6 @@ public class GradleProjectSystemTest extends PlatformTestCase {
 
   public void testCompileProject() {
     ProjectSystemUtil.getProjectSystem(getProject()).getBuildManager().compileProject();
-    verify(GradleProjectBuilder.getInstance(myProject)).compileJava();
+    verify(GradleBuildInvoker.getInstance(myProject)).compileJava(any(), eq(TestCompileType.ALL));
   }
 }

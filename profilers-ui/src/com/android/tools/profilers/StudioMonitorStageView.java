@@ -50,8 +50,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -67,7 +66,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -146,7 +144,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(true);
         panel.setBorder(ProfilerLayout.MONITOR_BORDER);
-        panel.setMinimumSize(new Dimension(0, JBUI.scale(50)));
+        panel.setMinimumSize(new Dimension(0, JBUIScale.scale(50)));
         panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
         layout.setRowSizing(rowIndex, "100*");
         monitors.add(panel, new TabularLayout.Constraint(rowIndex, 0));
@@ -260,8 +258,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       case DEBUGGABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_DEBUGGABLE_MESSAGE,
-                                     "Timing data from debuggable processes may deviate from real world performance." +
-                                     " A profileable process may be more suitable.",
+                                     "Timing data from debuggable processes will deviate significantly from real" +
+                                     " world performance. A profileable process may be more suitable.",
                                      SupportLevel.DOC_LINK,
                                      ProfilerColors.NOTIFICATION_BACKGROUND);
       case PROFILEABLE:

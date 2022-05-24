@@ -49,7 +49,7 @@ import kotlin.math.min
 class DeviceScreenshotAction(private val myProject: Project,
                              context: DeviceContext
 ) : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot"),
-                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.SNAPSHOT) {
+                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.Toolbar.SNAPSHOT) {
 
   override fun performAction(event: AnActionEvent, device: IDevice) {
     val project = myProject

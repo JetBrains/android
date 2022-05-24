@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.waitForCondition
@@ -27,6 +28,7 @@ import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -37,6 +39,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
+import javax.swing.JButton
 import javax.swing.JLabel
 
 
@@ -110,8 +113,8 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
     fakeUi.waitForHeader("Install Wear OS Companion Application")
-    waitForCondition(5, TimeUnit.SECONDS) { usageTracker.usages.isNotEmpty() }
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_INSTALL_WEAR_OS_COMPANION)
+    waitForCondition(5, TimeUnit.SECONDS) { getWearPairingTrackingEvents().isNotEmpty() }
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_INSTALL_WEAR_OS_COMPANION)
   }
 
   @Test
@@ -145,6 +148,20 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   }
 
   @Test
+  fun shouldShowSuccessIfAlreadyPaired() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0")
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JBLabel> { it.text == "Successful pairing" } != null
+    }
+  }
+
+  @Test
   fun shouldShowRestartPairingIfConnectionIsDrop() {
     var launchedCalled = false
 
@@ -158,11 +175,11 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     val (fakeUi, _) = createDeviceConnectionStepUi(wizardAction)
 
     waitForCondition(15, TimeUnit.SECONDS) {
-      fakeUi.findComponent<JLabel> { it.text == "Restart pairing" } != null
+      fakeUi.findComponent<JLabel> { it.text == "My Phone didn't start" } != null
     }
 
     fakeUi.layoutAndDispatchEvents()
-    fakeUi.findComponent<LinkLabel<Any>> { it.text == "Restart pairing" }!!.apply {
+    fakeUi.findComponent<JButton> { it.text == "Try again" }!!.apply {
       this.doClick()
     }
 
@@ -183,6 +200,21 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     }
   }
 
+  @Test
+  fun shouldShowErrorIfAgpConnectionFails() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
+    Mockito.`when`(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt())).thenThrow(RuntimeException("Test"))
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JBLabel> { it.text == "Error occurred connecting devices" } != null
+    }
+  }
+
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()
@@ -199,6 +231,9 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     findComponent<JBLabel> { it.name == "header" && it.text == text } != null
   }
 
+  private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
+    usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
+
   private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE, companionAppId: String? = null): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
     Mockito.`when`(
@@ -213,6 +248,10 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       val reply = when {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
+        // Note: get-pairing-status gets called on both phone and watch. Watch uses the Local part and phone uses the Peer part.
+        request.contains("get-pairing-status") ->
+          "Broadcasting: Intent { act=com.google.android.gms.wearable.EMULATOR flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Local:[TestNodeId]\nPeer:[AnotherNode,false,false]\nPeer:[TestNodeId,true,true]\""
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         request.contains("settings get secure") -> companionAppId.toString()

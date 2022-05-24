@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
@@ -27,9 +28,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
-import javax.swing.Icon
 
 
 /**
@@ -40,9 +41,8 @@ import javax.swing.Icon
 class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun getName(): String = "Android Gradle"
 
-  override fun getIcon(): Icon? = null
-
   override fun canOpenProject(file: VirtualFile): Boolean =
+      (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
       GradleProjects.canImportAsGradleProject(file)
 
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
@@ -74,7 +74,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val exitCode = confirmOpenNewProject(false)
       if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
         val toClose = if (project != null && !project.isDefault) project else openProjects[openProjects.size - 1]
-        if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
+        if (!ProjectManager.getInstance().closeAndDispose(toClose)) {
           success = false
         }
       }

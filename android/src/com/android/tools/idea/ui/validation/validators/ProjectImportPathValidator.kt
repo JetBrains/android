@@ -17,15 +17,15 @@ package com.android.tools.idea.ui.validation.validators
 
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
-import java.io.File
+import java.nio.file.Path
 
 /**
  * Checks the given file is a valid location for a existing project directory.
  * Used for Opening and Importing projects.
  * @param path is used as part of the output message.
  */
-class ProjectImportPathValidator(path: String) : Validator<File> {
+class ProjectImportPathValidator(path: String) : Validator<Path> {
   private val pathValidator: PathValidator = Builder().withCommonRules().build(path)
 
-  override fun validate(file: File) = pathValidator.validate(file)
+  override fun validate(path: Path) = pathValidator.validate(path)
 }

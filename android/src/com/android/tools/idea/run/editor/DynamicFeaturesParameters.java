@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -204,8 +203,8 @@ public class DynamicFeaturesParameters {
   @NotNull
   private DynamicFeatureRow createRow(@NotNull Module module, AvailableDeployTypes deployType) {
     if (deployType == AvailableDeployTypes.INSTANT_AND_INSTALLED) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
-      if (model != null && model.getSelectedVariant().getInstantAppCompatible()) {
+      AndroidModel model = AndroidModel.get(module);
+      if (model != null && model.isInstantAppCompatible()) {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()));
       } else {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()), true, FeatureType.NON_INSTANT_DYNAMIC_FEATURE);
@@ -217,18 +216,18 @@ public class DynamicFeaturesParameters {
 
   public void addBaseModule(@NotNull Module module) {
     if (StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get()) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
+      AndroidModel model = AndroidModel.get(module);
       if (model == null) {
         return;
       }
       Module baseFeature = DynamicAppUtils.getBaseFeature(module);
-      if (baseFeature == null && model.getAndroidProject().isBaseSplit()) {
+      if (baseFeature == null && model.isBaseSplit()) {
         baseFeature = module;
       }
       else {
         return;
       }
-      myTableModel.addRow(new DynamicFeatureRow(module, true, false, FeatureType.BASE_FEATURE));
+      myTableModel.addRow(new DynamicFeatureRow(baseFeature, true, false, FeatureType.BASE_FEATURE));
     }
   }
 
@@ -374,7 +373,7 @@ public class DynamicFeaturesParameters {
     public static final int DEPENDENCY_LABEL_COLUMN_INDEX = 2;
 
     private List<DynamicFeatureRow> myFeatures = new ArrayList<>();
-    private Map<String, DynamicFeatureRow> rowsByName = new HashMap<String, DynamicFeatureRow>();
+    private Map<String, DynamicFeatureRow> rowsByName = new HashMap<>();
 
     private UndoHandler myUndoHandler;
 

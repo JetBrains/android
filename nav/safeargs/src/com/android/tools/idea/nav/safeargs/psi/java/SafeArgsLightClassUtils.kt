@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
-import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
-import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
 import com.android.utils.usLocaleCapitalize

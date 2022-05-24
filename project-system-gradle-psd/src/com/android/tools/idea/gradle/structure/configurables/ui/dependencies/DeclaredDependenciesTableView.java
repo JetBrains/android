@@ -15,32 +15,38 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.displayTextOf;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
+import static javax.swing.SwingUtilities.convertPointFromScreen;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
-import static com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.displayTextOf;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.awt.Cursor.*;
-import static java.awt.event.KeyEvent.KEY_PRESSED;
-import static java.awt.event.KeyEvent.KEY_RELEASED;
-import static java.awt.event.MouseEvent.MOUSE_PRESSED;
-import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
-import static javax.swing.SwingUtilities.convertPointFromScreen;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends TableView<T> implements Disposable {
   @NotNull private final PsContext myContext;
@@ -55,7 +61,7 @@ public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends T
 
     addHyperlinkFunctionality();
 
-    setRowHeight(JBUI.scale(24));
+    setRowHeight(JBUIScale.scale(24));
     setDragEnabled(false);
     setIntercellSpacing(new Dimension(0, 0));
     setShowGrid(false);

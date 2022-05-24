@@ -17,9 +17,8 @@ package com.android.tools.idea.structure.dialog;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ProjectStructureItemsContributor {
   public static final ExtensionPointName<ProjectStructureItemsContributor> EP_NAME =

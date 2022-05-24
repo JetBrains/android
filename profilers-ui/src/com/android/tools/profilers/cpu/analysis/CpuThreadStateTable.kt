@@ -53,7 +53,8 @@ import com.android.tools.adtui.common.border as BorderColor
  */
 class CpuThreadStateTable(val profilers: StudioProfilers,
                           val threadStateSeriesList: List<DataSeries<ThreadState>>,
-                          val range: Range) {
+                          val range: Range,
+                          title: String = "States") {
   val component: JComponent
 
   @VisibleForTesting
@@ -80,7 +81,7 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       add(table, TabularLayout.Constraint(1, 0))
     }
     val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
-    component = HideablePanel.Builder("States", tableContainer)
+    component = HideablePanel.Builder(title, tableContainer)
       .setPanelBorder(JBUI.Borders.empty())
       .setContentBorder(contentBorder)
       .build()

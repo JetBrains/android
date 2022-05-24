@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
-import org.junit.Test;
-
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+import org.junit.Test;
 
 public class DBSCANClustererTest {
 

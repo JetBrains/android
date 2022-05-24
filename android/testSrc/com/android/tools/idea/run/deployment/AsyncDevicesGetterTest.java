@@ -24,7 +24,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
 import java.time.Clock;
 import java.time.Instant;

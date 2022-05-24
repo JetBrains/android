@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.common.model
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
+import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
 
-fun NlModel.updateFileContentBlocking(content: String): NlModel {
+suspend fun NlModel.updateFileContentBlocking(content: String): NlModel {
   val psiFileManager = PsiManager.getInstance(project)
   val file = virtualFile as LightVirtualFile
-  ApplicationManager.getApplication().invokeAndWait {
-    WriteAction.run<RuntimeException>  {
-      // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
-      // that changes in the future.
-      file.setContent(null, content, true)
-      psiFileManager.reloadFromDisk(this@updateFileContentBlocking.file)
-    }
+  runWriteActionAndWait {
+    // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
+    // that changes in the future.
+    file.setContent(null, content, true)
+    psiFileManager.reloadFromDisk(this@updateFileContentBlocking.file)
   }
   return this
 }

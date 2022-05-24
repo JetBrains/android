@@ -24,8 +24,6 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Point
@@ -57,7 +55,7 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
       .setSceneManagerProvider { surface: NlDesignSurface?, model: NlModel? ->
         object : SyncLayoutlibSceneManager(
           (model as SyncNlModel?)!!) {
-          override fun requestRender(): CompletableFuture<Void> {
+          override fun requestRenderAsync(): CompletableFuture<Void> {
             return CompletableFuture.completedFuture(null)
           }
         }

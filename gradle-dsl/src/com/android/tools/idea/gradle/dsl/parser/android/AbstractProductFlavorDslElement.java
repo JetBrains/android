@@ -15,30 +15,60 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.APPLICATION_ID;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.DEFAULT;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.DIMENSION;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.MAX_SDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.MIN_SDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.MISSING_DIMENSION_STRATEGY;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.RENDER_SCRIPT_NDK_MODE_ENABLED;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_ENABLED;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.RENDER_SCRIPT_TARGET_API;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.RES_CONFIGS;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TARGET_SDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TEST_APPLICATION_ID;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TEST_FUNCTIONAL_TEST;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TEST_HANDLE_PROFILING;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.VERSION_CODE;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.VERSION_NAME;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.WEAR_APP_UNBUNDLED;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_MAP;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 /**
  * Common base class for {@link ProductFlavorDslElement} and {@link DefaultConfigDslElement}

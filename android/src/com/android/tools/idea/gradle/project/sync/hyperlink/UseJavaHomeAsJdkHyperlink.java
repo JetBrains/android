@@ -23,6 +23,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,8 @@ public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
   }
 
   private UseJavaHomeAsJdkHyperlink(@NotNull String javaHome) {
-    super("useJavaHomeAsJdk", "Set Android Studio to use the same JDK as Gradle and sync project");
+    super("useJavaHomeAsJdk", "Set " + ApplicationNamesInfo.getInstance().getFullProductName() +
+                              " to use the same JDK as Gradle and sync project");
     myJavaHome = javaHome;
   }
 

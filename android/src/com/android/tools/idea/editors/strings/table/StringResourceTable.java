@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.OptionalInt;
@@ -132,14 +132,14 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
       .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
       .max();
 
-    int minColumnWidth = JBUI.scale(20);
+    int minColumnWidth = JBUIScale.scale(20);
     int columnWidth = Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth));
 
     if (columnWidth < minColumnWidth) {
       return minColumnWidth;
     }
 
-    int maxColumnWidth = JBUI.scale(200);
+    int maxColumnWidth = JBUIScale.scale(200);
 
     if (columnWidth > maxColumnWidth) {
       return maxColumnWidth;

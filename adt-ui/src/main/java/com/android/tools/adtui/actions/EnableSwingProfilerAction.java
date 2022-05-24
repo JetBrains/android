@@ -26,8 +26,6 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
@@ -35,6 +33,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.jetbrains.annotations.NotNull;
 
 public class EnableSwingProfilerAction extends DumbAwareToggleAction {
   private static final Key<Object> SERVICE_KEY = Key.create("com.android.tools.swingp.server.StatsSerializer");

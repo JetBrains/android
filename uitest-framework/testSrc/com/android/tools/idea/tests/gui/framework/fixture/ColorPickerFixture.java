@@ -16,16 +16,16 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.resourcechooser.ColorPicker;
+import java.awt.Color;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
-import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 
 public class ColorPickerFixture extends JPanelFixture {

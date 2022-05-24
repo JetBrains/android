@@ -61,7 +61,6 @@ PROJECT             : testNdkProjectSync
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false

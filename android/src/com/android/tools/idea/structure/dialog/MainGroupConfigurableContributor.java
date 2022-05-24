@@ -19,9 +19,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class MainGroupConfigurableContributor {
   public static final ExtensionPointName<MainGroupConfigurableContributor> EP_NAME =

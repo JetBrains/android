@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.Range;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -240,7 +240,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height || ImageUtil.getUserWidth(myCanvas) != dim.width) {
       redrawToCanvas(dim);
     }
-    UIUtil.drawImage(g, myCanvas, 0, 0, null);
+    StartupUiUtil.drawImage(g, myCanvas, 0, 0, null);
     addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
     addDebugInfo("# of nodes %d", myNodes.size());
     addDebugInfo("# of reduced nodes %d", myDrawnNodes.size());

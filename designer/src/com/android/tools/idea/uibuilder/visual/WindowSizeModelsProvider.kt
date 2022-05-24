@@ -21,7 +21,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
@@ -57,7 +57,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(device.displayName)
         .withModelTooltip(config.toHtmlTooltip())
-        .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
+        .withComponentRegistrar(NlComponentRegistrar)
       models.add(builder.build())
     }
     return models

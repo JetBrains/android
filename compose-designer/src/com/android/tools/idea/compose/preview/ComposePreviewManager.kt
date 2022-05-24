@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
@@ -96,7 +97,7 @@ interface ComposePreviewManager: Disposable {
   /**
    * When true, a build will automatically be triggered when the user makes a source code change.
    */
-  var isBuildOnSaveEnabled: Boolean
+  val isBuildOnSaveEnabled: Boolean
 
   /**
    * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
@@ -111,7 +112,7 @@ interface ComposePreviewManager: Disposable {
   /**
    * Represents the [PreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
    */
-  var interactivePreviewElementInstance: PreviewElementInstance?
+  val interactivePreviewElementInstance: PreviewElementInstance?
 
   /**
    * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
@@ -138,6 +139,16 @@ interface ComposePreviewManager: Disposable {
    * elements from multiple files, this can be null.
    */
   val previewedFile: PsiFile?
+
+  /**
+   * Starts the interactive preview focusing in the given [PreviewElementInstance] [instance].
+   */
+  suspend fun startInteractivePreview(instance: PreviewElementInstance)
+
+  /**
+   * Stops the interactive preview.
+   */
+  fun stopInteractivePreview()
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

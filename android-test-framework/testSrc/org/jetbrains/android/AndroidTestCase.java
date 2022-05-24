@@ -1,10 +1,11 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android;
 
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -14,15 +15,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
-import com.intellij.analysis.AnalysisScope;
-import com.intellij.codeInspection.CommonProblemDescriptor;
-import com.intellij.codeInspection.GlobalInspectionTool;
-import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
-import com.intellij.codeInspection.ex.InspectionManagerEx;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.codeInspection.reference.RefEntity;
-import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
@@ -36,6 +29,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -45,8 +42,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.InspectionTestUtil;
-import com.intellij.testFramework.InspectionsKt;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
@@ -55,15 +50,14 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.ModuleFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -123,6 +117,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
+    Path jdkPath = TestUtils.getJava11Jdk();
+    WriteAction.runAndWait(() -> {
+      cleanJdkTable();
+      setupJdk(jdkPath);
+    });
     myFacet = addAndroidFacet(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
@@ -164,7 +163,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    mySettings = CodeStyle.createTestSettings(CodeStyleSettingsManager.getSettings(getProject()));
     // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
     applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
@@ -180,6 +179,24 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+  }
+
+  private void setupJdk(Path path) {
+    assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
+
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
+    @Nullable Sdk addedSdk = SdkConfigurationUtil.createAndAddSDK(path.toString(), JavaSdk.getInstance());
+    if (addedSdk != null) {
+      Disposer.register(getTestRootDisposable(), () -> {
+        WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));
+      });
+    }
+  }
+
+  private void cleanJdkTable() {
+    for (Sdk jdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      ProjectJdkTable.getInstance().removeJdk(jdk);
+    }
   }
 
   @Override
@@ -202,6 +219,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       if (RenderSecurityManager.RESTRICT_READS) {
         RenderSecurityManager.sEnabled = true;
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       try {
@@ -310,7 +330,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     List<String> newRoots = new ArrayList<>(roots);
     newRoots.removeAll(myAllowedRoots);
 
-    String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    String[] newRootsArray = ArrayUtilRt.toStringArray(newRoots);
     VfsRootAccess.allowRootAccess(disposable, newRootsArray);
     myAllowedRoots.addAll(newRoots);
 
@@ -418,32 +438,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
-    @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
-  }
-
-  /**
-   * Given an inspection and a path to a directory that contains an "expected.xml" file, run the
-   * inspection on the current test project and verify that its output matches that of the
-   * expected file.
-   */
-  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
-    @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    myFixture.enableInspections(wrapper.getTool());
-
-    scope.invalidate();
-
-    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-    GlobalInspectionContextForTests globalContext =
-      InspectionsKt.createGlobalContextForTool(scope, getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
-
-    InspectionTestUtil.runTool(wrapper, scope, globalContext);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
-
-    return globalContext.getPresentation(wrapper).getProblemElements();
-  }
-
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
@@ -474,13 +468,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   protected final static class MyAdditionalModuleData {
-    final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
+    final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(
-      @NotNull AndroidModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
+      @NotNull AndroidModuleFixtureBuilder<?> moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;
@@ -539,7 +533,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet<?> facet) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
       Module module = facet.getModule();
       if (!module.isDisposed()) {

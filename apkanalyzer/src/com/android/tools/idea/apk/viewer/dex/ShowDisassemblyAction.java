@@ -43,7 +43,6 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import java.nio.file.Path;
-
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +111,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
     Path dexPath = (Path)node.getUserObject();
     ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(dexPath));
-    Futures.addCallback(dexFileFuture, new FutureCallback<DexBackedDexFile>() {
+    Futures.addCallback(dexFileFuture, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable DexBackedDexFile dexBackedDexFile) {
         assert dexBackedDexFile != null;
@@ -120,7 +119,8 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
         String byteCode;
         try {
           byteCode = getByteCode(dexBackedDexFile, node, myProguardMapSupplier.get());
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
           Messages.showErrorDialog(project, "Unable to get byte code: " + ex.getMessage(), "View Dex Bytecode");
           return;
         }

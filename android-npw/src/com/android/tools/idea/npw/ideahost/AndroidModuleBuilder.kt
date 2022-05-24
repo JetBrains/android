@@ -84,7 +84,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
    */
   override fun getCustomOptionsStep(ctx: WizardContext, parentDisposable: Disposable): ModuleWizardStep {
     if (wizardAdapter == null) {
-      createWizardAdaptor(ctx.wizard, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
+      createWizardAdaptor(ctx.getUserData(AbstractWizard.KEY)!!, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
     }
 
     return wizardAdapter!!.getCustomOptionsStep()

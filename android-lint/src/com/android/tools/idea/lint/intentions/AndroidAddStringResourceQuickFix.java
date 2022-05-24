@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint.intentions;
 
+import static com.google.common.base.CharMatcher.inRange;
+
 import com.android.resources.ResourceType;
 import com.google.common.base.CharMatcher;
 import com.intellij.openapi.editor.Editor;
@@ -29,8 +31,6 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.intentions.AndroidAddStringResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.base.CharMatcher.inRange;
 
 public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAction {
   private static final CharMatcher DISALLOWED_CHARS = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).negate();

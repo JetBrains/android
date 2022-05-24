@@ -23,9 +23,11 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
@@ -44,6 +46,11 @@ class RenameTabActionTest {
   private val event by lazy { TestActionEvent(SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build(), action) }
 
   private val action = RenameTabAction()
+
+  @After
+  fun tearDown(){
+    Disposer.dispose(project)
+  }
 
   @Test
   fun presentationTextSet() {
@@ -70,6 +77,7 @@ class RenameTabActionTest {
   @Test
   fun update_splittingTabContent_visible() {
     val content = contentFactory.createContent(null, "Content", false).also {
+      Disposer.register(project, it)
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
       })

@@ -18,14 +18,12 @@ package com.android.tools.idea.npw.project;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateResolver;
 import com.android.tools.idea.observable.BatchInvoker;
@@ -39,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -76,7 +75,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     File settingsGradle = new File(project.getBasePath(), FN_SETTINGS_GRADLE);
 
     // Rename the lib file name, by updating 'settings.gradle' and renaming the file itself.
-    Files.append(System.lineSeparator() + "project(':lib').buildFileName = 'mylibrary.gradle'", settingsGradle, UTF_8);
+    Files.append(System.lineSeparator() + "project(':lib').buildFileName = 'mylibrary.gradle'", settingsGradle, StandardCharsets.UTF_8);
     assertThat(origLibBuildFile.exists()).isTrue();
     assertThat(origLibBuildFile.renameTo(new File(libModuleDir, "mylibrary.gradle"))).isTrue();
     requestSyncAndWait();

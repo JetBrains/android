@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.manifest;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.edt.GuiTask.execute;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -22,18 +26,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.Color;
+import java.io.IOException;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.awt.*;
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiTask.execute;
-import static org.junit.Assert.*;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ManifestEditorTest {

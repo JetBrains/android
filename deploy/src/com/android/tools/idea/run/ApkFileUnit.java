@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 public class ApkFileUnit {
   @NotNull private final String myModuleName;

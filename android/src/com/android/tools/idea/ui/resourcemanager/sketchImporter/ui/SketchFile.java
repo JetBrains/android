@@ -30,14 +30,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.Ske
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.SketchLibrary;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayerable;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchArtboard;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;

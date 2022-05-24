@@ -18,11 +18,11 @@ package com.android.tools.adtui.workbench;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -106,15 +107,14 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
+
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myToolWindow != null) {
-        Disposer.dispose(myToolWindow);
-      }
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
       myMocks.close();
       super.tearDown();
@@ -243,6 +243,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     // Change the workbench context to ensure we're getting a different property, and reset the tool window
     when(myWorkBench.getContext()).thenReturn("testMinimizeDefaultSetInConstructor");
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, true);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
     assertThat(myToolWindow.isMinimized()).isTrue();
   }
 
@@ -811,6 +812,11 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
           return button;
         }
       }
+
+      if (component instanceof ActionToolbar) {
+        ((ActionToolbar)component).updateActionsImmediately();
+      }
+
       if (component instanceof Container) {
         ActionButton button = findButtonByName((Container)component, name);
         if (button != null) {

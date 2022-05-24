@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.ui.Messages.OK;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,7 +58,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
     when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
   }
 
   @Override
@@ -73,11 +73,12 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     }
   }
 
-  public void testUpgradeNotNeeded() {
+  public void testNewerThanLatestKnown() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
     boolean upgraded = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
-    assertFalse(upgraded);
+    assertTrue(upgraded);
+    // Can't "upgrade" down from a newer version.
     verifyNoInteractions(myAssistantInvoker);
     verifyNoInteractions(myProcessor);
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();

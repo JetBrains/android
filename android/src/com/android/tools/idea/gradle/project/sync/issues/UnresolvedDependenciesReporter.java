@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
@@ -30,12 +30,13 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,22 +61,8 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     IdeSyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
-    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
     if (dependency == null) {
-      List<String> extraInfo = new ArrayList<>();
-      try {
-        List<String> multiLineMessage = issue.getMultiLineMessage();
-        if (multiLineMessage != null) {
-          extraInfo.addAll(multiLineMessage);
-        }
-      }
-      catch (UnsupportedOperationException ex) {
-        // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
-      }
-
-      if (!extraInfo.isEmpty()) {
-        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(issue.getMessage(), extraInfo));
-      }
 
       if (isOfflineBuildModeEnabled(project)) {
         quickFixes.add(0, new DisableOfflineModeHyperlink());
@@ -102,6 +89,28 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
     }
+
+    List<String> extraInfo = new ArrayList<>();
+    try {
+      List<String> multiLineMessage = issue.getMultiLineMessage();
+      if (multiLineMessage != null && !issue.getMultiLineMessage().isEmpty()) {
+        extraInfo.addAll(multiLineMessage);
+      }
+    }
+    catch (UnsupportedOperationException ex) {
+      // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+    }
+
+    if (!extraInfo.isEmpty()) {
+      try {
+        String encodedMessage = URLEncoder.encode(issue.getMessage(), "UTF-8").replace("+", " ");
+        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(encodedMessage, extraInfo));
+      }
+      catch (UnsupportedEncodingException e) {
+        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(issue.getMessage(), extraInfo));
+      }
+    }
+
     return quickFixes;
   }
 

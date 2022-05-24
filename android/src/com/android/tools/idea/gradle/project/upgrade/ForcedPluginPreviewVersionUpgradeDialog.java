@@ -15,25 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.TestDialog;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.HyperlinkAdapter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.releaseNotesUrl;
 import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
@@ -41,6 +22,28 @@ import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogSta
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
 import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
+
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.HyperlinkAdapter;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   private JPanel myCenterPanel;
@@ -84,17 +87,17 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     String versionText = (myCurrentPluginVersion != null) ?
                          ("version " + myCurrentPluginVersion + " of the " + AndroidPluginInfo.DESCRIPTION +
-                          ", which is incompatible with this version of Android Studio") :
+                          ", which is incompatible with this version of " + ApplicationNamesInfo.getInstance().getFullProductName()) :
                          ("an unknown version of the " + AndroidPluginInfo.DESCRIPTION);
     myMessage = "<p><b>This project is using " + versionText + ".</b></p>" +
                 "<p>To continue importing this project (" + myProject.getName() +
-                "), Android Studio will upgrade the project's build files to use version " +
+                "), " + ApplicationNamesInfo.getInstance().getFullProductName() + " will upgrade the project's build files to use version " +
                 pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
                 "from the <a href='"+ url + "'>release notes</a>).</p>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

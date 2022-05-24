@@ -142,6 +142,9 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
    */
   @Synchronized
   fun incubateIfNeeded(donor: ModuleClassLoader, cloner: (ModuleClassLoader) -> ModuleClassLoader?): Boolean {
+    // Out of date class loaders can not be used as donors
+    if (!donor.isUserCodeUpToDate) return false
+
     if (storage.find { it.isCompatible(
         donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
       return false

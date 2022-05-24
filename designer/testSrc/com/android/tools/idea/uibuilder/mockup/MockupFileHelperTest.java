@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import org.mockito.Mock;
-
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 
 public class MockupFileHelperTest extends MockupTestCase {

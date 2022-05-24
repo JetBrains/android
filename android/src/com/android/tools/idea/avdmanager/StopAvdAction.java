@@ -88,7 +88,7 @@ final class StopAvdAction extends AvdUiAction {
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
     myPropertyChangeSupport.addPropertyChangeListener(listener);
 
-    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<Boolean>() {
+    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable Boolean running) {
         // noinspection ConstantConditions

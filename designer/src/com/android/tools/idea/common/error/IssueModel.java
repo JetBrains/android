@@ -21,7 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class IssueModel {
   @VisibleForTesting
   public final Runnable myUpdateCallback = () -> updateErrorsList();
 
-  private List<IssueProvider> myIssueProviders = new ArrayList<>();
+  private final List<IssueProvider> myIssueProviders = new ArrayList<>();
 
   /**
    * IssueModel constructor.
@@ -68,7 +68,7 @@ public class IssueModel {
   }
 
   public IssueModel() {
-    this(command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+    this(command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command));
   }
 
   @Nullable
@@ -112,7 +112,11 @@ public class IssueModel {
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
 
-    for (IssueProvider provider : ImmutableList.copyOf(myIssueProviders)) {
+    ImmutableList<IssueProvider> providers;
+    synchronized (myIssueProviders) {
+      providers = ImmutableList.copyOf(myIssueProviders);
+    }
+    for (IssueProvider provider : providers) {
       provider.collectIssues(issueListBuilder);
     }
 
@@ -143,7 +147,9 @@ public class IssueModel {
    * @param update true if issueModel should be updated to display newest information. False otherwise.
    */
   public void addIssueProvider(@NotNull IssueProvider issueProvider, boolean update) {
-    myIssueProviders.add(issueProvider);
+    synchronized (myIssueProviders) {
+      myIssueProviders.add(issueProvider);
+    }
     issueProvider.addListener(myUpdateCallback);
     if (update) {
       updateErrorsList();
@@ -156,7 +162,9 @@ public class IssueModel {
   }
 
   public void removeIssueProvider(@NotNull IssueProvider issueProvider) {
-    myIssueProviders.remove(issueProvider);
+    synchronized (myIssueProviders) {
+      myIssueProviders.remove(issueProvider);
+    }
     issueProvider.removeListener(myUpdateCallback);
     updateErrorsList();
   }

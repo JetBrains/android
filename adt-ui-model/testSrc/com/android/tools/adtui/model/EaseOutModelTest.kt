@@ -16,7 +16,6 @@
 package com.android.tools.adtui.model
 
 import com.android.tools.adtui.model.updater.FakeUpdater
-import com.android.tools.adtui.model.updater.Updatable
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

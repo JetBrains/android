@@ -1,14 +1,39 @@
 package org.jetbrains.android.inspections;
 
+import static com.android.tools.lint.checks.VersionChecks.SDK_INT;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.sdklib.SdkVersionInfo;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiBinaryExpression;
+import com.intellij.psi.PsiBlockStatement;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiConditionalExpression;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIfStatement;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.PsiPolyadicExpression;
+import com.intellij.psi.PsiPrefixExpression;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiReturnStatement;
+import com.intellij.psi.PsiStatement;
+import com.intellij.psi.PsiVariable;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-
-import static com.android.tools.lint.checks.VersionChecks.SDK_INT;
-import static com.android.tools.lint.detector.api.Lint.skipParentheses;
+import com.intellij.psi.util.PsiUtil;
 
 /**
  * Utility methods for checking whether a given element is surrounded (or preceded!) by
@@ -103,7 +128,7 @@ public class VersionChecks {
   }
 
   public static boolean isWithinVersionCheckConditional(@NonNull PsiElement element, int api) {
-    PsiElement current = skipParentheses(element.getParent());
+    PsiElement current = PsiUtil.skipParenthesizedExprUp(element.getParent());
     PsiElement prev = element;
     while (current != null) {
       if (current instanceof PsiIfStatement) {
@@ -137,7 +162,7 @@ public class VersionChecks {
         return false;
       }
       prev = current;
-      current = skipParentheses(current.getParent());
+      current = PsiUtil.skipParenthesizedExprUp(current.getParent());
     }
 
     return false;

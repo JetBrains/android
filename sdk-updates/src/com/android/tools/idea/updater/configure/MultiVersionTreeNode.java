@@ -24,7 +24,6 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.swing.JTree;
 import org.jetbrains.annotations.NotNull;
 

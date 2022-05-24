@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.thisLogger
@@ -49,7 +50,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Comparing
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
@@ -165,7 +166,7 @@ class ResourceExplorerToolbarViewModel(
       }
     return FileChooser.chooseFiles(fileChooserDescriptor, facet.module.project, null)
       .map(VirtualFile::getPath)
-      .map(FileUtil::toSystemDependentName)
+      .map { FileUtilRt.toSystemDependentName(it) }
   }
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
@@ -221,7 +222,7 @@ class ResourceExplorerToolbarViewModel(
    */
   override fun getData(dataId: String): Any? = when (dataId) {
     CommonDataKeys.PROJECT.name -> facet.module.project
-    LangDataKeys.MODULE.name -> facet.module
+    PlatformCoreDataKeys.MODULE.name -> facet.module
     LangDataKeys.IDE_VIEW.name -> this
     CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
     else -> null

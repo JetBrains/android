@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.StreamingTimeline
-import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.Executor
 
 class NetworkSpeedLineChartModel(

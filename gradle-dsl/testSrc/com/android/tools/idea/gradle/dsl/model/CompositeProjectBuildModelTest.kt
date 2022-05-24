@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS
@@ -23,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_P
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
-import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Before

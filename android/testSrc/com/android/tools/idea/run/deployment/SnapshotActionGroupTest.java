@@ -62,6 +62,7 @@ public final class SnapshotActionGroupTest {
   public void deactivateIconLoader()  {
     IconManager.deactivate();
     IconLoader.deactivate();
+    IconLoader.clearCacheInTests();
   }
 
   @Test

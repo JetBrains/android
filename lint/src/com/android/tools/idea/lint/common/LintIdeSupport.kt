@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.lint.client.api.IssueRegistry
@@ -24,13 +23,12 @@ import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
-import com.android.utils.SdkUtils.endsWithIgnoreCase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
-import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -40,7 +38,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.groovy.GroovyFileType
+import org.jetbrains.plugins.gradle.config.isGradleFile
 import java.io.File
 import java.util.EnumSet
 
@@ -53,20 +51,9 @@ abstract class LintIdeSupport {
     LintClient.clientName = CLIENT_STUDIO
   }
   companion object {
-    private val EP_NAME = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
-
-    private val INSTANCE: LintIdeSupport // these are all stateless
-    init {
-      val extensions = EP_NAME.extensions
-      when (extensions.size) {
-        1 -> INSTANCE = extensions[0]
-        0 -> INSTANCE = object : LintIdeSupport() { }
-        else -> error("Multiple lint customizer extensions found: ${extensions.toList()}")
-      }
-    }
-
     @JvmStatic
-    fun get(): LintIdeSupport = INSTANCE
+    fun get(): LintIdeSupport = getApplication().getService(LintIdeSupport::class.java)
+                                ?: object : LintIdeSupport() {}
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
@@ -103,7 +90,7 @@ abstract class LintIdeSupport {
       val name = file.name
       return name == "proguard-project.txt" || name == "proguard-android.txt" || name == "proguard.cfg"
     }
-    else if (fileType === GroovyFileType.GROOVY_FILE_TYPE && endsWithIgnoreCase(file.name, DOT_GRADLE)) {
+    else if (file.isGradleFile()) {
       return true
     }
     return false

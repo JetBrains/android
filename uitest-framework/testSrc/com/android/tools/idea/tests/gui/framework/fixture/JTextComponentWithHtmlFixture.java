@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import org.fest.swing.core.MouseButton;
-import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JTextComponentFixture;
-import org.jetbrains.annotations.NotNull;
-
+import java.awt.Point;
+import java.awt.Rectangle;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
-import java.awt.*;
+import org.fest.swing.core.MouseButton;
+import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.jetbrains.annotations.NotNull;
 
 public class JTextComponentWithHtmlFixture extends JTextComponentFixture {
   @NotNull

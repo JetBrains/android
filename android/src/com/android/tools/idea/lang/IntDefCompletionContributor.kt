@@ -40,6 +40,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
+import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
@@ -54,7 +55,6 @@ import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private const val intDefAnnotationName = "androidx.annotation.IntDef"
@@ -126,8 +126,7 @@ class IntDefCompletionContributorJava : CompletionContributor() {
    * Returns values for the first encountered @IntDef annotation.
    */
   private fun PsiReferenceExpression.getIntDefValues(): List<String>? {
-    val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()
-    when (call) {
+    when (val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()) {
       is PsiCall -> {
         val calleeElement = call.resolveMethod() ?: return null
         val argumentIndex = call.argumentList?.expressions?.indexOf(this) ?: return null

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8Mo
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY
-import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager

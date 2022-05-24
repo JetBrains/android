@@ -15,7 +15,10 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.keymap.KeymapUtil
 import java.awt.event.KeyEvent
 import javax.swing.JComponent

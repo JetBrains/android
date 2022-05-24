@@ -16,7 +16,6 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project

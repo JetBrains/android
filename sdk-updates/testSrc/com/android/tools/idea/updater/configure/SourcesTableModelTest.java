@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,12 +31,13 @@ import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.manager.RepoManagerImpl;
 import com.android.repository.impl.sources.LocalSourceProvider;
 import com.android.repository.testframework.FakeProgressIndicator;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.sources.RemoteSiteType;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.testFramework.ApplicationRule;
+import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -58,9 +59,9 @@ public class SourcesTableModelTest {
     myModel = new SourcesTableModel(() -> {}, () -> initDone.release(), ModalityState.NON_MODAL);
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
-    MockFileOp fop = new MockFileOp();
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
     RepoManager repoManager = new RepoManagerImpl();
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"), fop, repoManager);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android"), repoManager);
     LocalSourceProvider localSourceProvider = sdkHandler.getUserSourceProvider(new FakeProgressIndicator());
     localSourceProvider.getSources(null, new FakeProgressIndicator(), false);
     localSourceProvider.addSource(new SimpleRepositorySource(

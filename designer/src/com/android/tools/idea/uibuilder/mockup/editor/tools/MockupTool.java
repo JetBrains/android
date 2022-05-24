@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 /**
  * Implement this interface to create a new tool in the Mockup editor

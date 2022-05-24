@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeFilterData;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +53,7 @@ public class SplitOutputMatcher {
             @NonNull List<String> deviceAbis) {
 
         // gather all compatible matches.
-        List<IdeAndroidArtifactOutput> matches = Lists.newArrayList();
+        List<IdeAndroidArtifactOutput> matches = new ArrayList<>();
 
         // find a matching output.
         for (IdeAndroidArtifactOutput variantOutput : outputs) {

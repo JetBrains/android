@@ -25,7 +25,6 @@ import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.apache.commons.lang.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,7 +71,7 @@ public class CodeUtils {
     if (psiType instanceof PsiClassType) {
       PsiClassType psiClassType = (PsiClassType)psiType;
       PsiType[] psiTypes = psiClassType.getParameters();
-      if (ArrayUtils.isEmpty(psiTypes)) {
+      if (psiTypes.length == 0) {
         return psiClassType.getClassName();
       }
       else {

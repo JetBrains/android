@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import junit.framework.Assert.*
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
+import junit.framework.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher

@@ -60,7 +60,6 @@ import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -84,6 +83,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -285,13 +285,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (ndkModel != null && androidModel != null) {
-        String selectedVariantName = androidModel.getSelectedVariant().getName();
-        Set<String> availableAbis = ndkModel.getSyncedVariantAbis().stream()
-          .filter(it -> it.getVariant().equals(selectedVariantName))
-          .map(it -> it.getAbi())
-          .collect(Collectors.toSet());
-        if (!availableAbis.containsAll(abis)) {
-          return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED;
+        if (ndkModel.getNdkModel().getNeedsAbiSyncBeforeRun()) {
+          String selectedVariantName = androidModel.getSelectedVariant().getName();
+          Set<String> availableAbis = ndkModel.getSyncedVariantAbis().stream()
+            .filter(it -> it.getVariant().equals(selectedVariantName))
+            .map(it -> it.getAbi())
+            .collect(Collectors.toSet());
+          if (!availableAbis.containsAll(abis)) {
+            return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED;
+          }
         }
       }
     }
@@ -512,7 +514,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       File propertiesFile = createTempFile("profiler", ".properties");
       propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
 
-      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), StandardCharsets.UTF_8);
       profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
       writer.close();
 

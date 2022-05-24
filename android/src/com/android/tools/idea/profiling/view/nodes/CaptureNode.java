@@ -22,9 +22,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.InputEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class CaptureNode extends SimpleNode {
   @NotNull private final Capture myCapture;

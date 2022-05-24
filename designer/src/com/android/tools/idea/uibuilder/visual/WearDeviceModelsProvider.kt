@@ -20,23 +20,22 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.ArrayList
 
 /**
- * We predefined some pixel devices for now.
+ * Recommended wear device configs.
  */
 @VisibleForTesting
-val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Square", "Wear OS Round", "Wear OS Round Chin")
+val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Small Round", "Wear OS Square","Wear OS Large Round", "Wear OS Rectangular")
 
 /**
- * This class provides the [NlModel]s with predefined pixel devices for [VisualizationForm].
+ * This class provides the [NlModel]s with predefined Wear devices for [VisualizationForm].
  */
 object WearDeviceModelsProvider: VisualizationModelsProvider {
 
@@ -76,7 +75,7 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
                    .withParentDisposable(parentDisposable)
                    .withModelDisplayName(device.displayName)
                    .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
+                   .withComponentRegistrar(NlComponentRegistrar)
                    .build())
     }
     return models

@@ -34,7 +34,7 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBInsets;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -177,7 +177,7 @@ public abstract class SceneView {
    */
   @NotNull
   public Insets getMargin() {
-    return JBUI.emptyInsets();
+    return JBInsets.emptyInsets();
   }
 
   @NotNull

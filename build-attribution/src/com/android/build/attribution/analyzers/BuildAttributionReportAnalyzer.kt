@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 
 /**

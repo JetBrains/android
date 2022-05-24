@@ -15,18 +15,10 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.junit.rules.ExternalResource
@@ -81,13 +73,7 @@ class EmulatorViewRule : TestRule {
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    val actionManager = ActionManager.getInstance()
-    val action = actionManager.getAction(actionId)
-    val presentation = Presentation()
-    val event = AnActionEvent(null, TestDataContext(emulatorView), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
-    action.update(event)
-    assertThat(presentation.isEnabledAndVisible).isTrue()
-    action.actionPerformed(event)
+    executeEmulatorAction(actionId, emulatorView, projectRule.project)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {
@@ -96,17 +82,5 @@ class EmulatorViewRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     return flagOverrides.apply(projectRule.apply(emulatorRule.apply(base, description), description), description)
-  }
-
-  private inner class TestDataContext(private val emulatorView: EmulatorView) : DataContext {
-
-    override fun getData(dataId: String): Any? {
-      return when (dataId) {
-        EMULATOR_CONTROLLER_KEY.name -> emulatorView.emulator
-        EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        else -> null
-      }
-    }
   }
 }

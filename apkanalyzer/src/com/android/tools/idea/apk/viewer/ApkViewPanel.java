@@ -100,10 +100,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     myApkParser = apkParser;
     myProject = project;
     // construct the main tree along with the uncompressed sizes
-    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
+    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(ArchiveNode result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         setRootNode(result);
@@ -111,10 +111,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     } , EdtExecutorService.getInstance());
 
     // kick off computation of the compressed archive, and once its available, refresh the tree
-    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<ArchiveNode>() {
+    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(ArchiveNode result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         ArchiveTreeStructure
@@ -147,10 +147,10 @@ public class ApkViewPanel implements TreeSelectionListener {
                                return apkParser.getApplicationInfo(pathToAapt, entry);
                              }, PooledThreadExecutor.INSTANCE);
 
-    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
+    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         setAppInfo(result);
@@ -164,10 +164,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
     ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
     Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
-                        new FutureCallBackAdapter<List<Long>>() {
+                        new FutureCallBackAdapter<>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            if (myArchiveDisposed){
+                            if (myArchiveDisposed) {
                               return;
                             }
                             if (result != null) {
@@ -179,7 +179,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                         }, EdtExecutorService.getInstance());
 
     Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
-                        new FutureCallBackAdapter<List<Object>>() {
+                        new FutureCallBackAdapter<>() {
                           @Override
                           public void onSuccess(@Nullable List<Object> result) {
                             if (result == null) {
@@ -194,13 +194,13 @@ public class ApkViewPanel implements TreeSelectionListener {
                                 .get(2)).packageId : "unknown";
 
                             UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                                             .setRawProjectId(applicationId)
-                                                             .setApkAnalyzerStats(
-                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                                 .setUncompressedSize(uncompressed)
-                                                                 .build()));
+                                               .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                               .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                               .setRawProjectId(applicationId)
+                                               .setApkAnalyzerStats(
+                                                 ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                   .setUncompressedSize(uncompressed)
+                                                   .build()));
                           }
                         }, MoreExecutors.directExecutor());
   }

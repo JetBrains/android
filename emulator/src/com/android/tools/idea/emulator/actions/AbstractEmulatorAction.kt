@@ -43,13 +43,13 @@ internal fun getProject(event: AnActionEvent): Project =
   event.getRequiredData(CommonDataKeys.PROJECT)
 
 internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
-  event.dataContext.getData(EMULATOR_CONTROLLER_KEY)
+  event.getData(EMULATOR_CONTROLLER_KEY)
 
 internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =
-  event.dataContext.getData(EMULATOR_VIEW_KEY)
+  event.getData(EMULATOR_VIEW_KEY)
 
 internal fun getNumberOfDisplays(event: AnActionEvent): Int =
-  event.dataContext.getData(NUMBER_OF_DISPLAYS) ?: 0
+  event.getData(NUMBER_OF_DISPLAYS) ?: 0
 
 internal fun isEmulatorConnected(event: AnActionEvent) =
   getEmulatorController(event)?.connectionState == EmulatorController.ConnectionState.CONNECTED

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ExternalNameInfo {
   public enum ExternalNameSyntax {

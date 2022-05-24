@@ -32,7 +32,11 @@ fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
   return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = annotationEntries.any { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+    val hasComposableAnnotation = annotationEntries.any {
+      // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
+      it.shortName?.identifier == COMPOSABLE_ANNOTATION_NAME &&
+      it.fqNameMatches(COMPOSABLE_FQ_NAMES)
+    }
     val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(

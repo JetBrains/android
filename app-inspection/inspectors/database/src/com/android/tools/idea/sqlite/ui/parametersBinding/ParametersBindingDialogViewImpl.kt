@@ -30,11 +30,9 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.fields.ExpandableTextField
 import com.intellij.util.Function
 import com.intellij.util.execution.ParametersListUtil
-import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
@@ -94,7 +92,7 @@ class ParametersBindingDialogViewImpl(
     }
 
     val labelSizes = parameterResolutionPanels.map { it.parameterNameLabel.preferredSize.width } + statementLabel.preferredSize.width
-    val maxLabelWidth = labelSizes.max() ?: 0
+    val maxLabelWidth = labelSizes.maxOrNull() ?: 0
     val finalMaxLabelWidth = boundMaxLabelWidth(maxLabelWidth)
     statementLabel.setFixedWidth(finalMaxLabelWidth)
     parameterResolutionPanels.forEach { it.parameterNameLabel.setFixedWidth(finalMaxLabelWidth) }

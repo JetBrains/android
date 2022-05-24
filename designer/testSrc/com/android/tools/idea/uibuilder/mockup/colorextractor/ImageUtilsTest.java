@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
-import junit.framework.TestCase;
-
 import java.awt.image.BufferedImage;
+import junit.framework.TestCase;
 
 public class ImageUtilsTest extends TestCase {
   public void testCreateScaledImage() throws Exception {

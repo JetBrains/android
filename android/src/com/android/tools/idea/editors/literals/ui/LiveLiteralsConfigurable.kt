@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.literals.ui
 
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsService
-import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker

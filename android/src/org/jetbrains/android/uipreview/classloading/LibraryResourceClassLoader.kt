@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceIdManager.Companion.get
@@ -33,7 +34,6 @@ import com.intellij.openapi.module.Module
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoader
-import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.regex.Pattern
@@ -111,18 +111,18 @@ private fun registerResources(module: Module) {
                                getPackageName(androidFacet)
                              },
                              repositoryManager.namespace)
-  }
 
-  AndroidUtils.getAllAndroidDependencies(module, false)
-    .distinct()
-    .forEach { facet ->
-      classRegistry.addLibrary(repositoryManager.appResources,
-                               idManager,
-                               ReadAction.compute<String?, RuntimeException> {
-                                 getPackageName(facet)
-                               },
-                               repositoryManager.namespace)
+    AndroidDependenciesCache.getAllAndroidDependencies(module, false)
+      .distinct()
+      .forEach { facet ->
+        classRegistry.addLibrary(repositoryManager.appResources,
+                                idManager,
+                                ReadAction.compute<String?, RuntimeException> {
+                                  getPackageName(facet)
+                                },
+                                repositoryManager.namespace)
     }
+  }
 
   module.getModuleSystem().getAndroidLibraryDependencies()
     .filter { it.hasResources }

@@ -142,7 +142,8 @@ fun saveAppInspectorSnapshot(
   }.build()
   val output = ByteArrayOutputStream()
   ObjectOutputStream(output).use { objectOutput ->
-    objectOutput.writeUTF(LayoutInspectorCaptureOptions(APP_INSPECTION_SNAPSHOT_VERSION, "TODO").toString())
+    objectOutput.writeUTF(LayoutInspectorCaptureOptions(APP_INSPECTION_SNAPSHOT_VERSION,
+                                                        snapshotMetadata.processName ?: "Unknown").toString())
     snapshotMetadata.toProto().writeDelimitedTo(objectOutput)
     snapshot.writeDelimitedTo(objectOutput)
   }

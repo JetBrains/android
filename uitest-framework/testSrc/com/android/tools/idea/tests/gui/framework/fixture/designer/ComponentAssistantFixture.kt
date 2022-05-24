@@ -21,10 +21,11 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JSpinnerFixture
-
-import javax.swing.*
-import java.awt.*
+import java.awt.Component
 import java.awt.event.KeyEvent
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JSpinner
 
 open class AssistantPanelFixture internal constructor(private val robot: Robot, private val panel: JComponent) {
   fun close() {

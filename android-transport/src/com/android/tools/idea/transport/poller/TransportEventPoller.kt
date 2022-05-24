@@ -95,7 +95,7 @@ class TransportEventPoller(
             }
           }
         }
-        val maxTimeEvent = filtered.maxBy { it.timestamp }
+        val maxTimeEvent = filtered.maxByOrNull { it.timestamp }
         // Update last timestamp per listener
         synchronized(writeLock) {
           // Make sure the listener is still registered before adding a new timestamp

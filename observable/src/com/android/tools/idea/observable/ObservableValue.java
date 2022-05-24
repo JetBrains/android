@@ -55,7 +55,7 @@ public interface ObservableValue<T> {
    */
   @NotNull
   default <S> Expression<S> transform(@NotNull Function<T, S> function) {
-    return new Expression<S>(this) {
+    return new Expression<>(this) {
       @Override
       @NotNull
       public S get() {

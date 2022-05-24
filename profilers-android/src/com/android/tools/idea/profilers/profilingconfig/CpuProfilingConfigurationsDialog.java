@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.adtui.model.stdui.CommonAction;
-import com.android.tools.adtui.stdui.menu.CommonMenu;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
@@ -26,8 +25,8 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
@@ -66,13 +65,12 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -241,9 +239,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Nls
     @Override
-    public String getDisplayName() {
-      return "CPU Recording Configurations";
-    }
+  public String getDisplayName() {
+    return AndroidBundle.message("configurable.ProfilingConfigurable.display.name");
+  }
 
     @Nullable
     @Override

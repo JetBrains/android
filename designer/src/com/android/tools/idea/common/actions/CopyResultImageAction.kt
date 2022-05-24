@@ -25,7 +25,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.BufferedImage
-import javax.swing.ImageIcon
 
 private const val IMAGE_COPIED_ID = "Image copied"
 
@@ -53,12 +52,10 @@ class CopyResultImageAction(private val sceneManagerProvider: () -> LayoutlibSce
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
 
     e.project?.let {
-      Notification(IMAGE_COPIED_ID, null,
+      Notification(IMAGE_COPIED_ID,
                    actionCompleteText,
                    "",
-                   "",
-                   NotificationType.INFORMATION,
-                  null)
+                   NotificationType.INFORMATION)
         .notify(e.project)
     }
   }

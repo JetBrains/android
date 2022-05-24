@@ -15,6 +15,8 @@
  */
 package com.android.emulator;
 
+import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
+
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
 import com.android.tools.idea.util.StudioPathManager;
@@ -104,18 +106,25 @@ public class ImageConverter {
     String libName = getLibName();
     Path homePath = Paths.get(PathManager.getHomePath());
     // Installed Studio.
-    Path libFile = homePath.resolve("plugins/android/native").resolve(libName);
+    Path libFile = homePath.resolve("plugins/android/resources/native")
+      .resolve(getPlatformName())
+      .resolve(libName);
     if (Files.exists(libFile)) {
       return libFile;
     }
 
-    // Dev environment.
-    libFile = Paths.get(StudioPathManager.getSourcesRoot()).resolve("tools/adt/idea/emulator/native")
-        .resolve(getPlatformName()).resolve(libName);
-    if (Files.exists(libFile)) {
-      return libFile;
+    if (isRunningFromSources()) {
+      // Dev environment.
+      libFile = Paths.get(StudioPathManager.getSourcesRoot()).resolve("tools/adt/idea/emulator/native")
+          .resolve(getPlatformName()).resolve(libName);
+      if (Files.exists(libFile)) {
+        return libFile;
+      }
+      throw new UnsatisfiedLinkError("Unable to find " + libFile);
     }
-    throw new UnsatisfiedLinkError("Unable to find " + libName);
+    else {
+      throw new UnsatisfiedLinkError("Unable to find " + libName + ". Possibly corrupted Studio installation");
+    }
   }
 
   private static @NotNull String getLibName() {

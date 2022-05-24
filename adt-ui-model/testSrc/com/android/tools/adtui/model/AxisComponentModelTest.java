@@ -15,13 +15,12 @@
  */
 package com.android.tools.adtui.model;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class AxisComponentModelTest {
 

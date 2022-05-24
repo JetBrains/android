@@ -4,74 +4,84 @@ import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFile
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveResult;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.Processor;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider;
-import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
 import org.jetbrains.kotlin.psi.KtClass;
 
+/**
+ * Inspection that runs over layout and menu resource files. Checks the views to see if they have onclick attributes. If so, makes tries
+ * to find the relevant fragment or activity, and determines whether the onclick listener was implemented.
+ * <p>
+ * If no onClick listener is found, then a quick fix is provided that implements the listener.
+ */
 public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool {
   @NotNull
-  private static Collection<PsiClass> findRelatedActivities(@NotNull XmlFile file,
-                                                            @NotNull AndroidFacet facet,
-                                                            @NotNull DomFileDescription<?> description) {
+  private static Set<PsiClass> findRelatedActivities(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     if (isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
       final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.getItemsForXmlFile(file, facet);
       if (items == null || items.isEmpty()) {
-        return Collections.emptyList();
+        return Collections.emptySet();
       }
-      final PsiClass activityClass = findActivityClass(facet.getModule());
 
-      if (activityClass == null) {
-        return Collections.emptyList();
-      }
-      final List<PsiClass> result = new ArrayList<PsiClass>();
-
-      for (GotoRelatedItem item : items) {
-        final PsiElement element = item.getElement();
-
-        if (element instanceof PsiClass) {
-          final PsiClass aClass = (PsiClass)element;
-
-          if (aClass.isInheritor(activityClass, true)) {
-            result.add(aClass);
+      return items.stream()
+        .map(item -> {
+          PsiElement itemElement = item.getElement();
+          if (itemElement instanceof PsiClass) {
+            return (PsiClass)itemElement;
           }
-        } else if (element instanceof KtClass) {
-          final PsiClass aClass = LightClassUtilsKt.toLightClass((KtClass)element);
-
-          if (aClass != null && aClass.isInheritor(activityClass, true)) {
-            result.add(aClass);
+          else if (itemElement instanceof KtClass) {
+            return LightClassUtilsKt.toLightClass((KtClass)itemElement);
           }
-        }
-      }
-      return result;
+          return null;
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
     }
     else {
       return findRelatedActivitiesForMenu(file, facet);
@@ -80,9 +90,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
 
   @NotNull
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
-    final String resType = ResourceType.MENU.getName();
     final String resourceName = SdkUtils.fileNameToResourceName(file.getName());
-    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, resType, resourceName, true);
+    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, ResourceType.MENU.getName(), resourceName, true);
 
     if (fields.length == 0) {
       return Collections.emptySet();
@@ -93,23 +102,16 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     if (activityClass == null) {
       return Collections.emptySet();
     }
-    final Set<PsiClass> result = new HashSet<PsiClass>();
+    final Set<PsiClass> result = new HashSet<>();
 
-    ReferencesSearch.search(fields[0], scope).forEach(new Processor<PsiReference>() {
-      @Override
-      public boolean process(PsiReference reference) {
-        final PsiElement element = reference.getElement();
-
-        if (element == null) {
-          return true;
-        }
-        final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-
-        if (aClass != null && !result.contains(aClass) && aClass.isInheritor(activityClass, true)) {
-          result.add(aClass);
-        }
-        return true;
+    PsiField menuResourceField = fields[0];
+    ReferencesSearch.search(menuResourceField, scope).forEach(reference -> {
+      final PsiElement element = reference.getElement();
+      final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+      if (aClass != null && !result.contains(aClass) && aClass.isInheritor(activityClass, true)) {
+        result.add(aClass);
       }
+      return true;
     });
     return result;
   }
@@ -132,12 +134,11 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
     final DomFileDescription<?> description = DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file);
 
-    if (!isFileInResourceFolderType((XmlFile)file, ResourceFolderType.LAYOUT) &&
+    if (!(description instanceof LayoutViewElementDomFileDescription) &&
         !(description instanceof MenuDomFileDescription)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
-    final Collection<PsiClass> activities = findRelatedActivities((XmlFile)file, facet, description);
-    final MyVisitor visitor = new MyVisitor(manager, isOnTheFly, activities);
+    final MyVisitor visitor = new MyVisitor(manager, isOnTheFly);
     file.accept(visitor);
     return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
   }
@@ -145,14 +146,12 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
-    private final Collection<PsiClass> myRelatedActivities;
 
-    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
+    final List<ProblemDescriptor> myResult = new ArrayList<>();
 
-    private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull Collection<PsiClass> relatedActivities) {
+    private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly) {
       myInspectionManager = inspectionManager;
       myOnTheFly = onTheFly;
-      myRelatedActivities = relatedActivities;
     }
 
     @Override
@@ -168,8 +167,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           continue;
         }
         final ResolveResult[] results = ref.multiResolve(false);
-        final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
-        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<PsiClass>();
+        final Set<PsiClass> resolvedClasses = new HashSet<>();
+        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<>();
 
         for (ResolveResult result : results) {
           if (result instanceof OnClickConverter.MyResolveResult) {
@@ -189,7 +188,14 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           }
         }
         PsiClass activity = null;
-        for (PsiClass relatedActivity : myRelatedActivities) {
+        PsiFile containingFile = value.getContainingFile();
+        AndroidFacet facet = AndroidFacet.getInstance(containingFile);
+        if (facet == null) {
+          return;
+        }
+        Set<PsiClass> activities = findRelatedActivities((XmlFile)containingFile, facet);
+
+        for (PsiClass relatedActivity : activities) {
           if (!containsOrExtends(resolvedClasses, relatedActivity)) {
             activity = relatedActivity;
             break;

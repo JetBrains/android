@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
+import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
@@ -23,8 +24,10 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
+import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -35,10 +38,10 @@ import com.intellij.build.BuildContentManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
@@ -60,27 +63,32 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
- * Notifies users that a Gradle project "sync" is either being in progress or failed.
+ * Notifies users that a Gradle project "sync" is required (because of changes to build files, or because the last attempt failed) or
+ * in progress; if no sync is required or active, displays hints and/or diagnostics about editing the Project Structure.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
-  private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
-
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
+  @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
-    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
+    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project), GradleVersionCatalogDetector.getInstance(project));
   }
 
   @NonInjectable
-  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo, @NotNull GradleSyncState syncState) {
+  @TestOnly
+  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo,
+                                               @NotNull GradleSyncState syncState,
+                                               @NotNull GradleVersionCatalogDetector versionCatalogDetector) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
+    myVersionCatalogDetector = versionCatalogDetector;
   }
 
   @Override
@@ -124,7 +132,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 
-    return NotificationPanel.Type.NONE;
+    if (myVersionCatalogDetector.isVersionCatalogProject()) {
+      return NotificationPanel.Type.COMPLICATED_PROJECT;
+    }
+
+    return NotificationPanel.Type.PROJECT_STRUCTURE;
   }
 
   @VisibleForTesting
@@ -132,18 +144,32 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     enum Type {
       NONE() {
         @Override
+        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          return null;
+        }
+      },
+      COMPLICATED_PROJECT() {
+        @Override
+        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
+          if (ComplicatedProjectNotificationPanel.userAllowsShow(project)) {
+            File ioFile = virtualToIoFile(file);
+            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
+              return null;
+            }
+            return new ComplicatedProjectNotificationPanel(project, this);
+          }
+          return PROJECT_STRUCTURE.create(project, file, projectInfo);
+        }
+      },
+      PROJECT_STRUCTURE() {
+        @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (!IdeInfo.getInstance().isAndroidStudio()) return null;
-          if ((System.currentTimeMillis() -
-               Long.parseLong(
-                 PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
-               PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
-            if (!projectInfo.isBuildWithGradle()) {
-              return null;
-            }
-
-            if (!isDefaultGradleBuildFile(virtualToIoFile(file))) {
+          if (ProjectStructureNotificationPanel.userAllowsShow()) {
+            File ioFile = virtualToIoFile(file);
+            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
               return null;
             }
 
@@ -156,9 +182,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                 return null;
               }
             }
-            return new ProjectStructureNotificationPanel(project, this,
-                                                         "You can use the Project Structure dialog to view and edit your project configuration",
-                                                         module);
+            return new ProjectStructureNotificationPanel(project, this, module);
           }
           return null;
         }
@@ -196,6 +220,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     @NotNull private final Type type;
 
     NotificationPanel(@NotNull Type type, @NotNull String text) {
+      super(EditorColors.READONLY_BACKGROUND_COLOR);
       this.type = type;
       setText(text);
     }
@@ -242,13 +267,36 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   }
 
   @VisibleForTesting
+  static class ComplicatedProjectNotificationPanel extends NotificationPanel {
+    private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
+
+    ComplicatedProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
+      super(type, TEXT);
+      createActionLabel("Hide notification", () -> {
+        String version = ApplicationInfo.getInstance().getShortVersion();
+        PropertiesComponent.getInstance(project).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
+        setVisible(false);
+      });
+    }
+
+    static boolean userAllowsShow(@NotNull Project project) {
+      String lastHiddenValue = PropertiesComponent.getInstance(project).getValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
+      Revision revision = Revision.safeParseRevision(lastHiddenValue);
+      return revision.compareTo(Revision.safeParseRevision(ApplicationInfo.getInstance().getShortVersion())) < 0;
+    }
+  }
+
+  @VisibleForTesting
   static class ProjectStructureNotificationPanel extends NotificationPanel {
-    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
-      super(type, text);
+    private static final String TEXT = "You can use the Project Structure dialog to view and edit your project configuration";
+    private static final long RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
+
+    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull Module module) {
+      super(type, TEXT);
 
       String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
       String label = "Open";
-      if (shortcutText != "") {
+      if (!"".equals(shortcutText)) {
         label += " (" + shortcutText + ")";
       }
       createActionLabel(label, () -> {
@@ -265,9 +313,15 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     @Override
-    public Color getBackground() {
-      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR);
-      return color == null ? UIUtil.getPanelBackground() : color;
+    public @NotNull Color getFallbackBackgroundColor() {
+      return UIUtil.getPanelBackground();
+    }
+
+    static boolean userAllowsShow() {
+      long now = System.currentTimeMillis();
+      String lastHiddenValue = PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
+      long lastHidden = Long.parseLong(lastHiddenValue);
+      return (now - lastHidden) > RESHOW_TIMEOUT_MS;
     }
   }
 }

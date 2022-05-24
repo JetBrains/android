@@ -70,7 +70,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   private DeviceComboBox myDeviceCombo;
   private JComboBox<Client> myProcessComboBox;
-  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
+  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<>() {
     @Nullable
     @Override
     protected String compute() {

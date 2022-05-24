@@ -23,12 +23,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.AtomicNotNullLazyValue;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -50,7 +48,9 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 public class LightDataBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private final CachedValue<PsiMethod[]> myMethodCache;
-  private final AtomicNotNullLazyValue<PsiFile> myContainingFile;
+  private final NotNullLazyValue<PsiFile> myContainingFile;
   private final DataBindingMode myMode;
 
   public LightDataBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
@@ -88,7 +88,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
     myMethodCache =
       CachedValuesManager.getManager(project).createCachedValue(
         () -> {
-          Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
+          Map<String, Set<String>> instanceAdapterClasses = new HashMap<>();
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
           GlobalSearchScope moduleScope = ProjectSystemUtil.getModuleSystem(myFacet).getResolveScope(ScopeType.MAIN);
           PsiClass aClass = facade.findClass(myMode.bindingAdapter, moduleScope);
@@ -145,7 +145,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
         }
       , false);
 
-    myContainingFile = AtomicNotNullLazyValue.createValue(() -> {
+    myContainingFile = NotNullLazyValue.atomicLazy(() -> {
       String packageName = myMode.packageName;
       if (packageName.endsWith(".")) {
         packageName = packageName.substring(0, packageName.length() - 1);
@@ -221,7 +221,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    List<PsiMethod> result = Lists.newArrayList();
+    List<PsiMethod> result = new ArrayList<>();
     for (PsiMethod method : myMethodCache.getValue()) {
       if (method.getName().equals(name)) {
         result.add(method);

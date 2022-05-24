@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.RadialGradientPaint;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import org.jetbrains.annotations.NotNull;
 
 public class BorderLayer extends Layer {
 
@@ -37,10 +44,18 @@ public class BorderLayer extends Layer {
   public void paint(@NotNull Graphics2D g2d) {
     Shape screenShape = myScreenView.getScreenShape();
     if (screenShape != null) {
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
       g2d.draw(screenShape);
       return;
+    }
+
+    // When screen rotation feature is enabled, we want to hide the border.
+    DesignSurface surface = myScreenView.getSurface();
+    if (surface instanceof NlDesignSurface) {
+      NlDesignSurface nlSurface = (NlDesignSurface) surface;
+      float degree = nlSurface.getRotateSurfaceDegree();
+      if (!Float.isNaN(degree)) {
+        return;
+      }
     }
 
     BorderPainter.paint(g2d, myScreenView);
@@ -48,7 +63,7 @@ public class BorderLayer extends Layer {
 
   private static class BorderPainter {
 
-    private static final int SHADOW_SIZE = JBUI.scale(4);
+    private static final int SHADOW_SIZE = JBUIScale.scale(4);
     private static final Color COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR;
     private static final Color COLOR_INSIDE = JBColor.namedColor("ScreenView.borderColor", new JBColor(new Color(0, 0, 0, 40), new Color(0, 0, 0, 80)));
     private static final Paint GRAD_LEFT = new GradientPaint(0, 0, COLOR_OUTSIDE, SHADOW_SIZE, 0, COLOR_INSIDE);

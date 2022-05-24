@@ -28,3 +28,10 @@ data class IdeDependenciesImpl(
   override val moduleDependencies: Collection<IdeModuleLibrary>,
   override val runtimeOnlyClasses: Collection<File>
 ) : IdeDependencies, Serializable
+
+class ThrowingIdeDependencies : IdeDependencies, Serializable {
+  override val androidLibraries: Collection<IdeAndroidLibrary> get() = throw NotImplementedError()
+  override val javaLibraries: Collection<IdeJavaLibrary> get() = throw NotImplementedError()
+  override val moduleDependencies: Collection<IdeModuleLibrary> get() = throw NotImplementedError()
+  override val runtimeOnlyClasses: Collection<File> get() = throw NotImplementedError()
+}

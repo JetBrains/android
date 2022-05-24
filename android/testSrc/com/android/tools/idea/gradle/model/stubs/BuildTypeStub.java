@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.SigningConfig;
 import com.android.tools.idea.gradle.model.UnusedModelMethodException;
 import java.io.File;
 import java.util.Collection;

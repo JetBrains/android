@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.FD_RES_MENU;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.rendering.RenderTask;
 import com.google.common.collect.ImmutableSet;
@@ -23,8 +29,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 /**
  * An extension of {@link LayoutPsiPullParser} specific for Menu xml files.

@@ -257,7 +257,7 @@ public class TimeLinePanel extends JPanel {
       performCommand(e, mode);
     });
 
-    JLayer<JComponent> jlayer = new JLayer<JComponent>(myScrollPane, new LayerUI<JComponent>() {
+    JLayer<JComponent> jlayer = new JLayer<>(myScrollPane, new LayerUI<>() {
       @Override
       public void paint(Graphics g, JComponent c) {
         super.paint(g, c);

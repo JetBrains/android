@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static org.junit.Assert.assertEquals;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link ApkClass}.

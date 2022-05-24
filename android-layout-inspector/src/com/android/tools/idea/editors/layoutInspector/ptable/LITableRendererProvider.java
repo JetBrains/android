@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ptable;
 
-import com.android.tools.property.ptable.*;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.property.ptable.PNameRenderer;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableCellRenderer;
+import com.android.tools.property.ptable.PTableCellRendererProvider;
+import com.android.tools.property.ptable.PTableItem;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 public class LITableRendererProvider implements PTableCellRendererProvider {
   private static LITableRendererProvider ourInstance = new LITableRendererProvider();

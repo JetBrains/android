@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.Coordinates
@@ -29,7 +30,6 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.common.LayoutTestUtilities
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import org.mockito.Mockito

@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.visual.colorblindmode
 
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
-import kotlin.test.assertFailsWith
 
 class ColorConverterTest : LayoutTestCase() {
 

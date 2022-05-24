@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import static com.android.tools.idea.explorer.adbimpl.TestDevices.COMMAND_ERROR_CHECK_SUFFIX;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.awt.EventQueue;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.awt.*;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import static com.android.tools.idea.explorer.adbimpl.TestDevices.COMMAND_ERROR_CHECK_SUFFIX;
-import static com.google.common.truth.Truth.assertThat;
 
 public class AdbFileListingTest {
   private static final long TIMEOUT_MILLISECONDS = 30_000;

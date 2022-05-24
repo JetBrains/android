@@ -127,7 +127,7 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
 
     private fun fillCombobox(comboBox: ComboBox<String>) {
       comboBox.addItem("")
-      var listIds = panel.getListIds();
+      var listIds = panel.getListIds()
       listIds.forEach { comboBox.addItem(it) }
     }
   }

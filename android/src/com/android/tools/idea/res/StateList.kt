@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.util.text.StringUtil
-import java.util.*
 
 private const val STATE_ENABLED = "state_enabled"
 internal const val STATE_NAME_PREFIX = "state_"

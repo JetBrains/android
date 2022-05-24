@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.ProgressIndicator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.gradle.tooling.CancellationTokenSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class BuildStopper {
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myMap = new ConcurrentHashMap<>();

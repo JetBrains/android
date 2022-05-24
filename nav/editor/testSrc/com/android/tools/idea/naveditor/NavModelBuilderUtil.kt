@@ -40,7 +40,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.naveditor.model.NavComponentHelper
+import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -53,12 +53,11 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCL
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.createIfNecessary
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
 import java.util.function.BiConsumer
-import java.util.function.Consumer
 import java.util.function.Function
 
 @DslMarker
@@ -106,7 +105,7 @@ object NavModelBuilderUtil {
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
                         BiConsumer<NlModel, NlModel> { model, newModel -> updateHierarchy(model, newModel) }, path,
                         NavDesignSurface::class.java, Function { NavInteractionHandler(it) },
-                        Consumer<NlComponent> { NavComponentHelper.registerComponent(it) })
+                        NavComponentRegistrar )
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

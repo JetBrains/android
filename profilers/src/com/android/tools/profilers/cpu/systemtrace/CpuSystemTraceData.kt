@@ -39,16 +39,14 @@ interface CpuSystemTraceData {
   fun getCpuThreadSliceInfoStates(cpu: Int): List<SeriesData<CpuThreadSliceInfo>>
 
   /**
-   * Returns multiple CPU Utilization data series, with one for each CPU core present on the traced device.
+   * CPU Utilization data series, with one for each CPU core present on the traced device.
    */
-  fun getCpuUtilizationSeries(): List<SeriesData<Long>>
+  val cpuUtilizationSeries: List<SeriesData<Long>>
 
   /**
    * The number of CPU cores represented in this capture.
    */
-  fun getCpuCount(): Int {
-    return getCpuUtilizationSeries().size
-  }
+  val cpuCount: Int get() = cpuUtilizationSeries.size
 
   /**
    * The memory counters for the process selected for this capture.
@@ -57,7 +55,7 @@ interface CpuSystemTraceData {
    * "mem.rss.shmem", "mem.rss.watermark", "mem.swap" and "mem.virt") present in the main process, the retuned map will contain
    * the corresponding data series for that counter.
    */
-  fun getMemoryCounters(): Map<String, List<SeriesData<Long>>>
+  val memoryCounters: Map<String, List<SeriesData<Long>>>
 
   /**
    * The CPU counters by CPU core.
@@ -65,47 +63,47 @@ interface CpuSystemTraceData {
    * Each element of the list is a map of counter name to counter values for one CPU core.
    * Currently supported counters are "cpufreq" and "cpuidle".
    */
-  fun getCpuCounters(): List<Map<String, List<SeriesData<Long>>>>
+  val cpuCounters: List<Map<String, List<SeriesData<Long>>>>
 
   /**
-   * Returns true if the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
+   * If the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
    * due to the capture buffer being a ring buffer.
    */
-  fun isMissingData(): Boolean
+  val isMissingData: Boolean
 
   // GPU/Frames data
   /**
-   * Returns a data series with frame performance classes sorted by frame start time.
+   * @return a data series with frame performance classes sorted by frame start time.
    */
   fun getFrames(threadType: FrameThread): List<SeriesData<SystemTraceFrame>>
 
   /**
-   * @return a data series with Surfaceflinger events.
+   * A data series with Surfaceflinger events.
    */
-  fun getSurfaceflingerEvents(): List<SeriesData<SurfaceflingerEvent>>
+  val surfaceflingerEvents: List<SeriesData<SurfaceflingerEvent>>
 
   /**
-   * @return a data series with VSYNC-sf counter (0 or 1).
+   * A data series with VSYNC-sf counter (0 or 1).
    */
-  fun getVsyncCounterValues(): List<SeriesData<Long>>
+  val vsyncCounterValues: List<SeriesData<Long>>
 
   /**
-   * @return a data series with BufferQueue (SurfaceView) counter (0, 1, or 2).
+   * A data series with BufferQueue (SurfaceView) counter (0, 1, or 2).
    */
-  fun getBufferQueueCounterValues(): List<SeriesData<Long>>
+  val bufferQueueCounterValues: List<SeriesData<Long>>
 
   /**
-   * @return the thread id of thread matching name of the render thread.
+   * The thread id of thread matching name of the render thread.
    */
-  fun getRenderThreadId(): Int
+  val renderThreadId: Int
 
   /**
-   * @return Android frame events organized in phases (e.g. Display, GPU) by Layer. Supported since Android R.
+   * Android frame events organized in phases (e.g. Display, GPU) by Layer. Supported since Android R.
    */
-  fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer>
+  val androidFrameLayers: List<TraceProcessor.AndroidFrameEventsResult.Layer>
 
   /**
-   * @return Android FrameTimeline events for jank detection. Supported since Android S.
+   * Android FrameTimeline events for jank detection. Supported since Android S.
    */
-  fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent>
+  val androidFrameTimelineEvents: List<AndroidFrameTimelineEvent>
 }

@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main
 
-fun exampleMacrobenchmarkJava(packageName: String, targetPackageName: String) =
+fun exampleMacrobenchmarkJava(className: String, packageName: String, targetPackageName: String) =
 """package $packageName;
 
 import androidx.benchmark.macro.CompilationMode;
@@ -38,13 +38,13 @@ import java.util.Collections;
  *
  * Before running this benchmark:
  * 1) switch your app's active build variant in the Studio (affects Studio runs only)
- * 2) add `<profileable shell=true>` to your app's manifest, within the `<application>` tag
+ * 2) add `<profileable android:shell="true" />` to your app's manifest, within the `<application>` tag
  *
  * Run this benchmark from Studio to see startup measurements, and captured system traces
  * for investigating your app's performance.
  */
 @RunWith(AndroidJUnit4.class)
-public class ExampleStartupBenchmark {
+public class $className {
 
     @Rule
     public MacrobenchmarkRule mBenchmarkRule = new MacrobenchmarkRule();
@@ -54,12 +54,12 @@ public class ExampleStartupBenchmark {
         mBenchmarkRule.measureRepeated(
                 "$targetPackageName",
                 Collections.singletonList(new StartupTimingMetric()),
-                new CompilationMode.SpeedProfile(),
+                CompilationMode.DEFAULT,
                 StartupMode.COLD,
-                3,
+                5,
                 scope -> {
-                    scope.pressHome(300);
-                    scope.startActivityAndWait((intent) -> null);
+                    scope.pressHome();
+                    scope.startActivityAndWait();
                     return null;
                 });
     }

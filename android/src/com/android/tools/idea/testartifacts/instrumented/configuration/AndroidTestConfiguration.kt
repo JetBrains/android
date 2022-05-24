@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.configuration
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.RoamingType
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
@@ -29,12 +29,10 @@ data class AndroidTestConfiguration(
   // Run Android Instrumented Tests using Gradle.
   @JvmField
   var RUN_ANDROID_TEST_USING_GRADLE: Boolean = true,
-  // Show the dialog and ask users to opt-in Gradle Android Test Runner.
-  var SHOW_RUN_ANDROID_TEST_USING_GRADLE_OPT_IN_DIALOG: Boolean = true,
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
     @JvmStatic
-    fun getInstance(): AndroidTestConfiguration = ServiceManager.getService(AndroidTestConfiguration::class.java)
+    fun getInstance(): AndroidTestConfiguration = ApplicationManager.getApplication().getService(AndroidTestConfiguration::class.java)
   }
   override fun getState(): AndroidTestConfiguration = this
   override fun loadState(state: AndroidTestConfiguration) {

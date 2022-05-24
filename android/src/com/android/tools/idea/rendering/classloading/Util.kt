@@ -64,7 +64,6 @@ class ClassTransform(private val transforms: List<java.util.function.Function<Cl
     }.apply("" to EmptyClassVisitor).first
 
   val id: String by lazy {
-    @Suppress("UnstableApiUsage")
     Hashing.goodFastHash(64).hashString(debugId, Charsets.UTF_8).toString()
   }
 
@@ -89,3 +88,14 @@ fun combine(f1: ClassTransform, f2: ClassTransform) = f1 + f2
  */
 @SafeVarargs
 fun toClassTransform(vararg transforms: java.util.function.Function<ClassVisitor, ClassVisitor>): ClassTransform = ClassTransform(transforms.toList())
+
+/**
+ * Utility method to transform the strings containing the package names in their regular from "a.b.c" to its
+ * disk representation "a/b/c".
+ */
+fun String.fromPackageNameToBinaryName(): String = replace(".", "/")
+
+/**
+ * Utility method to transform the strings from the disk representation "a/b/c" to the package names in their regular from "a.b.c".
+ */
+fun String.fromBinaryNameToPackageName(): String = replace("/", ".")

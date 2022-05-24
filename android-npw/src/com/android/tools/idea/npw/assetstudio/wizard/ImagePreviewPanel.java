@@ -17,13 +17,15 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.adtui.ImageComponent;
 import com.intellij.ui.components.JBLabel;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public class ImagePreviewPanel {
   private JBLabel myImageLabel;

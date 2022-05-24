@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -30,16 +34,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-
-import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_OLD;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
-import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   @Override

@@ -79,7 +79,7 @@ public class DependenciesTestUtil {
   }
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToPureLibrary()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
@@ -154,7 +154,7 @@ public class DependenciesTestUtil {
 
   protected static void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                              @NotNull String moduleName) {
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()

@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
-import com.android.tools.adtui.workbench.*;
+import com.android.tools.adtui.workbench.AutoHide;
+import com.android.tools.adtui.workbench.Side;
+import com.android.tools.adtui.workbench.Split;
+import com.android.tools.adtui.workbench.ToolWindowDefinition;
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutTreeDefinition;
@@ -25,11 +29,9 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext> {
   public LayoutInspectorEditorPanel(@NotNull LayoutInspectorEditor editor,

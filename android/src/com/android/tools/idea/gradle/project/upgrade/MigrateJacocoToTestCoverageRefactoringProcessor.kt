@@ -22,7 +22,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_JACOCO_TO_TEST_COVERAGE =
   PropertiesOperationsRefactoringInfo(
-    optionalFromVersion = GradleVersion.parse("7.0.0-alpha08"),
+    optionalFromVersion = GradleVersion.parse("7.0.1"),
     requiredFromVersion = GradleVersion.parse("8.0.0"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToTestCoverageRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
@@ -30,7 +30,7 @@ val MIGRATE_JACOCO_TO_TEST_COVERAGE =
       the testCoverage block.
     """.trimIndent()
     },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.usageView.header"),
+    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToTestCoverageRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_TEST_COVERAGE,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(

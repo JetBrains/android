@@ -16,16 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
+import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtilCore

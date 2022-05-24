@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.ATTR_VISIBILITY;
+import org.jetbrains.annotations.NotNull;
 
 public class ViewPagerHandler extends ViewGroupHandler {
   @Override

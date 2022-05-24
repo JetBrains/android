@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import javax.swing.JDialog;
+import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class HardwareProfileWizardFixture extends AbstractWizardFixture<HardwareProfileWizardFixture> {
 

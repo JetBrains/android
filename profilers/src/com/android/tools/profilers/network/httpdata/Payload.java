@@ -15,16 +15,15 @@
  */
 package com.android.tools.profilers.network.httpdata;
 
-import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A class for fetching the payload data associated with an {@link HttpData} instance.

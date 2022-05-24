@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import java.awt.Component;
+import java.util.Collection;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import org.fest.swing.cell.JComboBoxCellReader;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collection;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class WatchpointConfigFixture {
   final Robot robot;

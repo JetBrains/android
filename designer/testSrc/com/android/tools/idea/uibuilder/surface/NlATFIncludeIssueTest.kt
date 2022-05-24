@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.lint.detector.api.Category
 import com.intellij.lang.annotation.HighlightSeverity
-import org.junit.Assert.*
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

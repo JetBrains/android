@@ -17,13 +17,10 @@ package com.android.tools.idea.profiling.view.nodes;
 
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.containers.SortedList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class CaptureRootNode extends SimpleNode {
 

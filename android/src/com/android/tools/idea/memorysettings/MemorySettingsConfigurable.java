@@ -18,6 +18,7 @@ package com.android.tools.idea.memorysettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -73,7 +74,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public String getDisplayName() {
-    return "Memory Settings";
+    return AndroidBundle.message("configurable.MemorySettingsConfigurable.display.name");
   }
 
   @Override
@@ -146,8 +147,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private void setUI() {
-      myInfoLabel.setText(XmlStringUtil.wrapInHtml("<body>" + AndroidBundle.message("memory.settings.panel.top.message") + "</body>"));
-      myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message")));
+      myInfoLabel.setText(XmlStringUtil.wrapInHtml("<body>"
+                                                   + AndroidBundle.message("memory.settings.panel.top.message", ApplicationNamesInfo.getInstance().getFullProductName())
+                                                   + "</body>"));
+      myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message", ApplicationNamesInfo.getInstance().getFullProductName())));
       myIdeBottomLabel.setFontColor(UIUtil.FontColor.BRIGHTER);
 
       if (myRecommendedIdeXmx > 0) {
@@ -157,7 +160,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myApplyRecommendationLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.use.recommended.values"));
         myApplyRecommendationLabel.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
             mySelectedIdeXmx = myRecommendedIdeXmx;
             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
@@ -244,7 +247,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           DaemonsUi myUi;
 
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myUi = new DaemonsUi(myProject) {
               @Override
               public void dispose() {

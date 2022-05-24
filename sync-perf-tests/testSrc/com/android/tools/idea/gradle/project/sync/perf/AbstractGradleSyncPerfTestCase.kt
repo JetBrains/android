@@ -40,13 +40,10 @@ import org.junit.Before
 import org.junit.FixMethodOrder
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
-import org.junit.runners.Parameterized
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import java.util.ArrayList
 import java.util.Scanner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Logger
@@ -115,8 +112,8 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testInitialization() {
-    if (useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    if (!useModelV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
@@ -145,8 +142,8 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testSyncTimes() {
-    if (useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    if (!useModelV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     val scenarioName = getScenarioName()
@@ -222,12 +219,12 @@ abstract class AbstractGradleSyncPerfTestCase {
 
   private fun logSummary(name: String, values: ArrayList<Long>, log: Logger) {
     log.info("$name average: ${values.average()}")
-    log.info("$name min: ${values.min()}")
-    log.info("$name max: ${values.max()}")
+    log.info("$name min: ${values.minOrNull()}")
+    log.info("$name max: ${values.maxOrNull()}")
   }
 
   private fun showHistogram(values: ArrayList<Long>, log: Logger) {
-    val maximum = values.max()
+    val maximum = values.maxOrNull()
     if (maximum == null) {
       log.info("***NO VALUES WERE CAPTURED***")
       return

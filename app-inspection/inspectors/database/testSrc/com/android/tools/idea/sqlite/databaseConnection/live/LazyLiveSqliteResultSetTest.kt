@@ -28,15 +28,14 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor = PooledThreadExecutor.INSTANCE

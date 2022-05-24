@@ -16,10 +16,9 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.AbstractProperty;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * An {@link AbstractProperty} backed by an optional value.

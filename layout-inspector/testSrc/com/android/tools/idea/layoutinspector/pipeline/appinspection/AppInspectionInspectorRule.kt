@@ -25,9 +25,8 @@ import com.android.tools.idea.appinspection.test.createResponse
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
@@ -51,17 +50,18 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
  *
  * Note that some parameters are provided lazily to allow rules to initialize them first.
  */
-class AppInspectionClientProvider(
-  private val getApiServices: () -> AppInspectionApiServices,
-  private val getScope: () -> CoroutineScope,
-  private val parentDisposable: Disposable
-)
-  : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    val apiServices = getApiServices()
+fun AppInspectionClientProvider(
+  getApiServices: () -> AppInspectionApiServices,
+  getScope: () -> CoroutineScope,
+  getMonitor: () -> InspectorClientLaunchMonitor,
+  parentDisposable: Disposable
+) = InspectorClientProvider { params, inspector ->
+  val apiServices = getApiServices()
 
-    return AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
-                                        parentDisposable, apiServices, getScope())
+  AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
+                               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+                               parentDisposable, apiServices, getScope()).apply {
+    launchMonitor = getMonitor()
   }
 }
 
@@ -129,11 +129,11 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(): AppInspectionClientProvider {
+  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()): InspectorClientProvider {
     return AppInspectionClientProvider({ inspectionService.apiServices }, {
       // We might want to shut down the client and create a new one, so it needs its own supervisor scope
       inspectionService.scope.createChildScope(true)
-    }, parentDisposable)
+    }, { monitor }, parentDisposable)
   }
 
   override fun apply(base: Statement, description: Description): Statement {

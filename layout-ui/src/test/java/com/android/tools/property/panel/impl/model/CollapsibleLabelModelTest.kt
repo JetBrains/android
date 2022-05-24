@@ -15,7 +15,13 @@
  */
 package com.android.tools.property.panel.impl.model
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT
+import com.android.SdkConstants.ATTR_COLOR
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.impl.model.util.FakePropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem

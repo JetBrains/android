@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import junit.framework.TestCase;
-
 import static com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand;
+
+import junit.framework.TestCase;
 
 public class AndroidDeepLinkLaunchTaskTest extends TestCase {
   public void testAmStartCommandForDeepLink() {

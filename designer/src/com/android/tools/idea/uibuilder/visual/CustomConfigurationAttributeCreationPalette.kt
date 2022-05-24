@@ -26,7 +26,6 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
-import com.android.tools.idea.configurations.LocaleMenuAction
 import com.android.tools.idea.configurations.createFilter
 import com.android.tools.idea.configurations.getFrameworkThemeNames
 import com.android.tools.idea.configurations.getProjectThemeNames
@@ -163,7 +162,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet).devices)
+    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet).devices.filter { !it.isDeprecated })
     val devices = groupedDevices.toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption }).flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
@@ -215,8 +214,8 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
 
     val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(facet).localesInProject
     val boxModel = MyComboBoxModel(locales,
-                                   { it?.toLocaleId() ?: LocaleMenuAction.getLocaleLabel(it, false) },
-                                   { LocaleMenuAction.getLocaleLabel(it, false)!!} )
+                                   { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
+                                   { Locale.getLocaleLabel(it, false)!!} )
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedLocale = boxModel.selectedValue }
     selectedLocale = boxModel.selectedValue

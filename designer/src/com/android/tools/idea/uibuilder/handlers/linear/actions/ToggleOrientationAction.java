@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.VALUE_HORIZONTAL;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import icons.StudioIcons;
 import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Changes orientation from horizontal to vertical and vice versa. The direction

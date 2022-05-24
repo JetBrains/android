@@ -125,7 +125,7 @@ class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model,
 
     // TODO(qumeric): replace it with PathValidator, like:
     val validator = PathValidator.Builder().withCommonRules().build("Android SDK location")
-    val validationResult = validator.validate(jdkLocation.toFile())
+    val validationResult = validator.validate(jdkLocation)
     invalidPathMessage.set(validationResult.message)
     val isError = validationResult.severity != Validator.Severity.ERROR
     isValidJdkPath.set(isError)

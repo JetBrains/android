@@ -34,6 +34,9 @@ public final class CommonConfigurationNames {
   @NonNls public static final String TEST_API = "testApi";
   @NonNls public static final String TEST_COMPILE = "testCompile";
   @NonNls public static final String TEST_IMPLEMENTATION = "testImplementation";
+  @NonNls public static final String TEST_FIXTURES_API = "testFixturesApi";
+  @NonNls public static final String TEST_FIXTURES_COMPILE = "testFixturesCompile";
+  @NonNls public static final String TEST_FIXTURES_IMPLEMENTATION = "testFixturesImplementation";
 
   private CommonConfigurationNames() {
   }

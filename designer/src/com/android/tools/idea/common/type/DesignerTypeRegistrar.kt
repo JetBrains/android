@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.type
 
+import com.android.tools.idea.common.type.DesignerTypeRegistrar.register
 import org.jetbrains.annotations.TestOnly
 
 /**

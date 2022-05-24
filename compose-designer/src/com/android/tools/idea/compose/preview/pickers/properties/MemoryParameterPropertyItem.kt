@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
+
 /**
  * A [PsiPropertyItem] that only exists on memory. Changes on this property will not immediately reflect on a file.
  */
 open class MemoryParameterPropertyItem(
   override var name: String,
-  override val defaultValue: String?
+  override val defaultValue: String?,
+  inputValidation: EditingValidation = { EDITOR_NO_ERROR }
 ): PsiPropertyItem {
   override var value: String? = null
+
+  override val editingSupport: EditingSupport = PsiEditingSupport(inputValidation)
 }

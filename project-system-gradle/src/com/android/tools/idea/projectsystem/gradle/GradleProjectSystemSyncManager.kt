@@ -40,6 +40,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger = when {
       reason === SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
       reason === SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
+      reason === SyncReason.PROJECT_DEPENDENCY_UPDATED -> GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED
       else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
   }
 
@@ -48,7 +49,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
-    val connection = project.messageBus.connect(project).apply {
+    val connection = project.messageBus.connect().apply {
       subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
         override fun syncEnded(result: SyncResult) {
           disconnect()

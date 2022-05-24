@@ -25,6 +25,10 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
 import kotlin.math.sqrt
@@ -42,6 +46,11 @@ class AdditionalDeviceService: DumbAware {
     fun getInstance(): AdditionalDeviceService? {
       return ApplicationManager.getApplication().getService(AdditionalDeviceService::class.java)
     }
+
+    const val DEVICE_CLASS_PHONE_ID = "_device_class_phone"
+    const val DEVICE_CLASS_FOLDABLE_ID = "_device_class_foldable"
+    const val DEVICE_CLASS_TABLET_ID = "_device_class_tablet"
+    const val DEVICE_CLASS_DESKTOP_ID = "_device_class_desktop"
   }
 
   fun getWindowSizeDevices(): List<Device> = windowDevices
@@ -58,10 +67,10 @@ data class WindowSizeData(val id: String, val name: String, val widthDp: Double,
  * The device definitions used by Android Studio only
  */
 val PREDEFINED_WINDOW_SIZES_DEFINITIONS: List<WindowSizeData> = listOf(
-  WindowSizeData("_device_class_phone", "Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
-  WindowSizeData("_device_class_foldable", "Foldable", 673.5, 841.0, Density.XXHIGH, ScreenOrientation.PORTRAIT),
-  WindowSizeData("_device_class_tablet", "Tablet", 1280.0, 800.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE),
-  WindowSizeData("_device_class_desktop", "Desktop", 1920.0, 1080.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE))
+  WindowSizeData(DEVICE_CLASS_PHONE_ID, "Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
+  WindowSizeData(DEVICE_CLASS_FOLDABLE_ID, "Foldable", 673.5, 841.0, Density.XXHIGH, ScreenOrientation.PORTRAIT),
+  WindowSizeData(DEVICE_CLASS_TABLET_ID, "Tablet", 1280.0, 800.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE),
+  WindowSizeData(DEVICE_CLASS_DESKTOP_ID, "Desktop", 1920.0, 1080.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE))
 
 private fun createWindowDevices(): List<Device> =
   PREDEFINED_WINDOW_SIZES_DEFINITIONS.map { windowSizeDef ->
@@ -71,10 +80,12 @@ private fun createWindowDevices(): List<Device> =
         yDimension = windowSizeDef.heightPx
         pixelDensity = windowSizeDef.density
 
-        val dpi = pixelDensity.dpiValue.toDouble()
-        val width = xDimension / dpi
-        val height = yDimension / dpi
-        diagonalLength = sqrt(width * width + height * height)
+        xdpi = pixelDensity.dpiValue.toDouble()
+        ydpi = pixelDensity.dpiValue.toDouble()
+
+        val widthDp = windowSizeDef.widthDp
+        val heightDp = windowSizeDef.heightDp
+        diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
         size = ScreenSize.getScreenSize(diagonalLength)
         ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
         screenRound = ScreenRound.NOTROUND

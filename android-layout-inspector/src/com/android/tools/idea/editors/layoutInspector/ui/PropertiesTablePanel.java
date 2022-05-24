@@ -16,24 +16,25 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.workbench.ToolContent;
+import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.property.ptable.PTable;
 import com.android.tools.property.ptable.PTableGroupItem;
 import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.property.ptable.PTableModel;
-import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SpeedSearchComparator;
+import java.awt.Color;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
 
 public class PropertiesTablePanel extends JScrollPane implements ToolContent<LayoutInspectorContext> {
   public static final JBColor GROUP_BACKGROUND_COLOR = new JBColor(Gray._242, new Color(60, 63, 65));

@@ -25,8 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -58,7 +58,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     String modelEncoding = "UTF-8";
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    when(androidModel.getModelVersion()).thenReturn(GradleVersion.parse("1.2.0"));
+    when(androidModel.getAgpVersion()).thenReturn(GradleVersion.parse("1.2.0"));
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
@@ -71,7 +71,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssues() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     String mismatchingEncoding = "UTF-8";
     myStrategy.setMismatchingEncoding(mismatchingEncoding);
@@ -90,7 +90,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssuesWithNoMismatch() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.setMismatchingEncoding(null);
     myStrategy.fixAndReportFoundIssues();

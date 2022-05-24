@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Files.asCharSource;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
@@ -61,6 +60,7 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -483,7 +483,7 @@ public class GuiTestRule implements TestRule {
           for (Element module : modules) {
             String fileUrl = module.getAttributeValue("fileurl");
             if (!StringUtil.isEmpty(fileUrl)) {
-              String relativePath = FileUtil.toSystemDependentName(fileUrl.substring(urlPrefixSize));
+              String relativePath = FileUtilRt.toSystemDependentName(fileUrl.substring(urlPrefixSize));
               File imlFilePath = new File(projectPath, relativePath);
               if (imlFilePath.isFile()) {
                 FileUtilRt.delete(imlFilePath);
@@ -525,7 +525,7 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public String getProjectFileText(@NotNull String fileRelPath) {
     try {
-      return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
+      return asCharSource(getProjectPath(fileRelPath), StandardCharsets.UTF_8).read();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

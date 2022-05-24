@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="sqlite-inspector-proto">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/sqlite/sqlite_inspector_proto.jar!/" />
+      <root url="jar://$WORKSPACE_ROOT$/bazel-bin/prebuilts/tools/common/app-inspection/androidx/sqlite/sqlite_inspector_proto.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

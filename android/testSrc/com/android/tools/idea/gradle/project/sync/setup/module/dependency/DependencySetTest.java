@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.io.File;
-import java.util.Collection;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link DependencySet}.

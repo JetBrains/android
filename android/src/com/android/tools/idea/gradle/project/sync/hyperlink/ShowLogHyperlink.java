@@ -19,10 +19,9 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 public class ShowLogHyperlink extends NotificationHyperlink {
   @NonNls private static final String IDEA_LOG_FILE_NAME = "idea.log";

@@ -20,11 +20,14 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.api.*
-import com.android.tools.idea.uibuilder.model.*
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.model.h
+import com.android.tools.idea.uibuilder.model.w
 import com.intellij.openapi.diagnostic.Logger
 
 /**

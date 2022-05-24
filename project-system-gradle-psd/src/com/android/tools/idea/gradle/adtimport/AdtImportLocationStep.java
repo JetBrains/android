@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.adtimport;
 
 import com.intellij.ide.highlighter.ModuleFileType;
@@ -22,21 +8,23 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 class AdtImportLocationStep extends ProjectImportWizardStep {
   private JPanel myPanel;
@@ -48,11 +36,11 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
   public AdtImportLocationStep(WizardContext context) {
     super(context);
 
-    myDestinationLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+    myDestinationLabel.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
 
     String prev = context.getProjectFileDirectory();
-    mySourceProject = new File(FileUtil.toSystemDependentName(prev));
+    mySourceProject = new File(FileUtilRt.toSystemDependentName(prev));
 
     String name = new File(prev).getName();
     //noinspection ConstantConditions
@@ -156,8 +144,7 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
       if (files != null && files.length > 0) {
         String message = String.format("%1$s folder already exists and is not empty.\nIts content may be overwritten.\nContinue?",
                                        projectFile.getAbsolutePath());
-        int answer = Messages.showYesNoDialog(message, title, Messages.getQuestionIcon());
-        shouldContinue = answer == 0;
+        shouldContinue = MessageDialogBuilder.yesNo(title, message).show() == Messages.YES;
       }
     }
     return shouldContinue;

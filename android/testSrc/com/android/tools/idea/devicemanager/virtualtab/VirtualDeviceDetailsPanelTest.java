@@ -24,7 +24,8 @@ import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
-import java.io.File;
+import com.android.tools.idea.wearpairing.WearPairingManager;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -43,13 +44,13 @@ public final class VirtualDeviceDetailsPanelTest {
     properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  new File("ini/file"),
-                                  "data/folder/path",
+                                  Paths.get("ini/file"),
+                                  Paths.get("data/folder/path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
                                   AvdStatus.OK);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false, WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
@@ -71,13 +72,13 @@ public final class VirtualDeviceDetailsPanelTest {
     properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  new File("ini/file"),
-                                  "data/folder/path",
+                                  Paths.get("ini/file"),
+                                  Paths.get("data/folder/path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
                                   AvdStatus.ERROR_IMAGE_MISSING);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false, WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());

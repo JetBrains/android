@@ -93,8 +93,12 @@ public final class MemoryProfilerTest {
   public void testLiveAllocationTrackingOnAgentAttach() {
     setupODeviceAndProcess();
 
+    // Verify start and stop allocation tracking commands are handled by the same handler.
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    Truth.assertThat(allocTrackingHandler).isEqualTo(
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
+
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
     Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
 
@@ -102,23 +106,26 @@ public final class MemoryProfilerTest {
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-    // We first call stop tracking before starting.
+    // We call stop tracking after agent is attached when the session starts, not starting tracking without explicit operations.
+    Commands.Command firstStopCommand = allocTrackingHandler.getLastCommand();
+    Truth.assertThat(firstStopCommand.getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
     Memory.AllocationsInfo lastInfo;
     verifyIsUsingLiveAllocation();
     lastInfo = allocTrackingHandler.getLastInfo();
-    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
-    Truth.assertThat(lastInfo.getSuccess()).isFalse();
+    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(1);
+    Truth.assertThat(lastInfo.getSuccess()).isTrue();
 
     // We further verify that if we end the session and start a new one
     // on the process, a new START_ALLOC_TRACKING command will be issued.
     myStudioProfiler.getSessionsManager().endCurrentSession();
     Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    Truth.assertThat(allocTrackingHandler.getLastCommand().getCommandId()).isNotEqualTo(firstStopCommand.getCommandId());
     myStudioProfiler.getSessionsManager().beginSession(myDevice.getDeviceId(), myDevice, myProcess);
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     verifyIsUsingLiveAllocation();
-    Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
   }
 
   @Test
@@ -129,12 +136,16 @@ public final class MemoryProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
 
+    // Verify start and stop allocation tracking commands are handled by the same handler.
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
-    // We first call stop tracking before starting.
+    Truth.assertThat(allocTrackingHandler).isEqualTo(
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
+
+    // We call stop tracking after agent is attached when the session starts.
     Memory.AllocationsInfo lastInfo = allocTrackingHandler.getLastInfo();
-    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
-    Truth.assertThat(lastInfo.getSuccess()).isFalse();
+    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(1);
+    Truth.assertThat(lastInfo.getSuccess()).isTrue();
     // Reset for testing when agent is not attached below.
     allocTrackingHandler.setLastInfo(Memory.AllocationsInfo.getDefaultInstance());
 

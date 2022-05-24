@@ -32,7 +32,6 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -100,6 +99,34 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       return "res-overlay/values/" + testFileName;
     }
     return "res/values/" + testFileName;
+  }
+
+  public void testMacroTagHighlighting() {
+    PsiFile file = myFixture.addFileToProject("res/values/values.xml",
+                                              "<resources>\n" +
+                                              "  <macro name=\"foo\">@string/bar</macro>\n" +
+                                              "  <string name=\"bar\">bar</string>\n" +
+                                              "  <string name=\"otherbar\">bar</string>\n" +
+                                              "  <color name=\"colorbar\">#123456</color>\n" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
+  public void testMacroTagStyleAttributeHighlighting() {
+    PsiFile file = myFixture.addFileToProject("res/values/values.xml",
+                                              "<resources>\n" +
+                                              "  <macro name=\"foo\">@string/bar</macro>\n" +
+                                              "  <string name=\"bar\">bar</string>\n" +
+                                              "  <macro name=\"asdsf\">?attr/<caret>textColor</macro>\n" +
+                                              "  <color name=\"colorbar\">#123456</color>\n" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.checkHighlighting();
+    PsiElement elementAtCaret = myFixture.getElementAtCaret();
+    assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement.class);
+    assertThat(((ResourceReferencePsiElement)elementAtCaret).getResourceReference()).isEqualTo(
+      new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "textColor"));
   }
 
   public void testStringArrayHighlighting() {
@@ -207,7 +234,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     for (PsiElement target : targets) {
       assertThat(target).isInstanceOf(XmlAttributeValue.class);
     }
-    List<String> getTextList = ContainerUtil.map(targets, it -> it.getText());
+    List<String> getTextList = ContainerUtil.map(targets, PsiElement::getText);
     assertThat(getTextList).containsExactlyElementsIn(Array.of("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
     List<String> containingFileList = ContainerUtil.map(targets, it -> it.getContainingFile().getName());
     assertThat(containingFileList).containsExactlyElementsIn(Array.of("attrs5.xml", "attrs.xml", "attrs.xml"));
@@ -375,19 +402,19 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testIntResourceReference() throws Throwable {
+  public void testIntResourceReference() {
     myFixture.copyFileToProject(myTestFolder + "/intResReference.xml", "res/layout/main.xml");
     myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
     myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/intResReference_after.xml");
   }
 
-  public void testBoolResourceReference() throws Throwable {
+  public void testBoolResourceReference() {
     myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
     myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
     myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
   }
 
-  public void testBoolResourceReferenceDumbMode() throws Throwable {
+  public void testBoolResourceReferenceDumbMode() {
     myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
     myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
     // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.

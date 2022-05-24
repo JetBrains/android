@@ -16,11 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
 import com.android.tools.pixelprobe.color.Colors;
-import junit.framework.TestCase;
-
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
+import junit.framework.TestCase;
 
 public class DoubleColorExtractorTest extends TestCase {
 

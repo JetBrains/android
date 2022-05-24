@@ -15,16 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-
 import static com.intellij.openapi.util.SystemInfo.isMac;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.BitUtil.isSet;
@@ -33,6 +23,17 @@ import static java.awt.Event.META_MASK;
 import static java.awt.event.KeyEvent.VK_CONTROL;
 import static java.awt.event.KeyEvent.VK_META;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
+
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
+import com.intellij.util.ui.JBUI;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.annotations.NotNull;
 
 public final class UiUtil {
   private UiUtil() {

@@ -28,6 +28,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import javax.swing.Icon
 
@@ -49,7 +50,8 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
 
   override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
     val type = file.fileType
-    return type === JavaFileType.INSTANCE || type === XmlFileType.INSTANCE || type === GroovyFileType.GROOVY_FILE_TYPE ||
+    return type === JavaFileType.INSTANCE || type === XmlFileType.INSTANCE ||
+           type === GroovyFileType.GROOVY_FILE_TYPE || type === GradleFileType ||
            type === KotlinFileType.INSTANCE || file is PsiBinaryFile
   }
 

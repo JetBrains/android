@@ -18,17 +18,22 @@ package com.android.tools.adtui.util;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.containers.Stack;
-import com.intellij.util.ui.JBUI;
-
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.LayoutManager;
 import java.util.Locale;
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JSlider;
+import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
 
 /**
  * Helper class used to scale UI elements defined in <code>.form</code> files according to the current
@@ -58,7 +63,7 @@ public class FormScalingUtil {
   /**
    * The stack of component/property names as we traverse the tree. Used for logging if <code>DEBUG</code> is <code>true</code>
    */
-  private final Stack<String> myStack = new Stack<String>();
+  private final Stack<String> myStack = new Stack<>();
   /**
    * The class associated to the .form file, used for logging only.
    */
@@ -80,7 +85,7 @@ public class FormScalingUtil {
    * @param clazz the class associated to the <code>.form</code> file
    */
   public FormScalingUtil(Class clazz) {
-    this(clazz, JBUI.scale(1.0f));
+    this(clazz, JBUIScale.scale(1.0f));
   }
 
   /**

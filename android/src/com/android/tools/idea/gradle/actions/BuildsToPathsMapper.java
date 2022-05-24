@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -24,7 +23,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * <p> Generates a map from module/build variant to the location of generated apk or bundle,
@@ -37,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class BuildsToPathsMapper {
   @NotNull
   public static BuildsToPathsMapper getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildsToPathsMapper.class);
+    return project.getService(BuildsToPathsMapper.class);
   }
 
   @NotNull

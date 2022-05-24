@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.output.parser;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.ToolOutputParser;
+import java.util.List;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.

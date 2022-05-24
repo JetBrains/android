@@ -20,9 +20,11 @@ import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
 
-fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
+fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
   if (androidX) {
-    addDependency("androidx.core:core-ktx:+")
+    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:1.7.+"
+    val minRev = if (targetApi < 31) "1.6.0" else "1.7.0"
+    addDependency(dependency, minRev = minRev)
   }
 }
 
@@ -30,10 +32,10 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
   addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
 }
 
-fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean = false) {
+fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, targetApi: Int, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
     applyPlugin("org.jetbrains.kotlin.android", data.kotlinVersion)
-    addKotlinDependencies(data.androidXSupport && !noKtx)
+    addKotlinDependencies(data.androidXSupport && !noKtx, targetApi)
   }
 }

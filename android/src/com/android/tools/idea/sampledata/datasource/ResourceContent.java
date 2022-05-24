@@ -18,19 +18,19 @@ package com.android.tools.idea.sampledata.datasource;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.StudioPathManager;
-import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
-import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
   private static final Logger LOG = Logger.getInstance(ResourceContent.class);
@@ -50,7 +50,7 @@ public class ResourceContent implements Function<OutputStream, Exception> {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     String jarPath = FileUtil.join(homePath, "plugins/android/resources/sampleData");
     if (StudioPathManager.isRunningFromSources()) {
-      jarPath = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData");
+      jarPath = FileUtil.join(StudioPathManager.resolveDevPath("tools/adt/idea/android/lib/sampleData"));
     }
 
     File rootFile = new File(jarPath);
@@ -90,7 +90,7 @@ public class ResourceContent implements Function<OutputStream, Exception> {
       }
     }
 
-    return new ResourceContent(content.toString().getBytes(Charsets.UTF_8));
+    return new ResourceContent(content.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   @NotNull

@@ -34,10 +34,13 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -291,7 +294,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns
    * false if there has not been any PSI changes.
    */
-  boolean isUserCodeUpToDate() {
+  public boolean isUserCodeUpToDate() {
     Module module = getModule();
     if (module == null) return true;
     // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
@@ -299,6 +302,21 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
       CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(),
                                         PsiModificationTracker.MODIFICATION_COUNT,
                                         ModuleClassLoaderOverlays.getInstance(module)));
+  }
+
+  @Override
+  public Enumeration<URL> getResources(String name) throws IOException {
+    // The ModuleClassLoader overrides getResources to allow user code to access resources that are part of the libraries.
+    // Instead of loading from the plugin class loader, we redirect the request to load it from the project libraries.
+    return myImpl.getResources(name);
+  }
+
+  @Nullable
+  @Override
+  public URL getResource(String name) {
+    // The ModuleClassLoader overrides getResources to allow user code to access resources that are part of the libraries.
+    // Instead of loading from the plugin class loader, we redirect the request to load it from the project libraries.
+    return myImpl.getResource(name);
   }
 
   public boolean isClassLoaded(@NotNull String className) {
@@ -341,6 +359,14 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   @TestOnly
   void injectProjectClassFile(@NotNull String fqcn, @NotNull VirtualFile file) {
     myImpl.injectProjectClassFile(fqcn, file);
+  }
+
+  /**
+   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
+   */
+  @TestOnly
+  void injectProjectOvelaryLoadedClass(@NotNull String fqcn) {
+    myImpl.injectProjectOvelaryLoadedClass(fqcn);
   }
 
   /**
@@ -388,7 +414,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
 
   @Override
   public void dispose() {
-    ourDisposeService.submit(() -> {
+    ourDisposeService.execute(() -> {
       waitForCoroutineThreadToStop();
 
       Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);

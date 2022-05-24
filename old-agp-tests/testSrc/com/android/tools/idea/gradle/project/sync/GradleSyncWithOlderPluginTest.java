@@ -17,11 +17,15 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 import com.android.testutils.junit4.OldAgpTest;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
+import java.util.List;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -30,7 +34,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  * Integration test for Gradle Sync with old versions of Android plugin.
  */
 @OldAgpTest(agpVersions = "3.3.2", gradleVersions = "5.3.1")
-public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase {
+public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {
@@ -58,5 +62,15 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertThat(areGradleDaemonsRunning()).isTrue();
     GradleDaemonServices.stopDaemons();
     assertThat(areGradleDaemonsRunning()).isFalse();
+  }
+
+  static boolean areGradleDaemonsRunning() {
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    for (DaemonState status : daemonStatus) {
+      if (!equalsIgnoreCase(status.getStatus(), "stopped")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

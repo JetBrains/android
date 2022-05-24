@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
-import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
@@ -24,22 +23,27 @@ import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.EditableModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Component;
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 class AdtWorkspaceForm extends ProjectImportWizardStep {
   private JBTable myPathMapTable;
   private TextFieldWithBrowseButton myWorkspaceField;
   private JPanel myPanel;
-  private Map<String, File> myPathMap = Maps.newHashMap();
+  private Map<String, File> myPathMap = new HashMap<>();
   private boolean myIgnore;
 
   AdtWorkspaceForm(WizardContext context) {

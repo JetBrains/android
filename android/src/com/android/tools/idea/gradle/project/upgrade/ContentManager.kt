@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
@@ -31,11 +32,11 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -318,7 +319,7 @@ class ToolWindowModel(
     val newProcessor = newVersion?.let {
       current?.let { current ->
         if (newVersion >= current && !project.isDisposed)
-          ServiceManager.getService(project, AssistantInvoker::class.java).createProcessor(project, current, it)
+          project.getService(AssistantInvoker::class.java).createProcessor(project, current, it)
         else
           null
       }
@@ -415,6 +416,8 @@ class ToolWindowModel(
     val treeText: String
     val helpLinkUrl: String?
     val shortDescription: String?
+    val additionalInfo: String?
+      get() = null
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -445,6 +448,19 @@ class ToolWindowModel(
         selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
       }
     }
+    is GradlePluginsRefactoringProcessor -> object : DefaultStepPresentation(processor) {
+      override val additionalInfo =
+        processor.cachedUsages
+          .filter { it is WellKnownGradlePluginDependencyUsageInfo || it is WellKnownGradlePluginDslUsageInfo }
+          .map { it.tooltipText }.toSortedSet().takeIf { !it.isEmpty() }?.run {
+             val result = StringBuilder()
+            result.append("<p>The following Gradle plugin versions will be updated:</p>\n")
+            result.append("<ul>\n")
+            forEach { result.append("<li>$it</li>\n") }
+            result.append("</ul>\n")
+            result.toString()
+          }
+    }
     else -> DefaultStepPresentation(processor)
   }
 
@@ -462,8 +478,12 @@ class ToolWindowModel(
 
 class ContentManager(val project: Project) {
   init {
-    ToolWindowManager.getInstance(project).registerToolWindow(
-      RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
+    ApplicationManager.getApplication().invokeAndWait {
+      // Force EDT here to ease the testing (see com.intellij.ide.plugins.CreateAllServicesAndExtensionsAction: it instantiates services
+      //  on a background thread). There is no performance penalties when already invoked on EDT.
+      ToolWindowManager.getInstance(project).registerToolWindow(
+        RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
+    }
   }
 
   fun showContent(recommended: GradleVersion? = null) {
@@ -472,7 +492,7 @@ class ContentManager(val project: Project) {
     val model = ToolWindowModel(
       project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion }, recommended = recommended)
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
+    val content = ContentFactory.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.setDisposer(model)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
@@ -594,6 +614,7 @@ class ContentManager(val project: Project) {
         toolTipText = uiState.runTooltip
         isEnabled = uiState.runEnabled
       }
+      putClientProperty(DEFAULT_STYLE_KEY, true)
     }
     val previewButton = JButton("Show Usages").apply {
       addActionListener { this@View.model.runUpgrade(true) }
@@ -677,11 +698,9 @@ class ContentManager(val project: Project) {
       layout = HorizontalLayout(5)
       add(upgradeLabel)
       add(versionTextField)
-      // TODO(xof): make these buttons come in a platform-dependent order
-      add(refreshButton)
-      // TODO(xof): make this look like a default button
       add(okButton)
       add(previewButton)
+      add(refreshButton)
       add(messageLabel)
     }
 
@@ -719,6 +738,7 @@ class ContentManager(val project: Project) {
             // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
             text.append("<a href='$url'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.")
           }
+          selectedStep.additionalInfo?.let { text.append(it) }
           label.text = text.toString()
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
@@ -850,11 +870,11 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
 }
 
 fun GradleVersion?.upgradeLabelText() = when (this) {
-  null -> "Upgrading Android Gradle Plugin from unknown version to"
-  else -> "Upgrading Android Gradle Plugin from version $this to"
+  null -> "Upgrade Android Gradle Plugin from unknown version to"
+  else -> "Upgrade Android Gradle Plugin from version $this to"
 }
 
 fun GradleVersion?.contentDisplayName() = when (this) {
-  null -> "Upgrading project from unknown AGP"
-  else -> "Upgrading project from AGP $this"
+  null -> "Upgrade project from unknown AGP"
+  else -> "Upgrade project from AGP $this"
 }

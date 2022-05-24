@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.ANDROID_TEST;
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.MAIN;
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.TEST_FIXTURES;
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.UNIT_TEST;
+import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.ui.SideBorder.LEFT;
+import static com.intellij.ui.SideBorder.RIGHT;
+
 import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
@@ -23,15 +31,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
+import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
-import static com.intellij.ui.SideBorder.*;
 
 class ConfigurationsPanel extends JPanel {
   @NotNull private final List<Configuration> mySelectedConfigurations;
@@ -41,7 +47,7 @@ class ConfigurationsPanel extends JPanel {
   ConfigurationsPanel() {
     super(new BorderLayout());
 
-    List<Configuration> configurations = Lists.newArrayList(MAIN, ANDROID_TEST, UNIT_TEST);
+    List<Configuration> configurations = Lists.newArrayList(MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES);
 
     myConfigurationsList = new PsCheckBoxList<>(configurations);
 
@@ -56,6 +62,7 @@ class ConfigurationsPanel extends JPanel {
         if (configuration == MAIN) {
           if (value) {
             myConfigurationsList.setItemSelected(ANDROID_TEST, true);
+            myConfigurationsList.setItemSelected(TEST_FIXTURES, true);
             myConfigurationsList.setItemSelected(UNIT_TEST, true);
           }
         }
@@ -85,6 +92,9 @@ class ConfigurationsPanel extends JPanel {
     else {
       if (myConfigurationsList.isItemSelected(ANDROID_TEST)) {
         mySelectedConfigurations.add(ANDROID_TEST);
+      }
+      if (myConfigurationsList.isItemSelected(TEST_FIXTURES)) {
+        mySelectedConfigurations.add(TEST_FIXTURES);
       }
       if (myConfigurationsList.isItemSelected(UNIT_TEST)) {
         mySelectedConfigurations.add(UNIT_TEST);

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.SdkConstants.FD_DATA;
+import static com.android.SdkConstants.FD_PLATFORMS;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static java.io.File.separator;
+
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -32,26 +37,30 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.AnnotationOrderRootType;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtilCore;
+import java.io.File;
+import java.util.List;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.List;
-
-import static com.android.SdkConstants.FD_DATA;
-import static com.android.SdkConstants.FD_PLATFORMS;
-import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
-import static java.io.File.separator;
 
 /**
  * Helper code for attaching the external annotations .jar file
@@ -102,7 +111,7 @@ public class ExternalAnnotationsSupport {
 
     String path = finalSdk.getHomePath();
     String text = "No IDEA annotations attached to the Android SDK " + finalSdk.getName() + (path == null ? "" : " (" +
-                   FileUtil.toSystemDependentName(path) + ")") + ", some issues will not be found";
+                   FileUtilRt.toSystemDependentName(path) + ")") + ", some issues will not be found";
     holder.registerProblem(file, text, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, new LocalQuickFix() {
       @NotNull
       @Override
@@ -177,7 +186,7 @@ public class ExternalAnnotationsSupport {
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
         final String[] paths = {
           StudioPathManager.isRunningFromSources()
-          ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/annotations")
+          ? FileUtil.join(StudioPathManager.resolveDevPath("tools/adt/idea/android/annotations"))
           : null,
           FileUtil.join(homePath, "android/android/annotations"),
           FileUtil.join(homePath, "community/android/android/annotations")

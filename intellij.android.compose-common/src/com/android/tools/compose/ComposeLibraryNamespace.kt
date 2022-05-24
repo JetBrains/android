@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem

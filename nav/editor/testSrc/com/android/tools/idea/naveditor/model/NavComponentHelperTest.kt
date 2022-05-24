@@ -33,11 +33,10 @@ import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
 import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
 import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import javax.swing.Icon
 
 class NavComponentHelperTest {

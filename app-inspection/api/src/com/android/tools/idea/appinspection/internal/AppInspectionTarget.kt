@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.

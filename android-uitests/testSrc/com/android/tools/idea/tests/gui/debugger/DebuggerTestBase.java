@@ -15,29 +15,32 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
+
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+import javax.swing.tree.TreeNode;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.tree.TreeNode;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 
 public class DebuggerTestBase {
 
@@ -151,7 +154,7 @@ public class DebuggerTestBase {
   @NotNull
   private static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
     String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
-    List<String> unmatchedPatterns = Lists.newArrayList();
+    List<String> unmatchedPatterns = new ArrayList<>();
     for (String expectedPattern : expectedPatterns) {
       boolean matched = false;
       for (String childText : childrenTexts) {

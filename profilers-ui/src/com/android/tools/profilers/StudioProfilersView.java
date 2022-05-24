@@ -61,15 +61,14 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import icons.StudioIcons;
@@ -85,7 +84,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -96,7 +94,6 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
@@ -152,7 +149,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageLoadingPanel.setLoadingText("");
     myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(this);
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents the profilers from tabbing
     // across the components (e.g. sessions panel and the main stage UI).
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -160,7 +157,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
-    Disposer.register(this, mySplitter);
 
     myLayeredPane = new TooltipLayeredPane(mySplitter);
     initializeSessionUi();
@@ -295,7 +291,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
               myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
             }
           }
-        }, mySplitter);
+        }, StudioProfilersView.this);
       }
     });
   }
@@ -508,7 +504,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       mySplitter.setFirstSize(0);
     }
     else {
-      mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
+      mySplitter.setDividerMouseZoneSize(JBUIScale.scale(10));
       mySessionsView.getComponent().setMinimumSize(SessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));
@@ -612,8 +608,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   @VisibleForTesting
   public static class StageComboBoxRenderer extends ColoredListCellRenderer<Class> {
-
-    private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
+    private static final ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MainMemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",

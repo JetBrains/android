@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.analytics
 
+//import com.intellij.analytics.AndroidStudioAnalytics
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
-import com.android.tools.idea.startup.AndroidStudioAnalyticsImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.analytics.AndroidStudioAnalytics
 import com.intellij.ide.gdpr.ConsentConfigurable
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -42,7 +41,7 @@ class AnalyticsSettingsUiTest {
 
   @Test
   fun testSettingsUi() {
-    AndroidStudioAnalytics.initialize(AndroidStudioAnalyticsImpl())
+    // AndroidStudioAnalytics.initialize(AndroidStudioAnalyticsImpl())
     AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
       optedIn = false
     })

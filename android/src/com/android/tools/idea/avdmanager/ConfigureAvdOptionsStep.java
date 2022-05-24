@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
+import com.android.io.CancellableFileIo;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
@@ -49,8 +51,8 @@ import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -72,7 +74,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -102,6 +103,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -358,25 +360,24 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (myModel == null) {
       return;
     }
-    String avdDirPath = myModel.getAvdLocation();
-    if (avdDirPath == null) {
+    Path avdDir = myModel.getAvdLocation();
+    if (avdDir == null) {
       return;
     }
-    File avdDir = new File(avdDirPath);
-    if (!avdDir.isDirectory()) {
+    if (!CancellableFileIo.isDirectory(avdDir)) {
       return;
     }
-    File snapshotBaseDir = new File(avdDir, "snapshots");
-    File[] possibleSnapshotDirs = snapshotBaseDir.listFiles();
-    if (possibleSnapshotDirs == null) {
+    Path snapshotBaseDir = avdDir.resolve("snapshots");
+    Path[] possibleSnapshotDirs = FileOpUtils.listFiles(snapshotBaseDir);
+    if (possibleSnapshotDirs.length == 0) {
       return;
     }
     // Check every sub-directory under "snapshots/"
-    for (File snapshotDir : possibleSnapshotDirs) {
-      if (!snapshotDir.isDirectory()) continue;
-      File snapshotProtoBuf = new File(snapshotDir, "snapshot.pb");
-      if (!snapshotProtoBuf.exists()) continue;
-      String snapshotFileName = snapshotDir.getName();
+    for (Path snapshotDir : possibleSnapshotDirs) {
+      if (!CancellableFileIo.isDirectory(snapshotDir)) continue;
+      Path snapshotProtoBuf = snapshotDir.resolve("snapshot.pb");
+      if (CancellableFileIo.notExists(snapshotProtoBuf)) continue;
+      String snapshotFileName = snapshotDir.getFileName().toString();
       if ("default_boot".equals(snapshotFileName)) continue; // Don't include the "Quick boot" option
       try {
         SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf, snapshotFileName);
@@ -449,7 +450,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void populateHostGraphicsDropDown() {
     myHostGraphics.removeAllItems();
-    GpuMode otherMode = gpuOtherMode(getSelectedApiLevel(), isIntel(), isGoogleApiSelected(), SystemInfo.isMac);
+    GpuMode otherMode = gpuOtherMode(getSelectedApiLevel(), isIntel(), isGoogleApiSelected());
 
     myHostGraphics.addItem(GpuMode.AUTO);
     myHostGraphics.addItem(GpuMode.HOST);
@@ -458,7 +459,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @VisibleForTesting
   static
-  GpuMode gpuOtherMode(int apiLevel, boolean isIntel, boolean isGoogle, boolean isMac) {
+  GpuMode gpuOtherMode(int apiLevel, boolean isIntel, boolean isGoogle) {
     boolean supportGuest = (apiLevel >= 23) && isIntel && isGoogle;
     GpuMode otherMode = GpuMode.OFF;
     if (supportGuest) {
@@ -718,13 +719,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
       Icon icon = null;
       try {
-        icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
+        icon = IconLoader.findResolvedIcon(String.format("icons/versions/%s_32.png", codeName), AndroidIcons.class.getClassLoader());
       }
       catch (RuntimeException ignored) {
       }
       if (icon == null) {
         try {
-          icon = IconLoader.findIcon("/icons/versions/Default_32.png", AndroidIcons.class);
+          icon = AndroidIcons.Versions.Default32;
         }
         catch (RuntimeException ignored) {
         }
@@ -896,13 +897,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
 
     /** Read the file from the Emulator that tells us what Snapshot file was chosen.
-     * If successful, this will set {@link mySelectedSnapshot}.
+     * If successful, this will set {@link ConfigureAvdOptionsStep#mySelectedSnapshotFileName}.
      *
      * @param fileToRead The temp file that the Emulator used to pass us the information
      */
     private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
       try (final FileInputStream inputStream = new FileInputStream(fileToRead);
-           final InputStreamReader streamReader = new InputStreamReader(inputStream);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
            final BufferedReader reader = new BufferedReader(streamReader)
       ) {
         final String keyString = "selectedSnapshotFile=";
@@ -1013,7 +1014,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
   private void addValidators() {
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<Storage>() {
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage ram) {
@@ -1023,7 +1024,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<Storage>() {
+    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage heap) {
@@ -1033,7 +1034,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<Storage>() {
+    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage internalMem) {
@@ -1048,7 +1049,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     });
 
     // If we're using an external SD card, make sure it exists
-    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<String>() {
+    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull String path) {
@@ -1059,7 +1060,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }, getModel().useExternalSdCard());
 
     // If we are using an internal SD card, make sure it has enough memory.
-    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
+    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Storage> value) {
@@ -1084,7 +1085,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<Optional<File>>() {
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<File> value) {
@@ -1101,7 +1102,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myOriginalName = getModel().avdDisplayName().get();
 
-    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<String>() {
+    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull String value) {
@@ -1116,8 +1117,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           severity = Severity.ERROR;
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
-        else if ( !value.equals(myOriginalName) &&
-            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
+        else if (!value.equals(myOriginalName) &&
+                 AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
           // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
@@ -1126,7 +1127,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<Boolean>() {
+    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Boolean deviceAndImageArePresent) {
@@ -1301,8 +1302,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
-                                     myAvdIdRow);
+      Lists.newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                         myAvdIdRow);
   }
 
   @Override
@@ -1314,13 +1315,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void createUIComponents() {
-    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<ScreenOrientation, Icon>() {
+    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<>() {
       @Override
       public Icon apply(ScreenOrientation input) {
         return ORIENTATIONS.get(input).myIcon;
       }
     };
-    Function<ScreenOrientation, String> orientationNameFunction = new Function<ScreenOrientation, String>() {
+    Function<ScreenOrientation, String> orientationNameFunction = new Function<>() {
       @Override
       public String apply(ScreenOrientation input) {
         return ORIENTATIONS.get(input).myName;
@@ -1415,7 +1416,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         {
           setTitle("Select a System Image");
           init();
-          chooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
+          chooseImagePanel.addSystemImageListener(new Consumer<>() {
             @Override
             public void consume(SystemImageDescription systemImage) {
               setOKActionEnabled(systemImage != null);
@@ -1451,7 +1452,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         {
           setTitle("Select a Device");
           init();
-          chooseDevicePanel.addDeviceListener(new Consumer<Device>() {
+          chooseDevicePanel.addDeviceListener(new Consumer<>() {
             @Override
             public void consume(Device device) {
               setOKActionEnabled(device != null);

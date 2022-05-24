@@ -58,7 +58,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.codeInsight.problems.MockWolfTheProblemSolver;
+import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -4213,6 +4213,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     WriteAction.run(() -> {
       document.setText("<resources><string name='from_templates'>git</string></resources>");
       fileDocumentManager.saveDocument(document);
+
+      // in production the document will be committed asynchroniously by DocumentCommitThread
+      PsiDocumentManager.getInstance(getProject()).commitDocument(document);
     });
     waitForUpdates(repository);
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_templates"));

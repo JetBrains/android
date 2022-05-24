@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk;
 
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
+
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,14 +29,12 @@ import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class ImportApkAction extends DumbAwareAction {
   @VisibleForTesting
@@ -82,7 +82,7 @@ public class ImportApkAction extends DumbAwareAction {
       return;
     }
     VirtualFile file = files[0];
-    myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, toSystemDependentName(file.getPath()));
+    myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, FileUtilRt.toSystemDependentName(file.getPath()));
     String lastProjectCreation = myRecentProjectsManager.getLastProjectCreationLocation();
 
     myProjectTypeImporter.importFileAsProject(file);

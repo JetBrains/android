@@ -17,8 +17,8 @@ package com.android.tools.idea.common.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 
 /**
  * base class for regions based on rectangles

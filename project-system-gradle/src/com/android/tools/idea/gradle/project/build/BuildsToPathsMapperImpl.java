@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFile;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFileOrLogError;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFileOrLogError;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.build.OutputFile;
@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.util.OutputType;
@@ -80,7 +80,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     }
 
     for (Module module : modules) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
       if (androidModel == null) {
         continue;
       }
@@ -98,7 +98,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     return buildsToPathsCollector;
   }
 
-  private static void collectBuildsToPaths(@NotNull AndroidModuleModel androidModel,
+  private static void collectBuildsToPaths(@NotNull GradleAndroidModel androidModel,
                                            @Nullable PostBuildModel postBuildModel,
                                            @NotNull Module module,
                                            @NotNull String buildVariant,
@@ -117,9 +117,9 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
           .orElse(null);
       List<File> outputFiles = null;
       if (outputInformation != null) {
-        String outputListingFile = getOutputListingFile(outputInformation, outputType);
+        String outputListingFile = getOutputListingFileOrLogError(outputInformation, outputType);
         if (outputListingFile != null) {
-          outputFiles = getOutputFilesFromListingFile(outputListingFile);
+          outputFiles = getOutputFilesFromListingFileOrLogError(outputListingFile);
         }
       }
       outputFolderOrFile =

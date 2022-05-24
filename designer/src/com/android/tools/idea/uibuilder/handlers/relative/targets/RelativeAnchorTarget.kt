@@ -15,7 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_ABOVE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_BELOW
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT
+import com.android.SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF
+import com.android.SdkConstants.NEW_ID_PREFIX
+import com.android.SdkConstants.VALUE_N_DP
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction

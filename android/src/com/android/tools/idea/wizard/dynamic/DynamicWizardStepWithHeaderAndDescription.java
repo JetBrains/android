@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-
-import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Base class for wizard pages with title and description labels underneath
@@ -56,7 +61,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myHeaderPane.setBorder(new EmptyBorder(topSegmentInsets));
     Font font = myTitleLabel.getFont();
     if (font == null) {
-      font = UIUtil.getLabelFont();
+      font = StartupUiUtil.getLabelFont();
     }
     font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
     myTitleLabel.setFont(font);
@@ -80,7 +85,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     super.init();
     myState.put(KEY_TITLE, myTitle);
     myState.put(KEY_MESSAGE, myMessage);
-    register(KEY_TITLE, myTitleLabel, new ComponentBinding<String, JBLabel>() {
+    register(KEY_TITLE, myTitleLabel, new ComponentBinding<>() {
       @Override
       public void setValue(@Nullable String newValue, @NotNull JBLabel component) {
         component.setText(newValue);
@@ -126,8 +131,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   public static final class WizardStepHeaderSettings {
-    public static final String PRODUCT_DESCRIPTION = "Android Studio";
-
     @NotNull public final String title;
     @Nullable public final String description;
     @Nullable public final Icon stepIcon;
@@ -142,12 +145,12 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
     @NotNull
     public static WizardStepHeaderSettings createCustomColorHeader(@NotNull JBColor color, @NotNull String title) {
-      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, color);
+      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getFullProductName(), null, color);
     }
 
     @NotNull
     public static WizardStepHeaderSettings createProductHeader(@NotNull String title) {
-      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, null);
+      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getFullProductName(), null, null);
     }
 
     @NotNull

@@ -44,8 +44,8 @@ internal fun buildQueryCommand(
 ): SqliteInspectorProtocol.Command {
   val parameterValues = sqliteStatement.parametersValues.map { param ->
     SqliteInspectorProtocol.QueryParameterValue.newBuilder().also { builder ->
-      when(param) {
-        is SqliteValue.StringValue -> builder.stringValue = param.value
+      if (param is SqliteValue.StringValue) {
+        builder.stringValue = param.value
       }
     }.build()
   }

@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.LoadingNode;
 import com.intellij.util.ui.tree.TreeModelAdapter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.swing.event.TreeModelEvent;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TreeUtilTest {
   private DefaultTreeModel myModel;
@@ -260,7 +259,7 @@ public class TreeUtilTest {
 
   @NotNull
   private static TreeUtil.UpdateChildrenOps<EntryNode, Entry> createDefaultOps() {
-    return new TreeUtil.UpdateChildrenOps<EntryNode, Entry>() {
+    return new TreeUtil.UpdateChildrenOps<>() {
       @Nullable
       @Override
       public EntryNode getChildNode(@NotNull EntryNode parentNode, int index) {

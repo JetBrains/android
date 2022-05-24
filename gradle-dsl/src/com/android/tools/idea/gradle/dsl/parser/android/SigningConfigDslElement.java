@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.KEY_ALIAS;
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.KEY_PASSWORD;
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.STORE_FILE;
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.STORE_PASSWORD;
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.STORE_TYPE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;

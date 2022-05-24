@@ -3,11 +3,11 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -26,16 +26,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
-import java.util.List;
 
 /**
  * Like CreateTypedResourceFileAction but prompts for a root tag
@@ -56,7 +57,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       // If you're in the Android View, we want to ask you not just the filename but also let you
       // create other resource folder configurations
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane instanceof AndroidProjectViewPane) {
+      if (pane.getId().equals(AndroidProjectView.ID)) {
           return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
       }
 
@@ -124,7 +125,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       myValidator = validator;
       setTitle(AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
-      myRootElementField = new TextFieldWithAutoCompletion<String>(
+      myRootElementField = new TextFieldWithAutoCompletion<>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);
       myRootElementField.setText(getDefaultRootTag(facet.getModule()));
       myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);

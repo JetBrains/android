@@ -76,6 +76,9 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
   }
 
   override fun propertiesGenerated(model: PropertiesModel<P>) {
+    if (Disposer.isDisposed(this)) {
+      return
+    }
     populateInspector(model)
     if (filter.isNotEmpty()) {
       filterChanged("", filter)

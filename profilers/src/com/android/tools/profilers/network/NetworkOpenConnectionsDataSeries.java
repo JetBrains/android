@@ -24,11 +24,10 @@ import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is a data series representing the number of connections open at any given time.

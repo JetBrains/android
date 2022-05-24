@@ -20,7 +20,6 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;

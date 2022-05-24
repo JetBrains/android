@@ -16,18 +16,18 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
-import com.android.layoutinspector.model.ViewProperty;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.AndroidTextUtils;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import java.awt.Color;
+import java.awt.Font;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JTree;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
 
 public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
   private static final Icon DEFAULT_VIEW_ICON = AndroidDomElementDescriptorProvider.getIconForViewTag("View");

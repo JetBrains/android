@@ -15,18 +15,15 @@
  */
 package com.android.tools.adtui.model.updater;
 
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.adtui.model.updater.Updater;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.FakeTimer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public class UpdaterTest {
   private Updater myUpdater;

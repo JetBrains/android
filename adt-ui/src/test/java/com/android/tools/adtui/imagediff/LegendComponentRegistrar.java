@@ -26,8 +26,8 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 
 class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 

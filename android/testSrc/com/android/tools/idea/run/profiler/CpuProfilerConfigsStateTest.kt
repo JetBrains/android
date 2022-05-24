@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.profiler
 
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class CpuProfilerConfigsStateTest {

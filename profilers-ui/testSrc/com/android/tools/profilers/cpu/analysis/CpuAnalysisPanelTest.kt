@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -28,7 +27,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -41,7 +39,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.swing.JLabel
 
 @RunsInEdt
 class CpuAnalysisPanelTest {
@@ -79,31 +76,6 @@ class CpuAnalysisPanelTest {
     assertThat(panel.tabView.tabCount).isEqualTo(0)
     stage.enter()
     assertThat(stateLatch.await(5, TimeUnit.SECONDS)).isTrue()
-  }
-
-  @Test
-  fun newAnalysisIsAutoSelected() {
-    // Add test-only binding.
-    class TestCpuAnalysisTabModel(type: Type) : CpuAnalysisTabModel<CpuCapture>(type)
-    class TestCpuAnalysisTab(profilersView: StudioProfilersView, model: TestCpuAnalysisTabModel)
-      : CpuAnalysisTab<TestCpuAnalysisTabModel>(profilersView, model)
-    panel.tabViewsBinder.bind(TestCpuAnalysisTabModel::class.java, ::TestCpuAnalysisTab)
-
-    stage.enter()
-    val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
-    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
-    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
-    stage.addCpuAnalysisModel(selectedModel)
-    assertThat(panel.tabView.tabCount).isEqualTo(2)
-  }
-
-  @Test
-  fun tabsUpdatedOnTabRemoved() {
-    stage.enter()
-    val treeWalker = TreeWalker(panel.tabs.tabsPanel)
-    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(1)
-    stage.removeCpuAnalysisModel(0)
-    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(0)
   }
 
   @Test

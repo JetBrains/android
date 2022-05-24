@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
 
 public class IncludeViewTestUtils {
 

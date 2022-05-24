@@ -15,7 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_GRAVITY
+import com.android.SdkConstants.ATTR_TEXT_STYLE
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TextStyle
+import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR

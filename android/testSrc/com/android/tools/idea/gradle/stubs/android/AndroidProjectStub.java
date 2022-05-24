@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.util.containers.ContainerUtil.emptyList;
 import static com.intellij.util.containers.ContainerUtil.map;
 import static org.mockito.Mockito.mock;
 
@@ -37,25 +36,24 @@ import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.builder.model.VariantBuildInformation;
 import com.android.builder.model.ViewBindingOptions;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.tools.idea.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.tools.idea.gradle.model.stubs.ViewBindingOptionsStub;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.project.sync.ModuleId;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -64,9 +62,9 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidProjectStub implements AndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
 
-  @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
-  @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
-  @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
+  @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = new HashMap<>();
+  @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = new HashMap<>();
+  @NotNull private final Map<String, Variant> myVariants = new HashMap<>();
   @NotNull private final List<VariantBuildInformation> myVariantsBuiltInformation = new ArrayList<>();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
@@ -80,7 +78,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
   @NotNull private final ViewBindingOptionsStub myViewBindingOptions = new ViewBindingOptionsStub();
 
-  @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
+  @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-dev";
   @Nullable private VariantStub myFirstVariant;
   private int myProjectType = AndroidProjectTypes.PROJECT_TYPE_APP;
 
@@ -350,7 +348,7 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public String getNdkVersion() {
     return "21.0.0";
   }
@@ -396,12 +394,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get()).androidProjectFrom(androidProject);
+    return ModelCache.create(false).androidProjectFrom(androidProject);
   }
 
   @NotNull
   public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
-    ModelCache modelCache = ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get());
+    ModelCache modelCache = ModelCache.create(false);
     GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
     IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
     return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, new ModuleId("", "")));

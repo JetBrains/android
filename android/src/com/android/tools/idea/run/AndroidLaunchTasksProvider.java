@@ -21,12 +21,13 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
+import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
-import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
@@ -40,16 +41,15 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
-import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,7 +86,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    final List<LaunchTask> launchTasks = Lists.newArrayList();
+    final List<LaunchTask> launchTasks = new ArrayList<>();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       launchTasks.add(new ClearLogcatTask(myProject));
@@ -105,10 +105,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-        String amOptions = taskContributor.getAmStartOptions(myFacet.getModule(), packageName, myLaunchOptions, device);
+        String amOptions = taskContributor.getAmStartOptions(packageName, myRunConfig, device, myEnv.getExecutor());
         amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
 
-        LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName, myLaunchOptions);
+        LaunchTask task = taskContributor.getTask(packageName, myRunConfig, device, myEnv.getExecutor());
         if (task != null) {
           launchTasks.add(task);
         }
@@ -162,15 +162,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     List<LaunchTask> tasks = new ArrayList<>();
-    if (StudioFlags.UNINSTALL_LAUNCHER_APPS_ENABLED.get() &&
-        device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
-      tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
-    }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
     List<ApkInfo> packages = myApkProvider.getApks(device).stream()
       .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
       .collect(Collectors.toList());
+
+    Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
     switch (getDeployType()) {
       case RUN_INSTANT_APP:
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
@@ -183,17 +181,18 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myProject,
           packages,
           isApplyChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
-
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
           myProject,
           packages,
           isApplyCodeChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
         break;
@@ -203,7 +202,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages,
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
         break;

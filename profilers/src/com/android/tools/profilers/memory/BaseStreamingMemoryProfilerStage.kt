@@ -33,7 +33,6 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.codenavigation.CodeNavigator
-import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
@@ -109,8 +108,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   var liveAllocationSamplingMode = LiveAllocationSamplingMode.NONE
     private set(mode) {
       if (mode != field) {
-        field = mode;
-        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
+        field = mode
+        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE)
       }
     }
 
@@ -146,24 +145,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
         // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
         series.name != detailedMemoryUsage.objectsSeries.name ||
         (!isLiveAllocationTrackingReady || data.value.currentRate.samplingNumInterval == FULL.value)
-      }
-    }
-
-    // Get ready to fire LIVE_ALLOCATION_STATUS if applicable.
-    if (studioProfilers.sessionsManager.isSessionAlive && isLiveAllocationTrackingSupported) {
-      // Note the max of current data range as isLiveAllocationTrackingReady() returns info before it.
-      val currentRangeMax = profilers.timeline.dataRange.max.toLong().microsToNanos()
-      if (!isLiveAllocationTrackingReady) {
-        val listener = TransportEventListener(
-          Common.Event.Kind.MEMORY_ALLOC_SAMPLING, studioProfilers.ideServices.mainExecutor,
-          { true }, { sessionData.streamId }, { sessionData.pid },
-          null,  // wait for only new events, not old ones such as those from previous sessions
-          { currentRangeMax }
-        ) {
-          aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
-          true
-        }
-        studioProfilers.transportPoller.registerListener(listener)
       }
     }
 

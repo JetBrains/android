@@ -19,10 +19,14 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Basic display layer for Scene
@@ -86,6 +90,15 @@ public class SceneLayer extends Layer {
         paintBackground(g, sceneContext);
       }
 
+      // When screen rotation feature is enabled, we want to hide the relevant drawings.
+      DesignSurface sufrace = mySceneView.getSurface();
+      if (sufrace instanceof NlDesignSurface) {
+        NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
+        float degree = nlSurface.getRotateSurfaceDegree();
+        if (!Float.isNaN(degree)) {
+          return;
+        }
+      }
       // Draw the components
       myDisplay.draw(sceneContext, g, mySceneView.getScene());
     }

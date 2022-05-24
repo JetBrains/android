@@ -20,19 +20,15 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
-import com.android.tools.idea.editors.AndroidEditorAppearanceState;
-import com.google.common.collect.Maps;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
-import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,8 +55,7 @@ public class FlagManager {
    *
    * @return the {@linkplain FlagManager} singleton, never null
    */
-  @NotNull
-  public static FlagManager get() {
+  public static @NotNull FlagManager get() {
     return ourInstance;
   }
 
@@ -74,7 +69,7 @@ public class FlagManager {
    * Map from region to flag icon
    */
   @NotNull
-  private final Map<String, Icon> myImageMap = Maps.newHashMap();
+  private final Map<String, Icon> myImageMap = new HashMap<>();
 
   /**
    * Returns the flag for the given language and region.
@@ -187,34 +182,36 @@ public class FlagManager {
   @Nullable
   private Icon getIcon(@NotNull String base) {
     Icon flagImage = myImageMap.get(base);
-    if (flagImage == null) {
-      // TODO: Special case locale currently running on system such
-      // that the current country matches the current locale
-      if (myImageMap.containsKey(base)) {
-        // Already checked: there's just no image there
-        return null;
-      }
-      @SuppressWarnings("UnnecessaryFullyQualifiedName")
-      String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
-      try {
-        flagImage = IconLoader.findIcon("/icons/flags/" + flagFileName, AndroidIcons.class);
-      } catch (Throwable t) {
-        // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
-        // when IconLoader.STRICT is set to true, which is the case when running unit tests
-        // or with idea.is.internal=true
-      }
-      if (flagImage == null) {
-        flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
-      }
-      myImageMap.put(base, flagImage);
+    if (flagImage != null) {
+      return flagImage;
     }
+
+    // TODO: Special case locale currently running on system such
+    // that the current country matches the current locale
+    if (myImageMap.containsKey(base)) {
+      // Already checked: there's just no image there
+      return null;
+    }
+    @SuppressWarnings("UnnecessaryFullyQualifiedName")
+    String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
+    try {
+      flagImage = IconLoader.findResolvedIcon("icons/flags/" + flagFileName, AndroidIcons.class.getClassLoader());
+    }
+    catch (Throwable t) {
+      // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
+      // when IconLoader.STRICT is set to true, which is the case when running unit tests
+      // or with idea.is.internal=true
+    }
+    if (flagImage == null) {
+      flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+    }
+    myImageMap.put(base, flagImage);
 
     return flagImage;
   }
 
   /** Returns a {@link ListCellRenderer} suitable for displaying languages when the list model contains String language codes */
-  @NotNull
-  public ListCellRenderer getLanguageCodeCellRenderer() {
+  public @NotNull ListCellRenderer getLanguageCodeCellRenderer() {
     final Function<Object, String> nameMapper = getLanguageNameMapper();
     return SimpleListCellRenderer.create((label, value, index) -> {
       label.setText(nameMapper.fun(value));
@@ -223,8 +220,7 @@ public class FlagManager {
   }
 
   /** Returns a {@link ListCellRenderer} suitable for displaying regions when the list model contains String region codes */
-  @NotNull
-  public ListCellRenderer getRegionCodeCellRenderer() {
+  public @NotNull ListCellRenderer getRegionCodeCellRenderer() {
     final Function<Object, String> nameMapper = getRegionNameMapper();
     return SimpleListCellRenderer.create((label, value, index) -> {
       label.setText(nameMapper.fun(value));
@@ -233,9 +229,8 @@ public class FlagManager {
   }
 
   /** A function which maps from language code to a language label: code + name */
-  @NotNull
-  public static  Function<Object, String> getLanguageNameMapper() {
-    return new Function<Object, String>() {
+  public static @NotNull Function<Object, String> getLanguageNameMapper() {
+    return new Function<>() {
       @Override
       public String fun(Object value) {
         String languageCode = (String)value;
@@ -252,9 +247,8 @@ public class FlagManager {
   }
 
   /** A function which maps from language code to a language label: code + name */
-  @NotNull
-  public static Function<Object, String> getRegionNameMapper() {
-    return new Function<Object, String>() {
+  public static @NotNull Function<Object, String> getRegionNameMapper() {
+    return new Function<>() {
       @Override
       public String fun(Object value) {
         String regionCode = (String)value;

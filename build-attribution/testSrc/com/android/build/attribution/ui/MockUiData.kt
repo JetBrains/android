@@ -16,8 +16,6 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
-import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
-import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
@@ -71,7 +69,7 @@ class MockUiData(
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
   override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
-  override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsedCheckRequired
+  override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,
     isGarbageCollectorSettingSet: Boolean? = null

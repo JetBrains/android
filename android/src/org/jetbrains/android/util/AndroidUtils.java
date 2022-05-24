@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2011 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -26,8 +12,7 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -36,15 +21,10 @@ import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
@@ -57,12 +37,10 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
@@ -74,8 +52,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -308,53 +286,6 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @NotNull
-  public static ExecutionStatus executeCommand(@NotNull GeneralCommandLine commandLine,
-                                               @Nullable OutputProcessor processor,
-                                               @Nullable WaitingStrategies.Strategy strategy) throws ExecutionException {
-    LOG.info(commandLine.getCommandLineString());
-    OSProcessHandler handler = new OSProcessHandler(commandLine);
-
-    ProcessAdapter listener = new ProcessAdapter() {
-      @Override
-      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-        if (processor != null) {
-          String message = event.getText();
-          processor.onTextAvailable(message);
-        }
-      }
-    };
-
-    if (!(strategy instanceof WaitingStrategies.DoNotWait)) {
-      handler.addProcessListener(listener);
-    }
-
-    handler.startNotify();
-    try {
-      if (!(strategy instanceof WaitingStrategies.WaitForever)) {
-        if (strategy instanceof WaitingStrategies.WaitForTime) {
-          handler.waitFor(((WaitingStrategies.WaitForTime)strategy).getTimeMs());
-        }
-      }
-      else {
-        handler.waitFor();
-      }
-    }
-    catch (ProcessCanceledException e) {
-      return ExecutionStatus.ERROR;
-    }
-
-    if (!handler.isProcessTerminated()) {
-      return ExecutionStatus.TIMEOUT;
-    }
-
-    if (!(strategy instanceof WaitingStrategies.DoNotWait)) {
-      handler.removeProcessListener(listener);
-    }
-    int exitCode = handler.getProcess().exitValue();
-    return exitCode == 0 ? ExecutionStatus.SUCCESS : ExecutionStatus.ERROR;
-  }
-
-  @NotNull
   public static String getSimpleNameByRelativePath(@NotNull String relativePath) {
     relativePath = FileUtil.toSystemIndependentName(relativePath);
     int index = relativePath.lastIndexOf('/');
@@ -528,49 +459,13 @@ public class AndroidUtils extends CommonAndroidUtil {
     return depFacets;
   }
 
-  /**
-   * Returns the AndroidFacets corresponding to the Android modules that the given module transitively
-   * depends on for resources.
-   * <p/>
-   * Note that this method should only be used to find dependencies in the context of resolving Android
-   * resources. This is a special case where, depending on the build system, we may be able to ignore
-   * certain modules to improve performance. If you want to find <b>all</b> the modules that a given module
-   * depends on according to its order entries, use {@link AndroidUtils#getAllAndroidDependencies}.
-   * <p/>
-   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
-   * be determined from order entries for all supported build systems.
-   *
-   * @see AndroidModuleSystem#getResourceModuleDependencies()
-   */
-  public static List<AndroidFacet> getAndroidResourceDependencies(@NotNull Module module) {
-    return ProjectSystemUtil.getModuleSystem(module)
-      .getResourceModuleDependencies()
-      .stream()
-      .map(AndroidFacet::getInstance)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-  }
-
-  /**
-   * Returns the AndroidFacets corresponding to all the Android modules that the given module
-   * transitively depends on.
-   * <p/>
-   * Callers who need to know a module's dependencies <b>in the context of resolving resources</b>
-   * should consider using {@link AndroidUtils#getAndroidResourceDependencies(Module)} instead,
-   * as that method may exclude irrelevant modules depending on the build system.
-   */
-  @NotNull
-  public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
-    return AndroidDependenciesCache.getInstance(module).getAllAndroidDependencies(androidLibrariesOnly);
-  }
-
   @NotNull
   public static Set<String> getDepLibsPackages(Module module) {
     Set<String> result = new HashSet<>();
     HashSet<Module> visited = new HashSet<>();
 
     if (visited.add(module)) {
-      for (AndroidFacet depFacet : getAllAndroidDependencies(module, true)) {
+      for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
         Manifest manifest = Manifest.getMainManifest(depFacet);
 
         if (manifest != null) {
@@ -783,10 +678,12 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notifications.Bus.notify(new Notification(NotificationGroup.createIdWithTitle(
+    Notification notification = new Notification(NotificationGroup.createIdWithTitle(
       "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
                                               AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, NotificationType.ERROR, listener), project);
+                                              message, NotificationType.ERROR);
+    if (listener != null) notification.setListener(listener);
+    notification.notify(project);
     LOG.debug(message);
   }
 
@@ -813,7 +710,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       if (sdkHomeCanonicalPath != null) {
         url = StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
-      result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
+      result.add(FileUtilRt.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
   }
@@ -831,10 +728,14 @@ public class AndroidUtils extends CommonAndroidUtil {
     return false;
   }
 
+  /**
+   * Checks if the project contains a module with an Android, an Apk or a Gradle facet.
+   * See also {@link com.android.tools.idea.FacetUtils#hasAndroidOrApkFacet}.
+   */
   public static boolean hasAndroidFacets(@NotNull Project project) {
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.getFacetType().getId()) ||
-           facetManager.hasFacets(ApkFacet.getFacetTypeId()) ||
+    return facetManager.hasFacets(AndroidFacet.ID) ||
+           facetManager.hasFacets(ApkFacet.ID) ||
            facetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 

@@ -87,7 +87,7 @@ class TraceProcessorDaemonBenchmarkTest {
     assertTrue(loadResponse.completed)
     assertTrue(loadResponse.response!!.ok)
 
-    val cpuDataRequestProto = TraceProcessorServiceImpl.buildCpuDataRequestProto(case.tradeId, case.processes,
+    val cpuDataRequestProto = TraceProcessorServiceImpl.buildCpuDataRequestProto(case.tradeId, case.processes.map(::fakeProcess),
                                                                                  ProcessModel(123, "", emptyMap(), emptyMap()))
     lateinit var queryBatchResponse: TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse>
     tpdQueryTimeBenchmark.log("${case.name}-CpuData", measureTimeMillis {
@@ -104,4 +104,8 @@ class TraceProcessorDaemonBenchmarkTest {
       .setTraceId(id)
       .setTracePath(trace.absolutePath)
       .build()
+
+  companion object {
+    fun fakeProcess(id: Int) = ProcessModel(id, id.toString(), mapOf(), mapOf())
+  }
 }

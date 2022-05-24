@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
@@ -41,6 +42,9 @@ import java.awt.Dimension
 class WarningsPageViewTest {
   @get:Rule
   val applicationRule: ApplicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule: DisposableRule = DisposableRule()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -66,7 +70,7 @@ class WarningsPageViewTest {
 
   @Before
   fun setUp() {
-    view = WarningsPageView(model, mockHandlers).apply {
+    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
   }
@@ -137,7 +141,7 @@ class WarningsPageViewTest {
       confCachingData = ConfigurationCachingTurnedOn
     }
     val model = WarningsDataPageModelImpl(data)
-    view = WarningsPageView(model, mockHandlers).apply {
+    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
 

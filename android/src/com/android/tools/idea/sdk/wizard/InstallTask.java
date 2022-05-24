@@ -29,12 +29,11 @@ import com.android.repository.api.Uninstaller;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -51,6 +50,7 @@ import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,7 +103,7 @@ class InstallTask extends Task.Backgroundable {
 
   @Override
   public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
-    final List<RepoPackage> failures = Lists.newArrayList();
+    final List<RepoPackage> failures = new ArrayList<>();
 
     LinkedHashMap<RepoPackage, PackageOperation> operations = new LinkedHashMap<>();
     if (!myInstallRequests.isEmpty()) {
@@ -328,7 +328,7 @@ class InstallTask extends Task.Backgroundable {
             message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
           }
           group.createNotification(
-            "SDK Install", message, NotificationType.INFORMATION, notificationListener).notify(p);
+            "SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p);
         }
       },
       ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)

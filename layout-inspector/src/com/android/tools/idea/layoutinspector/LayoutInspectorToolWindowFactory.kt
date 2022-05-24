@@ -95,13 +95,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         processes.addSelectedProcessListeners {
           // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
           // encountered during a previous run.
-          InspectorBannerService.getInstance(project).notification = null
+          if (!project.isDisposed) {
+            InspectorBannerService.getInstance(project).notification = null
+          }
         }
 
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val stats = SessionStatistics(model, treeSettings)
-        launcher = InspectorClientLauncher.createDefaultLauncher(processes, model, stats, workbench)
+        launcher = InspectorClientLauncher.createDefaultLauncher(processes, model, LayoutInspectorMetrics(project, null, stats), workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
         val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))

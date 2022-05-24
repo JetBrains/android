@@ -16,23 +16,20 @@
 package com.android.tools.idea.npw.project;
 
 
-import com.android.SdkConstants;
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
-import com.intellij.openapi.util.SystemInfo;
-import org.junit.Assume;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.setGradleWrapperExecutable;
 import static com.intellij.testFramework.UsefulTestCase.assertDoesntExist;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import com.android.SdkConstants;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
-
-import static org.junit.Assert.fail;
+import org.junit.Assume;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Tests for {@link AndroidGradleModuleUtils}

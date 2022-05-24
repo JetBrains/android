@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.mockup.backgroundremove;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Composite;
+import java.awt.CompositeContext;
+import java.awt.RenderingHints;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 
 /**
  * <p>

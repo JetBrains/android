@@ -34,11 +34,11 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property.support.TypeResolver
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
@@ -59,7 +59,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
-import java.util.ArrayList
 
 private const val EXPECTED_ROWS = 3
 private const val EXPECTED_CELLS_PER_ROW = 10

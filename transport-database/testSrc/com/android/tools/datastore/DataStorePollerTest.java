@@ -15,12 +15,14 @@
  */
 package com.android.tools.datastore;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import io.grpc.stub.StreamObserver;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 public class DataStorePollerTest {
 

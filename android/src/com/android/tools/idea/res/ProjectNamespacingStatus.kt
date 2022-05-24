@@ -20,7 +20,6 @@ import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -30,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * When namespaces are not used at all, some project-wide functionality may be simplified, e.g. "find usages" doesn't have to look for
  * usages of fields from two R classes (namespaced and non-namespaced). This is mostly to simplify UI, not gain performance.
  */
-class ProjectNamespacingStatusService(val project: Project) {
+class ProjectNamespacingStatusService(private val project: Project) {
   @Volatile
   var namespacesUsed = checkNamespacesUsed()
     private set
@@ -49,6 +48,6 @@ class ProjectNamespacingStatusService(val project: Project) {
   }
 
   companion object {
-    @JvmStatic fun getInstance(project: Project) = ServiceManager.getService(project, ProjectNamespacingStatusService::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectNamespacingStatusService::class.java)!!
   }
 }

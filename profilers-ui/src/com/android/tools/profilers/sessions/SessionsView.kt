@@ -240,7 +240,10 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
               }
             val plainProcessAction = processAction {""}
             val annotatedProcessAction = processAction {
-              if (profilers.getProcessSupportLevel(it.pid) == SupportLevel.PROFILEABLE) " (profileable)" else ""
+              when (profilers.getProcessSupportLevel(it.pid)) {
+                SupportLevel.PROFILEABLE -> " (profileable)"
+                else -> " (debuggable)"
+              }
             }
 
             val (preferredProcesses, otherProcesses) = profilers.preferredProcessName.let { preferredProcess ->

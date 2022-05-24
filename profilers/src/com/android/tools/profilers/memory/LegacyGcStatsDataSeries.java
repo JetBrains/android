@@ -21,11 +21,10 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public final class LegacyGcStatsDataSeries implements DataSeries<GcDurationData> {
   @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;

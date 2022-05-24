@@ -24,7 +24,7 @@ public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
 
   @Nullable
   @Override
-  public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, Project project) {
+  public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, @NotNull Project project) {
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null;
 
     ProjectFileIndex index = ProjectRootManager.getInstance(project).getFileIndex();

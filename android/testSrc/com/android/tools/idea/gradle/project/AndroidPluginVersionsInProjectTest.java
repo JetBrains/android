@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class AndroidPluginVersionsInProjectTest {
   private AndroidPluginVersionsInProject myAgpVersions;

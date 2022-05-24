@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
@@ -28,8 +30,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 
 public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
   @Override

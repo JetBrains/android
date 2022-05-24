@@ -20,9 +20,8 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.image.BufferedImage;
+import org.jetbrains.annotations.Nullable;
 
 public class BitmapDrawableRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
   public static final String BITMAP_DRAWABLE_FQCN = "android.graphics.drawable.BitmapDrawable";

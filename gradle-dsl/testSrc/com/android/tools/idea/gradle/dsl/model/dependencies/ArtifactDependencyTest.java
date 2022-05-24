@@ -45,7 +45,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
-import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText.*;
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText.InterpolatedTextItem;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;

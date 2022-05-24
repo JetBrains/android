@@ -21,12 +21,9 @@ import com.google.common.collect.Lists;
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 import java.util.List;
+import org.fest.swing.edt.GuiQuery;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Fixture for the Inspections window in the IDE
@@ -73,7 +70,7 @@ public class InspectionsFixture extends ToolWindowFixture {
     for (int i = 0, n = node.getChildCount(); i < n; i++) {
       children.add((InspectionTreeNode)node.getChildAt(i));
     }
-    Collections.sort(children, (node1, node2) -> node1.toString().compareTo(node2.toString()));
+    children.sort((node1, node2) -> node1.toString().compareTo(node2.toString()));
     for (InspectionTreeNode child : children) {
       describe(child, sb, depth + 1);
     }

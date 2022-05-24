@@ -21,8 +21,8 @@ import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 /**
  * Tests for [ChooseFragmentTypeStep].

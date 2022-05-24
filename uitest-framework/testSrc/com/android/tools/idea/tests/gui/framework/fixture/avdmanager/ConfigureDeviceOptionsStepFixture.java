@@ -17,9 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JRootPane;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ConfigureDeviceOptionsStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureDeviceOptionsStepFixture, W> {

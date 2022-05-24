@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
 import junit.framework.TestCase
-import kotlin.math.abs
 import java.util.function.Function
+import kotlin.math.abs
 import kotlin.math.pow
 
 /**

@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.TransitionInfo
+import com.android.SdkConstants
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -26,11 +31,16 @@ import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.uipreview.createUrlClassLoader
@@ -44,8 +54,10 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.io.IOException
 import java.util.stream.Collectors
+import javax.swing.JSlider
 
 class ComposePreviewAnimationManagerTest {
 
@@ -54,12 +66,21 @@ class ComposePreviewAnimationManagerTest {
 
   private lateinit var parentDisposable: Disposable
 
-  private lateinit var surface: NlDesignSurface
+  private lateinit var surface: DesignSurface
 
   @Before
   fun setUp() {
     parentDisposable = Disposer.newDisposable()
+    val model = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout.xml",
+        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+      ).build()
+    }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
+    surface.addModelWithoutRender(model)
   }
 
   @After
@@ -101,36 +122,38 @@ class ComposePreviewAnimationManagerTest {
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
     val inspector = createAndOpenInspector()
 
-    fun noAnimationsPanel() = TreeWalker(inspector).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
-
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
-    assertNotNull(noAnimationsPanel())
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertNotNull(inspector.noAnimationsPanel())
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertNull(noAnimationsPanel())
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertNull(inspector.noAnimationsPanel())
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no animations panel
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
     UIUtil.pump() // Wait for the tab to be removed on the UI thread
-    assertNotNull(noAnimationsPanel())
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertNotNull(inspector.noAnimationsPanel())
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
   }
 
   @Test
   fun oneTabPerSubscribedAnimation() {
     val inspector = createAndOpenInspector()
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
 
     val animation1 = createComposeAnimation()
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val animation2 = createComposeAnimation()
@@ -146,12 +169,13 @@ class ComposePreviewAnimationManagerTest {
   @Test
   fun subscriptionNewClockClearsPreviousClockAnimations() {
     val inspector = createAndOpenInspector()
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
 
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val anotherClock = TestClock()
@@ -184,7 +208,10 @@ class ComposePreviewAnimationManagerTest {
     val animationStates = setOf("State1", "State2", "State3")
 
     val transitionAnimation = object : ComposeAnimation {
-      override val animationObject = Any()
+      override val animationObject = object {
+        @Suppress("unused") // Method is called via reflection.
+        fun getCurrentState() = "State1"
+      }
       override val type = ComposeAnimationType.TRANSITION_ANIMATION
       override val states = animationStates
     }
@@ -206,10 +233,18 @@ class ComposePreviewAnimationManagerTest {
     assertEquals("State1", startStateComboBox.selectedItem)
     // The "end" combo box does not display the same state as the "start" combo box if possible
     assertEquals("State2", endStateComboBox.selectedItem)
+
+    // Change state of the comboBox.
+    startStateComboBox.selectedItem = "State2"
+    UIUtil.pump() // Wait for all changes in UI thread
+
+    // Change state of the comboBox back to previous state - cached transition info should be used.
+    startStateComboBox.selectedItem = "State1"
+    UIUtil.pump() // Wait for all changes in UI thread
   }
 
   @Test
-  fun animatedVisibilityComboBoxDisplayAllVisibilitySates() {
+  fun animatedVisibilityComboBoxDisplayAllVisibilityStates() {
     val inspector = createAndOpenInspector()
 
     val animatedVisibilityAnimation = object : ComposeAnimation {
@@ -229,6 +264,105 @@ class ComposePreviewAnimationManagerTest {
     assertEquals("Enter", animatedVisibilityComboBox.getItemAt(0))
     assertEquals("Exit", animatedVisibilityComboBox.getItemAt(1))
     assertEquals("Enter", animatedVisibilityComboBox.selectedItem)
+
+    // Change state of the comboBox.
+    animatedVisibilityComboBox.selectedItem = "Exit"
+    UIUtil.pump() // Wait for all changes in UI thread
+
+    // Change state of the comboBox back to previous state - cached transition info should be used.
+    animatedVisibilityComboBox.selectedItem = "Enter"
+    UIUtil.pump() // Wait for all changes in UI thread
+  }
+
+  @Test
+  fun changeClockTime() {
+    val inspector = createAndOpenInspector()
+
+    val transitionAnimation = object : ComposeAnimation {
+      override val animationObject = object {
+        @Suppress("unused") // Method is called via reflection.
+        fun getCurrentState() = "State1"
+      }
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = setOf("State1", "State2", "State3")
+    }
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), transitionAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    // We can get any of the combo boxes, since "from" and "to" states should be the same.
+    val sliders = TreeWalker(inspector).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
+    assertEquals(1, sliders.size) //
+    val timelineSlider = sliders[0] as JSlider
+    timelineSlider.value = 100
+    UIUtil.pump() // Wait for all changes in UI thread
+    timelineSlider.value = 200
+    UIUtil.pump() // Wait for all changes in UI thread
+  }
+
+  @Test
+  fun playbackControlActions() {
+    val inspector = createAndOpenInspector()
+
+    val transitionAnimation = object : ComposeAnimation {
+      override val animationObject = object {
+        @Suppress("unused") // Method is called via reflection.
+        fun getCurrentState() = "State1"
+      }
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = setOf("State1", "State2", "State3")
+    }
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), transitionAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val toolbars = TreeWalker(inspector).descendantStream().filter { it is ActionToolbarImpl }.collect(
+      Collectors.toList()).map { it as ActionToolbarImpl }
+    val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+    assertNotNull(playbackControls)
+    assertEquals(6, playbackControls!!.actions.size)
+    val actionEvent = Mockito.mock(AnActionEvent::class.java)
+    // Press loop
+    val loopAction = playbackControls.actions[0] as ToggleAction
+    loopAction.setSelected(actionEvent, true)
+    UIUtil.pump() // Wait for all changes in UI thread
+    // Play and pause
+    val playAction = playbackControls.actions[2]
+    playAction.actionPerformed(actionEvent)
+    UIUtil.pump() // Wait for all changes in UI thread
+    playAction.actionPerformed(actionEvent)
+    UIUtil.pump() // Wait for all changes in UI thread
+    // Go to start.
+    val goToStart = playbackControls.actions[1]
+    goToStart.actionPerformed(actionEvent)
+    UIUtil.pump() // Wait for all changes in UI thread
+    // Go to end.
+    val toToEnd = playbackControls.actions[3]
+    toToEnd.actionPerformed(actionEvent)
+    UIUtil.pump() // Wait for all changes in UI thread
+    // Un-press loop
+    loopAction.setSelected(actionEvent, false)
+    UIUtil.pump() // Wait for all changes in UI thread
+  }
+
+  @Test
+  fun resizeInspector() {
+    val inspector = createAndOpenInspector()
+
+    val transitionAnimation = object : ComposeAnimation {
+      override val animationObject = object {
+        @Suppress("unused") // Method is called via reflection.
+        fun getCurrentState() = "State1"
+      }
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = setOf("State1", "State2", "State3")
+    }
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), transitionAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    inspector.setSize(inspector.size.width * 2, inspector.size.height * 2)
+    UIUtil.pump() // Wait for all changes in UI thread
   }
 
   @Test
@@ -287,6 +421,22 @@ class ComposePreviewAnimationManagerTest {
   }
 
   @Test
+  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
+    val inspector = createAndOpenInspector()
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), createComposeAnimation())
+    UIUtil.pump() // Wait for the tab to be added on the UI
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
+    assertNull(inspector.noAnimationsPanel())
+
+    ComposePreviewAnimationManager.invalidate()
+    UIUtil.pump() // Wait for the tab to be added on the UI
+    assertNotNull(inspector.noAnimationsPanel())
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
+  }
+
+  @Test
   @Throws(IOException::class, ClassNotFoundException::class)
   fun classLoaderRedirectsSubscriptionToAnimationManager() {
     class PreviewAnimationClockClassLoader : DelegatingClassLoader(this.javaClass.classLoader,
@@ -332,7 +482,8 @@ class ComposePreviewAnimationManagerTest {
       animationClock.findClockFunction("unknownFunction")
       fail("Expected to fail, as `unknownFunction` is not a function of TestClock.")
     }
-    catch (ignored: NullPointerException) { }
+    catch (ignored: NullPointerException) {
+    }
 
     // getAnimatedVisibilityState is a supported function, but its name is mangled. We should find it when looking for the function without
     // the hash suffix, not when we specify it.
@@ -341,7 +492,8 @@ class ComposePreviewAnimationManagerTest {
       animationClock.findClockFunction("getAnimatedVisibilityState-xga21d")
       fail("Expected to fail, as `getAnimatedVisibilityState-xga21d` should not be found when looking for the mangled name.")
     }
-    catch (ignored: NullPointerException) { }
+    catch (ignored: NullPointerException) {
+    }
   }
 
   private fun createAndOpenInspector(): AnimationInspectorPanel {
@@ -363,14 +515,42 @@ class ComposePreviewAnimationManagerTest {
 
   private fun AnimationInspectorPanel.getTabTitleAt(index: Int) = invokeAndWaitIfNeeded { tabbedPane.getTabAt(index).text }
 
+  private fun AnimationInspectorPanel.noAnimationsPanel() =
+    TreeWalker(this).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
+
   /**
    * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't break when the test tries to call them
    * via reflection.
    */
   private class TestClock {
-    fun getAnimatedProperties(animation: Any) = emptyList<Any>()
-    fun getMaxDuration() = 0L
-    fun getMaxDurationPerIteration() = 0L
+    fun getAnimatedProperties(animation: Any) = listOf<ComposeAnimatedProperty>(
+      ComposeAnimatedProperty("Int", 1),
+      ComposeAnimatedProperty("IntSnap", 1),
+      ComposeAnimatedProperty("Float", 1f),
+      ComposeAnimatedProperty("Double", 1.0)
+    )
+
+    fun getTransitions(animation: Any, clockTimeMsStep: Long) = listOf(
+      TransitionInfo("Int", "specType",
+                     startTimeMillis = 0,
+                     endTimeMillis = 100,
+                     values = mapOf(0L to 1, 50L to 2, 100L to 3)),
+      TransitionInfo("IntSnap", "Snap",
+                     startTimeMillis = 0,
+                     endTimeMillis = 0,
+                     values = mapOf(0L to 100)),
+      TransitionInfo("Float", "specType",
+                     startTimeMillis = 100,
+                     endTimeMillis = 200,
+                     values = mapOf(100L to 1f, 150L to 0f, 200L to 2f)),
+      TransitionInfo("Double", "specType",
+                     startTimeMillis = 0,
+                     endTimeMillis = 100,
+                     values = mapOf(0L to 1.0, 50L to 10.0, 100L to 2.0))
+    )
+
+    fun getMaxDuration() = 1000L
+    fun getMaxDurationPerIteration() = 1000L
     fun updateAnimationStates() {}
     fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
     fun setClockTime(time: Long) {}

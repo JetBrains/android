@@ -34,8 +34,8 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"

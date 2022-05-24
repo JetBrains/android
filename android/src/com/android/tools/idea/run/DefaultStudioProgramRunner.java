@@ -16,12 +16,14 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.openapi.project.Project;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +37,7 @@ public class DefaultStudioProgramRunner extends StudioProgramRunner {
 
   @VisibleForTesting
   public DefaultStudioProgramRunner(@NotNull Function<Project, GradleSyncState> syncStateGetter,
-                                    @NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
+                                    @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @NotNull AndroidExecutionTarget> executionTargetGetter) {
     super(syncStateGetter, executionTargetGetter);
   }
 

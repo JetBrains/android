@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.tools.idea.tests.gui.uibuilder.Assert.assertPathExists;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
-import static com.android.tools.idea.tests.gui.uibuilder.Assert.assertPathExists;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class DragPreferencesFromPaletteToComponentTreeTest {

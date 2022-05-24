@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -26,8 +28,6 @@ import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * UI test for the layout preview window

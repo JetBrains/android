@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
@@ -91,7 +90,6 @@ abstract class Vm(
   @Throws(WizardException::class, IOException::class)
   protected fun getInstallerBaseCommandLine(sdk: File): GeneralCommandLine {
     return when {
-      SystemInfo.isMac -> getMacBaseCommandLine(getSourceLocation(sdk))
       SystemInfo.isWindows -> getWindowsBaseCommandLine(getSourceLocation(sdk))
       else -> throw IllegalStateException("Unsupported OS")
     }
@@ -100,11 +98,6 @@ abstract class Vm(
   @Throws(WizardException::class, IOException::class)
   protected open fun getUninstallCommandLine(sdk: File): GeneralCommandLine =
     getInstallerBaseCommandLine(sdk).apply { addParameters("-u") }
-
-  @Throws(IOException::class, WizardException::class)
-  protected open fun getMacBaseCommandLine(source: File): GeneralCommandLine {
-    throw IllegalStateException("Unsupported OS")
-  }
 
   @Throws(IOException::class)
   protected fun getWindowsBaseCommandLine(source: File): GeneralCommandLine {
@@ -234,7 +227,6 @@ abstract class Vm(
       })
       progressStep.attachToProcess(process)
       val exitCode = process.runProcess().exitCode
-      // TODO: For some reason, this can be a deceptive zero exit code on Mac when emulator instances are running
       // More testing of bash scripts invocation with intellij process wrappers might be useful.
       if (exitCode != INSTALLER_EXIT_CODE_SUCCESS) {
         // According to the installer docs for Windows, installer may signify that a reboot is required
@@ -320,7 +312,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    *  * [AccelerationErrorCode.ALREADY_INSTALLED]
    * Other possible error conditions:
    *
-   *  * On an OS other than Windows and Mac
+   *  * On an OS other than Windows
    *  * On Windows (until we fix the headless installer to use an admin account)
    *  * If the CPU is not a supported processor
    *  * If there is not enough memory available
@@ -341,8 +333,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    * Return true if it is possible to install on the current machine without any other configuration changes.
    */
   fun canRun(): Boolean {
-    val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }
-    return when (check) {
+    return when (val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }) {
       AccelerationErrorCode.NO_EMULATOR_INSTALLED, AccelerationErrorCode.UNKNOWN_ERROR -> {
         // We don't know if we can install. Assume we can if this is a compatible system:
         compatibleSystem

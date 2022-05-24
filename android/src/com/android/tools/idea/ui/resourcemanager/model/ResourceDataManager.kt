@@ -20,6 +20,8 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.res.getItemPsiFile
+import com.android.tools.idea.res.getItemTag
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.DataContext
@@ -29,12 +31,10 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
-import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.getItemPsiFile
-import com.android.tools.idea.res.getItemTag
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 
 /**
  * [DataFlavor] for [ResourceUrl]
@@ -121,11 +121,11 @@ fun createTransferable(asset: Asset): Transferable {
   val resourceUrl = asset.resourceUrl
 
   return object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any? {
+    override fun getTransferData(flavor: DataFlavor?): Any {
       return when (flavor) {
         RESOURCE_URL_FLAVOR -> resourceUrl
         DataFlavor.stringFlavor -> resourceUrl.toString()
-        else -> null
+        else -> UnsupportedFlavorException(flavor)
       }
     }
 

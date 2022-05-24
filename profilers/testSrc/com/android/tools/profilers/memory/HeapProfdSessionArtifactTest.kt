@@ -38,7 +38,6 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.util.Locale
 
 class HeapProfdSessionArtifactTest {
 
@@ -94,7 +93,7 @@ class HeapProfdSessionArtifactTest {
     val stream = ByteArrayOutputStream()
     val contents = ByteString.copyFromUtf8("TestData")
     transportService.addFile(artifact.startTime.toString(), contents)
-    val symbolData = ByteString.copyFromUtf8("SymbolData");
+    val symbolData = ByteString.copyFromUtf8("SymbolData")
     val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}${artifact.startTime}.symbols")
     symbolsFile.deleteOnExit()
     val outputStream = FileOutputStream(symbolsFile)

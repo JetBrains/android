@@ -293,7 +293,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     private val access: ViewNode.WriteAccess
   ) {
     private val oldNodes = access.run {
-      oldRoot.flatten().asSequence().filter { it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
+      oldRoot.flatten().filter { it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
     }
 
     fun update(): Boolean {

@@ -19,7 +19,11 @@ import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.Delimiter
-import com.android.tools.idea.sqlite.model.Delimiter.*
+import com.android.tools.idea.sqlite.model.Delimiter.COMMA
+import com.android.tools.idea.sqlite.model.Delimiter.SEMICOLON
+import com.android.tools.idea.sqlite.model.Delimiter.SPACE
+import com.android.tools.idea.sqlite.model.Delimiter.TAB
+import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultsDialogParams

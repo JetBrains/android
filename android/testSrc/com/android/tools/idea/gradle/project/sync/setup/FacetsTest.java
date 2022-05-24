@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 
 /**
  * Tests for {@link Facets}.
@@ -36,7 +36,7 @@ public class FacetsTest extends PlatformTestCase {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(myModule);
     Facets.removeAllFacets(facetModel, AndroidFacet.ID);
 
@@ -50,7 +50,7 @@ public class FacetsTest extends PlatformTestCase {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     assertEquals(1, facetManager.getFacetsByType(GradleFacet.getFacetTypeId()).size());
 
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(myModule);
     Facets.removeAllFacets(facetModel, GradleFacet.getFacetTypeId());
 

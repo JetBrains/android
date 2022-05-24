@@ -25,17 +25,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for selecting a running device.
@@ -66,7 +65,7 @@ public class DeviceSelectionUtils {
     }
     else {
       // Ask the user to pick one (or more) of the matching devices.
-      final AtomicReference<IDevice[]> devicesRef = new AtomicReference<IDevice[]>();
+      final AtomicReference<IDevice[]> devicesRef = new AtomicReference<>();
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
@@ -80,7 +79,7 @@ public class DeviceSelectionUtils {
 
   @NotNull
   public static List<IDevice> getAllCompatibleDevices(Predicate<IDevice> deviceFilter) {
-    final List<IDevice> compatibleDevices = new ArrayList<IDevice>();
+    final List<IDevice> compatibleDevices = new ArrayList<>();
     final AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
 
     if (bridge != null) {

@@ -373,10 +373,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     String path;
     HighlightableIconPair thisClassPair;
     if (id.contains("android-")) {
-      path = String.format("/studio/icons/avd/device-%s-large.svg", id.substring("android-".length()));
+      path = "StudioIcons.Avd.DEVICE_" + id.substring("android-".length()).toUpperCase(Locale.ENGLISH) + "_LARGE";
       thisClassPair = myDeviceClassIcons.get(path);
       if (thisClassPair == null) {
-        thisClassPair = new HighlightableIconPair(IconLoader.getIcon(path, AvdDisplayList.class));
+        thisClassPair = new HighlightableIconPair(IconLoader.getReflectiveIcon(path, StudioIcons.class.getClassLoader()));
         myDeviceClassIcons.put(path, thisClassPair);
       }
     } else {
@@ -508,7 +508,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     AtomicBoolean refreshUI = new AtomicBoolean(myNotificationPanel.getComponentCount() > 0);
     myNotificationPanel.removeAll();
     ListenableFuture<AccelerationErrorCode> error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAccelerationAsync();
-    Futures.addCallback(error, new FutureCallback<AccelerationErrorCode>() {
+    Futures.addCallback(error, new FutureCallback<>() {
       @Override
       public void onSuccess(AccelerationErrorCode result) {
         if (result != AccelerationErrorCode.ALREADY_INSTALLED) {

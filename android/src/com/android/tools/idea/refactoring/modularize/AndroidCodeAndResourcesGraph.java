@@ -21,8 +21,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.util.containers.Stack;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiElement> {
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.retention.actions
 
-import com.android.annotations.NonNull
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice

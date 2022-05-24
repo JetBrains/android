@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleVersion;
-import org.junit.Test;
-
-import java.io.File;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import com.android.ide.common.repository.GradleVersion;
+import java.io.File;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleVersions}.

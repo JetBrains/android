@@ -129,7 +129,6 @@ internal class DeviceNamePropertiesFetcherTest {
     val virtualTimeScheduler = VirtualTimeScheduler()
     val scheduledExecutorService = MoreExecutors.listeningDecorator(virtualTimeScheduler)
 
-    @Suppress("UnstableApiUsage")
     val d = createDevice(
       scheduledExecutorService.schedule(Callable { manufacturer }, 5, TimeUnit.SECONDS),
       scheduledExecutorService.schedule(Callable { model }, 5, TimeUnit.SECONDS),

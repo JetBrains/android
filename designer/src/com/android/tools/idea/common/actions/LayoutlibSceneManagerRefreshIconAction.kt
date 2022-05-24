@@ -30,7 +30,6 @@ import com.intellij.ui.AnimatedIcon
  * [AnAction] that can be added to toolbars to show a progress icon while the [LayoutlibSceneManager] is rendering or
  * the project building.
  */
-@Suppress("ComponentNotRegistered") // This action is just an icon and does not need to be registered
 class LayoutlibSceneManagerRefreshIconAction private constructor(
   project: Project,
   addRenderListener: (RenderListener) -> Unit,

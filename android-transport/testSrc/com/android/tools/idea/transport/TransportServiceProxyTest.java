@@ -19,8 +19,8 @@ import static com.android.tools.idea.transport.TransportServiceProxy.PRE_LOLLIPO
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.BEGIN_SESSION;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,7 +33,6 @@ import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ProfileableClient;
 import com.android.ddmlib.ProfileableClientData;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlagSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
@@ -50,6 +49,7 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -183,7 +183,7 @@ public class TransportServiceProxyTest {
     List<Common.Event> receivedEvents = new ArrayList<>();
     // We should expect six events: two process starts events, followed by event1 and event2, then process ends events.
     CountDownLatch latch = new CountDownLatch(1);
-    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<>() {
       @Override
       public void onNext(Common.Event event) {
         receivedEvents.add(event);
@@ -294,7 +294,7 @@ public class TransportServiceProxyTest {
         return Collections.singletonList(generatedEvent);
       }
     });
-    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<>() {
       @Override
       public void onNext(Common.Event event) {
         receivedEvents.add(event);
@@ -306,7 +306,7 @@ public class TransportServiceProxyTest {
       }
 
       @Override
-      public void onCompleted() {}
+      public void onCompleted() { }
     });
     Common.Event eventToPreprocess = Common.Event.newBuilder().setPid(1).setKind(Common.Event.Kind.ECHO).setIsEnded(true).build();
     Common.Event eventToIgnore = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
@@ -350,17 +350,17 @@ public class TransportServiceProxyTest {
 
     // Handle returning data to proxy service.
     Transport.BytesRequest.Builder request = Transport.BytesRequest.newBuilder();
-    StreamObserver<Transport.BytesResponse> validation = new StreamObserver<Transport.BytesResponse>() {
+    StreamObserver<Transport.BytesResponse> validation = new StreamObserver<>() {
       @Override
       public void onNext(Transport.BytesResponse response) {
         receivedData.add(response.getContents());
       }
 
       @Override
-      public void onError(Throwable throwable) { assert false;}
+      public void onError(Throwable throwable) { assert false; }
 
       @Override
-      public void onCompleted() {}
+      public void onCompleted() { }
     };
 
     // Run test.
@@ -410,7 +410,7 @@ public class TransportServiceProxyTest {
       @Override
       public Void answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        ((IShellOutputReceiver)args[1]).addOutput("boot-id\n".getBytes(), 0, 8);
+        ((IShellOutputReceiver)args[1]).addOutput("boot-id\n".getBytes(StandardCharsets.UTF_8), 0, 8);
         return null;
       }
     }).when(mockDevice).executeShellCommand(anyString(), any(IShellOutputReceiver.class));

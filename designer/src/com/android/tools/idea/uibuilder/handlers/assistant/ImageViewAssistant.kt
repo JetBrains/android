@@ -27,14 +27,14 @@ import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSampleDataOfType
 import com.android.tools.idea.ui.resourcechooser.DrawableGrid
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
-import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
 import java.awt.BorderLayout
@@ -144,7 +144,7 @@ class ImageViewAssistant(
     add(ClickableLabel("Browse").apply {
       border = null
       isOpaque = false
-      foreground = JBColor.link()
+      foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
       addActionListener { pickFromResourceDialog() }
     })
   }

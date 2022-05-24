@@ -36,7 +36,10 @@ class BuildAnalyzerViewModel(
    * Keeps track of currently selected dataSet page.
    * Notifies the listener on set if the value is different from the current one.
    */
-  var selectedData: DataSet = DataSet.OVERVIEW
+  var selectedData: DataSet = when {
+    reportUiData.jetifierData.checkJetifierBuild -> DataSet.WARNINGS
+    else -> DataSet.OVERVIEW
+  }
     set(value) {
       if (value != field) {
         field = value

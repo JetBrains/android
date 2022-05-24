@@ -22,7 +22,7 @@ import com.intellij.openapi.keymap.impl.IdeMouseEventDispatcher;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -77,7 +77,7 @@ public class MEActionButton extends JButton {
       super.paintComponent(g);
       return;
     }
-    if (!UIUtil.isUnderDarcula()) {
+    if (!StartupUiUtil.isUnderDarcula()) {
       paintBackground(g);
     }
     super.paintComponent(g);

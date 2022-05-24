@@ -24,7 +24,6 @@ import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
-import com.android.tools.idea.codenavigation.IntellijNavSource;
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
 import com.android.tools.nativeSymbolizer.SymbolSource;
@@ -41,6 +40,7 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -87,7 +87,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     .build();
 
   private static final String NO_CLIENT_TITLE = "Initialization failed";
-  private static final String NO_CLIENT_MESSAGE = "To start the profiler, close all other Android Studio projects.";
+  private static final String NO_CLIENT_MESSAGE = "To start the profiler, close all other " + ApplicationNamesInfo.getInstance().getFullProductName() + " projects.";
 
   @NotNull
   private final JPanel myPanel;

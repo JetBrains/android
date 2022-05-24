@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -113,7 +114,7 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
                 2,
                 true,
                 new AndroidGradlePluginProjectFlagsStub(Collections.emptyMap()),
-                Lists.newArrayList());
+                new ArrayList<>());
     }
 
     public AndroidProjectStub(
@@ -242,7 +243,7 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
     }
 
     @Override
-    @NonNull
+    @Nullable
     public String getNdkVersion() {
         return myNdkVersion;
     }

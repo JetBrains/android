@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.awt.Rectangle;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Extract a Drawable without creating any component

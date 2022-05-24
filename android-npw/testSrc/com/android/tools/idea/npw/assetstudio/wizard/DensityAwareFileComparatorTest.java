@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.wizard.DensityAwareFileComparator;
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class DensityAwareFileComparatorTest {
   /**

@@ -48,27 +48,26 @@ import static java.io.File.separatorChar;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.util.PropertiesFiles;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -149,7 +148,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       initInstrumentation();
     }
     else {
-      myDirectLibraries = new ArrayList<EclipseProject>(4);
+      myDirectLibraries = new ArrayList<>(4);
     }
 
     initClassPathEntries();
@@ -233,8 +232,8 @@ class EclipseProject implements Comparable<EclipseProject> {
    * is in dependency order.
    */
   public static List<? extends ImportModule> performImport(@NonNull GradleImport importer, @NonNull Collection<EclipseProject> projects) {
-    List<EclipseImportModule> modules = Lists.newArrayList();
-    List<EclipseImportModule> replacedByDependencies = Lists.newArrayList();
+    List<EclipseImportModule> modules = new ArrayList<>();
+    List<EclipseImportModule> replacedByDependencies = new ArrayList<>();
 
     for (EclipseProject project : projects) {
       EclipseImportModule module = new EclipseImportModule(importer, project);
@@ -295,7 +294,7 @@ class EclipseProject implements Comparable<EclipseProject> {
   }
 
   private void initLibraries(@NonNull Properties properties) throws IOException {
-    myDirectLibraries = new ArrayList<EclipseProject>(4);
+    myDirectLibraries = new ArrayList<>(4);
 
     for (int i = 0; i < 1000; i++) {
       String key = String.format(Locale.US, ANDROID_LIBRARY_REFERENCE_FORMAT, i);
@@ -350,7 +349,7 @@ class EclipseProject implements Comparable<EclipseProject> {
                || GRIDLAYOUT_ARTIFACT.equals(libraryDirName)
                || MEDIA_ROUTER_ARTIFACT.equals(libraryDirName)) {
             if (myInferredLibraries == null) {
-              myInferredLibraries = Lists.newArrayList();
+              myInferredLibraries = new ArrayList<>();
             }
             myInferredLibraries.add(libraryDirName);
             continue;
@@ -446,7 +445,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       File makefile = new File(jniDir, "Android.mk");
       if (makefile.exists()) {
         Pattern pattern = Pattern.compile("\\s*LOCAL_MODULE\\s*:=\\s*(\\S+)\\s*");
-        for (String line : Files.readLines(makefile, Charsets.UTF_8)) {
+        for (String line : Files.readLines(makefile, StandardCharsets.UTF_8)) {
           Matcher matcher = pattern.matcher(line);
           if (matcher.matches()) {
             myNativeModuleName = matcher.group(1);
@@ -496,7 +495,7 @@ class EclipseProject implements Comparable<EclipseProject> {
                   }
                   else {
                     if (myFileCharsets == null) {
-                      myFileCharsets = Maps.newHashMap();
+                      myFileCharsets = new HashMap<>();
                     }
                     File file = resolveVariableExpression(path);
                     if (file != null) {
@@ -547,7 +546,7 @@ class EclipseProject implements Comparable<EclipseProject> {
           for (File file : files) {
             if (file.isFile() && endsWithIgnoreCase(file.getPath(), DOT_JAR)) {
               if (myInstrumentationJarPaths == null) {
-                myInstrumentationJarPaths = Lists.newArrayList();
+                myInstrumentationJarPaths = new ArrayList<>();
               }
               myInstrumentationJarPaths.add(file);
             }
@@ -583,8 +582,8 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   private void initClassPathEntries() throws IOException {
     assert mySourcePaths == null && myJarPaths == null;
-    mySourcePaths = Lists.newArrayList();
-    myJarPaths = Lists.newArrayList();
+    mySourcePaths = new ArrayList<>();
+    myJarPaths = new ArrayList<>();
 
     Document document = null;
     File classPathFile = getClassPathFile();
@@ -681,7 +680,7 @@ class EclipseProject implements Comparable<EclipseProject> {
               String name = library.getName();
               if (library.isFile() && name.startsWith("lib") && name.contains(".so")) { // or .endsWith? Allow libfoo.so.1 ?
                 if (myNativeLibs == null) {
-                  myNativeLibs = Lists.newArrayList();
+                  myNativeLibs = new ArrayList<>();
                 }
                 File relative = new File(LIBS_FOLDER, lib.getName() + separator + library.getName());
                 myNativeLibs.add(relative);
@@ -726,7 +725,7 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   private Map<String, String> getProjectVariableMap() {
     if (myProjectVariableMap == null) {
-      myProjectVariableMap = Maps.newHashMap();
+      myProjectVariableMap = new HashMap<>();
 
       Document document;
       try {
@@ -756,7 +755,7 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   private Map<String, String> getLinkedResourceMap() {
     if (myLinkedResourceMap == null) {
-      myLinkedResourceMap = Maps.newHashMap();
+      myLinkedResourceMap = new HashMap<>();
 
       Document document;
       try {
@@ -1016,8 +1015,8 @@ class EclipseProject implements Comparable<EclipseProject> {
   }
 
   private void initProguard(@NonNull Properties properties) {
-    myLocalProguardFiles = Lists.newArrayList();
-    mySdkProguardFiles = Lists.newArrayList();
+    myLocalProguardFiles = new ArrayList<>();
+    mySdkProguardFiles = new ArrayList<>();
 
     String proguardConfig = properties.getProperty(PROGUARD_CONFIG);
     if (proguardConfig != null && !proguardConfig.isEmpty()) {
@@ -1167,7 +1166,7 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<String> getInferredLibraries() {
-    return myInferredLibraries == null ? Collections.<String>emptyList() : myInferredLibraries;
+    return myInferredLibraries == null ? Collections.emptyList() : myInferredLibraries;
   }
 
   @NonNull
@@ -1177,12 +1176,12 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<File> getTestJarPaths() {
-    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.<File>emptyList();
+    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.emptyList();
   }
 
   @NonNull
   public List<File> getNativeLibs() {
-    return myNativeLibs != null ? myNativeLibs : Collections.<File>emptyList();
+    return myNativeLibs != null ? myNativeLibs : Collections.emptyList();
   }
 
   @Nullable
@@ -1249,9 +1248,9 @@ class EclipseProject implements Comparable<EclipseProject> {
         return myDirectLibraries;
       }
 
-      List<EclipseProject> all = new ArrayList<EclipseProject>();
-      Set<EclipseProject> seen = Sets.newHashSet();
-      Set<EclipseProject> path = Sets.newHashSet();
+      List<EclipseProject> all = new ArrayList<>();
+      Set<EclipseProject> seen = new HashSet<>();
+      Set<EclipseProject> path = new HashSet<>();
       seen.add(this);
       path.add(this);
       addLibraryProjects(all, seen, path);

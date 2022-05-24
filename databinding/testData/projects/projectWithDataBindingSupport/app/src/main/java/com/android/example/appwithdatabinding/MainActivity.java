@@ -5,7 +5,6 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import com.android.example.appwithdatabinding.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity {

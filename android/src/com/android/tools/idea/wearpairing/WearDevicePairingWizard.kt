@@ -17,6 +17,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
@@ -32,7 +33,6 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
 

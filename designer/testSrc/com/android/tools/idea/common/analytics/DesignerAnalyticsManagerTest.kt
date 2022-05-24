@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.common.analytics
 
-import com.google.common.truth.Truth.assertThat
-import org.mockito.Mockito.mock
-
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.DesignSurface
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import org.jetbrains.android.AndroidTestBase
+import org.mockito.Mockito.mock
 
 class DesignerAnalyticsManagerTest : AndroidTestBase() {
 

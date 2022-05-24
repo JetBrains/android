@@ -16,7 +16,10 @@
 package com.android.tools.idea.rendering.webp;
 
 
-import com.google.common.collect.Lists;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -28,23 +31,19 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.android.SdkConstants.DOT_PNG;
-import static com.android.SdkConstants.DOT_WEBP;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Action which converts WEBP images to PNG
@@ -154,7 +153,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
 
     @NotNull
     private static List<VirtualFile> findImages(@NotNull ProgressIndicator progressIndicator, LinkedList<VirtualFile> images) {
-      List<VirtualFile> files = Lists.newArrayList();
+      List<VirtualFile> files = new ArrayList<>();
 
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();
@@ -181,7 +180,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
 
   @NotNull
   private static List<VirtualFile> computeParentFolders(@NotNull List<VirtualFile> files) {
-    List<VirtualFile> toRefresh = Lists.newArrayList();
+    List<VirtualFile> toRefresh = new ArrayList<>();
     for (VirtualFile file : files) {
       VirtualFile parent = file.getParent();
       if (parent != null && !toRefresh.contains(parent)) {

@@ -15,12 +15,18 @@
  */
 package com.android.tools.adtui.ui;
 
-import javax.swing.*;
+import java.awt.Font;
+import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
+import javax.swing.SizeRequirements;
+import javax.swing.UIManager;
 import javax.swing.text.Element;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
-import javax.swing.text.html.*;
-import java.awt.*;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.InlineView;
+import javax.swing.text.html.ParagraphView;
+import javax.swing.text.html.StyleSheet;
 
 /**
  * A {@link JTextPane} of HTML type whose text can be selected and can be wrapped even in the middle of words.

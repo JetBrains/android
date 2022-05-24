@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -54,7 +55,8 @@ fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
   fun isFullNamePreviewAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
     annotations.any { previewFqn ->
-      annotation.text.startsWith("@$previewFqn")
+      // In brackets annotations don't start with '@', but typical annotations do. Normalize them by removing it
+      annotation.text.removePrefix("@").startsWith("$previewFqn")
     }
 
   val psiFile = PsiManager.getInstance(project).findFile(vFile)
@@ -89,7 +91,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile)  ?: return emptyList()
     return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
       val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+        KotlinAnnotationsIndex.get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
                                                  GlobalSearchScope.fileScope(project, vFile)).asSequence()
       }
 
@@ -126,20 +128,39 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
   @Slow
-  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> = if (DumbService.isDumb(project))
-    emptyList()
-  else
-    ReadAction
-      .nonBlocking(Callable<Collection<PreviewElement>> {
-        findAllPreviewAnnotations(project, vFile)
-          .mapNotNull {
-            ProgressManager.checkCanceled()
-            (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement()
-          }
-          .distinct()
-      })
-      .inSmartMode(project)
-      .coalesceBy(project, vFile)
-      .submit(AppExecutorUtil.getAppExecutorService())
-      .get()
+  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> {
+    if (DumbService.isDumb(project))
+      return emptyList()
+    else {
+      val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
+      return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
+        // This code, retries the read action three times before giving up.
+        var result: Collection<PreviewElement>? = null
+        var retries = 3
+        while (result == null && retries > 0) {
+          retries--
+          result = ReadAction
+            .nonBlocking(Callable<Collection<PreviewElement>> {
+              findAllPreviewAnnotations(project, vFile)
+                .mapNotNull {
+                  ProgressManager.checkCanceled()
+                  (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement()
+                }
+                .distinct()
+            })
+            .inSmartMode(project)
+            .coalesceBy(project, vFile)
+            .submit(AppExecutorUtil.getAppExecutorService())
+            .get() // get() will return null if the read action was canceled by a write action with priority
+        }
+        if (result != null) {
+          CachedValueProvider.Result.createSingleDependency(result, psiFile)
+        }
+        else {
+          // Do not cache the value since it might not be correct.
+          CachedValueProvider.Result.createSingleDependency(emptyList(), ModificationTracker.EVER_CHANGED)
+        }
+      }
+    }
+  }
 }

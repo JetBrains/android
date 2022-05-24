@@ -223,6 +223,7 @@ class ModuleClassLoaderManager {
     var oldClassLoader: ModuleClassLoader? = null
     if (moduleClassLoader != null) {
       val invalidate =
+        Disposer.isDisposed(moduleClassLoader) ||
         !moduleClassLoader.isCompatible(parent, combinedProjectTransformations, combinedNonProjectTransformations) ||
         !moduleClassLoader.isUserCodeUpToDate
 
@@ -236,8 +237,12 @@ class ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      moduleClassLoader =
-        ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
+      val preloadedClassLoader: ModuleClassLoader? = COMPOSE_CLASSLOADERS_PRELOADING.ifEnabled {
+        moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+          parent, combinedProjectTransformations, combinedNonProjectTransformations)
+      }
+      moduleClassLoader = preloadedClassLoader ?:
+                          ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
       module.putUserData(PRELOADER, Preloader(moduleClassLoader))
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
@@ -319,7 +324,7 @@ class ModuleClassLoaderManager {
     // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
     // recreate a new one for faster load next time
     moduleClassLoader.module?.let { module ->
-      if (Disposer.isDisposed(module)) {
+      if (module.isDisposed()) {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {

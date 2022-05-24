@@ -15,7 +15,12 @@
  */
 package com.android.tools.datastore;
 
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
+import io.grpc.MethodDescriptor;
 
 public class TestClientInterceptor implements ClientInterceptor {
 
@@ -30,7 +35,7 @@ public class TestClientInterceptor implements ClientInterceptor {
                                                              CallOptions options,
                                                              Channel channel) {
     String methodName = descriptor.getFullMethodName();
-    return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(channel.newCall(descriptor, options)) {
+    return new ForwardingClientCall.SimpleForwardingClientCall<>(channel.newCall(descriptor, options)) {
       @Override
       public void sendMessage(ReqT msg) {
         myFile.recordCall(methodName, msg.getClass().toString(), msg.toString());

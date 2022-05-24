@@ -25,7 +25,6 @@ import com.android.tools.lint.detector.api.interprocedural.IntraproceduralDispat
 import com.android.tools.lint.detector.api.interprocedural.buildContextualCallGraph
 import com.android.tools.lint.detector.api.interprocedural.searchForPaths
 import com.android.tools.lint.detector.api.interprocedural.shortName
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -38,7 +37,7 @@ import org.jetbrains.uast.convertWithParent
 fun buildInterproceduralAnalysesForTest(
     virtualFile: VirtualFile,
     project: Project): Triple<ClassHierarchy, IntraproceduralDispatchReceiverEvaluator, CallGraph> {
-  val uastContext = ServiceManager.getService(project, UastContext::class.java)
+  val uastContext = project.getService(UastContext::class.java)
   val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
   val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
   val cha = ClassHierarchyVisitor()

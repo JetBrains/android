@@ -16,10 +16,9 @@
 package com.android.tools.adtui.model.legend;
 
 import com.android.tools.adtui.model.DurationData;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Function;
 
 public class EventLegend<E extends DurationData> implements Legend {
   @NotNull private final String myName;

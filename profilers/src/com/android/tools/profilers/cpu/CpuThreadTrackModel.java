@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisEventsTabModel;
@@ -49,13 +48,13 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final CpuThreadInfo myThreadInfo;
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
-  @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
+  @NotNull private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel;
   @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
 
   public CpuThreadTrackModel(@NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
                              @NotNull Timeline timeline,
-                             @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
+                             @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
     // CallChart always uses wall-clock time, a.k.a. ClockType.GLOBAL
@@ -130,11 +129,6 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     return model;
   }
 
-  @Override
-  public boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj) {
-    return otherObj instanceof CpuThreadTrackModel;
-  }
-
   /**
    * @return a tooltip model for thread states.
    */
@@ -152,7 +146,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   }
 
   @NotNull
-  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+  public MultiSelectionModel<CpuAnalyzable<?>> getMultiSelectionModel() {
     return myMultiSelectionModel;
   }
 

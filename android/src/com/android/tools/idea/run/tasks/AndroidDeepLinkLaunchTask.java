@@ -23,9 +23,8 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidDeepLinkLaunchTask extends AppLaunchTask {
 

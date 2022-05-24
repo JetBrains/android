@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -26,15 +25,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
-import java.util.ArrayList
-import java.util.Arrays
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -82,8 +81,8 @@ fun GradleDslFile.getPropertiesElement(
           resultElement.setParsedElement(newElement)
           return@fold newElement
         }
-        APPLY_BLOCK_NAME -> {
-          val newApplyElement = ApplyDslElement(resultElement)
+        APPLY_BLOCK_NAME -> (resultElement.dslFile as? GradleScriptFile)?.let {
+          val newApplyElement = ApplyDslElement(resultElement, it)
           resultElement.setParsedElement(newApplyElement)
           return@fold newApplyElement
         }
@@ -177,7 +176,7 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
   //  to those (possibly nested) scopes rather than the model.
   val parent = element.parent
-  val parts = ArrayList(name.fullNameParts());
+  val parts = ArrayList(name.fullNameParts())
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, UNKNOWN, name.isFake)
 

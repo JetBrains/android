@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -21,10 +21,9 @@ import com.intellij.framework.detection.FileContentPattern;
 import com.intellij.framework.detection.FrameworkDetectionContext;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -49,16 +48,13 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
-  private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION =
-    NotificationGroup.balloonGroup("Android Module Importing", PluginId.getId("org.jetbrains.android"));
-
+public final class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
   public AndroidFrameworkDetector() {
     super("android");
   }
 
   @Override
-  public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
+  public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<? extends VirtualFile> newFiles,
                                                              @NotNull FrameworkDetectionContext context) {
     Project project = context.getProject();
     if (project != null) {
@@ -140,12 +136,12 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   @NotNull
   public static Notification showDexOptionNotification(@NotNull Module module, @NotNull String propertyName) {
     Project project = module.getProject();
-    Notification notification = ANDROID_MODULE_IMPORTING_NOTIFICATION.createNotification(
+    Notification notification = NotificationGroupManager.getInstance().getNotificationGroup("Android Module Importing").createNotification(
       AndroidBundle.message("android.facet.importing.title", module.getName()),
       "'" + propertyName +
       "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
       " file.<br>You may enable related option in <a href='configure'>Settings | Compiler | Android DX</a>",
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
+      NotificationType.INFORMATION).setListener(new NotificationListener.Adapter() {
         @Override
         protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
           notification.expire();

@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import javax.swing.RowFilter;
+import javax.swing.RowFilter.Entry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import javax.swing.*;
-import javax.swing.RowFilter.Entry;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public final class TranslatableRowFilterTest {
   private RowFilter<StringResourceTableModel, Integer> myFilter;

@@ -15,16 +15,29 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.adtui.actions.ZoomActualAction
+import com.android.tools.adtui.actions.ZoomInAction
+import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
+import com.android.tools.idea.layoutinspector.ui.INSPECTOR_BANNER_ACTION_PANEL_NAME
+import com.android.tools.idea.layoutinspector.ui.INSPECTOR_BANNER_TEXT_NAME
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
+import com.intellij.ui.HyperlinkLabel
+import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Container
 import java.awt.Dimension
+import java.awt.event.ContainerAdapter
+import java.awt.event.ContainerEvent
+import javax.swing.JLabel
 
 class InspectorBannerTest {
 
@@ -36,11 +49,15 @@ class InspectorBannerTest {
     val banner = InspectorBanner(projectRule.project)
     assertThat(banner.isVisible).isFalse()
   }
+
   @Test
   fun testVisibleWithStatus() {
     val banner = InspectorBanner(projectRule.project)
     InspectorBannerService.getInstance(projectRule.project).notification =
       StatusNotificationImpl ("There is an error somewhere", emptyList())
+    invokeAndWaitIfNeeded {
+      UIUtil.dispatchAllInvocationEvents()
+    }
     assertThat(banner.isVisible).isTrue()
   }
 
@@ -50,6 +67,9 @@ class InspectorBannerTest {
     val bannerService = InspectorBannerService.getInstance(projectRule.project)
     bannerService.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
     bannerService.notification = null
+    invokeAndWaitIfNeeded {
+      UIUtil.dispatchAllInvocationEvents()
+    }
     assertThat(banner.isVisible).isFalse()
   }
 
@@ -62,11 +82,43 @@ class InspectorBannerTest {
     }
     val bannerService = InspectorBannerService.getInstance(projectRule.project)
     bannerService.notification = StatusNotificationImpl("There is an error somewhere", listOf(action))
+    invokeAndWaitIfNeeded {
+      UIUtil.dispatchAllInvocationEvents()
+    }
     banner.size = banner.preferredSize
     banner.doLayout()
     assertThat(label.size).isEqualTo(label.preferredSize)
     banner.size = Dimension(banner.preferredSize.width - 80, banner.preferredSize.height)
     banner.doLayout()
     assertThat(label.size).isEqualTo(Dimension(label.preferredSize.width - 80, label.preferredSize.height))
+  }
+
+  @Test
+  fun testSynchronization() {
+    val banner = InspectorBanner(projectRule.project)
+    val service = InspectorBannerService.getInstance(projectRule.project)
+    val actionPanel = banner.components.find { it.name == INSPECTOR_BANNER_ACTION_PANEL_NAME } as Container
+    val text = banner.components.find { it.name == INSPECTOR_BANNER_TEXT_NAME } as JLabel
+    var addedSecond = false
+    // Add a listener that will change the banner in the middle of when it's being changed initially
+    actionPanel.addContainerListener(object: ContainerAdapter() {
+      override fun componentAdded(e: ContainerEvent?) {
+        if (!addedSecond) {
+          addedSecond = true
+          service.notification = StatusNotificationImpl("There is an error somewhere else",
+                                                        listOf(ZoomToFitAction.getInstance(), ZoomActualAction.getInstance()))
+        }
+      }
+    })
+    // Set the initial banner. It will be overridden by the second.
+    service.notification = StatusNotificationImpl ("There is an error somewhere",
+                                                   listOf(ZoomInAction.getInstance(), ZoomOutAction.getInstance()))
+    invokeAndWaitIfNeeded {
+      UIUtil.dispatchAllInvocationEvents()
+    }
+    // We should only get the content of the second banner.
+    assertThat(actionPanel.components.filterIsInstance<HyperlinkLabel>().map(HyperlinkLabel::getText))
+      .isEqualTo(listOf("Zoom to Fit Screen", "Zoom to Actual Size (100%)"))
+    assertThat(text.text).isEqualTo("There is an error somewhere else")
   }
 }

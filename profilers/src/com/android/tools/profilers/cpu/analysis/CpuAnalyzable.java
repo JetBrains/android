@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents something that can generate a {@link CpuAnalysisModel}. Implementations can be a CPU capture trace, a thread or a trace event.
  */
-public interface CpuAnalyzable<T extends CpuAnalyzable<?>> extends SelectableTrackModel {
+public interface CpuAnalyzable<T extends CpuAnalyzable<?>> {
   /**
    * @return a model that contains analysis data.
    */

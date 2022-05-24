@@ -13,31 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("ApkFacetChecker")
 package com.android.tools.idea
 
-import com.android.utils.reflection.qualifiedName
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 
 /**
- * This class exists so that is possible to check if a module is associate to ApkFacet or not, without depending on ApkFacet directly.
- * It is initialized by ApkFacetCheckerInitializer, that exists in core and has direct access to ApkFacet.
+ * Helper methods for checking for presence of ApkFacet that don't require a dependency on
+ * the intellij.android.core module.
  */
-class ApkFacetChecker(private val myHasApkFacet: (module: Module) -> Boolean) {
-  companion object {
-    private val KEY: Key<ApkFacetChecker> = Key.create(Companion::KEY.qualifiedName)
+fun Module.hasApkFacet(): Boolean =
+  ApplicationManager.getApplication().getUserData(APK_FACET_CHECKER_KEY)?.hasApkFacet(this) ?: false
 
-    @JvmStatic fun hasApkFacet(module: Module): Boolean {
-      val checker = module.project.getUserData(KEY)
-      // if initialization works correctly this should never be null
-      checkNotNull(checker)
+fun Project.hasApkFacet(): Boolean =
+  ApplicationManager.getApplication().getUserData(APK_FACET_CHECKER_KEY)?.hasApkFacet(this) ?: false
 
-      return checker.myHasApkFacet(module)
-    }
-  }
-
-  fun storeInProject(project: Project) {
-    project.putUserData(KEY, this)
-  }
+fun initializeApkFacetChecker(checker: ApkFacetCheckerInternal) {
+  ApplicationManager.getApplication().putUserData(APK_FACET_CHECKER_KEY, checker)
 }
+
+interface ApkFacetCheckerInternal {
+  fun hasApkFacet(module: Module): Boolean
+  fun hasApkFacet(project: Project): Boolean
+}
+
+private val APK_FACET_CHECKER_KEY: Key<ApkFacetCheckerInternal> = Key.create(ApkFacetCheckerInternal::class.java.name)
+

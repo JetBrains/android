@@ -23,12 +23,11 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DataBindingOutputParser implements PatternAwareOutputParser {
   public static final String ERROR_LOG_PREFIX = "****/ data binding error ****";
@@ -55,7 +54,7 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
   private static boolean parseErrorIn(@NotNull String output, @NotNull List<Message> messages) {
     String message;
     String file = "";
-    List<Location> locations = new ArrayList<Location>();
+    List<Location> locations = new ArrayList<>();
     int msgStart = output.indexOf(MSG_KEY);
     if (msgStart < 0) {
       message = output;
@@ -94,7 +93,7 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
     if (StringUtil.isEmpty(file)) {
       return false;
     }
-    List<SourceFilePosition> sourceFilePositions = new ArrayList<SourceFilePosition>();
+    List<SourceFilePosition> sourceFilePositions = new ArrayList<>();
     File sourceFile = new File(file);
     if (locations.isEmpty()) {
       messages.add(new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN));

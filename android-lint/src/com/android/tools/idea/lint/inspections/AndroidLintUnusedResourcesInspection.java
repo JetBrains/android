@@ -18,16 +18,16 @@ package com.android.tools.idea.lint.inspections;
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.TOOLS_URI;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.SetAttributeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.quickFixes.UnusedResourcesQuickFix;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lint.quickFixes.UnusedResourcesQuickFix;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

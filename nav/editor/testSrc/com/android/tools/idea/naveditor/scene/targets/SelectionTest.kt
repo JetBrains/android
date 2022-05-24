@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -26,8 +27,6 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.common.LayoutTestUtilities
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -148,13 +147,13 @@ class SelectionTest : NavTestCase() {
     val action2 = scene.getSceneComponent("action2")!!
     val action3 = scene.getSceneComponent("action3")!!
 
-    lassoSelect(sceneView, interactionManager, fragment1);
+    lassoSelect(sceneView, interactionManager, fragment1)
     assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
 
-    lassoSelect(sceneView, interactionManager, fragment2);
+    lassoSelect(sceneView, interactionManager, fragment2)
     assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
 
-    lassoSelect(sceneView, interactionManager, fragment3);
+    lassoSelect(sceneView, interactionManager, fragment3)
     assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
 
     interactionManager.stopListening()

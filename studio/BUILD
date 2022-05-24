@@ -13,7 +13,6 @@ studio_plugin(
         "//prebuilts/tools/common/m2:moshi",
         "//prebuilts/tools/common/m2:utp-core-proto",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
-        "//prebuilts/tools/common/m2:antlr4-runtime",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
         "//prebuilts/tools/common/m2:javapoet",
@@ -49,7 +48,6 @@ studio_plugin(
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android/lib:android-sdk-tools-jps",
         "//tools/adt/idea/android/lib:instantapps-api",
-        "//tools/adt/idea/android/lib:pepk",
         "//tools/adt/idea/android/lib:spantable",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
@@ -60,11 +58,15 @@ studio_plugin(
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
+        "//tools/adt/idea/project-system-gradle/lib:pepk",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
+        "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/data-binding:compilerCommon.antlr.shaded",
     ],
     licenses = [
         "//tools/adt/idea/android/lib:licenses",
@@ -116,6 +118,7 @@ studio_plugin(
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
+            "//tools/adt/idea/android-navigator:intellij.android.navigator",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
             "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",
@@ -205,6 +208,7 @@ studio_plugin(
             "//tools/base/apkparser:studio.android.sdktools.binary-resources",
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
+            "//tools/base/adblib:studio.android.sdktools.adblib",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",
@@ -335,6 +339,7 @@ studio_plugin(
     resources = {
         "resources": [
             "//prebuilts/studio/layoutlib:layoutlib",
+            "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         ],
     },
     deps = [
@@ -538,10 +543,10 @@ android_studio(
         ":com.google.urlassistant",
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
-    version_eap = True,
-    version_full = "dev build",
-    version_micro = 0,
-    version_patch = 0,
+    version_eap = False,
+    version_full = "Chipmunk | {0}.{1}.{2}",
+    version_micro = 1,
+    version_patch = 14,
     visibility = ["//visibility:public"],
 )
 
@@ -667,6 +672,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-intellij-toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
@@ -692,7 +698,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-ml-models-local",
     ],
 )
 

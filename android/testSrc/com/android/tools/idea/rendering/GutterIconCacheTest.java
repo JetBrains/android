@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.*;
-import org.jetbrains.android.AndroidTestCase;
-
+import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.AndroidTestCase;
 
 public class GutterIconCacheTest extends AndroidTestCase {
   private Path mySampleSvgPath;

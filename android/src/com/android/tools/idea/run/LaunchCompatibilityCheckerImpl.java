@@ -20,7 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility.State;
@@ -29,7 +29,6 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -44,14 +43,14 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   @NotNull private final AndroidFacet myFacet;
   @Nullable private final ExecutionEnvironment myEnvironment;
   @Nullable private final AndroidRunConfigurationBase myAndroidRunConfigurationBase;
-  @NotNull private final Set<String> mySupportedAbis;
+  @NotNull private final Set<Abi> mySupportedAbis;
 
   public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
                                         @NotNull AndroidFacet facet,
                                         @Nullable ExecutionEnvironment environment,
                                         @Nullable AndroidRunConfigurationBase androidRunConfigurationBase,
-                                        @NotNull Set<String> supportedAbis) {
+                                        @NotNull Set<Abi> supportedAbis) {
     assert (environment == null && androidRunConfigurationBase == null) || (environment != null && androidRunConfigurationBase != null);
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
@@ -137,10 +136,8 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     }
 
     AndroidVersion minSdkVersion = getMinSdkVersion(facet);
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    Set<String> supportedAbis = androidModuleModel != null ?
-                                androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
-                                Collections.emptySet();
+    Set<Abi> supportedAbis = androidModel.getSupportedAbis();
+
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
   }
 

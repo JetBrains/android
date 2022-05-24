@@ -35,8 +35,9 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.analytics.toProto
+// import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags
@@ -131,6 +132,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -169,16 +171,18 @@ class EmulatorView(
   private val deviceDisplaySize
     get() = displaySize ?: emulator.emulatorConfig.displaySize
   private val currentDisplaySize
-    get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
+    get() = screenshotShape.activeDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion
-    get() = screenshotShape.foldedDisplayRegion ?: Rectangle(deviceDisplaySize)
+    get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
+  internal val displayMode: DisplayMode?
+    get() = screenshotShape.displayMode ?: emulator.emulatorConfig.displayModes.firstOrNull()
 
   /** Count of received display frames. */
-  @VisibleForTesting
+  @get:VisibleForTesting
   var frameNumber = 0
     private set
   /** Time of the last frame update in milliseconds since epoch. */
-  @VisibleForTesting
+  @get:VisibleForTesting
   var frameTimestampMillis = 0L
     private set
 
@@ -518,9 +522,8 @@ class EmulatorView(
     val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
     val title = "Emulator is out of date"
     val message = "Please update the Android Emulator"
-    val notification =
-        EMULATOR_NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
-    notification.collapseActionsDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
+    val notification = EMULATOR_NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING)
+    notification.collapseDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
     notification.addAction(object : NotificationAction("Check for updates") {
       override fun actionPerformed(event: AnActionEvent, notification: Notification) {
         notification.expire()
@@ -659,7 +662,9 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed() {
-    requestScreenshotFeed(screenshotShape.rotation)
+    if (connected) {
+      requestScreenshotFeed(screenshotShape.rotation)
+    }
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
@@ -676,7 +681,7 @@ class EmulatorView(
       // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
       val scaleX = (realSize.width.toDouble() / actualSize.width).coerceAtMost(1.0)
       val scaleY = (realSize.height.toDouble() / actualSize.height).coerceAtMost(1.0)
-      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
+      val rotatedDisplaySize = currentDisplaySize.rotated(rotation)
       val w = rotatedDisplaySize.width.scaledDown(scaleX)
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
@@ -1087,6 +1092,12 @@ class EmulatorView(
         return // Ignore empty screenshot.
       }
 
+      if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
+        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.width} image contains ${response.image.size()} bytes" +
+                  " instead of ${imageFormat.width * imageFormat.height * 3}")
+        return
+      }
+
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
@@ -1119,10 +1130,18 @@ class EmulatorView(
       stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
+      val displayMode: DisplayMode? = emulator.emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
+      if (displayMode != null && !checkAspectRatioConsistency(imageFormat, displayMode)) {
+        return
+      }
       val foldedDisplay = imageFormat.foldedDisplay
-      val foldedDisplayRegion = if (foldedDisplay.width == 0 || foldedDisplay.height == 0) null
-                                else Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
-      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, foldedDisplayRegion)
+      val activeDisplayRegion = when {
+        foldedDisplay.width != 0 && foldedDisplay.height != 0 ->
+            Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
+        displayMode != null -> Rectangle(displayMode.displaySize)
+        else -> null
+      }
+      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode)
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape)
       if (skinLayout == null) {
@@ -1132,6 +1151,21 @@ class EmulatorView(
         screenshot.skinLayout = skinLayout
         updateDisplayImageOnUiThread(screenshot)
       }
+    }
+
+    private fun checkAspectRatioConsistency(imageFormat: ImageFormat, displayMode: DisplayMode): Boolean {
+      val imageAspectRatio = if (imageFormat.rotation.rotationValue % 2 == 0) imageFormat.width.toDouble() / imageFormat.height
+                             else imageFormat.height.toDouble() / imageFormat.width
+      val displayAspectRatio = displayMode.width.toDouble() / displayMode.height
+      val tolerance = 1.0 / imageFormat.width + 1.0 / imageFormat.height
+      if (abs(imageAspectRatio / displayAspectRatio - 1) > tolerance) {
+        val imageDimensions = if (imageFormat.rotation.rotationValue % 2 == 0) "${imageFormat.width}x${imageFormat.height}"
+                              else "${imageFormat.height}x${imageFormat.width}"
+        LOG.error("Inconsistent ImageMessage: the $imageDimensions display image has different aspect ratio than" +
+                  " the ${displayMode.width}x${displayMode.height} display")
+        return false
+      }
+      return true
     }
 
     private fun computeSkinLayoutOnPooledThread(screenshotWithoutSkin: Screenshot) {
@@ -1182,11 +1216,16 @@ class EmulatorView(
         }
       }
 
+      val lastDisplayMode = lastScreenshot?.displayShape?.displayMode
       lastScreenshot = screenshot
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
+
+      if (screenshot.displayShape.displayMode != lastDisplayMode) {
+        firePropertyChange(DISPLAY_MODE_PROPERTY, lastDisplayMode, screenshot.displayShape.displayMode)
+      }
     }
 
     override fun dispose() {
@@ -1227,7 +1266,11 @@ class EmulatorView(
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation, val foldedDisplayRegion: Rectangle? = null)
+  private data class DisplayShape(val width: Int,
+                                  val height: Int,
+                                  val rotation: SkinRotation,
+                                  val activeDisplayRegion: Rectangle? = null,
+                                  val displayMode: DisplayMode? = null)
 
   private class Stats: Disposable {
     @GuardedBy("this")
@@ -1295,14 +1338,16 @@ class EmulatorView(
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
-                   "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
-                   "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+          //LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+          //         "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+          //         "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
         }
       }
     }
   }
 }
+
+internal const val DISPLAY_MODE_PROPERTY = "displayMode"
 
 private var emulatorOutOfDateNotificationShown = false
 

@@ -19,10 +19,13 @@ package com.android.tools.idea.editors.layeredimage;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
 
 final class EmptyVirtualFile extends VirtualFile {
   private static final byte[] EMPTY_ARRAY = new byte[0];

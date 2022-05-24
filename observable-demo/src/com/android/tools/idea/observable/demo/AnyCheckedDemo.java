@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.observable.demo;
 
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.any;
+
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
-import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.any;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Any checkboxes checked?

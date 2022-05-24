@@ -24,7 +24,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import javax.swing.JLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -34,9 +36,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
-import java.io.IOException;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
@@ -45,12 +44,13 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
   private static final String DEBUG_CONFIG_NAME = "app";
 
-  private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<JLabel>(JLabel.class) {
+  private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<>(JLabel.class) {
     @Override
     protected boolean isMatching(@NotNull JLabel component) {
       String text = component.getText();
-      if (text == null)
+      if (text == null) {
         return false;
+      }
       return text.contains("WARNING: This function was compiled");
     }
   };

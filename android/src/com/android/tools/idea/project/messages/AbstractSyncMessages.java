@@ -21,7 +21,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -30,10 +29,8 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.Failure;
-import com.intellij.build.events.MessageEvent;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -214,19 +211,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       issueEvent = new AndroidSyncIssueEvent(taskId, notification, title, quickFixes);
     }
 
-    // Only include errors in the summary text output
-    // This has the side effect of not opening the right hand bar if there are no failures
-    if (issueEvent.getKind() == MessageEvent.Kind.ERROR) {
-      synchronized (myLock) {
-        myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
-          .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
-      }
-    }
-    else {
-      // Only emit the event if it's not an error. Errors are saved in myShownFailures and will be emitted at the end of sync as part of FinishBuildEvent.
-      // FinishBuildEvent is better to emit errors since the failures in FinishBuildEvent has better format of simplified node titles and clickable hyperlinks.
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, issueEvent);
-    }
+    myProject.getService(SyncViewManager.class).onEvent(taskId, issueEvent);
   }
 
   @NotNull

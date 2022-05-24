@@ -20,15 +20,16 @@ import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -41,17 +42,24 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestName
 import org.mockito.Mockito.mock
 import java.io.File
+import java.nio.file.Files.createTempDirectory
 import java.util.ArrayDeque
 import java.util.concurrent.Future
 
-class DependencyManagerTest : AndroidTestCase() {
+class DependencyManagerTest {
   private var panel: PalettePanel? = null
   private var palette: Palette? = null
   private var disposable: Disposable? = null
@@ -59,21 +67,25 @@ class DependencyManagerTest : AndroidTestCase() {
   private var dependencyUpdateCount = 0
   private val syncListeners = ArrayDeque<Future<*>>()
   private val dialogMessages = mutableListOf<String>()
+  private val projectRule = AndroidProjectRule.onDisk()
+  private val watcher = TestName()
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-    val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
-    testProjectSystem.useInTests()
+  @get:Rule
+  val rule = RuleChain.outerRule(projectRule).around(watcher)!!
+
+  @Before
+  fun setUp() {
+    val testProjectSystem = TestProjectSystem(projectRule.project, availableDependencies = PLATFORM_SUPPORT_LIBS)
+    runInEdtAndWait { testProjectSystem.useInTests() }
     panel = mock(PalettePanel::class.java)
-    palette = NlPaletteModel.get(myFacet).getPalette(LayoutFileType)
+    palette = NlPaletteModel.get(AndroidFacet.getInstance(projectRule.module)!!).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()
-    Disposer.register(testRootDisposable, disposable!!)
+    Disposer.register(projectRule.testRootDisposable, disposable!!)
 
-    dependencyManager = DependencyManager(project)
+    dependencyManager = DependencyManager(projectRule.project)
     dependencyManager?.setSyncTopicListener { syncListeners.add(it) }
-    if (getTestName(true) != "noNotificationOnProjectSyncBeforeSetPalette") {
-      dependencyManager!!.setPalette(palette!!, myModule)
+    if (watcher.methodName != "testNoNotificationOnProjectSyncBeforeSetPalette") {
+      dependencyManager!!.setPalette(palette!!, projectRule.module)
       waitAndDispatchAll()
     }
     Disposer.register(disposable!!, dependencyManager!!)
@@ -84,29 +96,25 @@ class DependencyManagerTest : AndroidTestCase() {
     }
   }
 
-  @Throws(Exception::class)
-  override fun tearDown() {
-    try {
-      AndroidModuleInfo.setInstanceForTest(myFacet, null)
-      TestDialogManager.setTestDialog(TestDialog.DEFAULT)
-      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
-      // tests through IJ)
-      Disposer.dispose(disposable!!)
-      palette = null
-      panel = null
-      dependencyManager = null
-      disposable = null
-    }
-    finally {
-      super.tearDown()
-    }
+  @After
+  fun tearDown() {
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
+    // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+    // tests through IJ)
+    Disposer.dispose(disposable!!)
+    palette = null
+    panel = null
+    dependencyManager = null
+    disposable = null
   }
 
+  @Test
   fun testNeedsLibraryLoad() {
     assertThat(dependencyManager!!.needsLibraryLoad(findItem(TEXT_VIEW))).isFalse()
     assertThat(dependencyManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName()))).isTrue()
   }
 
+  @Test
   fun testEnsureLibraryIsIncluded() {
     val (floatingActionButton, recyclerView, cardView) =
       listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
@@ -115,78 +123,91 @@ class DependencyManagerTest : AndroidTestCase() {
     assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
     assertThat(dependencyManager!!.needsLibraryLoad(cardView)).isTrue()
 
-    dependencyManager!!.ensureLibraryIsIncluded(floatingActionButton)
-    waitAndDispatchAll()
-    dependencyManager!!.ensureLibraryIsIncluded(cardView)
-    waitAndDispatchAll()
+    runInEdtAndWait {
+      dependencyManager!!.ensureLibraryIsIncluded(floatingActionButton)
+      waitAndDispatchAll()
+      dependencyManager!!.ensureLibraryIsIncluded(cardView)
+      waitAndDispatchAll()
+    }
 
     assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isFalse()
     assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
     assertThat(dependencyManager!!.needsLibraryLoad(cardView)).isFalse()
   }
 
+  @Test
   fun testRegisterDependencyUpdates() {
     simulateProjectSync()
-    assertEquals(0, dependencyUpdateCount)
+    assertThat(dependencyUpdateCount).isEqualTo(0)
 
-    dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
-    waitAndDispatchAll()
-    assertEquals(1, dependencyUpdateCount)
+    runInEdtAndWait {
+      dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
+      waitAndDispatchAll()
+    }
+    assertThat(dependencyUpdateCount).isEqualTo(1)
   }
 
+  @Test
   fun testDisposeStopsProjectSyncListening() {
     Disposer.dispose(disposable!!)
 
-    dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
-    waitAndDispatchAll()
-    assertEquals(0, dependencyUpdateCount)
+    runInEdtAndWait {
+      dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
+      waitAndDispatchAll()
+    }
+
+    assertThat(dependencyUpdateCount).isEqualTo(0)
   }
 
-  fun testAndroidxDependencies() {
+  @Test
+  fun testAndroidxDependencies() = runInEdtAndWait{
     // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
-    assertTrue(dependencyManager!!.useAndroidXDependencies())
+    assertThat(dependencyManager!!.useAndroidXDependencies()).isTrue()
 
-    val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
-      val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
+    val project = projectRule.project
+    val gradlePropertiesFile = runWriteActionAndWait {
+      val projectDir = VfsUtil.findFileByIoFile(File(project.basePath!!), true)!!
       projectDir.createChildData(null, FN_GRADLE_PROPERTIES)
-    })
+    }
 
     val propertiesPsi = PsiManager.getInstance(project).findFile(gradlePropertiesFile)!!
     val propertiesDoc = PsiDocumentManager.getInstance(project).getDocument(propertiesPsi)!!
 
     // Check explicitly setting the variable
-    ApplicationManager.getApplication().runWriteAction {
+    runWriteActionAndWait {
       propertiesDoc.setText("android.useAndroidX=false")
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
     simulateProjectSync()
-    assertFalse(dependencyManager!!.useAndroidXDependencies())
-    assertEquals(1, dependencyUpdateCount)
+    assertThat(dependencyManager!!.useAndroidXDependencies()).isFalse()
+    assertThat(dependencyUpdateCount).isEqualTo(1)
 
-    ApplicationManager.getApplication().runWriteAction {
+    runWriteActionAndWait {
       propertiesDoc.setText("android.useAndroidX=true")
       PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
     simulateProjectSync()
-    assertTrue(dependencyManager!!.useAndroidXDependencies())
-    assertEquals(2, dependencyUpdateCount)
+    assertThat(dependencyManager!!.useAndroidXDependencies()).isTrue()
+    assertThat(dependencyUpdateCount).isEqualTo(2)
   }
 
+  @Test
   fun testNoNotificationOnProjectSyncBeforeSetPalette() {
     dependencyManager!!.setNotifyAlways(true)
     simulateProjectSync()
-    assertEquals(0, dependencyUpdateCount)
+    assertThat(dependencyUpdateCount).isEqualTo(0)
   }
 
+  @Test
   fun testSetPaletteWithDisposedProject() {
-    val foo = createTempDir("foo")
-    val bar = createTempDir("bar")
-    val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
+    val foo = createTempDirectory("foo")
+    val bar = createTempDirectory("bar")
+    val tempProject = ProjectManagerEx.getInstanceEx().newProject(foo, OpenProjectTask(isNewProject = true))!!
     val localDependencyManager: DependencyManager
 
     try {
       val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
-        ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
+        ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
       })
 
       localDependencyManager = DependencyManager(tempProject)
@@ -201,7 +222,7 @@ class DependencyManagerTest : AndroidTestCase() {
   }
 
   private fun simulateProjectSync() {
-    project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+    projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
     waitAndDispatchAll()
   }
 
@@ -209,7 +230,7 @@ class DependencyManagerTest : AndroidTestCase() {
     while (syncListeners.isNotEmpty()) {
       syncListeners.remove().get()
     }
-    UIUtil.dispatchAllInvocationEvents()
+    runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
   }
 
   private fun findItem(tagName: String): Palette.Item {

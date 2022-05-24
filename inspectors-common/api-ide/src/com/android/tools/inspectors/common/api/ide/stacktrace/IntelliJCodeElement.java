@@ -88,7 +88,7 @@ public final class IntelliJCodeElement implements CodeElement {
     }
 
     VirtualFile sourceFile = myCodeLocation.isNativeCode() ? findSourceFile() : findClassFile();
-    return sourceFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(sourceFile);
+    return sourceFile != null && ProjectFileIndex.getInstance(myProject).isInSource(sourceFile);
   }
 
   @Nullable

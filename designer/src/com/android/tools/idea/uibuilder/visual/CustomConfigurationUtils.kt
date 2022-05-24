@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.resources.NightMode
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.LocaleMenuAction
+import com.android.tools.idea.rendering.Locale
 import com.android.utils.HtmlBuilder
 
 fun Configuration.toTooltips() = StringBuilder()
   .append(device?.let { "${it.displayName}, " } ?: "")
   .append(target?.let { "API ${it.version.apiLevel}, " } ?: "")
   .append(deviceState?.orientation?.let { "${it.name}, " } ?: "")
-  .append("${LocaleMenuAction.getLocaleLabel(locale, false)}, ")
+  .append("${Locale.getLocaleLabel(locale, false)}, ")
   .append("$theme, ")
   .append("${uiMode.longDisplayValue}, ")
   .append(nightMode.longDisplayValue)
@@ -44,7 +44,7 @@ fun Configuration.toHtmlTooltip(): String {
   }
   tooltip.addBold("Display").newline()
   target?.let { tooltip.add("API: ${it.version.apiLevel}").newline() }
-  tooltip.add("Locale: ${LocaleMenuAction.getLocaleLabel(locale, false)}").newline()
+  tooltip.add("Locale: ${Locale.getLocaleLabel(locale, false)}").newline()
     .add("Theme: $theme").newline()
     .add("UI Mode: ${uiMode.shortDisplayValue}").newline()
   if (nightMode == NightMode.NIGHT) {

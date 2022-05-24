@@ -15,17 +15,75 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.components.JBPanel;
+import java.awt.BorderLayout;
 import java.util.Optional;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface DetailsPanelPanel<D> {
-  @NotNull Optional<@NotNull D> getSelectedDevice();
+final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disposable {
+  private final @NotNull JComponent myScrollPane;
+  private @Nullable Disposable myDetailsPanel;
+  private @Nullable Splitter mySplitter;
 
-  boolean containsDetailsPanel();
+  DetailsPanelPanel(@NotNull JComponent scrollPane) {
+    super(new BorderLayout());
 
-  void removeDetailsPanel();
+    myScrollPane = scrollPane;
+    add(scrollPane);
+  }
 
-  void initDetailsPanel(@NotNull D device);
+  @Override
+  public void dispose() {
+    if (myDetailsPanel != null) {
+      Disposer.dispose(myDetailsPanel);
+    }
+  }
 
-  void layOut();
+  void viewDetails(@NotNull DetailsPanel detailsPanel) {
+    if (mySplitter != null) {
+      assert myDetailsPanel != null;
+      Disposer.dispose(myDetailsPanel);
+
+      myDetailsPanel = detailsPanel;
+      mySplitter.setSecondComponent(detailsPanel);
+
+      return;
+    }
+
+    myDetailsPanel = detailsPanel;
+    remove(myScrollPane);
+
+    mySplitter = new JBSplitter(true);
+    mySplitter.setFirstComponent(myScrollPane);
+    mySplitter.setSecondComponent(detailsPanel);
+
+    add(mySplitter);
+  }
+
+  public void removeSplitter() {
+    remove(mySplitter);
+    mySplitter = null;
+
+    assert myDetailsPanel != null;
+    Disposer.dispose(myDetailsPanel);
+    myDetailsPanel = null;
+
+    add(myScrollPane);
+  }
+
+  @VisibleForTesting
+  @NotNull Optional<@NotNull Object> getDetailsPanel() {
+    return Optional.ofNullable(myDetailsPanel);
+  }
+
+  @NotNull Optional<@NotNull Splitter> getSplitter() {
+    return Optional.ofNullable(mySplitter);
+  }
 }

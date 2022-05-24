@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -27,11 +27,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringActionHandler;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Set;
 
 public class UnusedResourcesHandler implements RefactoringActionHandler {
   public static void invoke(final Project project,
@@ -64,13 +64,13 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
 
   @Override
   public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
-    Set<Module> moduleSet = Sets.newHashSet();
+    Set<Module> moduleSet = new HashSet<>();
     Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
       Collections.addAll(moduleSet, modules);
     }
     else {
-      Module module = LangDataKeys.MODULE.getData(dataContext);
+      Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
       if (module != null) {
         moduleSet.add(module);
       }

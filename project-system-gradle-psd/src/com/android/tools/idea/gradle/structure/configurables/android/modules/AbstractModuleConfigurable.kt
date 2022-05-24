@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurab
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
@@ -52,7 +52,7 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
 
   protected abstract fun createPanel(): PanelT
 
-  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)!!
+  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? = modulePanel.navigateTo(place, requestFocus)!!
   final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
   final override fun createOptionsPanel(): JComponent = modulePanel
   final override fun restoreUiState() = modulePanel.restoreUiState()

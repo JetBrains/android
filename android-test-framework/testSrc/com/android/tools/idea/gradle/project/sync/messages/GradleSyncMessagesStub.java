@@ -20,13 +20,14 @@ import static org.junit.Assert.assertSame;
 
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.build.issue.BuildIssueQuickFix;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +40,9 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @Nullable private NotificationUpdate myNotificationUpdate;
 
   @NotNull
-  public static GradleSyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
+  public static GradleSyncMessagesStub replaceSyncMessagesService(@NotNull Project project, @NotNull Disposable parentDisposable) {
     GradleSyncMessagesStub syncMessages = new GradleSyncMessagesStub(project);
-    new IdeComponents(project).replaceProjectService(GradleSyncMessages.class, syncMessages);
+    ServiceContainerUtil.replaceService(project, GradleSyncMessages.class, syncMessages, parentDisposable);
     assertSame(syncMessages, GradleSyncMessages.getInstance(project));
     return syncMessages;
   }

@@ -15,20 +15,19 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import java.util.EnumSet;
+import java.util.Set;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.Set;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test for {@link AttributeDefinitions} and related classes.

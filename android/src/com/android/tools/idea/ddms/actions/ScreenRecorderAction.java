@@ -47,8 +47,8 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ScreenRecorderAction extends AbstractDeviceAction {
-  static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
+  private static final String REMOTE_PATH = "/sdcard/screen-recording-%d.mp4";
   static final String TITLE = "Screen Recorder";
   private static final Pattern WM_SIZE_OUTPUT_REGEX = Pattern.compile("(?<width>\\d+)x(?<height>\\d+)");
 
@@ -77,7 +77,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   @VisibleForTesting
   ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
     super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.VIDEO_CAPTURE);
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.Toolbar.VIDEO_CAPTURE);
 
     myFeatures = features;
     myProject = project;
@@ -89,14 +89,14 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
 
     if (!isEnabled()) {
       presentation.setEnabled(false);
-      presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
+      presentation.setText(AndroidBundle.messagePointer("android.ddms.actions.screenrecord"));
       return;
     }
 
     IDevice device = myDeviceContext.getSelectedDevice();
 
     presentation.setEnabled(myFeatures.screenRecord(device));
-    presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
+    presentation.setText(AndroidBundle.messagePointer("android.ddms.actions.screenrecord"));
   }
 
   protected boolean isEnabled() {
@@ -140,7 +140,9 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
         setShowTouch(device, options.showTouches);
       }
       try {
-        ScreenRecorderTask task = new ScreenRecorderTask(myProject, device, emulatorRecordingFile, options);
+        ScreenRecorderTask task =
+          new ScreenRecorderTask(
+            myProject, device, String.format(Locale.US, REMOTE_PATH, System.currentTimeMillis()), emulatorRecordingFile, options);
         task.run();
       }
       finally {
@@ -178,7 +180,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
       return null;
     }
 
-    return Paths.get(virtualDevice.getDataFolderPath(), EMU_TMP_FILENAME);
+    return virtualDevice.getDataFolderPath().resolve(EMU_TMP_FILENAME);
   }
 
   private static void setShowTouch(@NotNull IDevice device, boolean isEnabled) {

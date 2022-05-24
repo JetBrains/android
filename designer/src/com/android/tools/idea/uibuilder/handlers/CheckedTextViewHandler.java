@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ATTR_CHECKED;
+import static com.android.SdkConstants.ATTR_CHECK_MARK;
+import static com.android.SdkConstants.ATTR_CHECK_MARK_TINT;
+
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 public class CheckedTextViewHandler extends TextViewHandler {
   @Override

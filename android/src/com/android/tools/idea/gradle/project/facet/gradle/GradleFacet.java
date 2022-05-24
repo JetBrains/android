@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.facet.gradle;
 
+import static com.intellij.ProjectTopics.PROJECT_ROOTS;
+import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -29,10 +37,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.ProjectTopics.PROJECT_ROOTS;
-import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Identifies a module as a "Gradle project".

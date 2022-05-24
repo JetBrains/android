@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -24,8 +26,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
 
 /**
  * Class to unload unwanted quick fixes
@@ -45,7 +45,7 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     // Since this is a gradle android project, we need to unregister:
     //  "add jar from web quick fix",
     // since those quick fixes would make the iml file and the gradle file out of sync.
-    registrar.unregister(new Condition<IntentionAction>() {
+    registrar.unregister(new Condition<>() {
       @Override
       public boolean value(IntentionAction intentionAction) {
         return intentionAction instanceof FindJarFix;

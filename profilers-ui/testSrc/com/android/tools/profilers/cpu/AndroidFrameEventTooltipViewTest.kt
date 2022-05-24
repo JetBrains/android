@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.DefaultTimeline
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
@@ -27,15 +29,18 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 
 class AndroidFrameEventTooltipViewTest {
+  private val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
   @Test
   fun testUpdatesOnRangeChange() {
     val timeline = DefaultTimeline().apply {
       dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
       viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
     }
-    val model = AndroidFrameEventTrackModel("App", listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
-                                                          RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
-                                            RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }))
+    val model = AndroidFrameEventTrackModel("App", timeline.viewRange,
+                                            listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
+                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
+                                            RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }),
+                                            multiSelectionModel, mapOf())
     val tooltip = AndroidFrameEventTooltip(timeline, model)
     val tooltipView = AndroidFrameEventTooltipView(JPanel(), tooltip)
 

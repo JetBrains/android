@@ -38,6 +38,7 @@ object DesignerActions {
   //</editor-fold>
 
   //<editor-fold desc="Layout Editor Actions">
+  const val ACTION_SET_LAYOUT_QUALIFIER = "$PREFIX.SwitchLayoutQualifier"
   const val ACTION_SWITCH_DESIGN_MODE = "$PREFIX.SwitchDesignMode"
   const val ACTION_TOGGLE_DEVICE_ORIENTATION = "$PREFIX.ToggleDeviceOrientation"
   const val ACTION_TOGGLE_DEVICE_NIGHT_MODE = "$PREFIX.ToggleDeviceNightMode"

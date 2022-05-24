@@ -17,9 +17,8 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.resources.ResourceType;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-
-import java.awt.*;
+import com.intellij.ui.scale.JBUIScale;
+import java.awt.Color;
 import java.util.EnumSet;
 
 public class ThemeEditorConstants {
@@ -33,9 +32,9 @@ public class ThemeEditorConstants {
   public static final JBColor RESOURCE_ITEM_COLOR = new JBColor(new Color(0x6F6F6F)/*light*/, new Color(0xAAAAAA)/*dark*/);
 
   /** Attribute cell gap between the label and the swatch */
-  public static final int ATTRIBUTE_ROW_GAP = JBUI.scale(7);
+  public static final int ATTRIBUTE_ROW_GAP = JBUIScale.scale(7);
   /** Attribute cell top + bottom margins */
-  public static final int ATTRIBUTE_MARGIN = JBUI.scale(16);
+  public static final int ATTRIBUTE_MARGIN = JBUIScale.scale(16);
 
   /*
    * Definitions of which resource types belong into the colors, drawables or both categories

@@ -18,11 +18,11 @@ package com.android.tools.idea.databinding.integration.gradle
 import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -183,7 +183,6 @@ private object ClassDescriber {
 @RunWith(Parameterized::class)
 class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   companion object {
-    @Suppress("unused") // Used by JUnit
     @get:Parameters(name = "{0}")
     @get:JvmStatic
     val parameters: List<TestParameters>
@@ -218,7 +217,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   }
 
   private fun findViewDataBindingClass(): ClassReader {
-    val model = AndroidModuleModel.get(projectRule.androidFacet(":app"))!!
+    val model = GradleAndroidModel.get(projectRule.androidFacet(":app"))!!
     val classJar = model.mainArtifact.level2Dependencies.androidLibraries.first { lib ->
       lib.artifactAddress.startsWith(parameters.dataBindingLibArtifact)
     }.runtimeJarFiles.find {

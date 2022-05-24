@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.doFin
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.util.StudioPathManager;
-import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -33,11 +32,10 @@ public class EmbeddedDistributionPathsTest {
 
   @Test
   public void testFindAndroidStudioLocalMavenRepoPaths() {
-    File rootDir = new File(StudioPathManager.getSourcesRoot());
-    List<File> expectedRepo = Arrays.asList(new File(rootDir, "out/repo"),
-                                            new File(rootDir, "out/studio/repo"),
-                                            new File(rootDir, "prebuilts/tools/common/m2/repository"),
-                                            new File(rootDir, "../maven/repo"),
+    List<File> expectedRepo = Arrays.asList(new File(StudioPathManager.resolveDevPath("out/repo")),
+                                            new File(StudioPathManager.resolveDevPath("out/studio/repo")),
+                                            new File(StudioPathManager.resolveDevPath("prebuilts/tools/common/m2/repository")),
+                                            new File(StudioPathManager.resolveDevPath("../maven/repo")),
                                             new File(System.getProperty("java.io.tmpdir"), "offline-maven-repo"));
     expectedRepo = expectedRepo.stream().filter(File::isDirectory).collect(Collectors.toList());
     // Invoke the method to test.

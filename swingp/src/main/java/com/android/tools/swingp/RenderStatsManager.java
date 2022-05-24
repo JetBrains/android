@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class RenderStatsManager {
   private static final Set<ThreadStat> ourGlobalThreadStats = Collections.synchronizedSet(new HashSet<>());
-  private static final ThreadLocal<ThreadStat> ourThreadStat = new ThreadLocal<ThreadStat>() {
+  private static final ThreadLocal<ThreadStat> ourThreadStat = new ThreadLocal<>() {
     @Override
     protected ThreadStat initialValue() {
       ThreadStat threadStat = new ThreadStat();

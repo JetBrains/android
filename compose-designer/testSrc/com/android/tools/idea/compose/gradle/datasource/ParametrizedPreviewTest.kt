@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -71,7 +72,7 @@ class ParametrizedPreviewTest {
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
   @Test
-  fun testParametrizedPreview() {
+  fun testParametrizedPreview() = runBlocking {
     val project = projectRule.project
 
     val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
@@ -80,7 +81,7 @@ class ParametrizedPreviewTest {
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
                               .filter { it.displaySettings.name == "TestWithProvider" }))
-      .previewElements
+      .previewElements()
     assertEquals(3, elements.count())
 
     elements.forEach {
@@ -92,7 +93,7 @@ class ParametrizedPreviewTest {
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
   @Test
-  fun testLoremIpsumInstance() {
+  fun testLoremIpsumInstance() = runBlocking {
     val project = projectRule.project
 
     val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
@@ -101,7 +102,7 @@ class ParametrizedPreviewTest {
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
                               .filter { it.displaySettings.name == "TestLorem" }))
-      .previewElements
+      .previewElements()
     assertEquals(1, elements.count())
 
     elements.forEach {

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents the extra user-defined properties defined in the Gradle file.

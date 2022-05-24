@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run.activity;
 
-import com.android.SdkConstants;
-import org.jetbrains.android.AndroidTestCase;
-
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_UNDECLARED;
+
+import com.android.SdkConstants;
+import org.jetbrains.android.AndroidTestCase;
 
 public class SpecificActivityLocatorTest extends AndroidTestCase {
 

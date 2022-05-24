@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class FileChooserDialogFixture  extends IdeaDialogFixture<FileChooserDialogImpl> {
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
-import java.awt.*;
+import java.awt.Graphics2D;
 
 public interface MockupViewLayer {
   void paint(Graphics2D g);

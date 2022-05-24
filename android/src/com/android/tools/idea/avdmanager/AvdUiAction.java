@@ -16,16 +16,17 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.beans.PropertyChangeListener;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract base class for AVD editing actions
@@ -35,7 +36,7 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
   @NotNull private final String myText;
   @NotNull private final String myDescription;
   @NotNull private final Icon myIcon;
-  private Map<String, Object> myData = Maps.newHashMap();
+  private Map<String, Object> myData = new HashMap<>();
 
   public interface AvdInfoProvider {
     @Nullable

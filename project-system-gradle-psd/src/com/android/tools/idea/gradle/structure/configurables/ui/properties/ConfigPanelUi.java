@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties;
 
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import java.awt.GridBagConstraints;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class ConfigPanelUi {
   public static final int V_GAP = 4;
@@ -46,7 +46,7 @@ public class ConfigPanelUi {
       1,
       GridBagConstraints.CENTER,
       GridBagConstraints.VERTICAL,
-      JBUI.emptyInsets(),
+      JBInsets.emptyInsets(),
       0, 0));
   }
 

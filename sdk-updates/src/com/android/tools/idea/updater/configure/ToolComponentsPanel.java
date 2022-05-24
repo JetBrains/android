@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
@@ -32,6 +33,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
@@ -43,6 +45,7 @@ import java.awt.CardLayout;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JCheckBox;
@@ -91,7 +94,7 @@ public class ToolComponentsPanel {
   @VisibleForTesting
   UpdaterTreeNode myToolsSummaryRootNode;
 
-  Set<PackageNodeModel> myStates = Sets.newHashSet();
+  Set<PackageNodeModel> myStates = new HashSet<>();
 
   private boolean myModified = false;
   private final ChangeListener myModificationListener = e -> refreshModified();
@@ -252,7 +255,7 @@ public class ToolComponentsPanel {
   }
 
   private void createUIComponents() {
-    myToolsLoadingIcon = new AsyncProcessIcon("Loading...");
+    myToolsLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
 
     myToolsSummaryRootNode = new RootNode();
     myToolsDetailsRootNode = new RootNode();

@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
+
+import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
@@ -41,17 +44,17 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
 
 /**
  * A callback to provide information related to the Action Bar as required by the

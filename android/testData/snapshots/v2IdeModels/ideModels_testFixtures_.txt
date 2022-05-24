@@ -2,7 +2,7 @@ MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -22,6 +22,7 @@ MODULE                        : project.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -43,8 +44,8 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/optional/org.apache.http.legacy.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -52,6 +53,7 @@ MODULE                        : project.app
         IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
+            Name                          : main
             ApplicationId                 : google.simpleapplication
             VersionCode                   : 1
             VersionName                   : 1.0
@@ -59,8 +61,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -109,6 +111,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -161,6 +164,9 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -180,22 +186,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -243,19 +233,26 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -744,6 +741,24 @@ MODULE                        : project.app
                             ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0@aar
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0@aar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
                     JavaLibraries
                         JavaLibrary                   : android.arch.core:common:1.1.1
                             ArtifactAddress               : android.arch.core:common:1.1.1@jar
@@ -765,10 +780,24 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0@jar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
                         JavaLibrary                   : com.google.guava:guava:19.0
                             ArtifactAddress               : com.google.guava:guava:19.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/google/guava/guava/19.0/guava-19.0.jar
+                        JavaLibrary                   : commons-io:commons-io:2.4
+                            ArtifactAddress               : commons-io:commons-io:2.4@jar
+                            IsProvided                    : false
+                            Artifact                      : <M2>/commons-io/commons-io/2.4/commons-io-2.4.jar
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -781,18 +810,22 @@ MODULE                        : project.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -1353,6 +1386,24 @@ MODULE                        : project.app
                             ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0@aar
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0@aar
+                            IsProvided                    : true
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
                     JavaLibraries
                         JavaLibrary                   : android.arch.core:common:1.1.1
                             ArtifactAddress               : android.arch.core:common:1.1.1@jar
@@ -1374,6 +1425,10 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0@jar
+                            IsProvided                    : true
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
                         JavaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                             ArtifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
                             IsProvided                    : false
@@ -1386,6 +1441,10 @@ MODULE                        : project.app
                             ArtifactAddress               : com.squareup:javawriter:2.1.1@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
+                        JavaLibrary                   : commons-io:commons-io:2.4
+                            ArtifactAddress               : commons-io:commons-io:2.4@jar
+                            IsProvided                    : true
+                            Artifact                      : <M2>/commons-io/commons-io/2.4/commons-io-2.4.jar
                         JavaLibrary                   : javax.inject:javax.inject:1
                             ArtifactAddress               : javax.inject:javax.inject:1@jar
                             IsProvided                    : false
@@ -1415,6 +1474,11 @@ MODULE                        : project.app
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1430,11 +1494,11 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -1923,6 +1987,42 @@ MODULE                        : project.app
                             ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0@aar
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0@aar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0@aar (1)
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0@aar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0-test-fixtures.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/R.txt
                     JavaLibraries
                         JavaLibrary                   : android.arch.core:common:1.1.1
                             ArtifactAddress               : android.arch.core:common:1.1.1@jar
@@ -1944,6 +2044,14 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0@jar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0 (1)
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0@jar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar
                         JavaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3
                             ArtifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3@jar
                             IsProvided                    : false
@@ -2006,20 +2114,23 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
-                            Variant                       : debugTestFixtures
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2039,6 +2150,7 @@ MODULE                        : project.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2060,11 +2172,12 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2128,6 +2241,7 @@ MODULE                        : project.lib
                     ShadersDirectories            : <ROOT>/lib/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2196,6 +2310,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testFixturesDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testFixturesDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2215,22 +2330,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/lib/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2284,18 +2383,21 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     JavaLibraries
                         JavaLibrary                   : commons-io:commons-io:2.4
@@ -2308,18 +2410,22 @@ MODULE                        : project.lib
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/lib/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -2478,7 +2584,7 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :lib
-                            Variant                       : debugTestFixtures
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -2501,11 +2607,11 @@ MODULE                        : project.lib
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     JavaLibraries
                         JavaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3
@@ -2567,7 +2673,7 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :lib
-                            Variant                       : debugTestFixtures
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -2580,11 +2686,11 @@ MODULE                        : project.lib
                 Name                          : TEST_FIXTURES
                 CompileTaskName               : compileDebugTestFixturesSources
                 AssembleTaskName              : assembleDebugTestFixtures
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugTestFixtures/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugTestFixturesSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugTestFixtures/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugTestFixtures/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugTestFixtures/classes [-]
                 Level2Dependencies
                     JavaLibraries
                         JavaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3
@@ -2658,3 +2764,7 @@ MODULE                        : project.lib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugTestFixtures
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/testFixtures/debug [-]
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.testFixtures
+MODULE                        : project.lib.unitTest

@@ -19,11 +19,10 @@ import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.NullOutputReceiver;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>Common queries used by tests that are best handled using ddmlib</p>

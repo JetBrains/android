@@ -60,6 +60,7 @@ public class BuildInstantAppTest {
       .clickPath("app")
       .openFromMenu(EnableInstantAppSupportDialogFixture::find, "Refactor", "Enable Instant Apps Support...")
       .clickOk();
+    guiTest.robot().waitForIdle();
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
 
     ideFrame.invokeMenuPath("Run", "Edit Configurations...");

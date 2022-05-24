@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("EnumEntryName")
+
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
-import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
-
-internal const val SPEC_PREFIX = "spec:"
 
 internal const val DEFAULT_WIDTH = 1080
 internal const val DEFAULT_HEIGHT = 1920
@@ -45,42 +46,130 @@ private const val WIDTH_SUFFIX = "w"
 private const val HEIGHT_SUFFIX = "h"
 
 /**
- * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrDefault].
+ * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
  *
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables)
  */
-internal class DeviceConfig(
-  var width: Int = DEFAULT_WIDTH,
-  var height: Int = DEFAULT_HEIGHT,
-  dimUnit: DimUnit = DEFAULT_UNIT,
-  var density: Int = DEFAULT_DENSITY.dpiValue,
-  var shape: Shape = DEFAULT_SHAPE
+internal open class DeviceConfig(
+  open val width: Int = DEFAULT_WIDTH,
+  open val height: Int = DEFAULT_HEIGHT,
+  open val dimUnit: DimUnit = DEFAULT_UNIT,
+  open val dpi: Int = DEFAULT_DENSITY.dpiValue,
+  open val shape: Shape = DEFAULT_SHAPE
 ) {
+  open val orientation: Orientation
+    get() = if (height >= width) Orientation.portrait else Orientation.landscape
+
+  /** Returns a string that defines the Device in the current state of [DeviceConfig] */
+  fun deviceSpec(): String {
+    val builder = StringBuilder(DEVICE_BY_SPEC_PREFIX)
+    builder.appendParamValue(PARAM_SHAPE, shape.name)
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_WIDTH, width.toString())
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_HEIGHT, height.toString())
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_UNIT, dimUnit.name)
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_DENSITY, dpi.toString())
+    return builder.toString()
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (other !is DeviceConfig) {
+      return false
+    }
+    return deviceSpec() == other.deviceSpec()
+  }
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(width, height, dpi, shape.hashCode(), dimUnit.hashCode())
+  }
+
+  companion object {
+    fun toDeviceConfigOrNull(serialized: String?): DeviceConfig? {
+      if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
+      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
+      val paramsMap = configString.split(PARAM_SEPARATOR).filter {
+        it.length >= 3 && it.contains(PARAM_VALUE_OPERATOR)
+      }.associate { paramString ->
+        Pair(paramString.substringBefore(PARAM_VALUE_OPERATOR).trim(), paramString.substringAfter(PARAM_VALUE_OPERATOR).trim())
+      }
+
+      if (paramsMap.size != 5) {
+        // Try to parse with old method, otherwise, continue
+        legacyParseToDeviceConfig(serialized)?.let { return it }
+      }
+
+      val shape = enumValueOfOrNull<Shape>(paramsMap.getOrDefault(PARAM_SHAPE, "")) ?: return null
+      val width = paramsMap.getOrDefault(PARAM_WIDTH, "").toIntOrNull() ?: return null
+      val height = paramsMap.getOrDefault(PARAM_HEIGHT, "").toIntOrNull() ?: return null
+      val dimUnit = enumValueOfOrNull<DimUnit>(paramsMap.getOrDefault(PARAM_UNIT, "").toLowerCaseAsciiOnly()) ?: return null
+      val dpi = paramsMap.getOrDefault(PARAM_DENSITY, "").toIntOrNull() ?: return null
+      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, dpi = dpi, shape = shape)
+    }
+
+    fun toMutableDeviceConfigOrNull(serialized: String?): MutableDeviceConfig? {
+      return toDeviceConfigOrNull(serialized)?.toMutableConfig()
+    }
+
+    private fun legacyParseToDeviceConfig(serialized: String?): DeviceConfig? {
+      if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
+      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
+      val params = configString.split(PARAM_LEGACY_SEPARATOR)
+      if (params.size != 5) return null
+
+      val shape = enumValueOfOrNull<Shape>(params[0]) ?: return null
+      val width = params[1].substringBefore(WIDTH_SUFFIX).toIntOrNull() ?: return null
+      val height = params[2].substringBefore(HEIGHT_SUFFIX).toIntOrNull() ?: return null
+      val dimUnit = enumValueOfOrNull<DimUnit>(params[3].toLowerCaseAsciiOnly()) ?: return null
+      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: return null
+      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, dpi = dpi, shape = shape)
+    }
+  }
+}
+
+/**
+ * Mutable equivalent of [DeviceConfig].
+ *
+ * Note that modifying [MutableDeviceConfig.dimUnit] or [MutableDeviceConfig.orientation] will also change the width and height values.
+ */
+internal class MutableDeviceConfig(
+  initialWidth: Int = DEFAULT_WIDTH,
+  initialHeight: Int = DEFAULT_HEIGHT,
+  initialDimUnit: DimUnit = DEFAULT_UNIT,
+  initialDpi: Int = DEFAULT_DENSITY.dpiValue,
+  initialShape: Shape = DEFAULT_SHAPE
+) : DeviceConfig(initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
+  override var width: Int = initialWidth
+  override var height: Int = initialHeight
+
   /**
    * Defines the unit in which [width] and [height] should be considered. Modifying this property also changes [width] and [height].
    */
-  var dimensionUnit: DimUnit = dimUnit
+  override var dimUnit: DimUnit = initialDimUnit
     set(newValue) {
       if (newValue != field) {
         field = newValue
         val baseDpi = Density.MEDIUM.dpiValue
-        when (newValue) {
-          // TODO(197021783): Make a more precise operation, or support floating point for width/height
-          DimUnit.px -> {
-            width = (1.0f * width * density / baseDpi).roundToInt()
-            height = (1.0f * height * density / baseDpi).roundToInt()
-          }
-          DimUnit.dp -> {
-            width = (1.0f * baseDpi / density * width).roundToInt()
-            height = (1.0f * baseDpi / density * height).roundToInt()
-          }
+        val dpiFactor = when (newValue) {
+          DimUnit.px -> 1.0f * dpi / baseDpi
+          DimUnit.dp -> 1.0f * baseDpi / dpi
         }
+        // TODO(b/197021783): Do a more precise operation, or support floating point for width/height
+        width = (width * dpiFactor).roundToInt()
+        height = (height * dpiFactor).roundToInt()
       }
     }
+  override var dpi: Int = initialDpi
+  override var shape: Shape = initialShape
 
-  var orientation: Orientation
-    get() = if (height >= width) Orientation.portrait else Orientation.landscape
+  /**
+   * When changed, swaps the [width] and [height] values appropriately.
+   */
+  override var orientation: Orientation
+    get() = super.orientation
     set(newValue) {
       when (newValue) {
         Orientation.portrait -> {
@@ -99,78 +188,31 @@ internal class DeviceConfig(
         }
       }
     }
-
-  /** Returns a string that defines the Device in the current state of [DeviceConfig] */
-  fun deviceSpec(): String {
-    val builder = StringBuilder(SPEC_PREFIX)
-    builder.appendParamValue(PARAM_SHAPE, shape.name)
-    builder.appendSeparator()
-    builder.appendParamValue(PARAM_WIDTH, width.toString())
-    builder.appendSeparator()
-    builder.appendParamValue(PARAM_HEIGHT, height.toString())
-    builder.appendSeparator()
-    builder.appendParamValue(PARAM_UNIT, dimensionUnit.name)
-    builder.appendSeparator()
-    builder.appendParamValue(PARAM_DENSITY, density.toString())
-    return builder.toString()
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (other !is DeviceConfig) {
-      return false
-    }
-    return deviceSpec() == other.deviceSpec()
-  }
-
-  override fun hashCode(): Int {
-    return HashCodes.mix(width, height, density, shape.hashCode(), dimensionUnit.hashCode())
-  }
-
-  companion object {
-
-    /**
-     * Returns a [DeviceConfig] from parsing the given string.
-     *
-     * For any step that might fail, a default value will be used.
-     * So if all fails, returns an instance using all default values.
-     */
-    fun toDeviceConfigOrDefault(serialized: String?): DeviceConfig {
-      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return DeviceConfig()
-      val configString = serialized.substringAfter(SPEC_PREFIX)
-      val paramsMap = configString.split(PARAM_SEPARATOR).filter {
-        it.length >= 3 && it.contains(PARAM_VALUE_OPERATOR)
-      }.associate { paramString ->
-        Pair(paramString.substringBefore(PARAM_VALUE_OPERATOR), paramString.substringAfter(PARAM_VALUE_OPERATOR))
-      }
-
-      if (paramsMap.size != 5) {
-        // Try to parse with old method, otherwise, continue
-        legacyParseToDeviceConfig(serialized)?.let { return it }
-      }
-
-      val shape = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_SHAPE, ""), DEFAULT_SHAPE)
-      val width = paramsMap.getOrDefault(PARAM_WIDTH, "").toIntOrNull() ?: DEFAULT_WIDTH
-      val height = paramsMap.getOrDefault(PARAM_HEIGHT, "").toIntOrNull() ?: DEFAULT_HEIGHT
-      val dimUnit = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_UNIT, "").toLowerCaseAsciiOnly(), DEFAULT_UNIT)
-      val dpi = paramsMap.getOrDefault(PARAM_DENSITY, "").toIntOrNull() ?: DEFAULT_DENSITY.dpiValue
-      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
-    }
-
-    private fun legacyParseToDeviceConfig(serialized: String?): DeviceConfig? {
-      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return null
-      val configString = serialized.substringAfter(SPEC_PREFIX)
-      val params = configString.split(PARAM_LEGACY_SEPARATOR)
-      if (params.size != 5) return null
-
-      val shape = enumValueOfOrNull<Shape>(params[0]) ?: return null
-      val width = params[1].substringBefore(WIDTH_SUFFIX).toIntOrNull() ?: return null
-      val height = params[2].substringBefore(HEIGHT_SUFFIX).toIntOrNull() ?: return null
-      val dimUnit = enumValueOfOrNull<DimUnit>(params[3].toLowerCaseAsciiOnly()) ?: return null
-      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: return null
-      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
-    }
-  }
 }
+
+/**
+ * Returns an immutable copy of this [MutableDeviceConfig] instance.
+ */
+internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
+  DeviceConfig(
+    shape = this.shape,
+    width = this.width,
+    height = this.height,
+    dimUnit = this.dimUnit,
+    dpi = this.dpi
+  )
+
+/**
+ * Returns a mutable copy of this [DeviceConfig] instance.
+ */
+internal fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
+  MutableDeviceConfig(
+    initialShape = this.shape,
+    initialWidth = this.width,
+    initialHeight = this.height,
+    initialDimUnit = this.dimUnit,
+    initialDpi = this.dpi
+  )
 
 private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
   append("$parameterName$PARAM_VALUE_OPERATOR$value")
@@ -191,12 +233,12 @@ internal enum class Shape(val display: String) {
 /**
  * Unit for the Device's width and height.
  */
-internal enum class DimUnit {
-  px,
-  dp;
+internal enum class DimUnit(val trackableValue: PickerTrackableValue) {
+  px(PickerTrackableValue.UNIT_PIXELS),
+  dp(PickerTrackableValue.UNIT_DP)
 }
 
-internal enum class Orientation {
-  portrait,
-  landscape;
+internal enum class Orientation(val trackableValue: PickerTrackableValue) {
+  portrait(PickerTrackableValue.ORIENTATION_PORTRAIT),
+  landscape(PickerTrackableValue.ORIENTATION_LANDSCAPE)
 }

@@ -30,7 +30,6 @@ import static java.lang.Math.min;
 import com.android.annotations.concurrency.Slow;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
-import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.ImageUtil;
 import java.awt.AlphaComposite;
@@ -44,7 +43,6 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -83,16 +81,12 @@ public class ImageUtils {
    * @param numQuadrants the number of quadrants to rotate by counterclockwise
    * @return the rotated image
    */
-  @NotNull
-  public static BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
+  public static @NotNull BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
     if (numQuadrants % 4 == 0) {
       return source;
     }
 
-    while (numQuadrants < 0) {
-      numQuadrants += 4;
-    }
-    numQuadrants %= 4;
+    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
@@ -153,17 +147,13 @@ public class ImageUtils {
    * @param destinationHeight the height of the resulting image
    * @return the rotated and scaled image
    */
-  @NotNull
-  public static BufferedImage rotateByQuadrantsAndScale(
+  public static @NotNull BufferedImage rotateByQuadrantsAndScale(
       @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
     if (numQuadrants % 4 == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
       return source;
     }
 
-    while (numQuadrants < 0) {
-      numQuadrants += 4;
-    }
-    numQuadrants %= 4;
+    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
@@ -213,10 +203,6 @@ public class ImageUtils {
     return transformOp.filter(source, result);
   }
 
-  public static boolean isRetinaImage(@Nullable BufferedImage image) {
-    return image instanceof JBHiDPIScaledImage;
-  }
-
   public static BufferedImage createDipImage(int width, int height, int type) {
     return ImageUtil.createImage(width, height, type);
   }
@@ -258,37 +244,6 @@ public class ImageUtils {
       // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
       ourRetinaCapable = false;
       return null;
-    }
-  }
-
-  @NotNull
-  public static BufferedImage convertToRetinaIgnoringFailures(@NotNull BufferedImage image) {
-    if (supportsRetina()) {
-      BufferedImage retina = convertToRetina(image);
-      if (retina != null) {
-        return retina;
-      }
-    }
-    return image;
-  }
-
-  public static void drawDipImage(Graphics g, Image image,
-                                  int dx1, int dy1, int dx2, int dy2,
-                                  int sx1, int sy1, int sx2, int sy2,
-                                  @Nullable ImageObserver observer) {
-    if (image instanceof JBHiDPIScaledImage) {
-      final Graphics2D newG = (Graphics2D)g.create(0, 0, image.getWidth(observer), image.getHeight(observer));
-      newG.scale(0.5, 0.5);
-      Image img = ((JBHiDPIScaledImage)image).getDelegate();
-      if (img == null) {
-        img = image;
-      }
-      newG.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
-      newG.scale(1, 1);
-      newG.dispose();
-    }
-    else {
-      g.drawImage(image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
     }
   }
 
@@ -418,7 +373,7 @@ public class ImageUtils {
     }
     else {
       // When creating a thumbnail, using the above code doesn't work very well;
-      // you get some visible artifacts, especially for text. Instead use the
+      // you get some visible artifacts, especially for text. Instead, use the
       // technique of repeatedly scaling the image into half; this will cause
       // proper averaging of neighboring pixels, and will typically (for the kinds
       // of screen sizes used by this utility method in the layout editor) take
@@ -520,7 +475,7 @@ public class ImageUtils {
   }
 
   /**
-   * Do a fast, low-quality, scaling of the given image
+   * Does a fast, low-quality, scaling of the given image
    *
    * @param source       the image to be scaled
    * @param xScale       x scale
@@ -556,8 +511,7 @@ public class ImageUtils {
     else {
       g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
       g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_OFF);
-      g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight,
-                   null);
+      g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight, null);
     }
     g2.dispose();
     return scaled;
@@ -582,12 +536,11 @@ public class ImageUtils {
    *                    be fitted inside these dimension.
    * @param inputStream the input
    * @return the image file as a {@link BufferedImage}
-   * @throws IOException
    * @see ImageReadParam#setSourceSubsampling(int, int, int, int)
    */
-  @Nullable
   @Slow
-  public static BufferedImage readImageAtScale(InputStream inputStream, Dimension dimension) throws IOException {
+  public static @Nullable BufferedImage readImageAtScale(@NotNull InputStream inputStream, @NotNull Dimension dimension)
+      throws IOException {
     ImageInputStream imageStream = ImageIO.createImageInputStream(inputStream);
 
     // Find all image readers that recognize the image format
@@ -600,15 +553,12 @@ public class ImageUtils {
     reader.setInput(imageStream);
     ImageReadParam readParams = reader.getDefaultReadParam();
 
-    double srcW = (double)reader.getWidth(0);
-    double srcH = (double)reader.getHeight(0);
-    double scale = srcW > srcH
-                   ? dimension.width / srcW
-                   : dimension.height / srcH;
-
+    double srcW = reader.getWidth(0);
+    double srcH = reader.getHeight(0);
+    double scale = srcW > srcH ? dimension.width / srcW : dimension.height / srcH;
 
     // If the target size is at least twice as small as the origin, we do the subsampling.
-    // otherwise we just scale
+    // Otherwise, we just scale.
     if (scale < 0.5) {
       // Because subsampling actually skip pixels, the end result quality is lower
       // than a downscaling (which average neighbouring pixels). To minimize the loss
@@ -628,10 +578,8 @@ public class ImageUtils {
     inputStream.close();
 
     // Do a final scale to be sure that the image fits in the provided dimension
-    double finalScale = srcW > srcH
-                        ? dimension.width / (double)intermediateImage.getWidth()
-                        : dimension.height / (double)intermediateImage.getHeight();
-    return scale(intermediateImage, finalScale, finalScale);
+    scale = srcW > srcH ? dimension.width / (double)intermediateImage.getWidth() : dimension.height / (double)intermediateImage.getHeight();
+    return scale(intermediateImage, scale, scale);
   }
 
   /**

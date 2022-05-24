@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.ui.ChooseApiLevelDialog;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.ui.ChooseApiLevelDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -28,18 +28,27 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Displays information about a {@link SystemImage}, including its
@@ -60,6 +69,7 @@ public class SystemImagePreview {
   private JSeparator mySeparator;
   private HaxmAlert myHaxmAlert;
   private JBLabel myRecommendedExplanation;
+  private WearOsChinaLocalizedAlert myWearOsChinaLocalizedAlert;
   private SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
@@ -99,11 +109,21 @@ public class SystemImagePreview {
   }
 
   /**
+   * Returns true if the given {@link SystemImagePreview} is a Wear OS image localized for China.
+   */
+  private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
+    return image != null &&
+           SystemImage.WEAR_TAG.getId().equals(image.getTag().getId()) &&
+           image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
+  }
+
+  /**
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
     myHaxmAlert.setSystemImageDescription(image);
+    myWearOsChinaLocalizedAlert.setVisible(isChinaLocalizedWearOsImage(image));
     ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
 
     if (image != null) {
@@ -125,7 +145,7 @@ public class SystemImagePreview {
       Icon icon = getIcon(codeName);
       if (icon == null) {
         try {
-          icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
+          icon = IconLoader.findIcon("icons/versions/Default.png", AndroidIcons.class.getClassLoader());
         } catch (RuntimeException ignored) {
           // Just leave 'icon' null
         }
@@ -146,6 +166,9 @@ public class SystemImagePreview {
       myAbi.setText(myImageDescription.getAbiType());
     }
   }
+
+  @TestOnly
+  JPanel getRootPanel() { return myRootPanel; }
 
   @VisibleForTesting
   @Nullable
@@ -184,26 +207,26 @@ public class SystemImagePreview {
     }
     Icon icon = null;
     try {
-      icon = IconLoader.findIcon(String.format("/icons/versions/%1$s.png", codename), AndroidIcons.class);
+      icon = IconLoader.findIcon(String.format("icons/versions/%1$s.png", codename), AndroidIcons.class.getClassLoader());
     } catch (RuntimeException ignored) {
     }
     if (icon != null) {
       return icon;
     }
     try {
-      icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
+      icon = IconLoader.findIcon("icons/versions/Default.png", AndroidIcons.class.getClassLoader());
     } catch (RuntimeException ignored) {
     }
     if (icon != null) {
       return icon;
     }
-    int size = JBUI.scale(128);
+    int size = JBUIScale.scale(128);
     Image image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
-    Font f = UIUtil.getLabelFont();
-    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUI.scale(100));
+    Font f = StartupUiUtil.getLabelFont();
+    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUIScale.scale(100));
     g.setColor(JBColor.background());
     g.fillRect(0, 0, size, size);
     g.setColor(JBColor.foreground());
@@ -217,13 +240,14 @@ public class SystemImagePreview {
   private void createUIComponents() {
     myHaxmAlert = new HaxmAlert();
     myHaxmAlert.setSystemImageDescription(myImageDescription);
+    myWearOsChinaLocalizedAlert = new WearOsChinaLocalizedAlert();
   }
 
   private class ApiLevelHyperlinkListener extends HyperlinkAdapter {
     private int myApiLevel = -1;
 
     @Override
-    protected void hyperlinkActivated(HyperlinkEvent e) {
+    protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
       ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(null, myApiLevel) {
         @NotNull
         @Override

@@ -28,7 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
@@ -236,13 +236,12 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val invocationResult = myProjectRule.invokeTasks("assembleDebug")
     assertThat(invocationResult.isBuildSuccessful).isTrue()
 
-    return (ServiceManager.getService(
-      myProjectRule.project,
+    return (myProjectRule.project.getService(
       BuildAttributionManager::class.java
     ) as BuildAttributionManagerImpl).analyzersProxy.getConfigurationCachingCompatibility()
   }
 
-  private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo = ServiceManager
+  private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo = ApplicationManager.getApplication()
     .getService(KnownGradlePluginsService::class.java)
     .gradlePluginsData
     .pluginsInfo

@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  */
 class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
-    if ((element is PsiMember || element is KtProperty) && element.containingFile != null) {
+    if ((element is PsiMember || element is KtProperty && !element.isLocal) && element.containingFile != null) {
       val project = element.project
 
       val cachedValuesManager = CachedValuesManager.getManager(project)

@@ -49,7 +49,7 @@ public final class AssistToolWindowFactory implements ToolWindowFactory {
         myAssistSidePanel = new AssistSidePanel(myActionId, project, null);
     }
 
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+    ContentFactory contentFactory = ContentFactory.getInstance();
     content = contentFactory.createContent(myAssistSidePanel.getLoadingPanel(), null, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);

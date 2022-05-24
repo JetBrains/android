@@ -18,14 +18,19 @@ package org.jetbrains.android.actions;
 
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.ElementCreator;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import java.util.function.Supplier;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Based on {@link com.intellij.ide.actions.CreateElementActionBase} but
@@ -42,7 +47,7 @@ public abstract class CreateResourceActionBase extends AnAction {
   protected CreateResourceActionBase() {
   }
 
-  protected CreateResourceActionBase(String text, String description, Icon icon) {
+  protected CreateResourceActionBase(@NotNull Supplier<String> text, @NotNull Supplier<String> description, Icon icon) {
     super(text, description, icon);
   }
 
@@ -137,12 +142,12 @@ public abstract class CreateResourceActionBase extends AnAction {
     }
 
     @Override
-    public PsiElement[] create(String newName) throws Exception {
+    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
       return CreateResourceActionBase.this.create(newName, myDirectory);
     }
 
     @Override
-    public String getActionName(String newName) {
+    public @NotNull String getActionName(@NotNull String newName) {
       return CreateResourceActionBase.this.getActionName(myDirectory, newName);
     }
 

@@ -19,12 +19,11 @@ import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import javax.swing.JTree;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class LegacyLayoutInspectorFixture {
 

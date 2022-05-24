@@ -288,7 +288,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       configuration.RETENTION_ENABLED = myEnableEmulatorSnapshotItemsComboBox.getItem();
       try {
         configuration.RETENTION_MAX_SNAPSHOTS = Integer.parseInt(myMaxSnapshots.get());
-      } catch (NumberFormatException _) {
+      } catch (NumberFormatException e) {
         // When editing, the number string might temporarily become "".
         // No-op
       }

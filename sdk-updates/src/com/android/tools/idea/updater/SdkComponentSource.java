@@ -27,21 +27,21 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SdkComponentSource implements ExternalComponentSource {
 
-  public static String NAME = "Android SDK";
+  public static final String NAME = "Android SDK";
 
   public static final String PREVIEW_CHANNEL = "Preview Channel";
   public static final String STABLE_CHANNEL = "Stable Channel";
@@ -104,7 +104,7 @@ public class SdkComponentSource implements ExternalComponentSource {
    */
   @Override
   public void installUpdates(@NotNull Collection<UpdatableExternalComponent> request) {
-    final List<RemotePackage> packages = Lists.newArrayList();
+    final List<RemotePackage> packages = new ArrayList<>();
     for (UpdatableExternalComponent p : request) {
       packages.add((RemotePackage)p.getKey());
     }
@@ -140,10 +140,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   private Collection<UpdatableExternalComponent> getComponents(@Nullable ProgressIndicator indicator,
                                                                @Nullable UpdateSettings settings,
                                                                boolean remote) {
-    List<UpdatableExternalComponent> result = Lists.newArrayList();
+    List<UpdatableExternalComponent> result = new ArrayList<>();
     initIfNecessary(indicator);
 
-    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
+    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.of();
 
     for (com.android.repository.api.UpdatablePackage p : myPackages.getConsolidatedPkgs().values()) {
       if (remote) {
@@ -195,7 +195,7 @@ public class SdkComponentSource implements ExternalComponentSource {
         }
       }
     }
-    List<Pair<String, String>> result = Lists.newArrayList();
+    List<Pair<String, String>> result = new ArrayList<>();
     if (platformToolsRevision != null) {
       result.add(Pair.create("Android Platform Tools:", platformToolsRevision.toString()));
     }

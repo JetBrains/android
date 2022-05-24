@@ -44,10 +44,14 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-checks/android.sdktools.lint-checks.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-checks/android.sdktools.lint-checks.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-model/android.sdktools.lint-model.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-model/android.sdktools.lint-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/cli/android.sdktools.lint.cli.iml" filepath="$PROJECT_DIR$/../../base/lint/cli/android.sdktools.lint.cli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-gradle/android.sdktools.lint.gradle.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-gradle/android.sdktools.lint.gradle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-gradle/android.sdktools.lint.gradle.test.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-gradle/android.sdktools.lint.gradle.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.iml" filepath="$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.tests.iml" filepath="$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.testinfrastructure.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.testinfrastructure.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.tests.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" filepath="$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" filepath="$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" filepath="$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" />
@@ -109,7 +113,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" filepath="$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" filepath="$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/core-plugin/google-cloud-tools-core-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/core-plugin/google-cloud-tools-core-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" />
@@ -188,6 +191,8 @@
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" filepath="$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.tests.iml" filepath="$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable/intellij.android.observable.iml" filepath="$PROJECT_DIR$/observable/intellij.android.observable.iml" />
@@ -227,8 +232,6 @@
       <module fileurl="file://$PROJECT_DIR$/android-test-retention/intellij.android.testRetention.tests.iml" filepath="$PROJECT_DIR$/android-test-retention/intellij.android.testRetention.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-transport/intellij.android.transport.iml" filepath="$PROJECT_DIR$/android-transport/intellij.android.transport.iml" />
       <module fileurl="file://$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" filepath="$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" />
-      <module fileurl="file://$PROJECT_DIR$/studio-updater/intellij.android.updater.studio-updater.iml" filepath="$PROJECT_DIR$/studio-updater/intellij.android.updater.studio-updater.iml" />
-      <module fileurl="file://$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" filepath="$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/wizard/intellij.android.wizard.iml" filepath="$PROJECT_DIR$/wizard/intellij.android.wizard.iml" />
       <module fileurl="file://$PROJECT_DIR$/wizard-model/intellij.android.wizard.model.iml" filepath="$PROJECT_DIR$/wizard-model/intellij.android.wizard.model.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/wizard/template-impl/intellij.android.wizardTemplate.impl.iml" filepath="$PROJECT_DIR$/../../base/wizard/template-impl/intellij.android.wizardTemplate.impl.iml" />

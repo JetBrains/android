@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
+
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SelectSdkDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.IOException;
-
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleBuildTest {

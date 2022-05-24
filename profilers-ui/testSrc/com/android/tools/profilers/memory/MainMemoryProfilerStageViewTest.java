@@ -78,6 +78,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -445,7 +446,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     // The '.' in the file name from the following line is useful to test we can handle file names with
     // multiple dots correctly.
     File file = FileUtil.createTempFile("fake.heap.dump", ".hprof", false);
-    PrintWriter printWriter = new PrintWriter(file);
+    PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
     printWriter.write(data);
     printWriter.close();
 
@@ -478,7 +479,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           // Create a temp file
           String data = "random_string_~!@#$%^&*()_+";
           File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file);
+          PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
           printWriter.write(data);
           printWriter.close();
           // Import heap dump from file
@@ -521,7 +522,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           // Create a temp file
           String data = "random_string_~!@#$%^&*()_+";
           File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file);
+          PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
           printWriter.write(data);
           printWriter.close();
           // Import heap dump from file
@@ -975,7 +976,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     Object selectedClassNode = classifierTree.getLastSelectedPathComponent();
     assertThat(selectedClassNode).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassSet> selectedClassObject = (MemoryObjectTreeNode<ClassSet>)selectedClassNode;
     assertThat(selectedClassObject.getAdapter()).isEqualTo(expectedClassSet);
@@ -992,7 +993,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     Object selectedInstanceNode = classSetTree.getLastSelectedPathComponent();
     assertThat(selectedInstanceNode).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
+    assertThat(((MemoryObjectTreeNode<?>)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
     //noinspection unchecked
     MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
     assertThat(selectedInstanceObject.getAdapter()).isEqualTo(expectedInstanceObject);
@@ -1050,7 +1051,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     Object selectedClassNode = classifierTree.getLastSelectedPathComponent();
     assertThat(selectedClassNode).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassSet> selectedClassObject = (MemoryObjectTreeNode<ClassSet>)selectedClassNode;
     assertThat(selectedClassObject.getAdapter()).isEqualTo(expectedClassSet);
@@ -1067,7 +1068,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     Object selectedInstanceNode = classSetTree.getLastSelectedPathComponent();
     assertThat(selectedInstanceNode).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
+    assertThat(((MemoryObjectTreeNode<?>)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
     //noinspection unchecked
     MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
     assertThat(selectedInstanceObject.getAdapter()).isEqualTo(expectedInstanceObject);
