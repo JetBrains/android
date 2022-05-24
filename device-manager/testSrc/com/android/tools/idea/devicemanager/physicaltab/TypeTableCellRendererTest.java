@@ -55,6 +55,18 @@ public final class TypeTableCellRendererTest {
   }
 
   @Test
+  public void getTableCellRendererComponentValueEqualsUnknownSet() {
+    // Act
+    Object component = myRenderer.getTableCellRendererComponent(myTable, ConnectionType.UNKNOWN_SET, false, false, 0, 2);
+
+    // Assert
+    JLabel label = myRenderer.getLabel();
+
+    assertEquals(StudioIcons.Avd.CONNECTION_GENERIC, label.getIcon());
+    assertEquals(label, component);
+  }
+
+  @Test
   public void getTableCellRendererComponentValueEqualsUsbSet() {
     // Act
     Object component = myRenderer.getTableCellRendererComponent(myTable, ConnectionType.USB_SET, false, false, 0, 2);
