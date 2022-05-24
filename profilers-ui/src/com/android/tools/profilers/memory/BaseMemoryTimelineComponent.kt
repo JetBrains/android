@@ -112,7 +112,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
     overlay.addDurationDataRenderer(renderer)
   }
 
-  open protected fun makeMonitorPanel(overlayPanel: JBPanel<*>) = transparentPanel(TabularLayout("*", "*")).apply {
+  protected open fun makeMonitorPanel(overlayPanel: JBPanel<*>) = transparentPanel(TabularLayout("*", "*")).apply {
     val axisPanel = transparentPanel().apply {
       add(makeAxis(stage.memoryAxis, AxisComponent.AxisOrientation.RIGHT), BorderLayout.WEST)
       add(makeAxis(stage.objectsAxis, AxisComponent.AxisOrientation.LEFT), BorderLayout.EAST)
