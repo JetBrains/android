@@ -1259,11 +1259,6 @@
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="edit" hit="Enable Live Edit for Preview" />
-    <option name="enable" hit="Enable Live Edit for Preview" />
-    <option name="for" hit="Enable Live Edit for Preview" />
-    <option name="live" hit="Enable Live Edit for Preview" />
-    <option name="preview" hit="Enable Live Edit for Preview" />
     <option name="animation" hit="Enable animation preview" />
     <option name="enable" hit="Enable animation preview" />
     <option name="preview" hit="Enable animation preview" />
@@ -1278,17 +1273,6 @@
     <option name="new" hit="Enable new Logcat tool window" />
     <option name="tool" hit="Enable new Logcat tool window" />
     <option name="window" hit="Enable new Logcat tool window" />
-    <option name="after" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="automatically" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="changing" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="edit" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="enables" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="files" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="for" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="live" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="preview" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="refreshing" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
-    <option name="the" hit="Enables the Live Edit for Preview automatically refreshing after changing the preview files" />
     <option name="experimental" hit="Experimental" />
     <option name="animation" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
     <option name="animations" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
