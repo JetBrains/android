@@ -59,8 +59,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
  * A base view for {@link TopDownDetailsView} and {@link BottomUpDetailsView}.
  * They are almost similar except a few key differences, e.g bottom-up hides its root or lazy loads its children on expand.
  */
-public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
+public abstract class TreeDetailsView extends CaptureDetailsView {
   @NotNull protected final JPanel myPanel;
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -80,7 +78,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
 
   protected TreeDetailsView(@NotNull StudioProfilersView profilersView,
                             @NotNull CpuCapture cpuCapture,
-                            @Nullable CpuTreeModel<T> model) {
+                            @Nullable CpuTreeModel<?> model) {
     super(profilersView);
     myObserver = new AspectObserver();
     if (model == null) {
@@ -99,8 +97,8 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setModel(model);
     myTree.setRootVisible(model.isRootNodeIdValid());
-    mySorter = new CpuTraceTreeSorter(myTree);
-    mySorter.setModel(model, Collections.reverseOrder(doubleValueNodeComparator(CpuTreeNode::getTotal)));
+    mySorter = new CpuTraceTreeSorter(myTree, model,
+                                      Collections.reverseOrder(doubleValueNodeComparator(CpuTreeNode::getTotal)));
 
     myPanel.add(createTableTree(), CARD_CONTENT);
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
@@ -222,13 +220,8 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     if (tree.getSelectionPath() == null) {
       return null;
     }
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
-    return modelToCodeLocation(((CpuTreeNode)node.getUserObject()).getMethodModel());
-  }
-
-  private static CpuTreeNode getNode(Object value) {
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-    return (CpuTreeNode)node.getUserObject();
+    CpuTreeNode<?> node = (CpuTreeNode<?>)tree.getSelectionPath().getLastPathComponent();
+    return modelToCodeLocation(node.getBase().getMethodModel());
   }
 
   /**
@@ -259,17 +252,16 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     return null;
   }
 
-  private static final Comparator<DefaultMutableTreeNode> NAME_VALUE_NODE_COMPARATOR =
-    Comparator.comparing(node -> (CpuTreeNode)node.getUserObject(),
-                         Comparator.comparing(o -> o.getMethodModel().getName()));
+  private static final Comparator<CpuTreeNode<?>> NAME_VALUE_NODE_COMPARATOR =
+    Comparator.comparing(o -> o.getBase().getMethodModel().getName());
 
-  private static Comparator<DefaultMutableTreeNode> doubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
-    return Comparator.comparing(node -> (CpuTreeNode)node.getUserObject(),
-                                Comparator.comparingDouble(o -> getter.apply(o)));
+
+  private static Comparator<CpuTreeNode<?>> doubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
+    return Comparator.comparingDouble(getter::apply);
   }
 
   private static SimpleTextAttributes getTextAttributes(@NotNull CpuTreeNode node) {
-    switch (node.getFilterType()) {
+    switch (node.getBase().getFilterType()) {
       case MATCH: return SimpleTextAttributes.REGULAR_ATTRIBUTES;
       case EXACT_MATCH: return SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
       case UNMATCH: return SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -297,12 +289,12 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      CpuTreeNode node = getNode(value);
+      CpuTreeNode node = (CpuTreeNode)value;
       if (node != null) {
         SimpleTextAttributes attributes = getTextAttributes(node);
         double v = myGetter.apply(node);
         if (myShowPercentage) {
-          CpuTreeNode root = getNode(tree.getModel().getRoot());
+          CpuTreeNode root = (CpuTreeNode)tree.getModel().getRoot();
           append(String.format(Locale.getDefault(), "%.2f", v / root.getTotal() * 100), attributes);
         }
         else {
@@ -349,11 +341,11 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       int row,
                                       boolean hasFocus) {
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
-      CpuTreeNode node = getNode(value);
+      CpuTreeNode node = (CpuTreeNode)value;
       if (node != null) {
         // We grab the global children total in the case of multi-select this value ends up being the sum of our
         // childrens time and what we want to display is what percentage of all our childrens time do we consume.
-        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getChildrenTotal();
+        myPercentage = getGetter().apply(node) / ((CpuTreeNode)tree.getModel().getRoot()).getChildrenTotal();
       }
       mySparkLineColor = selected ? ProfilerColors.CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CAPTURE_SPARKLINE;
     }
@@ -382,11 +374,10 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (value instanceof DefaultMutableTreeNode &&
-          ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
-        CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
+      if (value instanceof CpuTreeNode<?>) {
+        CpuTreeNode<?> node = (CpuTreeNode<?>)value;
         SimpleTextAttributes attributes = getTextAttributes(node);
-        CaptureNodeModel model = node.getMethodModel();
+        CaptureNodeModel model = node.getBase().getMethodModel();
         String classOrNamespace = "";
         if (model instanceof CppFunctionModel) {
           classOrNamespace = ((CppFunctionModel)model).getClassOrNamespace();
@@ -417,12 +408,12 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     }
   }
 
-  public static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
+  public static class TopDownDetailsView extends TreeDetailsView {
     private final CaptureDetails.TopDown myTopDown;
     public TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
       super(profilersView, topDown.getCapture(), topDown.getModel());
       myTopDown = topDown;
-      TopDownTreeModel model = topDown.getModel();
+      CpuTreeModel<?> model = topDown.getModel();
       if (model == null) {
         return;
       }
@@ -455,29 +446,18 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     }
   }
 
-  public static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
+  public static class BottomUpDetailsView extends TreeDetailsView {
     private final CaptureDetails.BottomUp myBottomUp;
     public BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
       super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
       myBottomUp = bottomUp;
-      BottomUpTreeModel model = bottomUp.getModel();
+      CpuTreeModel<?> model = bottomUp.getModel();
       if (model == null) {
         return;
       }
       assert myTree != null;
 
       myTree.setRootVisible(false);
-      myTree.addTreeWillExpandListener(new TreeWillExpandListener() {
-        @Override
-        public void treeWillExpand(TreeExpansionEvent event) {
-          DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
-          ((BottomUpTreeModel)myTree.getModel()).expand(node);
-        }
-
-        @Override
-        public void treeWillCollapse(TreeExpansionEvent event) {
-        }
-      });
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
@@ -485,7 +465,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
           // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
           // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
           if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
-            DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+            CpuTreeNode<?> root = model.getRoot();
             Object[] inserted = event.getChildren();
             if (inserted != null && inserted.length == root.getChildCount()) {
               myTree.expandPath(new TreePath(root));

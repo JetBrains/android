@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,20 +40,20 @@ public class CpuTreeSorterTest {
   /**
    * Compares two topdown nodes by comparing their method names lexicographically.
    */
-  private final Comparator<DefaultMutableTreeNode> myComparator = (o1, o2) -> {
+  private final Comparator<CpuTreeNode> myComparator = (o1, o2) -> {
     assertNotNull(o1);
-    assertTrue(o1.getUserObject() instanceof TopDownNode);
+    assertTrue(o1 instanceof CpuTreeNode);
     assertNotNull(o2);
-    assertTrue(o2.getUserObject() instanceof TopDownNode);
-    TopDownNode topDown1 = (TopDownNode)o1.getUserObject();
-    TopDownNode topDown2 = (TopDownNode)o2.getUserObject();
-    return topDown1.getMethodModel().getName().compareTo(topDown2.getMethodModel().getName());
+    assertTrue(o2 instanceof CpuTreeNode);
+    CpuTreeNode topDown1 = (CpuTreeNode)o1;
+    CpuTreeNode topDown2 = (CpuTreeNode)o2;
+    return topDown1.getBase().getMethodModel().getName()
+      .compareTo(topDown2.getBase().getMethodModel().getName());
   };
 
   @Before
   public void setUp() {
     myTree = new JTree();
-    myTreeSorter = new CpuTraceTreeSorter(myTree);
   }
 
   @Test
@@ -65,7 +64,7 @@ public class CpuTreeSorterTest {
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
-    myTreeSorter.setModel(model, myComparator);
+    myTreeSorter = new CpuTraceTreeSorter(myTree, model, myComparator);
 
     // It's expected that the root children remains ordered lexicographically
     compareTreeModel(model, "A", "B", "C");
@@ -82,11 +81,11 @@ public class CpuTreeSorterTest {
     root.addChild(newNode("B2", 0, 0, CaptureNode.FilterType.UNMATCH));
 
     CpuTreeModel model = createTreeModel(root);
-    myTreeSorter.setModel(model, myComparator);
+    myTreeSorter= new CpuTraceTreeSorter(myTree, model, myComparator);
 
     compareTreeModel(model, "Root", "A1", "B1", "C1", "A2", "B2", "C2");
 
-    myTreeSorter.setModel(model, myComparator.reversed());
+    myTreeSorter = new CpuTraceTreeSorter(myTree, model, myComparator.reversed());
     compareTreeModel(model, "Root", "C1", "B1", "A1", "C2", "B2", "A2");
   }
 
@@ -98,35 +97,10 @@ public class CpuTreeSorterTest {
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
-    myTreeSorter.setModel(model, myComparator);
+    myTreeSorter = new CpuTraceTreeSorter(myTree, model, myComparator);
 
     // It's expected that the root children become ordered lexicographically after setting the model in the tree sorter
     compareTreeModel(model, "A", "B", "C");
-  }
-
-  @Test
-  public void sortModifiedModel() {
-    // Create a tree model, with method names sorted lexicographically
-    CaptureNode root = newNode("A", 0, 0);
-    root.addChild(newNode("B", 0, 0));
-    root.addChild(newNode("D", 0, 0));
-
-    CpuTreeModel model = createTreeModel(root);
-    myTree.setModel(model);
-    myTreeSorter.setModel(model, myComparator);
-
-    // Add a new child to the end of root's children list
-    DefaultMutableTreeNode treeNodeRoot = (DefaultMutableTreeNode) model.getRoot();
-    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(TopDownNode.rootAt(newNode("C", 0, 0)));
-    model.insertNodeInto(newNode, treeNodeRoot, treeNodeRoot.getChildCount());
-
-    // The order of the model is not right after the insertion, as "C" was inserted after "D"
-    compareTreeModel(model, "A", "B", "D", "C");
-
-    myTreeSorter.sort(myComparator, SortOrder.ASCENDING);
-
-    // After calling sort, it's expected that the root children become ordered lexicographically
-    compareTreeModel(model, "A", "B", "C", "D");
   }
 
   @Test
@@ -138,7 +112,7 @@ public class CpuTreeSorterTest {
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
-    myTreeSorter.setModel(model, myComparator);
+    myTreeSorter = new CpuTraceTreeSorter(myTree, model, myComparator);
 
     // It's expected that the the root children remains ordered lexicographically.
     // The root itself, besides being greater than its children, still comes first.
@@ -148,7 +122,7 @@ public class CpuTreeSorterTest {
 
   private static CpuTreeModel createTreeModel(CaptureNode tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    return new TopDownTreeModel(ClockType.GLOBAL, range, TopDownNode.rootAt(tree));
+    return new CpuTreeModel(ClockType.GLOBAL, range, Aggregate.TopDown.rootAt(tree));
   }
 
   /**
@@ -157,7 +131,7 @@ public class CpuTreeSorterTest {
    */
   private static void compareTreeModel(CpuTreeModel model, String... expected) {
     List<String> nodes = new ArrayList<>();
-    preOrderTraversal((TreeNode)model.getRoot(), nodes);
+    preOrderTraversal(model.getRoot(), nodes);
     int i = 0;
     for (String expectedNode : expected) {
       assertEquals(expectedNode, nodes.get(i++));
@@ -165,7 +139,7 @@ public class CpuTreeSorterTest {
   }
 
   private static void preOrderTraversal(TreeNode node, List<String> nodes) {
-    String methodName = ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getMethodModel().getName();
+    String methodName = ((CpuTreeNode)node).getBase().getMethodModel().getName();
     nodes.add(methodName);
     for (int i = 0; i < node.getChildCount(); i++) {
       preOrderTraversal(node.getChildAt(i), nodes);

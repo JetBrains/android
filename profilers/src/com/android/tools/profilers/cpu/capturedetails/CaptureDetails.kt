@@ -22,6 +22,9 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
+import com.android.tools.profilers.cpu.capturedetails.Aggregate as AggregateTree
+import com.android.tools.profilers.cpu.capturedetails.Aggregate.TopDown as TopDownTree
+import com.android.tools.profilers.cpu.capturedetails.Aggregate.TopDown as BottomUpTree
 import kotlin.math.max
 
 sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
@@ -35,14 +38,13 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   /**
    * Helper class for common behavior of Top-Down and Bottom-Up
    */
-  sealed class Aggregate<N: CpuTreeNode<N>, M: CpuTreeModel<N>>(clockType: ClockType,
-                                                                range: Range,
-                                                                nodes: List<CaptureNode>,
-                                                                cpuCapture: CpuCapture,
-                                                                rootNode: (CaptureNode) -> N,
-                                                                model: (ClockType, Range, N) -> M)
+  sealed class Aggregate<A: AggregateTree<A>>(clockType: ClockType,
+                                              range: Range,
+                                              nodes: List<CaptureNode>,
+                                              cpuCapture: CpuCapture,
+                                              rootNode: (CaptureNode) -> A)
     : CaptureDetails(clockType, cpuCapture) {
-    val model: M? = when {
+    val model: CpuTreeModel<A>? = when {
       nodes.isEmpty() -> null
       else -> {
         val visual = VisualNodeCaptureNode(SingleNameModel(""), clockType).apply {
@@ -52,7 +54,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
           startThread = nodes.minOf(CaptureNode::startThread)
           endThread = nodes.maxOf(CaptureNode::endThread)
         }
-        model(clockType, range, rootNode(visual))
+        CpuTreeModel(clockType, range, rootNode(visual))
       }
     }
 
@@ -62,14 +64,12 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   }
 
   class TopDown internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : Aggregate<TopDownNode, TopDownTreeModel>(clockType, range, nodes, cpuCapture, TopDownNode::rootAt, ::TopDownTreeModel) {
+    : Aggregate<TopDownTree>(clockType, range, nodes, cpuCapture, TopDownTree::rootAt) {
     override val type get() = Type.TOP_DOWN
   }
 
   class BottomUp internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : Aggregate<BottomUpNode, BottomUpTreeModel>(clockType, range, nodes, cpuCapture,
-                                                 { BottomUpNode.rootAt(it).apply { update(clockType, range) } },
-                                                 ::BottomUpTreeModel) {
+    : Aggregate<BottomUpTree>(clockType, range, nodes, cpuCapture, BottomUpTree::rootAt) {
     override val type get() = Type.BOTTOM_UP
   }
 
@@ -102,9 +102,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         visual.startGlobal = captureNodes[0].startGlobal
         visual.startThread = captureNodes[0].startThread
 
-        val topDownNode = TopDownNode.rootAt(visual).apply {
-          update(clockType, Range(0.0, Double.MAX_VALUE)) // to compute the total children time
-        }
+        val treeRange = Range(0.0, Double.MAX_VALUE)
+        var topDownNode = CpuTreeNode.of(TopDownTree.rootAt(visual), clockType, treeRange, null)
 
         // This gets mapped to the sum of all children. This assumes that this node has 0 self time,
         // which is true because we create it.
@@ -119,11 +118,12 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         fun selectionRangeChanged() {
           // This range needs to account for the multiple children,
           // does it need to account for the merged children?
-          topDownNode.update(clockType, selectionRange)
+          topDownNode = topDownNode.withRange(clockType, selectionRange, treeRange, null)
+          treeRange.set(selectionRange)
           node = when {
             // If the new selection range intersects the root node, we should reconstruct the flame chart node.
             topDownNode.total > 0 -> {
-              val start = max(topDownNode.nodes[0].start.toDouble(), selectionRange.min)
+              val start = max(topDownNode.base.nodes[0].start.toDouble(), selectionRange.min)
               val newNode = convertToFlameChart(topDownNode, start, 0)
               // The intersection check (root.getTotal() > 0) may be a false positive because the root's global total is the
               // sum of all its children for the purpose of mapping a multi-node tree to flame chart space. Thus we need to look at
@@ -158,11 +158,11 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
      * Produces a flame chart that is similar to [CallChart], but the identical methods with the same sequence of callers
      * are combined into one wider bar. It converts it from [TopDownNode] as it's similar to FlameChart.
      */
-    private fun convertToFlameChart(topDown: TopDownNode, start: Double, depth: Int): CaptureNode =
-      CaptureNode(topDown.nodes[0].data, clockType).apply {
+    private fun convertToFlameChart(topDown: CpuTreeNode<TopDownTree>, start: Double, depth: Int): CaptureNode =
+      CaptureNode(topDown.base.nodes[0].data, clockType).apply {
         assert(topDown.total > 0)
 
-        filterType = topDown.nodes[0].filterType
+        filterType = topDown.base.nodes[0].filterType
         startGlobal = start.toLong()
         startThread = start.toLong()
         // TODO: One of the numbers below is garbage
@@ -171,11 +171,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         this.depth = depth
 
         topDown.children.asSequence()
-          .filter {
-            it.update(clockType, selectionRange)
-            it.total > 0
-          }
-          .sortedWith(compareBy(TopDownNode::isUnmatched).thenComparingDouble { -it.total })
+          .filter { it.total > 0 }
+          .sortedWith(compareBy({it.base.isUnmatched}, {-it.total}))
           .fold(start) { accStart, child ->
             addChild(convertToFlameChart(child, accStart, depth + 1))
             accStart + child.total

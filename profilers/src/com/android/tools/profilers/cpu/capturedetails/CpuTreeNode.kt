@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,59 +17,100 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
-import com.android.tools.profilers.cpu.CaptureNode
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import java.util.Collections
+import java.util.Enumeration
+import java.util.IdentityHashMap
+import java.util.Objects
+import javax.swing.tree.TreeNode
 
-abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
+/**
+ * A view of the aggregation tree that restricts it to a range, sums up number, and presents children in order
+ */
+class CpuTreeNode<T: Aggregate<T>>(val base: T,
+                                   val total: Double,
+                                   val childrenTotal: Double,
+                                   val childrenDelegate: Lazy<List<CpuTreeNode<T>>>): TreeNode {
+  val self get() = total - childrenTotal
+
   /**
-   * References to [CaptureNode] that are used to extract information from to represent this CpuTreeNode,
-   * such as [.getGlobalTotal], [.getGlobalChildrenTotal], etc...
+   * Return a tree for `newRange`, assuming current range is `oldRange`.
+   * New tree preserves original one's shape, i.e. uninitialized nodes remains uninitialized
    */
-  var total = 0.0
-    protected set
-  var childrenTotal = 0.0
-    protected set
+  internal fun withRange(clockType: ClockType, newRange: Range, oldRange: Range, order: Comparator<CpuTreeNode<T>>?): CpuTreeNode<T> =
+    withRange(clockType, newRange, newRange.subtract(oldRange) + oldRange - newRange, order)
 
-  abstract val nodes: List<CaptureNode>
-  abstract val children: List<T>
-
-  abstract val methodModel: CaptureNodeModel
-  abstract val filterType: CaptureNode.FilterType
-  val isUnmatched: Boolean get() = filterType === CaptureNode.FilterType.UNMATCH
-
-  val self: Double get() = total - childrenTotal
-
-  open fun update(clockType: ClockType, range: Range) {
-    reset()
-    for (node in nodes) {
-      total += getIntersection(range, node, clockType)
-      for (child in node.children) {
-        childrenTotal += getIntersection(range, child, clockType)
+  private fun withRange(clockType: ClockType, newRange: Range, diffs: List<Range>, order: Comparator<CpuTreeNode<T>>?): CpuTreeNode<T> =
+    base.totalOver(clockType, newRange).let { (total, totalChildren) ->
+      when {
+        childrenDelegate.isInitialized() -> {
+          val oldNode = childrenDelegate.value.associateByTo(IdentityHashMap(), CpuTreeNode<T>::base)
+          val children = base.children.asSequence()
+            .filter { it.overlapsWith(newRange) }
+            .map { child ->
+              oldNode[child]?.let { childNode -> when {
+                diffs.any(child::overlapsWith) -> childNode.withRange(clockType, newRange, diffs, order)
+                else -> childNode
+              } } ?: of(child, clockType, newRange, order)
+            }
+            .maybe(Sequence<CpuTreeNode<T>>::sortedWith, order)
+            .toList()
+          CpuTreeNode(base, total, totalChildren, children.asLazy())
+        }
+        else ->
+          CpuTreeNode(base, total, totalChildren, fresh(clockType, newRange, order))
       }
     }
-  }
 
-  fun inRange(range: Range): Boolean = nodes.any { it.start < range.max && range.min < it.end }
+  /**
+   * Assume this tree is restricted to `range`, return tree like this but sorted by given order
+   */
+  internal fun withOrder(order: Comparator<CpuTreeNode<T>>, clockType: ClockType, range: Range): CpuTreeNode<T> =
+    CpuTreeNode(base, total, childrenTotal,
+                when {
+                  childrenDelegate.isInitialized() -> children
+                    .map { it.withOrder(order, clockType, range) }
+                    .sortedWith(order)
+                    .asLazy()
+                  else -> fresh(clockType, range, order)
+                })
 
-  fun reset() {
-    total = 0.0
-    childrenTotal = 0.0
-  }
-
-  companion object {
-    @JvmStatic
-    protected fun getIntersection(range: Range, node: CaptureNode, type: ClockType): Double = when (type) {
-      ClockType.GLOBAL -> range.getIntersectionLength(node.startGlobal.toDouble(), node.endGlobal.toDouble())
-      ClockType.THREAD -> range.getIntersectionLength(node.startThread.toDouble(), node.endThread.toDouble())
+  private fun fresh(clockType: ClockType, range: Range, order: Comparator<CpuTreeNode<T>>?) =
+    base.children.let { // copy `base.children` over, so the thunk won't retain this tree just for `base`
+      baseChildren -> lazy(LazyThreadSafetyMode.NONE) { of(baseChildren, clockType, range, order)}
     }
 
+  val children: List<CpuTreeNode<T>> get() = childrenDelegate.value
+  override fun getChildAt(childIndex: Int) = childrenDelegate.value[childIndex]
+  override fun getChildCount() = childrenDelegate.value.size
+  override fun getParent() = null // we don't need this
+  override fun getIndex(node: TreeNode) = childrenDelegate.value.indexOf(node)
+  override fun getAllowsChildren() = true
+  override fun isLeaf() = base.children.isEmpty()
+  override fun children(): Enumeration<CpuTreeNode<T>> = Collections.enumeration(childrenDelegate.value)
+
+  // Coarse equality based on the underlying node, for use in TreePath
+  override fun equals(other: Any?) = other is CpuTreeNode<*> && base === other.base
+  override fun hashCode() = Objects.hash(javaClass.name) * 31 + System.identityHashCode(base)
+
+  companion object {
     /**
-     * Return a pair of fresh mutable maps indexed by booleans
+     * Create a new view restricted to given range
      */
-    internal fun<K, V> mapPair(): (Boolean) -> MutableMap<K, V> {
-      val onT = hashMapOf<K, V>()
-      val onF = hashMapOf<K, V>()
-      return { if (it) onT else onF }
+    fun<T: Aggregate<T>> of(base: T, clockType: ClockType, range: Range, order: Comparator<CpuTreeNode<T>>?): CpuTreeNode<T> =
+      base.totalOver(clockType, range).let { (total, totalChildren) ->
+        CpuTreeNode(base, total, totalChildren, lazy(LazyThreadSafetyMode.NONE) { of(base.children, clockType, range, order) })
+      }
+
+    internal fun<T: Aggregate<T>> of(bases: List<T>, clockType: ClockType, range: Range, order: Comparator<CpuTreeNode<T>>?): List<CpuTreeNode<T>> =
+      bases
+        .mapNotNull { base -> base.takeIf { base.overlapsWith(range) }?.let { of(base, clockType, range, order) } }
+        .maybe(List<CpuTreeNode<T>>::sortedWith, order)
+
+    private fun<X> X.asLazy() = object: Lazy<X> {
+      override val value get() = this@asLazy
+      override fun isInitialized() = true
     }
   }
 }
+
+private inline fun<O, X: Any> O.maybe(f: O.(X) -> O, x: X?): O = if (x == null) this else f(this, x)

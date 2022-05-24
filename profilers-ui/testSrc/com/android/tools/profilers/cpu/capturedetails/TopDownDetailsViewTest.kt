@@ -29,7 +29,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
-import com.android.tools.profilers.cpu.capturedetails.TopDownNodeTest.newNode
+import com.android.tools.profilers.cpu.capturedetails.CpuTreeNodeTest.TopDownTest.Companion.newNode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
