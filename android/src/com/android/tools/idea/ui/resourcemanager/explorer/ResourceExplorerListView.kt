@@ -34,6 +34,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.SectionListModel
 import com.intellij.concurrency.JobScheduler
 import com.intellij.icons.AllIcons
 import com.intellij.ide.dnd.DnDManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -90,8 +91,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val DEFAULT_GRID_MODE = false
-
 private val DEFAULT_LIST_MODE_WIDTH get() = JBUI.scale(60)
 private val MAX_CELL_WIDTH get() = JBUI.scale(300)
 private val LIST_CELL_SIZE get() = JBUI.scale(60)
@@ -131,6 +130,9 @@ private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 private const val MS_DELAY_BEFORE_LOADING_STATE = 100L // ms
 private val UNIT_DELAY_BEFORE_LOADING_STATE = TimeUnit.MILLISECONDS
 
+private const val GRID_MODE = "resourceExplorer.gridMode"
+private const val PREVIEW_SIZE = "resourceExplorer.previewSize"
+
 /**
  * View displaying [com.android.tools.idea.ui.resourcemanager.model.Asset]s located in the project.
  *
@@ -156,9 +158,10 @@ class ResourceExplorerListView(
   private var fileToSelect: VirtualFile? = null
   private var resourceToSelect: String? = null
 
-  private var previewSize = DEFAULT_CELL_WIDTH
+  private var previewSize = PropertiesComponent.getInstance().getInt(PREVIEW_SIZE, DEFAULT_CELL_WIDTH)
     set(value) {
       if (value != field) {
+        PropertiesComponent.getInstance().setValue(PREVIEW_SIZE, value, DEFAULT_CELL_WIDTH)
         field = value
         sectionList.getLists().forEach {
           (it as AssetListView).thumbnailWidth = previewSize
@@ -166,7 +169,8 @@ class ResourceExplorerListView(
       }
     }
 
-  private var gridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, newValue ->
+  private var gridMode: Boolean by Delegates.observable(PropertiesComponent.getInstance().getBoolean(GRID_MODE)) { _, _, newValue ->
+    PropertiesComponent.getInstance().setValue(GRID_MODE, newValue)
     val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     centerPanel.background = backgroundColor
     sectionList.background = backgroundColor
