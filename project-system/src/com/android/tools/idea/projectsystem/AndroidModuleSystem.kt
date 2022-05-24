@@ -348,6 +348,11 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val isKaptEnabled: Boolean get() = false
 
   /**
+   * Whether the application is debuggable.
+   */
+  val isDebuggable:Boolean get() = AndroidModel.get(module)?.isDebuggable ?: false
+
+  /**
    * Whether the R class in applications and dynamic features are constant.
    *
    * If they are constant they can be inlined by the java compiler and used in places that

@@ -24,6 +24,9 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.MergedManifestManager.Companion.getSnapshot
+import com.android.tools.idea.model.logManifestIndexQueryError
+import com.android.tools.idea.model.queryApplicationDebuggableFromManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -63,11 +66,13 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
@@ -251,6 +256,25 @@ class DefaultModuleSystem(override val module: Module) :
   override var codeShrinker: CodeShrinker? by UserData(Keys.codeShrinker, null)
 
   override var isMlModelBindingEnabled: Boolean by UserData(Keys.isMlModelBindingEnabled, false)
+
+  override val isDebuggable: Boolean
+    get() {
+      try {
+        return DumbService.getInstance(module.project)
+          .runReadActionInSmartMode<Boolean> {
+            val queryIndex =
+              ThrowableComputable<Boolean, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
+            SlowOperations.allowSlowOperations(queryIndex)
+          }
+      } catch (e: IndexNotReadyException) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        logManifestIndexQueryError(e)
+      }
+
+      return module.androidFacet?.let { getSnapshot(it).applicationDebuggable } ?: false
+    }
 
   override var applicationRClassConstantIds: Boolean by UserData(Keys.applicationRClassConstantIds, true)
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.util;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -25,7 +26,6 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,8 +49,7 @@ public class LaunchUtils {
   }
 
   public static boolean canDebugApp(@NotNull AndroidFacet facet) {
-    Boolean isDebuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
-    return (isDebuggable == null || isDebuggable);
+    return getModuleSystem(facet).isDebuggable();
   }
 
   public static boolean isDebuggableDevice(@NotNull IDevice device) {

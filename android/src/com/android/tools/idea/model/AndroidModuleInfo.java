@@ -17,7 +17,6 @@ package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
-import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryApplicationDebuggableFromManifestIndex;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 
 import com.android.sdklib.AndroidVersion;
@@ -33,10 +32,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.SameThreadExecutor;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -214,41 +210,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     return null;
-  }
-
-  /**
-   * Returns whether the application is debuggable. For Gradle projects, this is a boolean value.
-   * For non Gradle projects, this returns a boolean value if the flag is set, or null if the flag unspecified in the manifest.
-   */
-  @Nullable
-  public Boolean isDebuggable() {
-    AndroidFacet facet = getFacet();
-    AndroidModel androidModel = AndroidModel.get(facet);
-    if (androidModel != null) {
-      Boolean debuggable = androidModel.isDebuggable();
-      if (debuggable != null) {
-        return debuggable;
-      }
-    }
-
-    try {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> {
-          ThrowableComputable<Boolean, IndexNotReadyException> queryIndex = () -> queryApplicationDebuggableFromManifestIndex(facet);
-          // Here we temporarily allow slow operation as index query is considered as a fallback when the above
-          // android model is not available. More, b/203708907 is filed, as in the long run, it's worth we
-          // refactoring the callers.
-          return SlowOperations.allowSlowOperations(queryIndex);
-        });
-    }
-    catch (IndexNotReadyException e) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
-    }
-
-    return MergedManifestManager.getSnapshot(facet).getApplicationDebuggable();
   }
 
   @Override
