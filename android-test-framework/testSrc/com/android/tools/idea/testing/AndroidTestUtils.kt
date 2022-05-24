@@ -188,21 +188,21 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
   return value
 }
 
-/** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
+/** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources)
+  waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
 
-/** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
+/** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources)
+  waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
 }
 
-/** Waits for the app resource repository to finish currently pending updates.  */
+/** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
