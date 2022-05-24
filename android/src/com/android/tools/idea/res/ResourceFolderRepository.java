@@ -795,7 +795,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
-    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".runAfterPendingUpdatesFinish " + callback);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".invokeAfterPendingUpdatesFinish " + callback);
     scheduleUpdate(() -> executor.execute(callback));
   }
 
