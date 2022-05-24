@@ -2911,7 +2911,7 @@ MODULE                        : project.app
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createBasicBarDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/out [-]
+                    File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicBarDebugAndroidTestSources
@@ -3657,7 +3657,7 @@ MODULE                        : project.dyn_feature
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/dyn_feature/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/dyn_feature/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -4140,7 +4140,7 @@ MODULE                        : project.lib
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/lib/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/lib/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -4707,7 +4707,7 @@ MODULE                        : project.nested1
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/nested1/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/nested1/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5035,7 +5035,7 @@ MODULE                        : project.nested1.deep
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/nested1/deep/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/nested1/deep/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5484,7 +5484,7 @@ MODULE                        : project.nested2
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createBasicDebugVariantModel
-                    File                          : <ROOT>/nested2/build/intermediates/variant_model/basicDebug/out [-]
+                    File                          : <ROOT>/nested2/build/intermediates/variant_model/basicDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicDebugAndroidTestSources
@@ -5832,7 +5832,7 @@ MODULE                        : project.nested2.deep
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/nested2/deep/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/nested2/deep/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -6168,7 +6168,7 @@ MODULE                        : project.nested2.trans.deep2
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/nested2/trans/deep2/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/nested2/trans/deep2/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

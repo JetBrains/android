@@ -1559,7 +1559,7 @@ MODULE                        : MultiFlavor.app
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createFirstAbcSecondAbcDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/out [-]
+                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources

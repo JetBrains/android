@@ -886,7 +886,7 @@ MODULE                        : project
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

@@ -1004,7 +1004,7 @@ MODULE                        : project.app
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1340,7 +1340,7 @@ MODULE                        : project.library
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/library/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/library/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1667,7 +1667,7 @@ MODULE                        : project.library-remote
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/library-remote/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/library-remote/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

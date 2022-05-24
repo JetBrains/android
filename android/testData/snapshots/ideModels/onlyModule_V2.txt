@@ -494,7 +494,7 @@ MODULE                        : project.app
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1409,7 +1409,7 @@ MODULE                        : project.test
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/test/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/test/build/intermediates/variant_model/debug/variant_model.json [-]
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
@@ -1762,7 +1762,7 @@ MODULE                        : project.test2
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/test2/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/test2/build/intermediates/variant_model/debug/variant_model.json [-]
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug

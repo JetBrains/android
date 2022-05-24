@@ -1367,7 +1367,7 @@ MODULE                        : My_First_App.app
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/firstapp/app/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/firstapp/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2358,7 +2358,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/shared/mysharedlibrary/build/intermediates/variant_model/debug/out [-]
+                    File                          : <ROOT>/shared/mysharedlibrary/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

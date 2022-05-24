@@ -1375,7 +1375,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicBarDebugAndroidTestSources
@@ -2044,7 +2044,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicOtherBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarDebug/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicOtherBarDebugAndroidTestSources
@@ -2714,7 +2714,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarDebug/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidBarDebugAndroidTestSources
@@ -3387,7 +3387,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidOtherBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarDebug/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidOtherBarDebugAndroidTestSources
@@ -4056,7 +4056,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarReleaseUnitTestSources
@@ -4540,7 +4540,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicOtherBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarReleaseUnitTestSources
@@ -5025,7 +5025,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarReleaseUnitTestSources
@@ -5513,7 +5513,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidOtherBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarReleaseUnitTestSources
@@ -5990,7 +5990,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarSpecialRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarSpecialReleaseUnitTestSources
@@ -6470,7 +6470,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createBasicOtherBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarSpecialRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarSpecialReleaseUnitTestSources
@@ -6951,7 +6951,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarSpecialRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarSpecialReleaseUnitTestSources
@@ -7435,7 +7435,7 @@ IdeVariants
             ModelSyncFile
                 Type                          : BASIC
                 TaskName                      : createPaidOtherBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarSpecialRelease/out [-]
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarSpecialReleaseUnitTestSources
