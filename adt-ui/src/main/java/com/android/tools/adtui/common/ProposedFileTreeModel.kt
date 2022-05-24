@@ -20,11 +20,10 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.utils.SdkUtils
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.util.io.FileUtil.pathsEqual
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.PlatformIcons
-import com.intellij.util.SmartList
+import com.intellij.util.containers.CollectionFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
@@ -112,7 +111,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
    * a [conflictedTree]), and [Node]s corresponding to normal (non-directory) files can have no children.
    *
    * @property file The proposed [File] corresponding to this node
-   * @property conflictedFiles the list of existing files this proposed file conflicts with
+   * @property conflictedFiles the set of existing files this proposed file conflicts with
    * @property icon The [Icon] with which the [File] should be marked
    * @property children If this node corresponds to a directory, a list of nodes corresponding
    *           to the directory's children. Otherwise, this list is empty.
@@ -120,7 +119,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
    *           [File] that already exists as a normal (non-directory) file.
    */
   data class Node(val file: File,
-                  val conflictedFiles: List<File>,
+                  val conflictedFiles: Set<String>,
                   private var icon: Icon,
                   private val children: MutableList<Node> = mutableListOf(),
                   private var conflictedTree: Boolean = conflictedFiles.isNotEmpty()) {
@@ -178,7 +177,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
             childFile.isDirectory -> DIR_ICON
             else -> DEFAULT_ICON
           }
-          val conflicts = conflictChecker?.findConflictingFiles(childFile) ?: emptyList()
+          val conflicts = conflictChecker?.findConflictingFiles(childFile) ?: emptySet()
           childNode = Node(childFile, conflicts, nodeIcon)
           addChild(childNode)
         }
@@ -186,7 +185,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
       else {
         if (childNode == null) {
           // If a node for the intermediate directory doesn't exist yet, make one.
-          childNode = Node(childFile, emptyList(), DIR_ICON)
+          childNode = Node(childFile, emptySet(), DIR_ICON)
           addChild(childNode)
         }
 
@@ -200,22 +199,37 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
 
     fun getShadowConflictedFiles(): List<File> {
       if (hasConflicts()) {
-        val shadowConflicts = mutableListOf<File>()
+        val shadowConflicts: MutableSet<String> = CollectionFactory.createFilePathSet()
         getShadowConflictedFiles(shadowConflicts)
-        return shadowConflicts
+        excludeFilesInTree(shadowConflicts)
+        return shadowConflicts.map { File(it) }
       }
       return emptyList()
     }
 
-    private fun getShadowConflictedFiles(conflictedFiles: MutableList<File>) {
+    /**
+     * Remove from [conflictedFilePaths] any path that may correspond to a File within this tree.
+     *
+     * Files in the tree may conflict with each other, but we want to keep all proposed files.
+     */
+    private fun excludeFilesInTree(conflictedFilePaths: MutableSet<String>) {
+      for (child in children) {
+        if (!child.file.isDirectory) {
+          conflictedFilePaths.remove(child.file.path)
+        }
+        child.excludeFilesInTree(conflictedFilePaths)
+      }
+    }
+
+    private fun getShadowConflictedFiles(conflictedFilePaths: MutableSet<String>) {
       if (hasConflicts()) {
         for (conflict in this.conflictedFiles) {
-          if (!filesEqual(conflict, file)) {
-            conflictedFiles.add(conflict)
+          if (!pathsEqual(conflict, file.path)) {
+            conflictedFilePaths.add(conflict)
           }
         }
         for (child in children) {
-          child.getShadowConflictedFiles(conflictedFiles)
+          child.getShadowConflictedFiles(conflictedFilePaths)
         }
       }
     }
@@ -235,7 +249,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
        */
       fun makeTree(rootDir: File, proposedFiles: Set<File>, getIconForFile: (File) -> Icon?): Node {
         val root = getCommonAncestor(rootDir, proposedFiles)
-        val rootNode = Node(root, emptyList(), DIR_ICON)
+        val rootNode = Node(root, emptySet(), DIR_ICON)
         val conflictChecker = ConflictChecker(root.toPath())
 
         for (file in proposedFiles) {
@@ -265,11 +279,11 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
   private class ConflictChecker(private val rootDir: Path) {
     private val directoryContentsCache = mutableMapOf<Path, List<TypedFile>>()
 
-    fun findConflictingFiles(file: File): List<File> {
-      val conflicts = SmartList<File>()
+    fun findConflictingFiles(file: File): Set<String> {
+      val conflicts = CollectionFactory.createFilePathSet(1)
       val thisFile = file.toPath()
       if (Files.isRegularFile(thisFile)) {
-        conflicts.add(file)
+        conflicts.add(file.path)
       }
       val parent = thisFile.parent ?: return conflicts
       val grandParent = parent.parent
@@ -289,7 +303,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
               if (!peer.isDirectory) {
                 val peerFile = peer.file
                 if (SdkUtils.fileNameToResourceName(peerFile.name) == thisResourceName && !filesEqual(peerFile, thisFile)) {
-                  conflicts.add(peerFile.toFile())
+                  conflicts.add(peerFile.toFile().path)
                 }
               }
             }

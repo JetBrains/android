@@ -17,6 +17,7 @@ package com.android.tools.adtui.common
 
 import com.android.tools.adtui.common.ProposedFileTreeModel.Node
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.containers.CollectionFactory
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -66,7 +67,7 @@ private class NodeBuilder {
   var isConflictedTree = false
   private val children = mutableListOf<Node>()
 
-  fun build() = Node(file, conflictedFiles, icon, children, isConflictedTree)
+  fun build() = Node(file, CollectionFactory.createFilePathSet(conflictedFiles.map { it.path }), icon, children, isConflictedTree)
 
   fun children(block: Children.() -> Unit) {
     children.addAll(Children().apply(block))
@@ -122,19 +123,24 @@ class ProposedFileTreeModelTest {
   fun conflictWithMoreSpecificConfiguration() {
     val pngFile = "file.png"
     val webpFile = "file.webp"
+    val xmlFile = "file.xml"
     val resDir = rootDir.createChildDir("res")
     val drawableDir = resDir.createChildDir("drawable")
     val drawableV24Dir = resDir.createChildDir("drawable-v24")
     val drawableV30Dir = resDir.createChildDir("drawable-v30")
+    val drawableHdpiDir = resDir.createChildDir("drawable-hdpi")
     val drawableV24ExistingFile = drawableV24Dir.createChildFile(webpFile)
+    val drawableHdpiExistingFile = drawableHdpiDir.createChildFile(xmlFile)
     val rootFile = rootDir.resolve(pngFile)
     val drawableFile = drawableDir.resolve(pngFile)
     val drawableV30File = drawableV30Dir.resolve(pngFile)
+    val drawableHdpiFile = drawableHdpiDir.resolve(xmlFile)
 
     val treeModel = ProposedFileTreeModel(rootDir, setOf(
       rootFile,
       drawableFile,
-      drawableV30File
+      drawableV30File,
+      drawableHdpiFile
     ))
 
     val expectedTree = node {
@@ -159,7 +165,7 @@ class ProposedFileTreeModelTest {
               children {
                 node {
                   file = drawableFile
-                  conflictedFiles = listOf(drawableV24ExistingFile)
+                  conflictedFiles = listOf(drawableV24ExistingFile, drawableHdpiExistingFile)
                   isConflictedTree = true
                 }
               }
@@ -167,9 +173,24 @@ class ProposedFileTreeModelTest {
             node {
               file = drawableV30Dir
               icon = DIR_ICON
+              isConflictedTree = true
               children {
                 node {
                   file = drawableV30File
+                  conflictedFiles = listOf(drawableHdpiExistingFile)
+                  isConflictedTree = true
+                }
+              }
+            }
+            node {
+              file = drawableHdpiDir
+              icon = DIR_ICON
+              isConflictedTree = true
+              children {
+                node {
+                  file = drawableHdpiFile
+                  conflictedFiles = listOf(drawableHdpiExistingFile, drawableV24ExistingFile)
+                  isConflictedTree = true
                 }
               }
             }
@@ -179,6 +200,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    // Despite the multiple conflicts, drawableV24 is the only file that would not be overwritten
     assertThat(treeModel.getShadowConflictedFiles()).containsExactly(drawableV24ExistingFile)
   }
 
