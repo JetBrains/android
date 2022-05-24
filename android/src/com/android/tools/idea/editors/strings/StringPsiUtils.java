@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
+import com.android.tools.idea.res.StringsWriteUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;

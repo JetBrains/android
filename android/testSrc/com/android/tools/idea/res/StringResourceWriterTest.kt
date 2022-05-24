@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.res;
 
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.res.ResourcesTestsUtil;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-import org.jetbrains.android.AndroidTestCase;
 
 public final class StringsWriteUtilsTest extends AndroidTestCase {
   private Project myProject;
