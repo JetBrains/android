@@ -94,8 +94,4 @@ public class BuildNodeDecorator implements ProjectViewNodeDecorator {
       data.addText(folder.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
-
-  @Override
-  public void decorate(PackageDependenciesNode node, ColoredTreeCellRenderer cellRenderer) {
-  }
 }
