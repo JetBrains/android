@@ -209,16 +209,27 @@ class RuleData(
   inner class BodyRulesTableModel : ListTableModel<TransformationRuleData>() {
     init {
       columnInfos = arrayOf(
-        object : ColumnInfo<TransformationRuleData, String>("Action") {
+        object : ColumnInfo<TransformationRuleData, String>("Type") {
+          override fun getWidth(table: JTable) = JBUIScale.scale(45)
+
+          override fun getRenderer(item: TransformationRuleData) = MyRenderer
+
+          override fun valueOf(item: TransformationRuleData) = when (item) {
+            is BodyReplacedRuleData -> "Replace"
+            is BodyModifiedRuleData -> "Edit"
+            else -> ""
+          }
+        },
+        object : ColumnInfo<TransformationRuleData, String>("Find") {
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
-              is BodyReplacedRuleData -> "Replace All"
-              is BodyModifiedRuleData -> "Replace \"${item.targetText}\""
+              is BodyReplacedRuleData -> ""
+              is BodyModifiedRuleData -> item.targetText
               else -> ""
             }
           }
         },
-        object : ColumnInfo<TransformationRuleData, String>("Body") {
+        object : ColumnInfo<TransformationRuleData, String>("Replace with") {
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
               is BodyReplacedRuleData -> item.body

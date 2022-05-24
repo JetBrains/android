@@ -563,14 +563,17 @@ class RuleDetailsViewTest {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
 
-      dialog.findTextArea.text = ""
+      dialog.replaceEntireBodyCheckBox.isSelected = true
+      assertThat(dialog.findTextArea.isEnabled).isFalse()
+      assertThat(dialog.regexCheckBox.isEnabled).isFalse()
       dialog.replaceTextArea.text = "Test"
       dialog.clickDefaultButton()
     }
 
     assertThat(bodyTable.rowCount).isEqualTo(1)
-    assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Replace All")
-    assertThat(bodyTable.getValueAt(0, 1)).isEqualTo("Test")
+    assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Replace")
+    assertThat(bodyTable.getValueAt(0, 1)).isEqualTo("")
+    assertThat(bodyTable.getValueAt(0, 2)).isEqualTo("Test")
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(1)
@@ -596,8 +599,9 @@ class RuleDetailsViewTest {
     val addAction = findAction(bodyTable.parent, "Add")
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
-      // Switches between add and replace mode
-
+      dialog.replaceEntireBodyCheckBox.isSelected = false
+      assertThat(dialog.findTextArea.isEnabled).isTrue()
+      assertThat(dialog.regexCheckBox.isEnabled).isTrue()
       dialog.findTextArea.text = "Find"
       dialog.regexCheckBox.isSelected = true
       dialog.replaceTextArea.text = "Test"
@@ -605,8 +609,9 @@ class RuleDetailsViewTest {
     }
 
     assertThat(bodyTable.rowCount).isEqualTo(1)
-    assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Replace \"Find\"")
-    assertThat(bodyTable.getValueAt(0, 1)).isEqualTo("Test")
+    assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Edit")
+    assertThat(bodyTable.getValueAt(0, 1)).isEqualTo("Find")
+    assertThat(bodyTable.getValueAt(0, 2)).isEqualTo("Test")
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(1)

@@ -53,6 +53,8 @@ val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
 
+const val REGEX_TEXT = ".* Regex"
+
 /**
  * Creates a panel with a vertical flowing layout and a consistent style.
  */

@@ -18,13 +18,20 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.panels.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.event.ItemEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
+
+const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 
 /**
  * A dialog box that allows adding and editing body rules.
@@ -35,16 +42,31 @@ class BodyRuleDialog(
 ) : DialogWrapper(false) {
 
   @VisibleForTesting
-  val findTextArea = JBTextArea()
+  val findTextArea = JBTextArea(15, 25)
 
   @VisibleForTesting
-  val replaceTextArea = JBTextArea()
+  val replaceTextArea = JBTextArea(15, 25)
 
   @VisibleForTesting
-  val regexCheckBox = JBCheckBox("Regex")
+  val regexCheckBox = JBCheckBox(REGEX_TEXT)
+
+  @VisibleForTesting
+  val replaceEntireBodyCheckBox = JBCheckBox(REPLACE_ENTIRE_BODY_TEXT).apply {
+    val changeAction: (e: ItemEvent) -> Unit = {
+      findTextArea.isEnabled = !isSelected
+      findTextArea.isOpaque = !isSelected
+      if (isSelected) {
+        regexCheckBox.isSelected = false
+        findTextArea.text = ""
+      }
+      regexCheckBox.isEnabled = !isSelected
+    }
+    addItemListener(changeAction)
+    changeAction(ItemEvent(this, 0, null, ItemEvent.ITEM_STATE_CHANGED))
+  }
 
   init {
-    title = "New Header Rule"
+    title = "Body Rule"
     transformation?.let { applySavedBody(it) }
     init()
   }
@@ -55,34 +77,51 @@ class BodyRuleDialog(
         findTextArea.text = bodyRule.targetText
         replaceTextArea.text = bodyRule.newText
         regexCheckBox.isSelected = bodyRule.isRegex
+        replaceEntireBodyCheckBox.isSelected = false
       }
       is RuleData.BodyReplacedRuleData -> {
         findTextArea.text = ""
         replaceTextArea.text = bodyRule.body
         regexCheckBox.isSelected = false
+        replaceEntireBodyCheckBox.isSelected = true
       }
     }
   }
 
-  override fun createNorthPanel() = JPanel(VerticalLayout(18)).apply {
-    add(JPanel(TabularLayout("300px,20px,Fit,20px,300px", "350px")).apply {
-      add(findTextArea, TabularLayout.Constraint(0, 0))
-      add(JSeparator(), TabularLayout.Constraint(0, 2))
-      add(replaceTextArea, TabularLayout.Constraint(0, 4))
-    })
-    add(regexCheckBox)
+  override fun createNorthPanel() = JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
+    add(createTitledPanel("Find by", findTextArea), TabularLayout.Constraint(1, 0))
+    add(JSeparator(), TabularLayout.Constraint(1, 2))
+    add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
+    add(JPanel(BorderLayout()).apply {
+      add(replaceEntireBodyCheckBox, BorderLayout.WEST)
+      add(regexCheckBox, BorderLayout.EAST)
+    }, TabularLayout.Constraint(2, 0))
+    minimumSize = Dimension(800, preferredSize.height)
   }
 
   override fun createCenterPanel(): JComponent? = null
 
   override fun doOKAction() {
     super.doOKAction()
-    val findText = findTextArea.text
-    if (findText.isBlank()) {
+    if (replaceEntireBodyCheckBox.isSelected) {
       saveAction(RuleData.BodyReplacedRuleData(replaceTextArea.text))
     }
     else {
-      saveAction(RuleData.BodyModifiedRuleData(findText, regexCheckBox.isSelected, replaceTextArea.text))
+      saveAction(RuleData.BodyModifiedRuleData(findTextArea.text, regexCheckBox.isSelected, replaceTextArea.text))
     }
+  }
+
+  private fun createTitledPanel(titleName: String, body: JComponent): JPanel {
+    val panel = JPanel(VerticalLayout(6))
+    val headingPanel = TitledSeparator(titleName)
+    headingPanel.minimumSize = Dimension(0, 34)
+    panel.add(headingPanel)
+    val scroll = JBScrollPane(body).apply {
+      // Set JBScrollPane transparent to render an inactive JBTextArea with correct background color.
+      isOpaque = false
+      viewport.isOpaque = false
+    }
+    panel.add(scroll)
+    return panel
   }
 }

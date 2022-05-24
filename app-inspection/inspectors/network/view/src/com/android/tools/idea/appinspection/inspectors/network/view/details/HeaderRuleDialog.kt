@@ -32,8 +32,6 @@ import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private const val REGEX_TEXT = ".* Regex"
-
 /**
  * A dialog box that allows adding and editing header rules.
  */
