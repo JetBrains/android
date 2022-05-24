@@ -31,10 +31,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -160,18 +158,8 @@ public final class StringResource {
     }
 
     Project project = myData.getProject();
-    VirtualFile directory = myKey.getDirectory();
-    if (directory == null) {
-      return Futures.immediateFuture(null);
-    }
 
-    XmlFile file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory);
-
-    if (file == null) {
-      return Futures.immediateFuture(null);
-    }
-
-    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
+    StringResourceWriter.INSTANCE.add(project, myKey, value, myTranslatable);
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();
@@ -273,23 +261,27 @@ public final class StringResource {
     }
 
     Project project = myData.getProject();
-    XmlFile file = myData.getDefaultLocaleXml(locale);
+    // If there is only one file that all translations of string resources are in, get that file.
+    @Nullable XmlFile file = myData.getDefaultLocaleXml(locale);
 
     if (file == null) {
-      VirtualFile directory = myKey.getDirectory();
-      if (directory == null) {
-        return Futures.immediateFuture(null);
+      // Put in the standard place, i.e. values-XX/strings.xml, creating if necessary.
+      if (anchor == null) {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, locale);
       }
-      file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
-      if (file == null) {
-        return Futures.immediateFuture(null);
+      else {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, locale, anchor);
       }
     }
-
-    XmlFile finalFile = file;
-    WriteCommandAction.runWriteCommandAction(project, null, null, () ->
-      StringPsiUtils.addStringBefore(finalFile, myKey, myTranslatable, value, anchor)
-    );
+    else {
+      // Put in the one-file-to-rule-them-all found above.
+      if (anchor == null) {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, file);
+      }
+      else {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, file, anchor);
+      }
+    }
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();

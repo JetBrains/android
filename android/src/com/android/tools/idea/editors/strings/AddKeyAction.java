@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.xml.XmlFile;
 import java.util.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -55,21 +52,9 @@ final class AddKeyAction extends AnAction {
     }
 
     Project project = facet.getModule().getProject();
-    StringResourceKey key = dialog.getKey();
-    VirtualFile directory = key.getDirectory();
-    if (directory == null) {
-      return;
-    }
 
-    XmlFile file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory);
-
-    if (file == null) {
-      return;
-    }
-
-    WriteCommandAction.runWriteCommandAction(project, () -> {
-      StringPsiUtils.addString(file, key, dialog.getDefaultValue());
+    if (StringResourceWriter.INSTANCE.add(project, dialog.getKey(), dialog.getDefaultValue())) {
       myPanel.reloadData();
-    });
+    }
   }
 }

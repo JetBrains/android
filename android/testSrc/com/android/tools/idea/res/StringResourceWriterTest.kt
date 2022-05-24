@@ -21,6 +21,7 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
@@ -92,16 +93,127 @@ class StringResourceWriterTest {
 
   @Test
   fun getStringResourceFile_creation() {
-    val krLocaleFile = "values-kr/strings.xml"
-    assertThat(resourceDirectory.findFileByRelativePath(krLocaleFile)).isNull()
+    assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
 
     val xmlFile =
         stringResourceWriter.getStringResourceFile(
-            projectRule.project, resourceDirectory, Locale.create("kr"))
+            projectRule.project, resourceDirectory, KOREAN_LOCALE)
 
     assertThat(xmlFile).isNotNull()
     assertThat(xmlFile?.virtualFile)
-        .isEqualTo(resourceDirectory.findFileByRelativePath(krLocaleFile))
+        .isEqualTo(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE))
+  }
+
+  @Test
+  fun add_defaultLocale() {
+    assertThat(textExists(DEFAULT_STRINGS_FILE, NEW_KEY)).isFalse()
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE)).isTrue()
+
+    assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(DEFAULT_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
+  }
+
+  @Test
+  fun add_nonexistentLocale() {
+    assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, KOREAN_LOCALE))
+        .isTrue()
+
+    assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNotNull()
+    assertThat(getText(KOREAN_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(KOREAN_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
+  }
+
+  @Test
+  fun add_existingLocale() {
+    assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, FRENCH_LOCALE))
+        .isTrue()
+
+    assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
+  }
+
+  @Test
+  fun add_notTranslatable() {
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(
+            stringResourceWriter.add(
+                projectRule.project, resourceKey, NEW_VALUE, translatable = false))
+        .isTrue()
+
+    assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(DEFAULT_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE))
+        .isEqualTo(false.toString())
+  }
+
+  @Test
+  fun add_invalidXml() {
+    val invalidXml = "<foo"
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, invalidXml)).isTrue()
+
+    assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(invalidXml)
+  }
+
+  @Test
+  fun add_specificFile() {
+    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
+    assertThat(file).isNotNull()
+    val xmlFile = PsiManager.getInstance(projectRule.project).findFile(file!!) as XmlFile
+
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, xmlFile))
+        .isTrue()
+
+    assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
+  }
+
+  @Test
+  fun add_before_withLocale() {
+    assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    val insertBefore = StringResourceKey(KEY2, resourceDirectory)
+    assertThat(
+            stringResourceWriter.add(
+                projectRule.project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore))
+        .isTrue()
+
+    assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
+    assertThat(textPosition(FRENCH_STRINGS_FILE, KEY2) - textPosition(FRENCH_STRINGS_FILE, NEW_KEY))
+        .isEqualTo(1)
+  }
+
+  @Test
+  fun add_before_specificFile() {
+    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
+    assertThat(file).isNotNull()
+    val xmlFile = PsiManager.getInstance(projectRule.project).findFile(file!!) as XmlFile
+
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    val insertBefore = StringResourceKey(KEY2, resourceDirectory)
+    assertThat(
+            stringResourceWriter.add(
+                projectRule.project, resourceKey, NEW_VALUE, xmlFile, insertBefore))
+        .isTrue()
+
+    assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
+    assertThat(textPosition(FRENCH_STRINGS_FILE, KEY2) - textPosition(FRENCH_STRINGS_FILE, NEW_KEY))
+        .isEqualTo(1)
   }
 
   @Test
@@ -254,7 +366,7 @@ class StringResourceWriterTest {
                 projectRule.project, getResourceItem(KEY2, FRENCH_LOCALE), "L'Étranger"))
         .isTrue()
 
-    assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("L\\'Étranger")
+    assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""L\'Étranger""")
   }
 
   @Test
@@ -282,7 +394,7 @@ class StringResourceWriterTest {
                 "<xliff:g>L'Étranger</xliff:g>"))
         .isTrue()
 
-    assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("<xliff:g>L\\'Étranger</xliff:g>")
+    assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""<xliff:g>L\'Étranger</xliff:g>""")
   }
 
   @Test
@@ -331,12 +443,27 @@ class StringResourceWriterTest {
     return xmlTag.findSubTags("string").any { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
   }
 
+  private fun textPosition(path: String, name: String): Int {
+    val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
+    val psiFile = PsiManager.getInstance(projectRule.project).findFile(virtualFile)!!
+    val xmlTag = (psiFile as XmlFile).rootTag!!
+    return xmlTag.findSubTags("string").indexOfFirst {
+      name == it.getAttributeValue(SdkConstants.ATTR_NAME)
+    }
+  }
+
   companion object {
     private const val KEY2 = "key2"
     private const val KEY2_INITIAL_VALUE_FRENCH = "Key 2 fr"
     private val FRENCH_LOCALE = Locale.create("fr")
     private val ENGLISH_LOCALE = Locale.create("en")
+    private val KOREAN_LOCALE = Locale.create("kr")
     private const val FRENCH_STRINGS_FILE = "values-fr/strings.xml"
     private const val ENGLISH_STRINGS_FILE = "values-en/strings.xml"
+    private const val KOREAN_STRINGS_FILE = "values-kr/strings.xml"
+    private const val DEFAULT_STRINGS_FILE = "values/strings.xml"
+    private const val NEW_KEY = "new_key"
+    private const val NEW_VALUE = "Hey, I'm a new value!"
+    private const val NEW_VALUE_ESCAPED = """Hey, I\'m a new value!"""
   }
 }

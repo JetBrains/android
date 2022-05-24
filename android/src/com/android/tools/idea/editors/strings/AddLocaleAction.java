@@ -28,7 +28,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.List;
@@ -99,21 +98,11 @@ final class AddLocaleAction extends AnAction {
     StringResourceData data = myPanel.getTable().getData();
     assert data != null;
     StringResourceKey key = findResourceKey(data);
+    String defaultValue = data.getStringResource(key).getDefaultValueAsString();
 
-    VirtualFile directory = key.getDirectory();
-    if (directory == null) {
-      return;
-    }
-    XmlFile file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
-
-    if (file == null) {
-      return;
-    }
-
-    WriteCommandAction.runWriteCommandAction(project, () -> {
-      StringPsiUtils.addString(file, key, data.getStringResource(key).getDefaultValueAsString());
+    if (StringResourceWriter.INSTANCE.add(project, key, defaultValue, locale)) {
       myPanel.reloadData();
-    });
+    }
   }
 
   @NotNull
