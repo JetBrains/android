@@ -20,20 +20,16 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
 
 /**
  * An action that opens a popup menu with Logcat format-related actions
  */
 internal class LogcatFormatAction(private val project: Project, private val logcatPresenter: LogcatPresenter)
-  : DumbAwareAction(LogcatBundle.message("logcat.format.action.text"), null, AllIcons.Actions.Properties) {
+  : PopupActionGroupAction(LogcatBundle.message("logcat.format.action.text"), null, AllIcons.Actions.Properties) {
 
-  override fun actionPerformed(e: AnActionEvent) {
+  override fun getPopupActions(): List<AnAction> {
     val actions = mutableListOf<AnAction>()
     actions.add(LogcatFormatPresetAction.Standard(logcatPresenter))
     actions.add(LogcatFormatPresetAction.Compact(logcatPresenter))
@@ -42,8 +38,7 @@ internal class LogcatFormatAction(private val project: Project, private val logc
     }
     actions.add(Separator.create())
     actions.add(LogcatFormatModifyViewsAction(project, logcatPresenter))
-    JBPopupFactory.getInstance()
-      .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
-      .showUnderneathOf(e.inputEvent.component)
+
+    return actions
   }
 }

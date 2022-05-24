@@ -33,6 +33,7 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
+import com.android.tools.idea.logcat.actions.LogcatSplitterActions
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
@@ -128,7 +129,7 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
  * The top level Logcat panel.
  *
  * @param project the [Project]
- * @param popupActionGroup An [ActionGroup] to add to the right-click menu of the panel
+ * @param splitterPopupActionGroup An [ActionGroup] to add to the right-click menu of the panel and the toolbar
  * @param logcatColors Provides colors for rendering messages
  * @param state State to restore or null to use the default state
  * @param hyperlinkDetector A [HyperlinkDetector] or null to create the default one. For testing.
@@ -137,7 +138,7 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
  */
 internal class LogcatMainPanel(
   private val project: Project,
-  private val popupActionGroup: ActionGroup,
+  private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   private var logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings.getInstance(),
@@ -202,7 +203,7 @@ internal class LogcatMainPanel(
   init {
     editor.apply {
       installPopupHandler(object : ContextMenuPopupHandler() {
-        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(popupActionGroup.getChildren(null))
+        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
       })
       settings.isUseSoftWraps = state?.isSoftWrap ?: false
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
@@ -384,6 +385,8 @@ internal class LogcatMainPanel(
       add(LogcatToggleUseSoftWrapsToolbarAction(editor))
       add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
+      add(Separator.create())
+      add(LogcatSplitterActions(splitterPopupActionGroup))
       add(Separator.create())
       //add(DeviceScreenshotAction(project, deviceContext))
       add(ScreenshotAction())
