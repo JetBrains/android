@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlTable
@@ -60,13 +61,19 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
         is GradleDslExpressionMap -> factory.createTable(externalNameInfo.externalNameParts[0])
         else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
       }
-      else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+      else -> when (element) {
+        is GradleDslExpressionMap -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "{ }")
+        else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+      }
     }
 
     val anchor = getAnchorPsi(parentPsiElement, element.anchor)
 
     val addedElement = parentPsiElement.addAfter(psi, anchor)
-    addedElement.addAfter(factory.createNewline(), null)
+
+    when (parentPsiElement) {
+      is TomlTable -> addedElement.addAfter(factory.createNewline(), null)
+    }
 
     when (addedElement) {
       is TomlKeyValue -> element.psiElement = addedElement.value
@@ -91,6 +98,8 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun ensureParentPsi(element: GradleDslElement) = element.parent?.create()
 
   private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
-    return anchorDsl?.let{ findLastPsiElementIn(it) } ?: parent
+    val anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
+    if (anchor == null && parent is TomlInlineTable) return parent.firstChild
+    return anchor ?: parent
   }
 }

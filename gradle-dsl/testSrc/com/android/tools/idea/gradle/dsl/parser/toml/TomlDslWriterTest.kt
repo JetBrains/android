@@ -60,6 +60,16 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testInlineTable() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to "quux")))
+    val expected = """
+      [foo]
+      bar = { baz = "quux" }
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   private fun doTest(contents: Map<String,Any>, expected: String) {
     val libsTomlFile = writeLibsTomlFile("")
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
