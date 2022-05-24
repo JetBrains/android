@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileTypeUtilKt.getArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
-import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.createFullTaskName;
@@ -27,7 +26,6 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Arrays.stream;
 import static java.util.stream.Stream.concat;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
@@ -51,7 +49,6 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
@@ -92,7 +89,7 @@ public class GradleTaskFinder {
 
     // Add testedModulesTasks to allTasks without duplicate
     for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
-      if (!allTasks.values().contains(task.getValue())) {
+      if (!allTasks.containsEntry(task.getKey(), task.getValue())) {
         allTasks.put(task.getKey(), task.getValue());
       }
     }

@@ -69,6 +69,40 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :generateDebugSources, :createMockableJar
+                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :generateDebugSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
     MODULE                        : testWithEmptyGradleSettingsFileInSingleModuleProject.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithEmptyGradleSettingsFileInSingleModuleProject
@@ -194,6 +228,40 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         ORDER_ENTRY                   : testWithEmptyGradleSettingsFileInSingleModuleProject.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testWithEmptyGradleSettingsFileInSingleModuleProject.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :generateDebugSources, :createMockableJar
+                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :generateDebugSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
     MODULE                        : testWithEmptyGradleSettingsFileInSingleModuleProject.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithEmptyGradleSettingsFileInSingleModuleProject
@@ -286,6 +354,40 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/testWithEmptyGradleSettingsFileInSingleModuleProject.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :generateDebugSources, :createMockableJar
+                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :generateDebugSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
     MODULE                        : testWithEmptyGradleSettingsFileInSingleModuleProject.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithEmptyGradleSettingsFileInSingleModuleProject
@@ -394,6 +496,40 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithEmptyGradleSettingsFileInSingleModuleProject.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :generateDebugSources, :createMockableJar
+                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources, :createMockableJar
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :generateDebugSources
+                ASSEMBLE                      : :assembleDebug
+                REBUILD                       : :clean, :assembleDebug
+                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                SOURCE_GEN                    : :generateDebugSources
+                BUNDLE                        : :bundleDebug
+                APK_FROM_BUNDLE               : :extractApksForDebug
     RUN_CONFIGURATION             : testWithEmptyGradleSettingsFileInSingleModuleProject
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testWithEmptyGradleSettingsFileInSingleModuleProject.main

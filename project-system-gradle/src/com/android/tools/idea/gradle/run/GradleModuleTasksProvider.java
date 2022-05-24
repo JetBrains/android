@@ -25,7 +25,9 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,7 @@ public class GradleModuleTasksProvider {
   @NotNull private final Project myProject;
   @NotNull private final Module[] myModules;
 
-  GradleModuleTasksProvider(@NotNull Module[] modules) {
+  public GradleModuleTasksProvider(@NotNull Module[] modules) {
     myModules = modules;
     if (myModules.length == 0) {
       throw new IllegalArgumentException("No modules provided");
@@ -55,7 +57,10 @@ public class GradleModuleTasksProvider {
   private static Module[] getAffectedModules(@NotNull Project project, @NotNull Module[] modules) {
     final CompilerManager compilerManager = CompilerManager.getInstance(project);
     CompileScope scope = compilerManager.createModulesCompileScope(modules, true, true);
-    return scope.getAffectedModules();
+    Module[] affectedModules = scope.getAffectedModules().clone();
+    //noinspection UnstableApiUsage
+    Arrays.sort(affectedModules, Comparator.comparing(Module::getModuleFilePath)); // Ensure stable order of tasks.
+    return affectedModules;
   }
 
   public Map<Path, Collection<String>> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {

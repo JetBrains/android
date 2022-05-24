@@ -20,6 +20,19 @@ PROJECT                       : testLoadPlainJavaProject
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
     MODULE                        : testLoadPlainJavaProject.main
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -41,6 +54,19 @@ PROJECT                       : testLoadPlainJavaProject
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
     MODULE                        : testLoadPlainJavaProject.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -67,6 +93,19 @@ PROJECT                       : testLoadPlainJavaProject
         ORDER_ENTRY                   : testLoadPlainJavaProject.main
         Classes
             -                             : file://<PROJECT>/build/classes/java/test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                COMPILE_JAVA                  : :compileJava
     LIBRARY_TABLE
         LIBRARY                       : Gradle: junit:junit:4.12
             *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/

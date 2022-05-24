@@ -20,6 +20,11 @@ PROJECT                       : MainActivity
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : MainActivity.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -92,6 +97,40 @@ PROJECT                       : MainActivity
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugUnitTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:compileLocalDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateLocalDebugSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
     MODULE                        : MainActivity.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -292,6 +331,41 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.javaLib.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/MainActivity.app.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugUnitTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                ASSEMBLE(test only)           : :javaLib:assemble
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:compileLocalDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :javaLib:compileJava, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateLocalDebugSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
     MODULE                        : MainActivity.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -446,6 +520,41 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.javaLib.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/MainActivity.app.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugUnitTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                ASSEMBLE(test only)           : :javaLib:assemble
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:compileLocalDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :javaLib:compileJava, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateLocalDebugSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
     MODULE                        : MainActivity.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -609,6 +718,41 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.javaLib.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/MainActivity.app.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugUnitTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources, :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:generateLocalDebugAndroidTestSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateLocalDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                ASSEMBLE(test only)           : :javaLib:assemble
+                REBUILD                       : :app:clean, :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:createMockableJar, :app:compileLocalDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :javaLib:compileJava, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateLocalDebugSources
+                ASSEMBLE                      : :app:assembleLocalDebug
+                REBUILD                       : :app:clean, :app:assembleLocalDebug
+                COMPILE_JAVA                  : :app:generateLocalDebugSources, :app:compileLocalDebugSources
+                SOURCE_GEN                    : :app:generateLocalDebugSources
+                BUNDLE                        : :app:bundleLocalDebug
+                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
     MODULE                        : MainActivity.javaLib
         ExternalModuleGroup           : MainActivity
         ExternalModuleVersion         : unspecified
@@ -632,6 +776,19 @@ PROJECT                       : MainActivity
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.javaLib.main
         ExternalModuleGroup           : MainActivity
         ExternalModuleType            : sourceSet
@@ -714,6 +871,19 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/javaLib/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.javaLib.test
         ExternalModuleGroup           : MainActivity
         ExternalModuleType            : sourceSet
@@ -797,6 +967,19 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : MainActivity.javaLib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
+                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLib:assemble
+                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -865,6 +1048,32 @@ PROJECT                       : MainActivity
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : MainActivity.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1046,6 +1255,32 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : MainActivity.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1188,6 +1423,32 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : MainActivity.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1354,6 +1615,32 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : MainActivity.app.main

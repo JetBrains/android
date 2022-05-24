@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.run.GradleModuleTasksProvider
+import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
@@ -67,6 +72,9 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
 
 fun ProjectDumper.dumpProject(project: Project) {
   println("<PROJECT>     <== ${File(project.basePath!!)}")
@@ -145,6 +153,59 @@ fun ProjectDumper.dump(module: Module) {
       nest {
         classes.forEach {
           prop("-") { it.replaceKnownPaths() }
+        }
+      }
+    }
+
+    dumpTasks(module)
+  }
+}
+
+fun ProjectDumper.dumpTasks(module: Module) {
+  val singleModuleArray = arrayOf(module)
+  val taskFinder = GradleTaskFinder.getInstance()
+  head("BUILD_TASKS")
+  nest {
+    TestCompileType.values().forEach { testCompileMode ->
+      head("TEST_COMPILE_MODE") { testCompileMode.displayName }
+      nest {
+        BuildMode.values().forEach { buildMode ->
+          val expectedRoot = module.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()
+
+          fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
+            if (keys.size > 1) {
+              prop("ERROR") {
+                "Multiple project roots for a single module: " +
+                  keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
+              }
+            }
+            return entries
+              .sortedBy { it.key.pathString.replaceKnownPaths() }
+              .flatMap { (path, tasks) ->
+              if (path == expectedRoot) tasks
+              else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
+            }
+              .toSet()
+          }
+
+          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(singleModuleArray, buildMode, testCompileMode).asMap().asFirstEntry()
+
+          fun getTestTasks(): Set<String> {
+            val all =
+              if (testCompileMode == TestCompileType.UNIT_TESTS) GradleModuleTasksProvider(singleModuleArray).getUnitTestTasks(buildMode)
+            else GradleModuleTasksProvider(singleModuleArray).getTasksFor(buildMode, testCompileMode)
+            return all.asFirstEntry()
+          }
+
+          fun Set<String>.dumpAs(name: String) {
+            prop(name) { this.takeUnless { it.isEmpty() }?.joinToString(", ") }
+          }
+
+          val regularTasks = getTasks()
+          val testTasks = getTestTasks()
+
+          regularTasks.dumpAs(buildMode.toString())
+          (testTasks - regularTasks).dumpAs("$buildMode(test only)")
         }
       }
     }

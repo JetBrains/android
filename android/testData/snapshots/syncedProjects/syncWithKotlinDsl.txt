@@ -20,6 +20,11 @@ PROJECT                       : testSyncWithKotlinDsl
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : testSyncWithKotlinDsl.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.app
@@ -88,6 +93,40 @@ PROJECT                       : testSyncWithKotlinDsl
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testSyncWithKotlinDsl.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.app
@@ -242,6 +281,44 @@ PROJECT                       : testSyncWithKotlinDsl
             Scope                         : Test
         ORDER_ENTRY                   : testSyncWithKotlinDsl.app.main
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testSyncWithKotlinDsl.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.app
@@ -360,6 +437,44 @@ PROJECT                       : testSyncWithKotlinDsl
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl.app.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testSyncWithKotlinDsl.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.app
@@ -499,6 +614,44 @@ PROJECT                       : testSyncWithKotlinDsl
             Scope                         : Test
         ORDER_ENTRY                   : testSyncWithKotlinDsl.app.main
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testSyncWithKotlinDsl.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.lib
@@ -567,6 +720,32 @@ PROJECT                       : testSyncWithKotlinDsl
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testSyncWithKotlinDsl.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.lib
@@ -656,6 +835,32 @@ PROJECT                       : testSyncWithKotlinDsl
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testSyncWithKotlinDsl.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.lib
@@ -741,6 +946,32 @@ PROJECT                       : testSyncWithKotlinDsl
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testSyncWithKotlinDsl.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncWithKotlinDsl.lib
@@ -815,6 +1046,32 @@ PROJECT                       : testSyncWithKotlinDsl
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testSyncWithKotlinDsl.app.main

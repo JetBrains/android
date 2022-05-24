@@ -20,6 +20,11 @@ PROJECT                       : testTestFixtures
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : testTestFixtures.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.app
@@ -88,6 +93,40 @@ PROJECT                       : testTestFixtures
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTestFixtures.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.app
@@ -250,6 +289,44 @@ PROJECT                       : testTestFixtures
         ORDER_ENTRY                   : testTestFixtures.lib.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTestFixtures.app.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTestFixtures.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.app
@@ -349,6 +426,44 @@ PROJECT                       : testTestFixtures
         ORDER_ENTRY                   : testTestFixtures.lib.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTestFixtures.app.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTestFixtures.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.app
@@ -501,6 +616,44 @@ PROJECT                       : testTestFixtures
         ORDER_ENTRY                   : testTestFixtures.lib.testFixtures
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTestFixtures.app.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTestFixtures.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.lib
@@ -570,6 +723,32 @@ PROJECT                       : testTestFixtures
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testTestFixtures.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.lib
@@ -683,6 +862,32 @@ PROJECT                       : testTestFixtures
             Scope                         : Test
         ORDER_ENTRY                   : testTestFixtures.lib.main
         ORDER_ENTRY                   : testTestFixtures.lib.testFixtures
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testTestFixtures.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.lib
@@ -747,6 +952,32 @@ PROJECT                       : testTestFixtures
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTestFixtures.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testTestFixtures.lib.testFixtures
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.lib
@@ -816,6 +1047,32 @@ PROJECT                       : testTestFixtures
         ORDER_ENTRY                   : testTestFixtures.lib.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTestFixtures.lib.testFixtures
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testTestFixtures.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestFixtures.lib
@@ -896,6 +1153,32 @@ PROJECT                       : testTestFixtures
         ORDER_ENTRY                   : testTestFixtures.lib.testFixtures
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTestFixtures.lib.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testTestFixtures.app.main

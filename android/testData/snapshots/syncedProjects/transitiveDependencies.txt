@@ -20,6 +20,11 @@ PROJECT                       : testTransitiveDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : testTransitiveDependencies.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -88,6 +93,40 @@ PROJECT                       : testTransitiveDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTransitiveDependencies.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -233,6 +272,44 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :library2:generateDebugSources, :library1:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library2:assembleDebug, :library1:assembleDebug, :javalib2:assemble, :javalib1:assemble
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :library2:clean, :library1:clean, :library2:assembleDebug, :library1:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:generateDebugSources, :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources, :javalib2:compileJava, :javalib1:compileJava, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :library2:generateDebugSources, :library1:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTransitiveDependencies.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -337,6 +414,44 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :library2:generateDebugSources, :library1:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library2:assembleDebug, :library1:assembleDebug, :javalib2:assemble, :javalib1:assemble
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :library2:clean, :library1:clean, :library2:assembleDebug, :library1:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:generateDebugSources, :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources, :javalib2:compileJava, :javalib1:compileJava, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :library2:generateDebugSources, :library1:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTransitiveDependencies.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -467,6 +582,44 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :library2:generateDebugSources, :library1:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library2:assembleDebug, :library1:assembleDebug, :javalib2:assemble, :javalib1:assemble
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :library2:clean, :library1:clean, :library2:assembleDebug, :library1:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:generateDebugSources, :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources, :javalib2:compileJava, :javalib1:compileJava, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :library2:generateDebugSources, :library1:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testTransitiveDependencies.javalib1
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleVersion         : unspecified
@@ -490,6 +643,19 @@ PROJECT                       : testTransitiveDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : testTransitiveDependencies.javalib1.main
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -517,6 +683,21 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
         Classes
             -                             : file://<PROJECT>/javalib1/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                ASSEMBLE(test only)           : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+                COMPILE_JAVA(test only)       : :javalib2:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : testTransitiveDependencies.javalib1.test
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -545,6 +726,21 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
         ORDER_ENTRY                   : testTransitiveDependencies.javalib1.main
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
+                ASSEMBLE(test only)           : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+                COMPILE_JAVA(test only)       : :javalib2:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib1:assemble
+                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : testTransitiveDependencies.javalib2
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleVersion         : unspecified
@@ -568,6 +764,19 @@ PROJECT                       : testTransitiveDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : testTransitiveDependencies.javalib2.main
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -589,6 +798,19 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/javalib2/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : testTransitiveDependencies.javalib2.test
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -611,6 +833,19 @@ PROJECT                       : testTransitiveDependencies
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javalib2:assemble
+                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : testTransitiveDependencies.library1
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -679,6 +914,32 @@ PROJECT                       : testTransitiveDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:compileDebugUnitTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugUnitTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library1:generateDebugSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources
     MODULE                        : testTransitiveDependencies.library1.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -830,6 +1091,32 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:compileDebugUnitTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugUnitTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library1:generateDebugSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources
     MODULE                        : testTransitiveDependencies.library1.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -923,6 +1210,32 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:compileDebugUnitTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugUnitTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library1:generateDebugSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources
     MODULE                        : testTransitiveDependencies.library1.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -1039,6 +1352,32 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:compileDebugUnitTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources, :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar
+                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
+                REBUILD                       : :library1:clean, :library1:assembleDebug, :library1:assembleDebugUnitTest
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:createMockableJar, :library1:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources, :library1:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library1:generateDebugSources
+                ASSEMBLE                      : :library1:assembleDebug
+                REBUILD                       : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library1:generateDebugSources
     MODULE                        : testTransitiveDependencies.library2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1107,6 +1446,32 @@ PROJECT                       : testTransitiveDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:compileDebugUnitTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugUnitTest
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library2:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources
     MODULE                        : testTransitiveDependencies.library2.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1239,6 +1604,36 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.androidTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:compileDebugUnitTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar
+                CLEAN(test only)              : :library1:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library1:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugUnitTest
+                REBUILD(test only)            : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar
+                SOURCE_GEN(test only)         : :library1:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library2:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources
     MODULE                        : testTransitiveDependencies.library2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1335,6 +1730,36 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:compileDebugUnitTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar
+                CLEAN(test only)              : :library1:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library1:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugUnitTest
+                REBUILD(test only)            : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar
+                SOURCE_GEN(test only)         : :library1:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library2:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources
     MODULE                        : testTransitiveDependencies.library2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1456,6 +1881,36 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:compileDebugUnitTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources, :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar
+                CLEAN(test only)              : :library1:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :library1:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug, :library2:assembleDebugUnitTest
+                REBUILD(test only)            : :library1:clean, :library1:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:createMockableJar, :library2:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :library2:compileDebugSources, :library1:generateDebugSources, :library1:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources, :library2:createMockableJar
+                SOURCE_GEN(test only)         : :library1:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :library2:generateDebugSources
+                ASSEMBLE                      : :library2:assembleDebug
+                REBUILD                       : :library2:clean, :library2:assembleDebug
+                COMPILE_JAVA                  : :library2:generateDebugSources, :library2:compileDebugSources
+                SOURCE_GEN                    : :library2:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testTransitiveDependencies.app.main

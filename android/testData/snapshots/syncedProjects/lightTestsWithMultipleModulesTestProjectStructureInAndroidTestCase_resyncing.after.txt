@@ -13,6 +13,11 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/build [-]
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
@@ -77,6 +82,40 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
@@ -137,6 +176,46 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                BUNDLE(test only)             : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                APK_FROM_BUNDLE(test only)    : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
@@ -196,6 +275,46 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                BUNDLE(test only)             : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                APK_FROM_BUNDLE(test only)    : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
@@ -241,6 +360,46 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN(test only)              : :lib:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :lib:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                SOURCE_GEN(test only)         : :lib:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                BUNDLE(test only)             : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                APK_FROM_BUNDLE(test only)    : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
@@ -305,6 +464,40 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
@@ -364,6 +557,40 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
@@ -423,6 +650,40 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example:library:1.0 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
@@ -467,5 +728,39 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
     LIBRARY_TABLE
         LIBRARY                       : Gradle: com.example:library:1.0

@@ -20,6 +20,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -43,6 +48,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : NonStandardSourceSetDependencies.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.app
@@ -111,6 +121,40 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : NonStandardSourceSetDependencies.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.app
@@ -211,6 +255,44 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources, :feature-a:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble, :lib:assembleDebug, :javaLibrary:assemble, :feature-a:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :feature-a:clean, :lib:assembleDebug, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :lib:generateDebugSources, :lib:compileDebugSources, :javaLibrary:compileJava, :feature-a:generateDebugSources, :feature-a:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources, :feature-a:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : NonStandardSourceSetDependencies.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.app
@@ -302,6 +384,44 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.app.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :feature-a:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble, :javaLibrary:assemble, :feature-a:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :javaLibrary:compileJava, :feature-a:generateDebugSources, :feature-a:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :feature-a:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : NonStandardSourceSetDependencies.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.app
@@ -387,6 +507,44 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :lib:generateDebugSources, :feature-a:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble, :lib:assembleDebug, :javaLibrary:assemble, :feature-a:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD(test only)            : :lib:clean, :feature-a:clean, :lib:assembleDebug, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :lib:generateDebugSources, :lib:compileDebugSources, :javaLibrary:compileJava, :feature-a:generateDebugSources, :feature-a:compileDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :lib:generateDebugSources, :feature-a:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:clean, :app:assembleDebug
+                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
     MODULE                        : NonStandardSourceSetDependencies.feature-a
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -455,6 +613,32 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugUnitTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :feature-a:generateDebugSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.feature-a.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -602,6 +786,33 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugUnitTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :feature-a:generateDebugSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.feature-a.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -717,6 +928,33 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.feature-a.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugUnitTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :feature-a:generateDebugSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.feature-a.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -849,6 +1087,33 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugUnitTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources, :feature-a:compileDebugAndroidTestSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :feature-a:generateDebugSources, :feature-a:createMockableJar
+                ASSEMBLE                      : :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :network-kmm:assemble
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug, :feature-a:assembleDebugUnitTest
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:createMockableJar, :feature-a:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources, :feature-a:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :feature-a:generateDebugSources
+                ASSEMBLE                      : :feature-a:assembleDebug
+                REBUILD                       : :feature-a:clean, :feature-a:assembleDebug
+                COMPILE_JAVA                  : :feature-a:generateDebugSources, :feature-a:compileDebugSources
+                SOURCE_GEN                    : :feature-a:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -872,6 +1137,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -895,6 +1165,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.main
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -969,6 +1252,21 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
         Classes
             -                             : file://<PROJECT>/javaLibrary/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                ASSEMBLE(test only)           : :network-kmm:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.test
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1044,6 +1342,21 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                ASSEMBLE(test only)           : :network-kmm:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+                COMPILE_JAVA(test only)       : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.testEnv
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1111,6 +1424,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/javaLibrary/build/classes/java/testEnv
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :javaLibrary:assemble
+                COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -1179,6 +1505,32 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -1306,6 +1658,32 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -1394,6 +1772,32 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -1478,6 +1882,32 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:clean, :lib:assembleDebug
+                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : NonStandardSourceSetDependencies.network-kmm
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -1501,6 +1931,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1571,6 +2014,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1649,6 +2105,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1719,6 +2188,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
         Classes
             -                             : file://<PROJECT>/network-kmm/build/classes/kotlin/jvm/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -1798,6 +2280,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonTest
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :network-kmm:assemble
+                COMPILE_JAVA                  : :network-kmm:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : NonStandardSourceSetDependencies.app.main

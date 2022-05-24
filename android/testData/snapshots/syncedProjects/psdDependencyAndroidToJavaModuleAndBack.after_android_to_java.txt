@@ -20,6 +20,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.app
@@ -92,6 +97,40 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugUnitTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.app
@@ -234,6 +273,44 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.app.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugUnitTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                ASSEMBLE(test only)           : :mainModule:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                REBUILD(test only)            : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :mainModule:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.app
@@ -343,6 +420,44 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugUnitTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                ASSEMBLE(test only)           : :mainModule:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                REBUILD(test only)            : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :mainModule:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.app
@@ -470,6 +585,44 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.app.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugUnitTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources, :app:compileFreeDebugAndroidTestSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:generateFreeDebugAndroidTestSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateFreeDebugSources, :app:createMockableJar
+                CLEAN(test only)              : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                ASSEMBLE(test only)           : :mainModule:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug, :app:assembleFreeDebugUnitTest
+                REBUILD(test only)            : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:createMockableJar, :app:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources, :app:createMockableJar
+                SOURCE_GEN(test only)         : :mainModule:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateFreeDebugSources
+                ASSEMBLE                      : :app:assembleFreeDebug
+                REBUILD                       : :app:clean, :app:assembleFreeDebug
+                COMPILE_JAVA                  : :app:generateFreeDebugSources, :app:compileFreeDebugSources
+                SOURCE_GEN                    : :app:generateFreeDebugSources
+                BUNDLE                        : :app:bundleFreeDebug
+                APK_FROM_BUNDLE               : :app:extractApksForFreeDebug
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
@@ -493,6 +646,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -526,6 +692,21 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
             Scope                         : Runtime
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                ASSEMBLE(test only)           : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+                COMPILE_JAVA(test only)       : :jModuleL:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -562,6 +743,21 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Runtime
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleK:assemble, :jModuleK:testClasses
+                ASSEMBLE(test only)           : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava, :jModuleK:testClasses
+                COMPILE_JAVA(test only)       : :jModuleL:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleK:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
@@ -585,6 +781,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -606,6 +815,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -630,6 +852,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleL:assemble, :jModuleL:testClasses
+                COMPILE_JAVA                  : :jModuleL:compileJava, :jModuleL:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleL:assemble
+                COMPILE_JAVA                  : :jModuleL:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
@@ -653,6 +888,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -674,6 +922,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -698,6 +959,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleM:assemble, :jModuleM:testClasses
+                COMPILE_JAVA                  : :jModuleM:compileJava, :jModuleM:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleM:assemble
+                COMPILE_JAVA                  : :jModuleM:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
@@ -721,6 +995,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -765,6 +1052,21 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                ASSEMBLE(test only)           : :jModuleZ:nestedZ:assemble, :jModuleL:assemble, :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+                COMPILE_JAVA(test only)       : :jModuleZ:nestedZ:compileJava, :jModuleL:compileJava, :jModuleK:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
         ExternalModuleVersion         : unspecified
@@ -788,6 +1090,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
         ExternalModuleType            : sourceSet
@@ -808,6 +1123,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.6 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
         ExternalModuleType            : sourceSet
@@ -831,6 +1159,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.6 [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble, :jModuleZ:nestedZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava, :jModuleZ:nestedZ:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:nestedZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:nestedZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -878,6 +1219,21 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :jModuleZ:assemble, :jModuleZ:testClasses
+                ASSEMBLE(test only)           : :jModuleZ:nestedZ:assemble, :jModuleL:assemble, :jModuleK:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava, :jModuleZ:testClasses
+                COMPILE_JAVA(test only)       : :jModuleZ:nestedZ:compileJava, :jModuleL:compileJava, :jModuleK:compileJava
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :jModuleZ:assemble
+                COMPILE_JAVA                  : :jModuleZ:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
@@ -950,6 +1306,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugUnitTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
@@ -1099,6 +1481,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugUnitTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
@@ -1211,6 +1619,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugUnitTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
@@ -1345,6 +1779,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugUnitTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources, :mainModule:compileFreeDebugAndroidTestSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+                ASSEMBLE                      : :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug, :mainModule:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar, :mainModule:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources, :mainModule:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :mainModule:generateFreeDebugSources
+                ASSEMBLE                      : :mainModule:assembleFreeDebug
+                REBUILD                       : :mainModule:clean, :mainModule:assembleFreeDebug
+                COMPILE_JAVA                  : :mainModule:generateFreeDebugSources, :mainModule:compileFreeDebugSources
+                SOURCE_GEN                    : :mainModule:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
@@ -1413,6 +1873,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugUnitTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleA:generateDebugSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
@@ -1540,6 +2026,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugUnitTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleA:generateDebugSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
@@ -1632,6 +2144,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugUnitTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleA:generateDebugSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
@@ -1744,6 +2282,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugUnitTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources, :moduleA:compileDebugAndroidTestSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleA:generateDebugSources, :moduleA:createMockableJar
+                ASSEMBLE                      : :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug, :moduleA:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:createMockableJar, :moduleA:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources, :moduleA:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleA:generateDebugSources
+                ASSEMBLE                      : :moduleA:assembleDebug
+                REBUILD                       : :moduleA:clean, :moduleA:assembleDebug
+                COMPILE_JAVA                  : :moduleA:generateDebugSources, :moduleA:compileDebugSources
+                SOURCE_GEN                    : :moduleA:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
@@ -1812,6 +2376,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugUnitTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleB:generateDebugSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
@@ -1938,6 +2528,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugUnitTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleB:compileDebugSources, :jModuleL:compileJava
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleB:generateDebugSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
@@ -2030,6 +2647,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugUnitTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleB:compileDebugSources, :jModuleL:compileJava
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleB:generateDebugSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
@@ -2141,6 +2785,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugUnitTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources, :moduleB:compileDebugAndroidTestSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleB:generateDebugSources, :moduleB:createMockableJar
+                ASSEMBLE                      : :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug, :moduleB:assembleDebugUnitTest
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:createMockableJar, :moduleB:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleB:compileDebugSources, :jModuleL:compileJava
+                SOURCE_GEN                    : :moduleB:generateDebugSources, :moduleB:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleB:generateDebugSources
+                ASSEMBLE                      : :moduleB:assembleDebug
+                REBUILD                       : :moduleB:clean, :moduleB:assembleDebug
+                COMPILE_JAVA                  : :moduleB:generateDebugSources, :moduleB:compileDebugSources
+                SOURCE_GEN                    : :moduleB:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
@@ -2167,6 +2838,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -2191,6 +2875,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.test
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
@@ -2213,6 +2910,19 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :moduleC:assemble, :moduleC:testClasses
+                COMPILE_JAVA                  : :moduleC:compileJava, :moduleC:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :moduleC:assemble
+                COMPILE_JAVA                  : :moduleC:compileJava
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
@@ -2285,6 +2995,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugUnitTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
@@ -2366,6 +3102,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugUnitTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
@@ -2444,6 +3206,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugUnitTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
@@ -2510,6 +3298,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugUnitTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugAndroidTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugAndroidTestSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:generateFreeDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug, :moduleFlavor:assembleFreeDebugUnitTest
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar, :moduleFlavor:compileFreeDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :moduleFlavor:generateFreeDebugSources
+                ASSEMBLE                      : :moduleFlavor:assembleFreeDebug
+                REBUILD                       : :moduleFlavor:clean, :moduleFlavor:assembleFreeDebug
+                COMPILE_JAVA                  : :moduleFlavor:generateFreeDebugSources, :moduleFlavor:compileFreeDebugSources
+                SOURCE_GEN                    : :moduleFlavor:generateFreeDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
@@ -2578,6 +3392,32 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugUnitTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :modulePlus:generateDebugSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
@@ -2710,6 +3550,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugUnitTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble, :jModuleK:assemble
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :modulePlus:compileDebugSources, :jModuleL:compileJava, :jModuleK:compileJava
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :modulePlus:generateDebugSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
@@ -2805,6 +3672,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.example.libs:lib1:0.9.1@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugUnitTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble, :jModuleK:assemble
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :modulePlus:compileDebugSources, :jModuleL:compileJava, :jModuleK:compileJava
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :modulePlus:generateDebugSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
@@ -2922,6 +3816,33 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             Scope                         : Test
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugUnitTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugAndroidTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources, :modulePlus:compileDebugAndroidTestSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:generateDebugAndroidTestSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+                ASSEMBLE                      : :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                ASSEMBLE(test only)           : :jModuleL:assemble, :jModuleK:assemble
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug, :modulePlus:assembleDebugUnitTest
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:createMockableJar, :modulePlus:compileDebugUnitTestSources
+                COMPILE_JAVA(test only)       : :modulePlus:compileDebugSources, :jModuleL:compileJava, :jModuleK:compileJava
+                SOURCE_GEN                    : :modulePlus:generateDebugSources, :modulePlus:createMockableJar
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :modulePlus:generateDebugSources
+                ASSEMBLE                      : :modulePlus:assembleDebug
+                REBUILD                       : :modulePlus:clean, :modulePlus:assembleDebug
+                COMPILE_JAVA                  : :modulePlus:generateDebugSources, :modulePlus:compileDebugSources
+                SOURCE_GEN                    : :modulePlus:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testPsdDependencyAndroidToJavaModuleAndBack.app.main
