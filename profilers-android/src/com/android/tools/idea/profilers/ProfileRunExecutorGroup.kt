@@ -17,13 +17,12 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ExecutorIconProvider
-import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
+import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
-import com.intellij.execution.executors.RunExecutorSettings
-import com.intellij.execution.impl.DefaultExecutorGroup
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,15 +35,18 @@ import javax.swing.Icon
 /**
  * Executor group to support profiling app as profileable or debuggable in a dropdown menu.
  */
-class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Setting>(), ExecutorIconProvider {
-  class Setting(val profilingMode: ProfilerState.ProfilingMode) : RunExecutorSettings {
+class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutorGroup.ProfilerSetting>(), ExecutorIconProvider {
+  /**
+   * A setting maps to a child executor in the group, containing metadata for the child executor.
+   */
+  class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     override val actionName: String
       get() = "Profile ${profilingMode.value}"
 
     override val icon: Icon
       get() = when (profilingMode) {
-        ProfilerState.ProfilingMode.PROFILEABLE -> PROFILEABLE_ICON
-        ProfilerState.ProfilingMode.DEBUGGABLE -> DEBUGGABLE_ICON
+        ProfilingMode.PROFILEABLE -> PROFILEABLE_ICON
+        ProfilingMode.DEBUGGABLE -> DEBUGGABLE_ICON
         else -> StudioIcons.Shell.Toolbar.PROFILER
       }
 
@@ -52,8 +54,8 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project) = true
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
-      ProfilerState.ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
-      ProfilerState.ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data"
+      ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
+      ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data"
       else -> "Profile '$configurationName'"
     }
   }
@@ -68,8 +70,11 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
   }
 
   init {
-    registerSettings(Setting(ProfilerState.ProfilingMode.PROFILEABLE))
-    registerSettings(Setting(ProfilerState.ProfilingMode.DEBUGGABLE))
+    // Register profiling modes as RunExecutorSettings, each mapped to a child executor.
+    // To determine which profiling mode is selected by the user action, perform a look-up
+    // via ProfileRunExecutorGroup#getRegisteredSettings(executorId).
+    registerSettings(ProfilerSetting(ProfilingMode.PROFILEABLE))
+    registerSettings(ProfilerSetting(ProfilingMode.DEBUGGABLE))
   }
 
   override fun getIcon(): Icon = PROFILEABLE_ICON
@@ -110,7 +115,6 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
   override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
   companion object {
-    const val EXECUTOR_ID = "Android Profiler Group"
     private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER
 
     // TODO(b/213946909): replace with real icon.

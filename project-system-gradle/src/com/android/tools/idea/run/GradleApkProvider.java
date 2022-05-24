@@ -62,7 +62,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -506,7 +505,6 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
                                                           boolean isTest,
-                                                          @NotNull ProfilerState.ProfilingMode profilingMode,
                                                           boolean alwaysDeployApkFromBundle) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
@@ -544,8 +542,7 @@ public final class GradleApkProvider implements ApkProvider {
                                         isTest,
                                         targetDevicesMinVersion
         ) == OutputKind.AppBundleOutputModel ||
-        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest) ||
-        profilingMode.shouldAutoSignApk()) {
+        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest)) {
       return result.build();
     }
 

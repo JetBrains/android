@@ -32,8 +32,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ProfilerState {
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
-  public static final String PROFILING_MODE_PROPERTY_NAME = "android.profilingMode";
-  public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024*2; // 2KB
+  public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024 * 2; // 2KB
 
   /**
    * Whether to apply the profiling transform.
@@ -59,45 +58,6 @@ public class ProfilerState {
   public static final String ENABLE_UNIFIED_PIPELINE_NAME = "android.profiler.unifiedpipeline.enabled";
 
   private boolean myCheckAdvancedProfiling;
-
-  /**
-   * When set, the profiling mode is passed to Android Gradle Plugin when building the app. Supported on AGP 7.3.0+.
-   */
-  public enum ProfilingMode {
-    NOT_SET("", false, false),
-    DEBUGGABLE("debuggable", true, true),
-    PROFILEABLE("profileable", true, true);
-
-    private final String myValue;
-    private final boolean myShouldInjectProjectProperty;
-    private final boolean myShouldAutoSignApk;
-
-    ProfilingMode(@NotNull String value, boolean shouldInjectProjectProperty, boolean shouldAutoSignApk) {
-      myValue = value;
-      myShouldInjectProjectProperty = shouldInjectProjectProperty;
-      myShouldAutoSignApk = shouldAutoSignApk;
-    }
-
-    @NotNull
-    public String getValue() {
-      return myValue;
-    }
-
-    /**
-     * @return true if the mode should inject project property override to the build system.
-     */
-    public boolean shouldInjectProjectProperty() {
-      return myShouldInjectProjectProperty;
-    }
-
-    /**
-     * @return true if the mode should automatically sign the built APK with the debug key.
-     */
-    public boolean shouldAutoSignApk() {
-      return myShouldAutoSignApk;
-    }
-  }
-  @NotNull public ProfilingMode PROFILING_MODE = ProfilingMode.NOT_SET;
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.

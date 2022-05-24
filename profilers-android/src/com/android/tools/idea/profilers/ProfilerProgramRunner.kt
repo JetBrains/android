@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.StudioProgramRunner
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.util.SwapInfo
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunProfile
@@ -92,11 +93,11 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     private fun canRunByProfiler(executorId: String, androidRunConfig: AndroidRunConfigurationBase): Boolean {
       if (androidRunConfig.isProfilable) {
         if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-          // Profileable Builds support multiple profiling modes, wrapped in an ExecutorGroup.
-          val setting = ProfileRunExecutorGroup.getInstance()?.getRegisteredSettings(executorId) ?: return false
-          // Pass profiling mode to AGP.
-          androidRunConfig.profilerState.PROFILING_MODE = setting.profilingMode
-          return true
+          // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
+          // mode, query the ExecutorGroup by executor ID. If no registered setting is found, the executor is not a
+          // profiler one (e.g. Run).
+          // See ProfileRunExecutorGroup for the registered settings.
+          return AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null
         }
         // Legacy profiler executor.
         return ProfileRunExecutor.EXECUTOR_ID == executorId

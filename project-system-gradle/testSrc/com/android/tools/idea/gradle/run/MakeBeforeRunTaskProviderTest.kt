@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
@@ -52,6 +52,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.invocation.InvocationOnMock
 import java.io.File
@@ -100,7 +101,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       androidFacet = project.gradleModule(modules.first().first)?.androidFacet!!,
       isTestConfiguration = false,
       testCompileType = TestCompileType.NONE,
-      profilingMode = ProfilerState.ProfilingMode.NOT_SET,
       isAdvancedProfilingEnabled = false,
       profilerProperties = null,
       alwaysDeployApkFromBundle = false,
@@ -111,13 +111,13 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   fun testCommonArguments() {
     setUpTestProject()
-    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec())
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(), ProfilingMode.NOT_SET)
     assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
   }
 
   fun testCommonArguments_nonAndroidRunConfiguration() {
     setUpTestProject()
-    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null, null)
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null, null, ProfilingMode.NOT_SET)
     assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
   }
 
@@ -347,15 +347,17 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     StudioFlags.PROFILEABLE_BUILDS.override(true)
     try {
       setUpTestProject()
-      val profilerState = mock(ProfilerState::class.java).apply {
-        PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
-      }
       whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
-      myRunConfiguration = myRunConfiguration.copy(profilingMode = profilerState.PROFILING_MODE, profilerProperties = profilerState.toProperties())
 
-      val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice),
+                                                                   ProfilingMode.PROFILEABLE)
       assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
-    } finally {
+
+      val argsWithoutProfilingMode = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice),
+                                                                                  ProfilingMode.NOT_SET)
+      assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
+    }
+    finally {
       StudioFlags.PROFILEABLE_BUILDS.clearOverride()
     }
   }

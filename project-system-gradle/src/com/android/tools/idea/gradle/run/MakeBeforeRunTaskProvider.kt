@@ -52,6 +52,8 @@ import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
+import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
@@ -247,12 +249,23 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       return true
     }
 
+    // To support Profileable Builds, update profiling mode here based on the executor that invoked this build:
+    //   Profile as profileable -> PROFILEABLE
+    //   Profile as debuggable -> DEBUGGABLE
+    //   Other (Run, Debug, legacy Profile) -> NOT_SET
+    val profilingMode = if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+      AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
+    }
+    else {
+      ProfilingMode.NOT_SET
+    }
+
     // Compute modules to build
     val modules = getModules(context, configuration)
     val runConfigurationGradleContext = configuration.getGradleContext()
     val cmdLineArgs =
       try {
-        getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec) + "--stacktrace"
+        getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec, profilingMode) + "--stacktrace"
       } catch (e: Exception) {
         log.warn("Error generating command line arguments for Gradle task", e)
         return false
@@ -308,14 +321,15 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     fun getCommonArguments(
       modules: Array<Module>,
       configuration: RunConfigurationGradleContext?,
-      targetDeviceSpec: AndroidDeviceSpec?
+      targetDeviceSpec: AndroidDeviceSpec?,
+      profilingMode: ProfilingMode
     ): List<String> {
       val cmdLineArgs = mutableListOf<String>()
       // Always build with stable IDs to avoid push-to-device overhead.
       cmdLineArgs.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true))
       if (configuration != null) {
         cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec))
-        cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec))
+        cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec, profilingMode))
       }
       return cmdLineArgs
     }
@@ -387,7 +401,8 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     @Throws(IOException::class)
     private fun getProfilingOptions(
       configuration: RunConfigurationGradleContext,
-      targetDeviceSpec: AndroidDeviceSpec?
+      targetDeviceSpec: AndroidDeviceSpec?,
+      profilingMode: ProfilingMode
     ): List<String> {
       if (targetDeviceSpec?.minVersion == null) {
         return emptyList()
@@ -409,9 +424,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
       }
       // Append PROFILING_MODE if set by profilers.
-      if (StudioFlags.PROFILEABLE_BUILDS.get() && configuration.profilingMode.shouldInjectProjectProperty()) {
-        arguments.add(
-          AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, configuration.profilingMode.value))
+      if (StudioFlags.PROFILEABLE_BUILDS.get() && profilingMode.shouldInjectProjectProperty) {
+        arguments.add(AndroidGradleSettings.createProjectProperty(AbstractProfilerExecutorGroup.PROFILING_MODE_PROPERTY_NAME,
+                                                                  profilingMode.value))
       }
       return arguments
     }

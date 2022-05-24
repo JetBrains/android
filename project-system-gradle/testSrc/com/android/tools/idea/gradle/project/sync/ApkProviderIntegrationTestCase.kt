@@ -658,37 +658,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap()
     ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
-        variant = ":app" to "release",
-        profileable = true,
-      ),
-      expectApks =
-      """
-              ApplicationId: google.simpleapplication
-              File: project/app/build/outputs/apk/release/app-release-unsigned.apk
-              Files:
-                project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
-              RequiredInstallationOptions: []
-            """.let {
-        listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
-          AGP_42 to it,
-          AGP_70 to it,
-          AGP_CURRENT to """
-              ApplicationId: google.simpleapplication
-              File: project/app/build/intermediates/apk/release/app-release-unsigned.apk
-              Files:
-                project.app -> project/app/build/intermediates/apk/release/app-release-unsigned.apk
-              RequiredInstallationOptions: []
-            """,
-        )
-      }.toMap()
-    ),
   )
 
 private fun def(

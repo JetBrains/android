@@ -20,7 +20,6 @@ import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
-import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
@@ -32,7 +31,6 @@ data class RunConfigurationGradleContext(
   val androidFacet: AndroidFacet,
   val isTestConfiguration: Boolean,
   val testCompileType: TestCompileType,
-  val profilingMode: ProfilerState.ProfilingMode,
   val isAdvancedProfilingEnabled: Boolean,
   val profilerProperties: Properties?,
   val alwaysDeployApkFromBundle: Boolean,
@@ -51,7 +49,6 @@ internal fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext?
     androidFacet = safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null,
     isTestConfiguration = if (this is AndroidRunConfigurationBase) isTestConfiguration else false,
     testCompileType = preferGradleMake.testCompileMode,
-    profilingMode = (this as? AndroidRunConfigurationBase)?.profilerState?.PROFILING_MODE ?: ProfilerState.ProfilingMode.NOT_SET,
     isAdvancedProfilingEnabled = (this as? AndroidRunConfigurationBase)?.profilerState?.ADVANCED_PROFILING_ENABLED == true,
     profilerProperties = (this as? AndroidRunConfigurationBase)?.profilerState?.toProperties(),
     alwaysDeployApkFromBundle = (this as? AndroidRunConfiguration)?.DEPLOY_APK_FROM_BUNDLE ?: false,
