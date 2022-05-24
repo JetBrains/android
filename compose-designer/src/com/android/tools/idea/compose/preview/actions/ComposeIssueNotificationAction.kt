@@ -77,6 +77,10 @@ private const val ACTION_BORDER_ALPHA = 0xC8
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
+private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
+                                                                ACTION_BORDER_ARC_SIZE,
+                                                                ACTION_BORDER_THICKNESS)
+
 /**
  * Represents the Compose Preview status to be notified to the user.
  */
@@ -107,9 +111,7 @@ private sealed class ComposePreviewStatusNotification(
 
     val color = JBColor(UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
                         UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
-    val border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
-                                   ACTION_BORDER_ARC_SIZE,
-                                   ACTION_BORDER_THICKNESS)
+    val border = chipBorder(color)
   }
 
 
@@ -276,7 +278,10 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
         actionPresentation?.color ?: super.getBackground()
 
       override fun getBorder(): Border =
-        actionPresentation?.border ?: JBUI.Borders.empty()
+        if (popState == POPPED)
+          chipBorder(JBUI.CurrentTheme.ActionButton.hoverBorder())
+        else
+          actionPresentation?.border ?: JBUI.Borders.empty()
 
       override fun getMargins(): Insets = insets
 
