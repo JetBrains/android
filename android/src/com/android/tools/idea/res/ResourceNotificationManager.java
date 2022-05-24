@@ -28,6 +28,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.utils.FlightRecorder;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -297,6 +298,7 @@ public class ResourceNotificationManager {
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
    */
   private void notice(@NotNull Reason reason, @Nullable VirtualFile source) {
+    FlightRecorder.log(() -> "ResourceNotificationManager.notice " + reason + " " + source);
     myEvents.add(reason);
     if (!myPendingNotify.compareAndSet(false, true)) {
       return;
@@ -304,6 +306,7 @@ public class ResourceNotificationManager {
 
     Application application = ApplicationManager.getApplication();
     application.invokeLater(() -> {
+      FlightRecorder.log(() -> "ResourceNotificationManager.notice invoked later " + reason + " " + source);
       if (!myPendingNotify.compareAndSet(true, false)) {
         return;
       }
@@ -328,6 +331,7 @@ public class ResourceNotificationManager {
   }
 
   private void scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(@NotNull VirtualFile source) {
+    FlightRecorder.log(() -> "ResourceNotificationManager.scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated " + source);
     // The following code calls scheduleFinalNotification exactly once after the dispatchToRepositories
     // call returns and all callbacks passed to runAfterPendingUpdatesFinish are called. To avoid
     // calling scheduleFinalNotification prematurely, the initial value of count is set to 1.
@@ -348,8 +352,10 @@ public class ResourceNotificationManager {
   }
 
   private void scheduleFinalNotification() {
+    FlightRecorder.log(() -> "ResourceNotificationManager.scheduleFinalNotification");
     ApplicationManager.getApplication().invokeLater(() -> {
       EnumSet<Reason> reason = myEvents;
+      FlightRecorder.log(() -> "ResourceNotificationManager.scheduleFinalNotification invoked later " + reason);
       myEvents = EnumSet.noneOf(Reason.class);
       notifyListeners(reason);
       myEvents.clear();
