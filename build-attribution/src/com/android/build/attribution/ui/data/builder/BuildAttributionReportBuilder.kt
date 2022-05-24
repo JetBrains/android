@@ -96,8 +96,8 @@ class BuildAttributionReportBuilder(
           createCriticalPathPluginUiData(taskByPlugin[it.plugin].orEmpty(), it, criticalPathDuration)
         }
         .sortedByDescending { it.criticalPathDuration }
-      override val warningCount = plugins.sumBy { it.warningCount }
-      override val infoCount = plugins.sumBy { it.infoCount }
+      override val warningCount = plugins.sumOf { it.warningCount }
+      override val infoCount = plugins.sumOf { it.infoCount }
     }
   }
 

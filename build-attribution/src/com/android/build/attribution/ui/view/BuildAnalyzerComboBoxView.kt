@@ -44,7 +44,7 @@ class BuildAnalyzerComboBoxView(
 
   val dataSetCombo = ComboBox(EnumComboBoxModel(BuildAnalyzerViewModel.DataSet::class.java)).apply {
     name = "dataSetCombo"
-    renderer = SimpleListCellRenderer.create { label, value, index -> label.text = value.uiName }
+    renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
     selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
     addItemListener { event ->
       if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
