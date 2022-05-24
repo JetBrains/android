@@ -261,11 +261,11 @@ class DefaultModuleSystem(override val module: Module) :
     get() {
       try {
         return DumbService.getInstance(module.project)
-          .runReadActionInSmartMode<Boolean> {
+          .runReadActionInSmartMode<Boolean?> {
             val queryIndex =
-              ThrowableComputable<Boolean, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
+              ThrowableComputable<Boolean?, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
             SlowOperations.allowSlowOperations(queryIndex)
-          }
+          } ?: false
       } catch (e: IndexNotReadyException) {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
