@@ -860,6 +860,8 @@ public abstract class IconGenerator implements Disposable {
   public enum Shape {
     /** No background. */
     NONE("none"),
+    /** Solid background. */
+    SOLID("solid"),
     /** Circular background. */
     CIRCLE("circle"),
     /** Square background. */

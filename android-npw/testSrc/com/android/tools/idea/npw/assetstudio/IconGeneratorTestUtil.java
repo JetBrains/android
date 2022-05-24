@@ -38,6 +38,7 @@ import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -89,6 +90,17 @@ public final class IconGeneratorTestUtil {
         sourceFile.delete();
       }
     }
+  }
+
+  static BufferedImage checkRasterImage(@NotNull IconGenerator generator) throws IOException {
+    ImageAsset imageAsset = new ImageAsset();
+    imageAsset.setClipart(true);
+    imageAsset.color().setValue(new Color(0xA4C639));
+    File sourceFile = getSourceFile(SourceType.CLIPART);
+    imageAsset.imagePath().setValue(sourceFile);
+    imageAsset.paddingPercent().set(0);
+    generator.sourceAsset().setValue(imageAsset);
+    return generator.generateRasterImage(new GraphicGeneratorContext(0), generator.createOptions(true)).getImage();
   }
 
   private static void checkGraphic(@NotNull IconGenerator generator,

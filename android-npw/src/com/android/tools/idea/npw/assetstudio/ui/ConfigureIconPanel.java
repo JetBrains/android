@@ -92,6 +92,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   // @formatter:off
   private static final Map<Shape, String> SHAPE_NAMES = ImmutableMap.of(
     Shape.NONE, "None",
+    Shape.SOLID, "Solid Color",
     Shape.CIRCLE, "Circle",
     Shape.SQUARE, "Square",
     Shape.VRECT, "Vertical",
