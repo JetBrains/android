@@ -259,7 +259,7 @@ class ResourceExplorerToolbarViewModel(
     ModuleManager.getInstance(facet.module.project)
       .modules
       .firstOrNull { it.name == moduleName }
-      ?.let { it.androidFacet }
+      ?.androidFacet
       ?.run(facetUpdaterCallback)
   }
 

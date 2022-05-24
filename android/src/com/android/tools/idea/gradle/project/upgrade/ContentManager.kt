@@ -795,9 +795,7 @@ class ContentManager(val project: Project) {
               }
               else {
                 myCheckbox.let {
-                  toolTipText = (parent.userObject as? AgpUpgradeComponentNecessity)?.let { n ->
-                    n.checkboxToolTipText(it.isEnabled, it.isSelected)
-                  }
+                  toolTipText = (parent.userObject as? AgpUpgradeComponentNecessity)?.checkboxToolTipText(it.isEnabled, it.isSelected)
                 }
               }
             }

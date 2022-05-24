@@ -36,9 +36,7 @@ internal class JarDependenciesForm(module: PsModule) : Disposable {
     val filesAndDirectories =
       ModuleManager.getInstance(ideProject)
         .findModuleByName(module.name)
-        ?.let {
-          it.moduleContentScope
-        }?.let {
+        ?.moduleContentScope?.let {
           FilenameIndex.getAllFilesByExt(ideProject, "aar", it) +
           FilenameIndex.getAllFilesByExt(ideProject, "jar", it)
         }
