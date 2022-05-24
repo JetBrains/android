@@ -19,6 +19,7 @@ import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -99,7 +100,11 @@ final class AddLocaleAction extends AnAction {
     assert data != null;
     StringResourceKey key = findResourceKey(data);
 
-    XmlFile file = StringPsiUtils.getStringResourceFile(project, key, locale);
+    VirtualFile directory = key.getDirectory();
+    if (directory == null) {
+      return;
+    }
+    XmlFile file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
 
     if (file == null) {
       return;

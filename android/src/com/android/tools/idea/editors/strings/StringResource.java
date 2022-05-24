@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -159,7 +160,12 @@ public final class StringResource {
     }
 
     Project project = myData.getProject();
-    XmlFile file = StringPsiUtils.getDefaultStringResourceFile(project, myKey);
+    VirtualFile directory = myKey.getDirectory();
+    if (directory == null) {
+      return Futures.immediateFuture(null);
+    }
+
+    XmlFile file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory);
 
     if (file == null) {
       return Futures.immediateFuture(null);
@@ -270,7 +276,11 @@ public final class StringResource {
     XmlFile file = myData.getDefaultLocaleXml(locale);
 
     if (file == null) {
-      file = StringPsiUtils.getStringResourceFile(project, myKey, locale);
+      VirtualFile directory = myKey.getDirectory();
+      if (directory == null) {
+        return Futures.immediateFuture(null);
+      }
+      file = StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
       if (file == null) {
         return Futures.immediateFuture(null);
       }

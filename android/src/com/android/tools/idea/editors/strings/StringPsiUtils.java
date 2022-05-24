@@ -16,12 +16,8 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.res.StringResourceWriter;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Arrays;
@@ -31,18 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 final class StringPsiUtils {
   private StringPsiUtils() {
-  }
-
-  @Nullable
-  static XmlFile getDefaultStringResourceFile(@NotNull Project project, @NotNull StringResourceKey key) {
-    VirtualFile directory = key.getDirectory();
-    return directory == null ? null : StringResourceWriter.INSTANCE.getStringResourceFile(project, directory);
-  }
-
-  @Nullable
-  static XmlFile getStringResourceFile(@NotNull Project project, @NotNull StringResourceKey key, @NotNull Locale locale) {
-    VirtualFile directory = key.getDirectory();
-    return directory == null ? null : StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
   }
 
   static void addString(@NotNull XmlFile file, @NotNull StringResourceKey key, @NotNull String value) {
