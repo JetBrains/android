@@ -50,6 +50,16 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testMultipleLiterals() {
+    val contents = mapOf("foo" to "bar", "baz" to "quux")
+    val expected = """
+      foo = "bar"
+      baz = "quux"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   fun testSingleTable() {
     val contents = mapOf("foo" to mapOf("bar" to "baz"))
     val expected = """
@@ -60,6 +70,27 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testMultipleTables() {
+    val contents = mapOf("foo" to mapOf("fooA" to "fooB"), "bar" to mapOf ("barA" to "barB"))
+    val expected = """
+      [foo]
+      fooA = "fooB"
+      [bar]
+      barA = "barB"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testTableAfterLiteral() {
+    val contents = mapOf("foo" to "bar", "baz" to mapOf("bazA" to "bazB"))
+    val expected = """
+      foo = "bar"
+      [baz]
+      bazA = "bazB"
+    """.trimIndent()
+  }
+
   fun testInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to "quux")))
     val expected = """
@@ -68,6 +99,22 @@ class TomlDslWriterTest : PlatformTestCase() {
     """.trimIndent()
 
     doTest(contents, expected)
+  }
+
+  fun testMultipleEntriesInInlineTable() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to "d", "e" to "f")))
+    val expected = """
+      [foo]
+      bar = { a = "b", c = "d", e = "f" }
+    """.trimIndent()
+  }
+
+  fun testNestedInlineTables() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to mapOf("quux" to "frob"))))
+    val expected = """
+      [foo]
+      bar = { baz = { quux = "frob" } }
+    """.trimIndent()
   }
 
   private fun doTest(contents: Map<String,Any>, expected: String) {

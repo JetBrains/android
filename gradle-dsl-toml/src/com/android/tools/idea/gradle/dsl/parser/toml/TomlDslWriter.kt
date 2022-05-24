@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlPsiFactory
@@ -72,7 +73,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     val addedElement = parentPsiElement.addAfter(psi, anchor)
 
     when (parentPsiElement) {
-      is TomlTable -> addedElement.addAfter(factory.createNewline(), null)
+      is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
     }
 
     when (addedElement) {
@@ -100,6 +101,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     val anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
     if (anchor == null && parent is TomlInlineTable) return parent.firstChild
+    if (anchor == null && parent is TomlTable) return parent.header
     return anchor ?: parent
   }
 }
