@@ -761,7 +761,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
-    <androidStartupActivity implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildCheck"/>
+    <androidStartupActivity implementation="com.android.tools.idea.initialization.ExpiredPreviewBuildCheck"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
