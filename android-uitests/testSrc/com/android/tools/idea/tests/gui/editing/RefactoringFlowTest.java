@@ -26,7 +26,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameFileDialogFixtur
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -78,11 +82,9 @@ public class RefactoringFlowTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
 
-    // Create a 'Person' class in the library and check the build.
-    ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath("SimpleApplication", "app", "src", "main", "java", "google.simpleapplication");
+    PaneClickPath(ideFrame);
 
+    // Create a 'Person' class in the library and check the build.
     invokeJavaClass(ideFrame).enterName("Person").clickOk();
     editor.open("/app/src/main/java/google/simpleapplication/Person.java")
       .moveBetween("public class Person {","")
@@ -167,9 +169,40 @@ public class RefactoringFlowTest {
     return NewJavaClassDialogFixture.find(ideFrame);
   }
 
+  private ProjectViewFixture.PaneFixture PaneClickPath(@NotNull IdeFrameFixture ideFrame) {
+    ProjectViewFixture.PaneFixture paneFixture;
+    try {
+      paneFixture = ideFrame.getProjectView().selectProjectPane();
+    } catch(WaitTimedOutError timeout) {
+      throw new RuntimeException(getUiHierarchy(ideFrame), timeout);
+    }
+
+    Wait.seconds(30).expecting("Path is loaded for clicking").until(() -> {
+      try {
+        paneFixture.clickPath("SimpleApplication", "app", "src", "main", "java", "google.simpleapplication");
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
+    return paneFixture;
+  }
+
+  @NotNull
+  private static String getUiHierarchy(@NotNull IdeFrameFixture ideFrame) {
+    try(
+      ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+      PrintStream printBuffer = new PrintStream(outputBuffer)
+    ) {
+      ideFrame.robot().printer().printComponents(printBuffer);
+      return outputBuffer.toString();
+    } catch (java.io.IOException ignored) {
+      return "Failed to print UI tree";
+    }
+  }
+
   private void doFileNameRefactor(String newFileName) throws InterruptedException {
-    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView()
-      .selectProjectPane();
+    ProjectViewFixture.PaneFixture paneFixture = PaneClickPath(guiTest.ideFrame());
 
     guiTest.waitForBackgroundTasks();
     paneFixture.clickPath("SimpleApplication", "app", "src", "main", "java", "google.simpleapplication", "MyActivity")
