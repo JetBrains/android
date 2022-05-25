@@ -60,7 +60,7 @@ class RuleData(
   }
 
   inner class CriteriaData(
-    protocol: String = "",
+    protocol: String = "https",
     host: String = "",
     port: String = "",
     path: String = "",
@@ -74,6 +74,9 @@ class RuleData(
     var query: String by Delegate(query, ruleDataListener::onRuleDataChanged)
     var method: String by Delegate(method, ruleDataListener::onRuleDataChanged)
 
+    val url: String
+      get() = "$protocol://${host.ifBlank { "*" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
+
     fun toProto(): InterceptCriteria = InterceptCriteria.newBuilder().apply {
       protocol = this@CriteriaData.protocol
       host = this@CriteriaData.host
@@ -82,6 +85,8 @@ class RuleData(
       query = this@CriteriaData.query
       method = this@CriteriaData.method
     }.build()
+
+    private fun String.withPrefixIfNotEmpty(prefix: Char) = if (isBlank()) "" else prefix + this
   }
 
   interface TransformationRuleData {

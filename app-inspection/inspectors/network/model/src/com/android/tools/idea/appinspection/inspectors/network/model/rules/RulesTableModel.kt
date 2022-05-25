@@ -40,6 +40,11 @@ class RulesTableModel : ListTableModel<RuleData>() {
         override fun valueOf(item: RuleData): String {
           return item.name
         }
+      },
+      object : ColumnInfo<RuleData, String>("URL") {
+        override fun valueOf(item: RuleData): String {
+          return item.criteria.url
+        }
       })
   }
 }

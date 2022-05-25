@@ -268,7 +268,7 @@ class RuleDetailsViewTest {
 
     val queryComponent = findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
     assertThat(queryComponent.text).isEmpty()
-    queryComponent.text = "/query"
+    queryComponent.text = "title=Query_string&action=edit"
     queryComponent.onFocusLost()
 
     val methodComponent = findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
@@ -276,13 +276,14 @@ class RuleDetailsViewTest {
     methodComponent.setSelectedIndex(1)
 
     assertThat(rule.criteria.host).isEqualTo(url)
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
     client.verifyLatestCommand {
       it.interceptRuleAdded.rule.criteria.also { criteria ->
         assertThat(criteria.protocol).isEqualTo("http")
         assertThat(criteria.host).isEqualTo(url)
         assertThat(criteria.port).isEqualTo("8080")
         assertThat(criteria.path).isEqualTo("/path")
-        assertThat(criteria.query).isEqualTo("/query")
+        assertThat(criteria.query).isEqualTo("title=Query_string&action=edit")
         assertThat(criteria.method).isEqualTo("POST")
       }
     }
