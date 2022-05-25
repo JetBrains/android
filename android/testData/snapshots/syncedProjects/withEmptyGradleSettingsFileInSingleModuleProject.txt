@@ -74,7 +74,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -82,7 +82,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -90,8 +90,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -99,7 +98,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -233,7 +232,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -241,7 +240,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -249,8 +248,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -258,7 +256,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -359,7 +357,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -367,7 +365,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -375,8 +373,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -384,7 +381,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -501,7 +498,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -509,7 +506,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :generateDebugAndroidTestSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :generateDebugAndroidTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :generateDebugAndroidTestSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -517,8 +514,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources, :createMockableJar
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :createMockableJar, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :createMockableJar
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -526,7 +522,7 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug

@@ -37,6 +37,6 @@ public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
     Map<Path, Collection<String>> tasksMultiMap = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
     Collection<String> tasks = tasksMultiMap.get(Paths.get(ExternalSystemApiUtil.getExternalRootProjectPath(app)));
     assertDoesntContain(tasks, ":lib:testClasses");
-    assertContainsElements(tasks, ":app:compileDebugUnitTestSources", ":app:compileDebugSources", ":lib:compileJava");
+    assertContainsElements(tasks, ":app:compileDebugUnitTestSources");
   }
 }

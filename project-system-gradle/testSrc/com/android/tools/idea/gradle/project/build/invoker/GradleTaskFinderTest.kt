@@ -182,7 +182,6 @@ class GradleTaskFinderTest : PlatformTestCase() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
     assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":generateDebugSources",
       ":compileDebugSources"
     ))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
@@ -192,7 +191,6 @@ class GradleTaskFinderTest : PlatformTestCase() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
     assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:generateDebugSources",
       ":app:compileDebugSources"
     ))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()

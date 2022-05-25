@@ -106,7 +106,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -114,7 +114,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -122,8 +122,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -131,7 +130,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -321,7 +320,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -329,7 +328,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -337,8 +336,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -346,7 +344,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -481,7 +479,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -489,7 +487,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -497,8 +495,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -506,7 +503,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -657,7 +654,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -665,7 +662,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:generateFirstAbcSecondAbcDebugAndroidTestSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -673,8 +670,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
@@ -682,7 +678,7 @@ PROJECT                       : MultiFlavor
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:clean, :app:assembleFirstAbcSecondAbcDebug
-                COMPILE_JAVA                  : :app:generateFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugSources
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug

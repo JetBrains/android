@@ -98,7 +98,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -106,7 +106,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -114,8 +114,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -123,7 +122,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -270,7 +269,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -278,28 +277,23 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, :jlib0:assemble, :jlib:assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :jlib0:compileJava, :jlib:compileJava, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -407,7 +401,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -415,28 +409,23 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, :jlib0:assemble, :jlib:assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :jlib0:compileJava, :jlib:compileJava, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -568,7 +557,7 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -576,28 +565,23 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, :jlib0:assemble, :jlib:assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :jlib0:compileJava, :jlib:compileJava, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -775,9 +759,7 @@ PROJECT                       : testApiDependency
                 COMPILE_JAVA                  : :jlib0:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
-                ASSEMBLE(test only)           : :jlib:assemble
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
-                COMPILE_JAVA(test only)       : :jlib:compileJava
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib0:assemble
                 COMPILE_JAVA                  : :jlib0:compileJava
@@ -815,9 +797,7 @@ PROJECT                       : testApiDependency
                 COMPILE_JAVA                  : :jlib0:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
-                ASSEMBLE(test only)           : :jlib:assemble
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
-                COMPILE_JAVA(test only)       : :jlib:compileJava
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib0:assemble
                 COMPILE_JAVA                  : :jlib0:compileJava
@@ -894,26 +874,25 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testApiDependency.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
@@ -1051,26 +1030,25 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testApiDependency.lib.main
         LINKED_ANDROID_MODULE_GROUP
@@ -1171,26 +1149,25 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testApiDependency.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
@@ -1313,26 +1290,25 @@ PROJECT                       : testApiDependency
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration

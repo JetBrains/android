@@ -74,7 +74,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -82,7 +82,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -90,8 +90,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -99,7 +98,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -167,7 +166,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -175,7 +174,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -183,8 +182,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -192,7 +190,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -259,7 +257,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -267,7 +265,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -275,8 +273,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -284,7 +281,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -337,7 +334,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -345,7 +342,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :compileDebugAndroidTestSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -353,8 +350,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
                 REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
-                COMPILE_JAVA                  : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
@@ -362,7 +358,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :generateDebugSources, :compileDebugSources
+                COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug

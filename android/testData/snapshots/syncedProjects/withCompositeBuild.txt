@@ -98,7 +98,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -106,7 +106,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -114,8 +114,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -123,7 +122,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -322,7 +321,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -330,33 +329,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -515,7 +504,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -523,33 +512,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -733,7 +712,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -741,33 +720,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -844,26 +813,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
@@ -1054,35 +1022,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                CLEAN(test only)              : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD(test only)            : <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
-                SOURCE_GEN(test only)         : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.main
         LINKED_ANDROID_MODULE_GROUP
@@ -1235,35 +1193,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                CLEAN(test only)              : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD(test only)            : <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
-                SOURCE_GEN(test only)         : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
@@ -1439,35 +1387,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                CLEAN(test only)              : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD(test only)            : <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
-                SOURCE_GEN(test only)         : <PROJECT>/TestCompositeLib3::lib:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib3
         ExternalModuleGroup           :
@@ -1566,7 +1504,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1574,7 +1512,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1582,8 +1520,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1591,7 +1528,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1788,7 +1725,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1796,30 +1733,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1976,7 +1906,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -1984,30 +1914,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -2189,7 +2112,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -2197,30 +2120,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -2297,26 +2213,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
@@ -2449,29 +2364,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.main
         LINKED_ANDROID_MODULE_GROUP
@@ -2571,29 +2482,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
@@ -2711,29 +2618,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ASSEMBLE(test only)           : <PROJECT>/TestCompositeLib4::assemble
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                ERROR                         : Multiple project roots for a single module: <PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : com.test.compositeNest3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
@@ -3252,7 +3155,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3260,7 +3163,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3268,8 +3171,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3277,7 +3179,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3477,7 +3379,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3485,33 +3387,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3671,7 +3563,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3679,33 +3571,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3890,7 +3772,7 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -3898,33 +3780,23 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:generateDebugAndroidTestSources, :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:generateDebugAndroidTestSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar
-                CLEAN(test only)              : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                ASSEMBLE(test only)           : :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib4::assemble
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
                 REBUILD                       : :app:clean, :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD(test only)            : :lib:clean, :lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1,<PROJECT>/TestCompositeLib2,<PROJECT>/TestCompositeLib3,<PROJECT>/TestCompositeLib4
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:createMockableJar, :app:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:generateDebugSources, :lib:compileDebugSources, :app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava
-                ERROR                         : Multiple project roots for a single module: <PROJECT>,<PROJECT>/TestCompositeLib1,<PROJECT>/TestCompositeLib3
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:generateDebugSources, :app:createMockableJar
-                SOURCE_GEN(test only)         : :lib:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:clean, :app:assembleDebug
-                COMPILE_JAVA                  : :app:generateDebugSources, :app:compileDebugSources
+                COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
@@ -4001,26 +3873,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testWithCompositeBuild.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
@@ -4208,26 +4079,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testWithCompositeBuild.lib.main
         LINKED_ANDROID_MODULE_GROUP
@@ -4377,26 +4247,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     MODULE                        : testWithCompositeBuild.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
@@ -4569,26 +4438,25 @@ PROJECT                       : testWithCompositeBuild
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources, :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:generateDebugAndroidTestSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:clean, :lib:assembleDebug, :lib:assembleDebugUnitTest
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:createMockableJar, :lib:compileDebugUnitTestSources
-                COMPILE_JAVA(test only)       : :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:createMockableJar
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:clean, :lib:assembleDebug
-                COMPILE_JAVA                  : :lib:generateDebugSources, :lib:compileDebugSources
+                COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
     RUN_CONFIGURATION             : TestCompositeLib1.app
         *class*                       : AndroidRunConfiguration

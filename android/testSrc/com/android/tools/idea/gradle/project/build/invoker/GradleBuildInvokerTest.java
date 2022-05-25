@@ -163,11 +163,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
   }
 
-  private void setUpTasksForSourceGeneration() {
-    List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
-  }
-
   public void testCompileJava() {
     setupTestProjectFromAndroidModel(myProject,
                                      getTempDir().createDir().toFile(),
@@ -187,19 +182,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
-      ":lib:generateDebugSources",
-      ":lib:ideUnitTestSetupTask1",
-      ":lib:ideUnitTestSetupTask2",
-      ":lib:ideAndroidTestSetupTask1",
-      ":lib:ideAndroidTestSetupTask2",
       ":lib:compileDebugUnitTestSources",
       ":lib:compileDebugAndroidTestSources",
       ":lib:compileDebugSources",
-      ":app:generateDebugSources",
-      ":app:ideUnitTestSetupTask1",
-      ":app:ideUnitTestSetupTask2",
-      ":app:ideAndroidTestSetupTask1",
-      ":app:ideAndroidTestSetupTask2",
       ":app:compileDebugUnitTestSources",
       ":app:compileDebugAndroidTestSources",
       ":app:compileDebugSources"

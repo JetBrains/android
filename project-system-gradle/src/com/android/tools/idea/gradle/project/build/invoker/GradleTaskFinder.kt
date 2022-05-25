@@ -45,31 +45,6 @@ import java.nio.file.Path
 import java.util.Collections
 
 class GradleTaskFinder {
-  fun findTasksToExecuteForTest(
-    modules: Array<Module>,
-    testModules: Array<Module>,
-    buildMode: BuildMode,
-    testCompileType: TestCompileType
-  ): ListMultimap<Path, String> {
-    val allTasks: ListMultimap<Path, String> = findTasksToExecuteCore(modules, buildMode, TestCompileType.NONE)
-    val testedModulesTasks: ListMultimap<Path, String> = findTasksToExecuteCore(testModules, buildMode, testCompileType)
-
-    // Add testedModulesTasks to allTasks without duplicate
-    for ((key, value) in testedModulesTasks.entries()) {
-      if (!allTasks.containsEntry(key, value)) {
-        allTasks.put(key, value)
-      }
-    }
-    if (allTasks.isEmpty) {
-      notifyNoTaskFound(
-        modules + testModules,
-        buildMode,
-        testCompileType
-      )
-    }
-    return allTasks
-  }
-
   fun findTasksToExecute(
     modules: Array<Module>,
     buildMode: BuildMode,
@@ -223,9 +198,7 @@ class GradleTaskFinder {
               }
             }
           else -> {
-            addAfterSyncTasks(tasks, gradlePath, properties)
             if (androidModel != null) {
-              addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidModel)
               for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.compileTaskName)
               }
