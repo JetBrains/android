@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
@@ -425,15 +426,14 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
       check(modules.isNotEmpty()) { "Unable to determine list of modules to build" }
 
-      val gradleTasksProvider = GradleModuleTasksProvider(modules)
-      val project = gradleTasksProvider.project
+      val gradleTasksFinder = GradleTaskFinder.getInstance()
 
       fun doBuild(tasks: Map<Path, Collection<String>>, buildMode: BuildMode): AssembleInvocationResult? {
         if (tasks.values.flatten().isEmpty()) {
           log.error("Unable to determine gradle tasks to execute")
           return null
         }
-        return GradleTaskRunner.run(project, modules, tasks, buildMode, commandLineArgs)
+        return GradleTaskRunner.run(modules[0].project, modules, tasks, buildMode, commandLineArgs)
       }
 
       if (!userGoal.isNullOrEmpty()) {
@@ -448,7 +448,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       val testCompileType = configuration?.testCompileType ?: TestCompileType.NONE
       return when {
         testCompileType === TestCompileType.UNIT_TESTS ->
-          doBuild(gradleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA), BuildMode.COMPILE_JAVA)
+          doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.UNIT_TESTS).asMap(), BuildMode.COMPILE_JAVA)
         // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
         // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
@@ -456,9 +456,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
         //       AndroidRunConfigurationBase.
         useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-          doBuild(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE)
+          doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType).asMap(), BuildMode.APK_FROM_BUNDLE)
         else ->
-          doBuild(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE)
+          doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType).asMap(), BuildMode.ASSEMBLE)
       }
     }
 

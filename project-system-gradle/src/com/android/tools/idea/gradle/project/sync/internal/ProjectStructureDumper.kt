@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.run.GradleModuleTasksProvider
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -201,30 +200,19 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
             return entries
               .sortedBy { it.key.pathString.replaceKnownPaths() }
               .flatMap { (path, tasks) ->
-              if (path == expectedRoot) tasks
-              else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
-            }
+                if (path == expectedRoot) tasks
+                else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
+              }
               .toSet()
           }
 
           fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
 
-          fun getTestTasks(): Set<String> {
-            val all =
-              if (testCompileMode == TestCompileType.UNIT_TESTS) GradleModuleTasksProvider(modules).getUnitTestTasks(buildMode)
-            else GradleModuleTasksProvider(modules).getTasksFor(buildMode, testCompileMode)
-            return all.asFirstEntry()
-          }
-
           fun Set<String>.dumpAs(name: String) {
             prop(name) { this.takeUnless { it.isEmpty() }?.joinToString(", ") }
           }
 
-          val regularTasks = getTasks()
-          val testTasks = getTestTasks()
-
-          regularTasks.dumpAs(buildMode.toString())
-          (testTasks - regularTasks).dumpAs("$buildMode(test only)")
+          getTasks().dumpAs(buildMode.toString())
         }
       }
     }
