@@ -43,6 +43,7 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver.CONFIGURATION_ARTIFACTS;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver.RESOLVED_SOURCE_SETS;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
@@ -85,6 +86,7 @@ import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -98,7 +100,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.externalSystem.JavaModuleData;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -114,6 +119,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.project.TestData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
@@ -151,6 +157,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
+import org.jetbrains.plugins.gradle.model.DefaultExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
@@ -235,6 +242,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
+    if (androidModels != null) {
+      // b/232441109 - This MUST be done before calling the super method, only to be done for Android modules.
+      removeExternalSourceSetsAndReportWarnings(gradleModule);
+    }
+
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
     if (moduleDataNode == null) {
       return null;
@@ -831,6 +843,43 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     super.populateProjectExtraModels(gradleProject, projectDataNode);
+  }
+
+  /**
+   * This method strips all Gradle source sets from JetBrains' ExternalProject model associated with the given gradleProject.
+   * It also emits a warning informing the user that these source sets were detected and ignored. Android modules do not use
+   * standard Gradle source sets and as such they can be safely ignored by the IDE.
+   *
+   * This method should only ever be called on Android modules as we rely on these models to set up information for pure Java or Kotlin
+   * modules.
+   *
+   * @param gradleProject the module to process
+   */
+  private void removeExternalSourceSetsAndReportWarnings(@NotNull IdeaModule gradleProject) {
+    Project project = getProject();
+    if (project == null) {
+      return;
+    }
+
+    ExternalProject externalProject = resolverCtx.getExtraProject(gradleProject, ExternalProject.class);
+    if (externalProject == null || externalProject.getSourceSets().isEmpty()) {
+      return;
+    }
+
+    // Obtain the source set names to add the error message
+    String sourceSetNames = String.join(", ", externalProject.getSourceSets().keySet());
+
+    // Remove the source sets so we don't create extra modules
+    DefaultExternalProject defaultExternalProject = (DefaultExternalProject)externalProject;
+    defaultExternalProject.setSourceSets(emptyMap());
+
+
+    Notification notification =
+      new Notification("Detected Gradle source sets",
+                       "Non-Android source sets detected in '" + externalProject.getQName() + "'",
+                       "Gradle source sets ignored: " + sourceSetNames + ".",
+                       NotificationType.WARNING);
+    Notifications.Bus.notify(notification, project);
   }
 
   /**

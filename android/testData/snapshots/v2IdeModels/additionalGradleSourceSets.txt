@@ -14,30 +14,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                sourceSets
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/app/src/test/java
-                                outputDir                     : <ROOT>/app/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/app/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/app/src/test/resources [-]
-                                outputDir                     : <ROOT>/app/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/app/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                            source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                            source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/app/build/classes/java/test [-]
-                            - files                       : <ROOT>/app/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -1438,5 +1414,4 @@ MODULE                        : project.app
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
-MODULE                        : project.app.test
 MODULE                        : project.app.unitTest

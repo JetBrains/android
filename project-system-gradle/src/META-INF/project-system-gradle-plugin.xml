@@ -71,6 +71,7 @@
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
     <notificationGroup id="Android SDK Setup Issues" displayType="STICKY_BALLOON" />
     <notificationGroup id="Android Gradle Sync Issues" displayType="STICKY_BALLOON" />
+    <notificationGroup id="Detected Gradle source sets" displayType="BALLOON"/>
     <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueDataService" />

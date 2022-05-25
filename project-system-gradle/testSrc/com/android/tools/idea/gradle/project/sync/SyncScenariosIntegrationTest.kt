@@ -239,23 +239,14 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject("project") { project ->
       val modules = ModuleManager.getInstance(project).modules
-      assertThat(modules).hasLength(6)
-      assertThat(modules.map(Module::getName).sorted()).containsExactly(
-        "project", "project.app", "project.app.androidTest", "project.app.main", "project.app.test", "project.app.unitTest")
-      val testModule = modules.first { it.name == "project.app.test" } /* This is the wrong module */
-      val roots = ModuleRootManager.getInstance(testModule).contentEntries
-      @Suppress("UnstableApiUsage")
-      assertThat(roots.map { it.url }).contains(
-        basePath.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
-
-      /* TODO(232441109): These should be the correct assertions but currently this is not the case
       assertThat(modules).hasLength(5)
       assertThat(modules.map(Module::getName).sorted()).containsExactly(
         "project", "project.app", "project.app.androidTest", "project.app.main", "project.app.unitTest")
       val unitTestModule = modules.first { it.name == "project.app.unitTest" }
       val roots = ModuleRootManager.getInstance(unitTestModule).contentRoots
-      assertThat(roots.map { it.url }).contains(
-        basePath.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)*/
+      @Suppress("UnstableApiUsage")
+      assertThat(roots.map { it.url }).doesNotContain(
+        basePath.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
     }
   }
 
