@@ -28,6 +28,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.TemplateUtils
@@ -108,7 +109,7 @@ class RenderTemplateModel private constructor(
   }
 
   val module: Module?
-    get() = androidFacet?.module
+    get() = androidFacet?.module?.getMainModule()
 
   val hasActivity: Boolean get() = newTemplate != Template.NoActivity
 

@@ -22,7 +22,6 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.getForFile
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
@@ -128,7 +127,7 @@ fun StringParameter.validateStringType(
     KOTLIN_FUNCTION -> {
       project ?: return false
       module ?: return false
-      val moduleInfo = module.getMainModule().toInfo(SourceType.PRODUCTION)!!
+      val moduleInfo = module.toInfo(SourceType.PRODUCTION)!!
       val platform = TargetPlatformDetector.getPlatform(module)
       val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
       val helper = KotlinIndicesHelper(facade, searchScope, { true })

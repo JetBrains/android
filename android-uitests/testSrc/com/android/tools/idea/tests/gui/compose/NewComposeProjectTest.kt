@@ -67,15 +67,23 @@ class NewComposeProjectTest {
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
       assertThat(this).contains("@Preview")
+      assertThat(this).contains("fun DefaultPreview(")
+      assertThat(this).contains("fun Greeting(")
     }
 
-    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish()
+    guiTest.ideFrame().focus().projectView
+      .selectAndroidPane()
+      .clickPath("app")
 
     // Check if we can add another Compose Activity (will need to de-duplicate compose function names)
     NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
       .getConfigureActivityStep("Empty Compose Activity")
-      //.enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, name)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
+
+    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity2.kt").run {
+      assertThat(this).contains("fun DefaultPreview2(")
+      assertThat(this).contains("fun Greeting2(")
+    }
   }
 }
