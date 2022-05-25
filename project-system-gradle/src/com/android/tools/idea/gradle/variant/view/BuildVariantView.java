@@ -35,8 +35,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
@@ -48,6 +47,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -128,18 +128,11 @@ public class BuildVariantView {
   }
 
   private void updateContents() {
-    Runnable setModelTask = () -> getVariantsTable().setBuildVariantTableModel(BuildVariantTableModel.create(myProject));
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      setModelTask.run();
-    }
-    else {
-      application.invokeLater(setModelTask);
-    }
+    getVariantsTable().setBuildVariantTableModel(BuildVariantTableModel.create(myProject));
   }
 
   private void projectImportStarted() {
-    getVariantsTable().setLoading(true);
+    getVariantsTable().setLoading();
   }
 
   private void projectImportFinished() {
@@ -307,21 +300,25 @@ public class BuildVariantView {
       return true;
     }
 
-    void setLoading(boolean loading) {
+    private void updateLoadingStatus(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
-      clearContents();
       String text = myLoading ? "Loading..." : "Nothing to Show";
       getEmptyText().setText(text);
     }
 
-    private void clearContents() {
-      setModel(BuildVariantTableModel.EMPTY);
+    void setLoading() {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.NON_MODAL, () -> {
+        updateLoadingStatus(true);
+        setModel(BuildVariantTableModel.EMPTY);
+      });
     }
 
     private void setBuildVariantTableModel(@NotNull BuildVariantTableModel model) {
-      setLoading(false);
-      setModel(model);
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.NON_MODAL, () -> {
+        updateLoadingStatus(false);
+        setModel(model);
+      });
     }
 
     @Nullable
