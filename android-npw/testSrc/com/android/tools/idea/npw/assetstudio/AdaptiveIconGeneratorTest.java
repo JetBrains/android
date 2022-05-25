@@ -20,13 +20,13 @@ import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.io.Images;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -55,25 +55,25 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
 
   protected final AndroidModulePaths myProjectPaths = new AndroidModulePaths() {
     @Override
-    @Nullable
+    @NotNull
     public File getModuleRoot() {
       return new File("/fictitious/root");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getSrcDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), "src");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getTestDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), FD_TEST);
     }
 
-    @Nullable
     @Override
+    @NotNull
     public File getUnitTestDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), FD_UNIT_TEST);
     }
@@ -87,13 +87,13 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getAidlDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), "aidl");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getManifestDirectory() {
       return new File(getModuleRoot(), "manifests");
     }
@@ -131,7 +131,9 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
 
   protected void checkGeneratedIcons(@NotNull String[] expectedFilenames, double imageDiffThresholdPercent,
                                      @NotNull String... excludedFromContentComparison) throws IOException {
-    Map<File, GeneratedIcon> pathIconMap = getIconGenerator().generateIntoIconMap(myProjectPaths);
+    File resDir = getResDirectory(myProjectPaths);
+    assertNotNull(resDir);
+    Map<File, GeneratedIcon> pathIconMap = getIconGenerator().generateIntoIconMap(myProjectPaths, resDir);
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
     Path goldenDir = Paths.get(getTestDataPath(), getTestName(true), "golden");
     for (String filename : expectedFilenames) {
@@ -145,8 +147,7 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
       if (!Arrays.asList(excludedFromContentComparison).contains(filename)) {
         if (filename.endsWith(".xml")) {
           assertEquals("File " + filename + " does not match",
-                       new String(Files.readAllBytes(goldenFile), UTF_8).replaceAll("(\r\n|\n)",
-                                                                                    CodeStyle.getSettings(getProject()).getLineSeparator()),
+                       Files.readString(goldenFile).replaceAll("(\r\n|\n)", CodeStyle.getSettings(getProject()).getLineSeparator()),
                        ((GeneratedXmlResource)icon).getXmlText());
         }
         else {
@@ -203,5 +204,19 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
     finally {
       super.tearDown();
     }
+  }
+
+  @Nullable
+  public static File getResDirectory(@NotNull AndroidModulePaths paths) {
+    List<File> directories = paths.getResDirectories();
+    for (int i = directories.size(); --i >= 0;) {
+      File dir = directories.get(i);
+      File parent = dir.getParentFile();
+      if (parent == null || !"generated".equals(parent.getName())) {
+        return dir;
+      }
+    }
+
+    return Iterables.getLast(directories, null);
   }
 }

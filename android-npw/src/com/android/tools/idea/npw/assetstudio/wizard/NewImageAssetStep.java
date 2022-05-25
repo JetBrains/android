@@ -35,7 +35,7 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
 
   public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, facet, model.getTemplate().getPaths());
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, facet, model.getTemplate().getPaths(), model.getResFolder());
     myFacet = facet;
 
     PersistentStateUtil.load(myGenerateImageAssetPanel, model.getPersistentState().getChild(IMAGE_ASSET_PANEL_PROPERTY));

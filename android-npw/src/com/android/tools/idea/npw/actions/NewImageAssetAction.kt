@@ -23,15 +23,16 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
+import java.io.File
 import java.net.URL
 
 /**
  * Action to invoke the Image Asset Wizard that allows user to generate various kinds of Android icons.
  */
 class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset Studio to create an image asset") {
-  override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate): ModelWizard {
+  override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {
     val wizardBuilder = ModelWizard.Builder()
-    wizardBuilder.addStep(NewImageAssetStep(GenerateIconsModel(facet, "imageWizard", template), facet))
+    wizardBuilder.addStep(NewImageAssetStep(GenerateIconsModel(facet, "imageWizard", template, resFolder), facet))
     return wizardBuilder.build()
   }
 
@@ -43,7 +44,7 @@ class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset 
     return JBUI.size(1020, 680)
   }
 
-  override fun getHelpUrl(): URL? {
+  override fun getHelpUrl(): URL {
     return toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
   }
 }

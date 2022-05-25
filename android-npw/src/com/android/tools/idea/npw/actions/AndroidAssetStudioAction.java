@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.actions;
 
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -27,9 +28,11 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.awt.Dimension;
+import java.io.File;
 import java.net.URL;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +73,21 @@ public abstract class AndroidAssetStudioAction extends AnAction {
     return null;
   }
 
+  @Nullable
+  private static File findClosestResFolder(@NotNull AndroidModulePaths paths, @NotNull VirtualFile location) {
+    String toFind = location.getPath();
+    File bestMatch = null;
+    int bestCommonPrefixLength = -1;
+    for (File resDir : paths.getResDirectories()) {
+      int commonPrefixLength = StringUtil.commonPrefixLength(resDir.getPath(), toFind);
+      if (commonPrefixLength > bestCommonPrefixLength) {
+        bestCommonPrefixLength = commonPrefixLength;
+        bestMatch = resDir;
+      }
+    }
+    return bestMatch;
+  }
+
   @Override
   public final void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(isAvailable(e.getDataContext()));
@@ -104,7 +122,12 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    ModelWizard wizard = createWizard(facet, template);
+    File resFolder = findClosestResFolder(template.getPaths(), location);
+    if (resFolder == null) {
+      return;
+    }
+
+    ModelWizard wizard = createWizard(facet, template, resFolder);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
       dialogBuilder.setProject(facet.getModule().getProject())
@@ -121,7 +144,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
    * such as an error dialog.
    */
   @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull NamedModuleTemplate template);
+  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull NamedModuleTemplate template, @NotNull File resFolder);
 
   @NotNull
   protected abstract Dimension getWizardMinimumSize();

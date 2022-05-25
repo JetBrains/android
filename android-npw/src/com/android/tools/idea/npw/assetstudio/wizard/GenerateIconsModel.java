@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 public final class GenerateIconsModel extends WizardModel {
   @Nullable private IconGenerator myIconGenerator;
   @NotNull private NamedModuleTemplate myTemplate;
+  @NotNull private File myResFolder;
   @NotNull private List<File> myFilesToDelete = ImmutableList.of();
   @NotNull private final StateStorage myStateStorage;
   @NotNull private final String myWizardId;
@@ -48,10 +49,17 @@ public final class GenerateIconsModel extends WizardModel {
    *
    * @param androidFacet the Android facet
    * @param wizardId the id of the wizard owning the model. Used as a key for storing wizard state.
-   * @param template of flavor which defines the default the output directories
+   * @param template of the default flavor
+   * @param resFolder the default output folder
    */
-  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull NamedModuleTemplate template) {
+  public GenerateIconsModel(
+    @NotNull AndroidFacet androidFacet,
+    @NotNull String wizardId,
+    @NotNull NamedModuleTemplate template,
+    @NotNull File resFolder
+  ) {
     myTemplate = template;
+    myResFolder = resFolder;
     Project project = androidFacet.getModule().getProject();
     myStateStorage = project.getService(StateStorage.class);
     assert myStateStorage != null;
@@ -76,6 +84,14 @@ public final class GenerateIconsModel extends WizardModel {
     return myTemplate;
   }
 
+  public void setResFolder(@NotNull File resFolder) {
+    myResFolder = resFolder;
+  }
+
+  public File getResFolder() {
+    return myResFolder;
+  }
+
   public void setFilesToDelete(@NotNull List<File> files) {
     myFilesToDelete = ImmutableList.copyOf(files);
   }
@@ -87,7 +103,7 @@ public final class GenerateIconsModel extends WizardModel {
       return;
     }
 
-    myIconGenerator.generateIconsToDisk(myTemplate.getPaths());
+    myIconGenerator.generateIconsToDisk(myTemplate.getPaths(), myResFolder);
     for (File file : myFilesToDelete) {
       //noinspection ResultOfMethodCallIgnored
       file.delete();

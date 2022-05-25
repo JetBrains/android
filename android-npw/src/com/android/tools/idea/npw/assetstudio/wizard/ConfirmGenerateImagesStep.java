@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimension;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 import com.android.resources.Density;
@@ -67,6 +66,7 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -87,6 +87,8 @@ import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +103,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private final JBLabel myPreviewIcon;
 
   private JPanel myRootPanel;
-  private JComboBox<NamedModuleTemplate> myPathsComboBox;
+  private JComboBox<SourceSetItem> myPathsComboBox;
   private Tree myOutputPreviewTree;
   private CheckeredBackgroundPanel myPreviewPanel;
   private JTextField mySizeDpTextField;
@@ -138,7 +140,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private EditorFactory myEditorFactory;
   private Document myXmlPreviewDocument;
 
-  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
+  private ObjectProperty<SourceSetItem> mySelectedSourceSetItem;
+  private final SourceSetItem myInitialSelectedItem;
   private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
   private ProposedFileTreeModel myProposedFileTreeModel;
 
@@ -147,10 +150,19 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    SourceSetItem[] resDirs = orderTemplates(templates).stream()
+      .flatMap(template -> template.getPaths().getResDirectories().stream()
+        .map(folder -> SourceSetItem.create(template, folder)))
+      .filter(Objects::nonNull)
+      .toArray(SourceSetItem[]::new);
+    myInitialSelectedItem = Arrays.stream(resDirs)
+      .filter(item -> item.getSourceSetName().equals(model.getTemplate().getName()) &&
+                      item.getResDirUrl().equals(model.getResFolder().getAbsolutePath()))
+      .findFirst().orElse(null);
 
-    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    orderTemplates(myTemplates).forEach(moduleTemplatesModel::addElement);
+    DefaultComboBoxModel<SourceSetItem> moduleTemplatesModel = new DefaultComboBoxModel<>(resDirs);
     myPathsComboBox.setModel(moduleTemplatesModel);
+    myPathsComboBox.setRenderer(new SourceSetCellRenderer());
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
@@ -354,8 +366,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
-    mySelectedTemplate.set(getModel().getTemplate());
+    mySelectedSourceSetItem = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+    if (myInitialSelectedItem != null) {
+      mySelectedSourceSetItem.set(myInitialSelectedItem);
+    }
   }
 
   @Override
@@ -366,23 +380,31 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onProceeding() {
-    getModel().setTemplate(mySelectedTemplate.get());
-    getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
+    SourceSetItem item = mySelectedSourceSetItem.get();
+    NamedModuleTemplate template = findTemplateByName(item.getSourceSetName());
+    if (template == null) {
+      return;
+    }
+    GenerateIconsModel model = getModel();
+    model.setTemplate(template);
+    model.setResFolder(new File(item.getResDirUrl()));
+    model.setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
-    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate namedTemplate) -> {
+    myListeners.release(mySelectedSourceSetItem); // Just in case we're entering this step a second time.
+    myListeners.listenAndFire(mySelectedSourceSetItem, sourceSetItem -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      AndroidModulePaths paths = namedTemplate.getPaths();
-      File resDirectory = getResDirectory(paths);
-      if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
+      NamedModuleTemplate template = findTemplateByName(sourceSetItem.getSourceSetName());
+      File resDirectory = new File(sourceSetItem.getResDirUrl());
+      if (iconGenerator == null || resDirectory.getParentFile() == null || template == null) {
         return;
       }
+      AndroidModulePaths paths = template.getPaths();
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(paths);
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(paths, new File(sourceSetItem.getResDirUrl()));
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since
@@ -438,5 +460,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       myEditorFactory.releaseEditor(myFilePreviewEditor);
     }
     myListeners.releaseAll();
+  }
+
+  @Nullable
+  private NamedModuleTemplate findTemplateByName(@NotNull String name) {
+    return myTemplates.stream().filter(template -> name.equals(template.getName())).findFirst().orElse(null);
   }
 }

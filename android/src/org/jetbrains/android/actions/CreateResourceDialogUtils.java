@@ -129,7 +129,10 @@ public class CreateResourceDialogUtils {
       for (NamedIdeaSourceProvider sourceProvider : providers) {
         for (String resDirUrl : sourceProvider.getResDirectoryUrls()) {
           // In gradle, each source provider may have multiple res directories, so we create an element for each one of them.
-          model.addElement(SourceSetItem.create(sourceProvider, facet.getModule(), resDirUrl));
+          SourceSetItem item = SourceSetItem.create(sourceProvider, facet.getModule(), resDirUrl);
+          if (item != null) {
+            model.addElement(item);
+          }
         }
       }
       combo.setModel(model);
