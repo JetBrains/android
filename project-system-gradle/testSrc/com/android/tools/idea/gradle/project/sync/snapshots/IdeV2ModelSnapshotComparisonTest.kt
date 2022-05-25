@@ -61,9 +61,10 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     val pathToOpen: String = "",
     val skipV1toV2Comparison: Boolean = false,
     val v1toV2PropertiesToSkip: Set<String> = emptySet(),
+    val testName: String? = null,
     val patch: (projectRoot: File) -> Unit = {}
   ) {
-    override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
+    override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
   }
   @JvmField
   @Parameterized.Parameter
@@ -74,6 +75,15 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
       TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+      TestProject(
+        TestProjectToSnapshotPaths.SIMPLE_APPLICATION, testName = "additionalGradleSourceSets", skipV1toV2Comparison = true) { root ->
+        val buildFile = root.resolve("app").resolve("build.gradle")
+        buildFile.writeText(buildFile.readText() + """
+          sourceSets {
+            test.resources.srcDirs += 'src/test/resources'
+          }
+        """.trimIndent())
+      },
       TestProject(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
@@ -113,7 +123,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
 
   @get:Rule
   var testName = TestName()
-  override fun getName(): String = testName.methodName
+  override fun getName(): String = testProjectName?.testName ?: testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =
