@@ -19,6 +19,6 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MonochromeLauncherIconDetector
 import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintMonochromeLauncherIconIssueInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.monochrome.launcher.icon.issue"), MonochromeLauncherIconDetector.ISSUE
+class AndroidLintMonochromeLauncherIconInspection : AndroidLintInspectionBase(
+  message("android.lint.inspections.monochrome.launcher.icon"), MonochromeLauncherIconDetector.ISSUE
 )
