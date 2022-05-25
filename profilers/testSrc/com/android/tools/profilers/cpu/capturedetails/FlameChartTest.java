@@ -22,16 +22,22 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.ProfilersApplicationRule;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import java.util.Arrays;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class FlameChartTest {
+
+  @Rule
+  public ProfilersApplicationRule appRule = new ProfilersApplicationRule();
+
   /**
    * main [0..71]
    *   -> A [0..20]
