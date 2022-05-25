@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel.Companion.get
@@ -37,7 +38,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import org.gradle.api.plugins.JavaPlugin
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.model.GradleProperty
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
@@ -128,7 +128,7 @@ class GradleTaskFinder {
       .mapNotNull { module: Module ->
         GradleProjects.getGradleModulePath(module)
       }
-      .joinToString(", ") +if (modules.size > 5) "..." else ""
+      .joinToString(", ") + if (modules.size > 5) "..." else ""
 
     val message =
       String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s. <br>Tests: %s.", moduleNames, mode, type.displayName)
@@ -154,24 +154,20 @@ class GradleTaskFinder {
     ) {
       val androidFacet = AndroidFacet.getInstance(module)
       if (androidFacet != null) {
-        val properties = androidFacet.properties
-        val androidModel = get(module)
+        val androidModel = get(module) ?: return // Android modules without a model is an error.
+        val mainArtifact = androidModel.mainArtifact
         when (buildMode) {
           BuildMode.CLEAN, BuildMode.SOURCE_GEN -> {
-            addAfterSyncTasks(tasks, gradlePath, properties)
-            if (androidModel != null) {
-              addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidModel)
-            }
+            addAfterSyncTasks(tasks, gradlePath, mainArtifact)
+            addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidModel)
           }
           BuildMode.ASSEMBLE, BuildMode.REBUILD -> {
-            addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TASK_NAME)
+            addTaskIfSpecified(tasks, gradlePath, mainArtifact.assembleTaskName)
 
             // Add assemble tasks for tests.
             if (testCompileType !== TestCompileType.ALL) {
-              if (androidModel != null) {
-                for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
-                  addTaskIfSpecified(tasks, gradlePath, artifact.assembleTaskName)
-                }
+              for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
+                addTaskIfSpecified(tasks, gradlePath, artifact.assembleTaskName)
               }
             }
 
@@ -179,16 +175,15 @@ class GradleTaskFinder {
             addAssembleTasksForTargetVariants(tasks, module)
           }
           BuildMode.BUNDLE ->           // The "Bundle" task is only valid for base (app) module, not for features, libraries, etc.
-            if (androidModel != null && androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_APP) {
+            if (androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_APP) {
               val taskName = androidModel.selectedVariant.mainArtifact.buildInformation.bundleTaskName
               addTaskIfSpecified(tasks, gradlePath, taskName)
             }
           BuildMode.APK_FROM_BUNDLE ->           // The "ApkFromBundle" task is only valid for base (app) module, and for features if it's for instrumented tests
-            if (androidModel != null && androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_APP) {
+            if (androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_APP) {
               val taskName = androidModel.selectedVariant.mainArtifact.buildInformation.apkFromBundleTaskName
               addTaskIfSpecified(tasks, gradlePath, taskName)
-            } else if (androidModel != null &&
-              androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
+            } else if (androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
             ) {
               // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
               if (testCompileType === TestCompileType.ANDROID_TESTS) {
@@ -198,16 +193,11 @@ class GradleTaskFinder {
               }
             }
           else -> {
-            if (androidModel != null) {
-              for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
-                addTaskIfSpecified(tasks, gradlePath, artifact.compileTaskName)
-              }
+            for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
+              addTaskIfSpecified(tasks, gradlePath, artifact.compileTaskName)
             }
-            // When compiling for unit tests, run only COMPILE_JAVA_TEST_TASK_NAME, which will run javac over main and test code. If the
-            // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
-            // no *.class files and would be just a waste of time.
-            if (testCompileType !== TestCompileType.UNIT_TESTS) {
-              addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TASK_NAME)
+            if (testCompileType != TestCompileType.UNIT_TESTS) {
+              addTaskIfSpecified(tasks, gradlePath, mainArtifact.compileTaskName)
             }
           }
         }
@@ -289,13 +279,13 @@ class GradleTaskFinder {
     private fun addAfterSyncTasks(
       tasks: MutableSet<String>,
       gradlePath: String,
-      properties: AndroidFacetProperties
+      artifact: IdeAndroidArtifact
     ) {
       // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
       // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
       // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
       // compilation tasks don't depend on it, so we have to call it explicitly.
-      for (taskName in properties.AFTER_SYNC_TASK_NAMES) {
+      for (taskName in artifact.ideSetupTaskNames) {
         addTaskIfSpecified(tasks, gradlePath, taskName)
       }
     }
