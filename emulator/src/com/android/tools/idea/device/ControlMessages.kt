@@ -67,6 +67,10 @@ internal data class MotionEventMessage(
     stream.writeInt(displayId)
   }
 
+  override fun toString(): String {
+    return "MotionEventMessage(pointers=$pointers, action=$action, displayId=$displayId)"
+  }
+
   companion object : Deserializer {
     const val TYPE = 1
 
@@ -108,6 +112,10 @@ internal data class MotionEventMessage(
       stream.writeInt(y)
       stream.writeInt(pointerId)
     }
+
+    override fun toString(): String {
+      return "Pointer(x=$x, y=$y, pointerId=$pointerId)"
+    }
   }
 }
 
@@ -123,6 +131,10 @@ internal data class KeyEventMessage(
     stream.writeInt(action.value)
     stream.writeInt(keyCode)
     stream.writeInt(metaState)
+  }
+
+  override fun toString(): String {
+    return "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=$metaState)"
   }
 
   companion object : Deserializer {
@@ -148,6 +160,10 @@ internal data class TextInputMessage(
     stream.writeString(text)
   }
 
+  override fun toString(): String {
+    return "TextInputMessage(text=\"$text\")"
+  }
+
   companion object : Deserializer {
     const val TYPE = 3
 
@@ -164,6 +180,10 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeInt(orientation)
+  }
+
+  override fun toString(): String {
+    return "SetDeviceOrientationMessage(orientation=$orientation)"
   }
 
   companion object : Deserializer {
@@ -185,6 +205,10 @@ internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int
     stream.writeInt(height)
   }
 
+  override fun toString(): String {
+    return "SetMaxVideoResolutionMessage(width=$width, height=$height)"
+  }
+
   companion object : Deserializer {
     const val TYPE = 5
 
@@ -203,6 +227,10 @@ internal data class StartClipboardSyncMessage(val maxSyncedLength: Int, val text
     super.serialize(stream)
     stream.writeInt(maxSyncedLength)
     stream.writeBytes(text.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String {
+    return "StartClipboardSyncMessage(maxSyncedLength=$maxSyncedLength, text='$text')"
   }
 
   companion object : Deserializer {
@@ -238,6 +266,10 @@ internal class StopClipboardSyncMessage : ControlMessage(TYPE) {
   override fun hashCode(): Int {
     return javaClass.hashCode()
   }
+
+  override fun toString(): String {
+    return "StopClipboardSyncMessage()"
+  }
 }
 
 /** A clipboard update from the device. */
@@ -246,6 +278,10 @@ internal data class ClipboardChangedMessage(val text: String) : ControlMessage(T
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBytes(text.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String {
+    return "ClipboardChangedMessage(text=\"$text\")"
   }
 
   companion object : Deserializer {
