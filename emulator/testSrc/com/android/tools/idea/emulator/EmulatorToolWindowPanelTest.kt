@@ -34,7 +34,6 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.mockStatic
@@ -366,7 +365,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferent = 0.08)
 
     // Set the tablet display mode.
-    executeDeviceAction("android.emulator.display.mode.tablet", emulatorView, project)
+    executeEmulatorAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
     assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")

@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.device
 
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.emulator.AbstractDisplayView
-import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.emulator.isSameAspectRatio
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -89,8 +87,7 @@ class DeviceView(
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable {
 
   /** Area of the window occupied by the device display image in physical pixels. */
-  var displayRectangle: Rectangle? = null
-    private set
+  private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
   private var deviceClient: DeviceClient? = null
   val deviceController: DeviceController?
@@ -161,7 +158,7 @@ class DeviceView(
           if (width > 0 && height > 0) {
             deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
           }
-          if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
+          if (StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()) {
             val clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
             clipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync()
           }
@@ -247,10 +244,6 @@ class DeviceView(
     // Draw device display.
     decoder.consumeDisplayFrame { displayFrame ->
       val image = displayFrame.image
-      val rect = displayRectangle
-      if (rect != null && !isSameAspectRatio(image.width, image.height, rect.width, rect.height, 0.01)) {
-        zoom(ZoomType.FIT) // Dimensions of the display image changed - reset zoom level.
-      }
       val scale = roundScale(min(realWidth.toDouble() / image.width, realHeight.toDouble() / image.height))
       val w = image.width.scaled(scale).coerceAtMost(realWidth)
       val h = image.height.scaled(scale).coerceAtMost(realHeight)
@@ -423,7 +416,7 @@ class DeviceView(
         VK_HOME -> AKEYCODE_MOVE_HOME
         VK_END -> AKEYCODE_MOVE_END
         VK_PAGE_UP -> AKEYCODE_PAGE_UP
-        VK_PAGE_DOWN -> AKEYCODE_PAGE_DOWN
+        VK_PAGE_DOWN -> AKEYCODE_PAGE_UP
         else -> AKEYCODE_UNKNOWN
       }
     }

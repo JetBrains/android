@@ -478,7 +478,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
         Dimension(width, (width * aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.height))
       }
       else {
-        val width = displaySize.height.coerceAtMost((maxResolution.width * aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.height.coerceAtMost((maxResolution.width / aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width / aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.width))
       }
     }

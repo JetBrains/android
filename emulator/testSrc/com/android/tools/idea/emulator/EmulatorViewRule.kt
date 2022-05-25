@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.junit.rules.ExternalResource
@@ -74,7 +81,7 @@ class EmulatorViewRule : TestRule {
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    executeDeviceAction(actionId, emulatorView, projectRule.project)
+    executeEmulatorAction(actionId, emulatorView, projectRule.project)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {

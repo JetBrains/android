@@ -38,14 +38,6 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
-  var synchronizeClipboard = StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
   override fun getState(): DeviceMirroringSettings = this
 
   override fun loadState(state: DeviceMirroringSettings) {
