@@ -478,7 +478,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
         Dimension(width, (width * aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.height))
       }
       else {
-        val width = displaySize.height.coerceAtMost((maxResolution.width / aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.height.coerceAtMost((maxResolution.width * aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width / aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.width))
       }
     }
@@ -527,7 +527,10 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     suspend fun run() {
       try {
         while (true) {
-          input.waitForData(1)
+          @Suppress("BlockingMethodInNonBlockingContext") // The InputStream.available method is non-blocking.
+          if (codedInput.available() == 0) {
+            input.waitForData(1)
+          }
           val message = ControlMessage.deserialize(codedInput)
           processControlMessage(message)
         }
