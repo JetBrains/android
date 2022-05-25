@@ -29,7 +29,6 @@ import java.awt.Container;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
@@ -47,8 +46,9 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
 
   private final @NotNull Component myHeadingLabel;
   private final @NotNull AbstractButton myCloseButton;
-  protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
+  protected @Nullable Component mySummarySection;
   protected @Nullable Component myScreenDiagram;
+  protected final @NotNull Collection<@NotNull Component> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable Component myPairedDevicesPanel;
@@ -79,9 +79,13 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   }
 
   protected final void init() {
+    initSummarySection();
     setInfoSectionPanelLayout();
     initTabbedPane();
     setLayout();
+  }
+
+  protected void initSummarySection() {
   }
 
   protected void setInfoSectionPanelLayout() {
@@ -90,32 +94,28 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     Group horizontalGroup = layout.createParallelGroup();
     SequentialGroup verticalGroup = layout.createSequentialGroup();
 
-    Iterator<InfoSection> i = myInfoSections.iterator();
-    Component section = i.next();
-
     if (myScreenDiagram == null) {
-      horizontalGroup.addComponent(section);
-      verticalGroup.addComponent(section);
+      horizontalGroup.addComponent(mySummarySection);
+      verticalGroup.addComponent(mySummarySection);
     }
     else {
       horizontalGroup.addGroup(layout.createSequentialGroup()
-                                 .addComponent(section)
+                                 .addComponent(mySummarySection)
                                  .addPreferredGap(ComponentPlacement.UNRELATED)
                                  .addComponent(myScreenDiagram));
 
       verticalGroup.addGroup(layout.createParallelGroup()
-                               .addComponent(section)
+                               .addComponent(mySummarySection)
                                .addComponent(myScreenDiagram));
     }
 
-    while (i.hasNext()) {
-      section = i.next();
+    myInfoSections.forEach(section -> {
       horizontalGroup.addComponent(section);
 
       verticalGroup
         .addPreferredGap(ComponentPlacement.UNRELATED)
         .addComponent(section);
-    }
+    });
 
     layout.setAutoCreateContainerGaps(true);
     layout.setHorizontalGroup(horizontalGroup);

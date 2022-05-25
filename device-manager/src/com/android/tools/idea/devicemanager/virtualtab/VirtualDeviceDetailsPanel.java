@@ -34,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private final @NotNull VirtualDevice myDevice;
-
-  private @Nullable SummarySection mySummarySection;
   private @Nullable InfoSection myPropertiesSection;
 
   @VisibleForTesting
@@ -59,47 +57,47 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     super(device.getName());
     myDevice = device;
 
-    initSummarySection();
+    myScreenDiagram = new ScreenDiagram(device);
     initPropertiesSection();
 
-    myInfoSections.add(mySummarySection);
     InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
-
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
-      myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this, project);
-    }
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
     }
 
-    myScreenDiagram = new ScreenDiagram(myDevice);
+    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
+      myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, project);
+    }
+
     init();
   }
 
-  private void initSummarySection() {
-    mySummarySection = new SummarySection();
+  @Override
+  protected void initSummarySection() {
+    SummarySection summarySection = new SummarySection();
 
-    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
-    InfoSection.setText(mySummarySection.myResolutionLabel, myDevice.getResolution());
-    InfoSection.setText(mySummarySection.myDpLabel, myDevice.getDp());
+    InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
+    InfoSection.setText(summarySection.myResolutionLabel, myDevice.getResolution());
+    InfoSection.setText(summarySection.myDpLabel, myDevice.getDp());
 
     AvdInfo device = myDevice.getAvdInfo();
 
     if (!device.getStatus().equals(AvdStatus.OK)) {
-      mySummarySection.myErrorLabel = mySummarySection.addNameAndValueLabels("Error");
-      InfoSection.setText(mySummarySection.myErrorLabel, device.getErrorMessage());
+      summarySection.myErrorLabel = summarySection.addNameAndValueLabels("Error");
+      InfoSection.setText(summarySection.myErrorLabel, device.getErrorMessage());
     }
     else {
       Object snapshot = device.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
-        mySummarySection.mySnapshotLabel = mySummarySection.addNameAndValueLabels("Snapshot");
-        InfoSection.setText(mySummarySection.mySnapshotLabel, snapshot);
+        summarySection.mySnapshotLabel = summarySection.addNameAndValueLabels("Snapshot");
+        InfoSection.setText(summarySection.mySnapshotLabel, snapshot);
       }
     }
 
-    mySummarySection.setLayout();
+    summarySection.setLayout();
+    mySummarySection = summarySection;
   }
 
   private void initPropertiesSection() {
@@ -132,6 +130,6 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   @VisibleForTesting
   @NotNull SummarySection getSummarySection() {
     assert mySummarySection != null;
-    return mySummarySection;
+    return (SummarySection)mySummarySection;
   }
 }

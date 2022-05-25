@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
-import java.util.concurrent.Executor;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
@@ -40,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   private final boolean myOnline;
-  private final @Nullable SummarySection mySummarySection;
+  private ListenableFuture<@NotNull PhysicalDevice> myFuture;
+  private NewInfoSectionCallback<@NotNull SummarySection> myNewSummarySectionCallback;
 
   @VisibleForTesting
   static final class SummarySection extends InfoSection {
@@ -88,26 +88,30 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     myOnline = device.isOnline();
 
     if (myOnline) {
-      ListenableFuture<PhysicalDevice> future = builder.buildAsync();
-      Executor executor = EdtExecutorService.getInstance();
+      myFuture = builder.buildAsync();
+      myNewSummarySectionCallback = newSummarySectionCallback;
 
-      mySummarySection = new SummarySection();
-      Futures.addCallback(future, newSummarySectionCallback.apply(mySummarySection), executor);
-
-      myInfoSections.add(mySummarySection);
+      Futures.addCallback(myFuture, newScreenDiagramCallback(), EdtExecutorService.getInstance());
       InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
-
-      Futures.addCallback(future, newScreenDiagramCallback(), executor);
 
       if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
         myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
       }
     }
-    else {
-      mySummarySection = null;
-    }
 
     init();
+  }
+
+  @Override
+  protected void initSummarySection() {
+    if (!myOnline) {
+      return;
+    }
+
+    SummarySection summarySection = new SummarySection();
+    Futures.addCallback(myFuture, myNewSummarySectionCallback.apply(summarySection), EdtExecutorService.getInstance());
+
+    mySummarySection = summarySection;
   }
 
   @VisibleForTesting
@@ -160,6 +164,6 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   @VisibleForTesting
   @NotNull SummarySection getSummarySection() {
     assert mySummarySection != null;
-    return mySummarySection;
+    return (SummarySection)mySummarySection;
   }
 }
