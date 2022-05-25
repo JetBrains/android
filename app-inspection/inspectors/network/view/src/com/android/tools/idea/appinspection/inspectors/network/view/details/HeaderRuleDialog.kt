@@ -131,7 +131,7 @@ class HeaderRuleDialog(
   }
 
   init {
-    title = "New Header Rule"
+    title = "Header Rule"
     applySavedHeader(transformation)
     init()
     updateOkAction()
