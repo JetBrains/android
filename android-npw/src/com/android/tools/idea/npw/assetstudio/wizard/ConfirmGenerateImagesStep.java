@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimension;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
@@ -158,7 +159,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
+    orderTemplates(templates).forEach(moduleTemplatesModel::addElement);
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
@@ -44,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +90,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
+    orderTemplates(templates).forEach(moduleTemplatesModel::addElement);
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

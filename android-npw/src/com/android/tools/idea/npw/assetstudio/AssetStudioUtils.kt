@@ -21,20 +21,13 @@
 
 package com.android.tools.idea.npw.assetstudio
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.util.AssetUtil
-import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceType
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.google.common.base.CaseFormat
-import com.google.common.collect.Iterables
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -166,4 +159,28 @@ fun getBundledImage(dir: String, fileName: String): File {
   }
 
   return root
+}
+
+/**
+ * Return a list of [NamedModuleTemplate]s sorted by alphabetical order, but starting
+ * with "main", "debug" and "release" if those are present in the input.
+ */
+fun orderTemplates(templates: List<NamedModuleTemplate>): List<NamedModuleTemplate> {
+  var main: NamedModuleTemplate? = null
+  var debug: NamedModuleTemplate? = null
+  var release: NamedModuleTemplate? = null
+  val orderedList: MutableList<NamedModuleTemplate> = mutableListOf()
+  for (template in templates) {
+    when (template.name) {
+      "main" -> main = template
+      "debug" -> debug = template
+      "release" -> release = template
+      else -> orderedList.add(template)
+    }
+  }
+  orderedList.sortWith(Comparator.comparing(NamedModuleTemplate::name))
+  release?.let { orderedList.add(0, it) }
+  debug?.let { orderedList.add(0, it) }
+  main?.let { orderedList.add(0, it) }
+  return orderedList
 }
