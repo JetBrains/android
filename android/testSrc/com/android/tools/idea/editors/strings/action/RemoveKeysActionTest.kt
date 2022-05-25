@@ -15,10 +15,25 @@
  */
 package com.android.tools.idea.editors.strings.action
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.util.PathString
+import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argumentCaptor
+import com.android.testutils.MockitoKt.capture
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
+import com.android.tools.idea.editors.strings.model.StringResourceKey
+import com.android.tools.idea.editors.strings.model.StringResourceRepository
 import com.android.tools.idea.editors.strings.table.StringResourceTable
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -32,6 +47,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when` as whenever
 
 @RunWith(JUnit4::class)
@@ -40,10 +60,14 @@ class RemoveKeysActionTest {
 
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
+  private val stringResourceWriter: StringResourceWriter = mock()
   private val table: StringResourceTable = mock()
+  private val model: StringResourceTableModel = mock()
+  private val repository: StringResourceRepository = mock()
   private val mapDataContext = MapDataContext()
-  private val removeKeysAction = RemoveKeysAction()
+  private val removeKeysAction = RemoveKeysAction(stringResourceWriter)
   private lateinit var event: AnActionEvent
+
 
   @Before
   fun setUp() {
@@ -55,6 +79,14 @@ class RemoveKeysActionTest {
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
+    whenever(table.model).thenReturn(model)
+    whenever(model.getKey(anyInt())).thenAnswer {
+      StringResourceKey(it.getArgument<Int>(0).toString())
+    }
+    whenever(model.repository).thenReturn(repository)
+    whenever(repository.getItems(any())).thenAnswer {
+      resourceItems[it.getArgument<StringResourceKey>(0).name.toInt()]
+    }
   }
 
   @Test
@@ -79,5 +111,67 @@ class RemoveKeysActionTest {
     assertThat(event.presentation.isEnabled).isTrue()
   }
 
-  // TODO(b/232444069): Add tests for the perform method once it is testable.
+  @Test
+  fun actionPerformed_nothingSelected() {
+    whenever(table.selectedModelRowIndices).thenReturn(intArrayOf())
+
+    removeKeysAction.actionPerformed(event)
+
+    val callbackRunnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
+    verify(stringResourceWriter)
+        .safeDelete(eq(projectRule.project), eq(emptyList()), capture(callbackRunnableCaptor))
+    verify(panel, never()).reloadData()
+    callbackRunnableCaptor.value.run()
+    verify(panel).reloadData()
+    verifyNoMoreInteractions(stringResourceWriter)
+  }
+
+  @Test
+  fun actionPerformed() {
+    whenever(table.selectedModelRowIndices).thenReturn(intArrayOf(3, 5, 7))
+
+    removeKeysAction.actionPerformed(event)
+
+    val callbackRunnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
+    verify(stringResourceWriter)
+        .safeDelete(
+            eq(projectRule.project),
+            eq(resourceItems[3] + resourceItems[5] + resourceItems[7]),
+            capture(callbackRunnableCaptor))
+    verify(panel, never()).reloadData()
+    callbackRunnableCaptor.value.run()
+    verify(panel).reloadData()
+    verifyNoMoreInteractions(stringResourceWriter)
+  }
+
+  companion object {
+    /**
+     * Creates a bunch of resource items to use in the test.
+     *
+     * These look like
+     *   "resource 1a", "resource 1b", ...
+     *   "resource 2a", "resource 2b", ...
+     *   ...
+     */
+    private val resourceItems: List<List<ResourceItem>> =
+        IntRange(0, 10).map { index ->
+          CharRange('a', 'e').map { char -> createFakeStringResourceItem("resource $index$char") }
+        }
+
+    private fun createFakeStringResourceItem(resourceName: String): ResourceItem {
+      return object : ResourceItem {
+        override fun getName(): String = resourceName
+        override fun getType(): ResourceType = ResourceType.STRING
+        override fun getNamespace(): ResourceNamespace = ResourceNamespace.RES_AUTO
+        override fun getLibraryName(): String? = null
+        override fun getReferenceToSelf(): ResourceReference =
+            ResourceReference(namespace, type, name)
+        override fun getKey(): String = name
+        override fun getResourceValue(): ResourceValue? = null
+        override fun getSource(): PathString? = null
+        override fun isFileBased(): Boolean = false
+        override fun getConfiguration(): FolderConfiguration = FolderConfiguration()
+      }
+    }
+  }
 }

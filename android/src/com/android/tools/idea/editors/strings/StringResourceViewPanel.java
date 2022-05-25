@@ -62,8 +62,7 @@ public class StringResourceViewPanel implements Disposable {
   private @Nullable Component myToolbar;
   private @Nullable Component myScrollPane;
   private final @NotNull JComponent myXmlLabel;
-  @VisibleForTesting
-  final JTextComponent myXmlTextField;
+  @VisibleForTesting final JTextComponent myXmlTextField;
   private final @NotNull Component myKeyLabel;
   private JTextComponent myKeyTextField;
   private final @NotNull Component myDefaultValueLabel;
@@ -239,10 +238,6 @@ public class StringResourceViewPanel implements Disposable {
     layout.setVerticalGroup(verticalGroup);
 
     myPanel.setLayout(layout);
-  }
-
-  public void removeSelectedKeys() {
-    myRemoveKeysAction.perform(getFacet().getModule().getProject(), this);
   }
 
   public void reloadData() {

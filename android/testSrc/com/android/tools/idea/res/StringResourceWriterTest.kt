@@ -21,15 +21,38 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.BundleBase
+import com.intellij.ide.IdeBundle
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JCheckBox
+import kotlin.coroutines.resume
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +60,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import javax.swing.JButton
 
 /**
  * Tests the [StringResourceWriter].
@@ -49,6 +73,10 @@ class StringResourceWriterTest {
   @get:Rule val mockitoRule: MockitoRule = MockitoJUnit.rule()
   @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.withAndroidModel()
   @get:Rule val edtRule: EdtRule = EdtRule()
+
+  private val dialogMessages: MutableList<String> = mutableListOf()
+  private val project: Project
+    get() = projectRule.project
 
   private lateinit var resourceDirectory: VirtualFile
   private lateinit var localResourceRepository: LocalResourceRepository
@@ -66,12 +94,17 @@ class StringResourceWriterTest {
     localResourceRepository = createTestModuleRepository(facet, listOf(resourceDirectory))
   }
 
+  @After
+  fun tearDown() {
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
+  }
+
   @Test
   fun getStringResourceFile_default() {
     val defaultLocaleFile = "values/strings.xml"
     assertThat(resourceDirectory.findFileByRelativePath(defaultLocaleFile)).isNotNull()
 
-    val xmlFile = stringResourceWriter.getStringResourceFile(projectRule.project, resourceDirectory)
+    val xmlFile = stringResourceWriter.getStringResourceFile(project, resourceDirectory)
 
     assertThat(xmlFile).isNotNull()
     assertThat(xmlFile?.virtualFile)
@@ -83,8 +116,7 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
 
     val xmlFile =
-        stringResourceWriter.getStringResourceFile(
-            projectRule.project, resourceDirectory, FRENCH_LOCALE)
+        stringResourceWriter.getStringResourceFile(project, resourceDirectory, FRENCH_LOCALE)
 
     assertThat(xmlFile).isNotNull()
     assertThat(xmlFile?.virtualFile)
@@ -96,8 +128,7 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
 
     val xmlFile =
-        stringResourceWriter.getStringResourceFile(
-            projectRule.project, resourceDirectory, KOREAN_LOCALE)
+        stringResourceWriter.getStringResourceFile(project, resourceDirectory, KOREAN_LOCALE)
 
     assertThat(xmlFile).isNotNull()
     assertThat(xmlFile?.virtualFile)
@@ -109,7 +140,7 @@ class StringResourceWriterTest {
     assertThat(textExists(DEFAULT_STRINGS_FILE, NEW_KEY)).isFalse()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE)).isTrue()
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE)).isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(DEFAULT_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -120,8 +151,7 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, KOREAN_LOCALE))
-        .isTrue()
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, KOREAN_LOCALE)).isTrue()
 
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNotNull()
     assertThat(getText(KOREAN_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
@@ -133,8 +163,7 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, FRENCH_LOCALE))
-        .isTrue()
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, FRENCH_LOCALE)).isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -144,9 +173,7 @@ class StringResourceWriterTest {
   fun add_notTranslatable() {
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(
-            stringResourceWriter.add(
-                projectRule.project, resourceKey, NEW_VALUE, translatable = false))
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, translatable = false))
         .isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
@@ -159,7 +186,7 @@ class StringResourceWriterTest {
     val invalidXml = "<foo"
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, invalidXml)).isTrue()
+    assertThat(stringResourceWriter.add(project, resourceKey, invalidXml)).isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(invalidXml)
   }
@@ -168,12 +195,11 @@ class StringResourceWriterTest {
   fun add_specificFile() {
     val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
     assertThat(file).isNotNull()
-    val xmlFile = PsiManager.getInstance(projectRule.project).findFile(file!!) as XmlFile
+    val xmlFile = PsiManager.getInstance(project).findFile(file!!) as XmlFile
 
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(projectRule.project, resourceKey, NEW_VALUE, xmlFile))
-        .isTrue()
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, xmlFile)).isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -187,8 +213,7 @@ class StringResourceWriterTest {
 
     val insertBefore = StringResourceKey(KEY2, resourceDirectory)
     assertThat(
-            stringResourceWriter.add(
-                projectRule.project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore))
+            stringResourceWriter.add(project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore))
         .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
@@ -200,15 +225,13 @@ class StringResourceWriterTest {
   fun add_before_specificFile() {
     val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
     assertThat(file).isNotNull()
-    val xmlFile = PsiManager.getInstance(projectRule.project).findFile(file!!) as XmlFile
+    val xmlFile = PsiManager.getInstance(project).findFile(file!!) as XmlFile
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
     val insertBefore = StringResourceKey(KEY2, resourceDirectory)
-    assertThat(
-            stringResourceWriter.add(
-                projectRule.project, resourceKey, NEW_VALUE, xmlFile, insertBefore))
+    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, xmlFile, insertBefore))
         .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
@@ -233,8 +256,7 @@ class StringResourceWriterTest {
     val resourceItem = getResourceItem(KEY2, FRENCH_LOCALE)
     val attributeValue = "such a great attribute, dude!"
     assertThat(
-            stringResourceWriter.setAttribute(
-                projectRule.project, attributeName, attributeValue, resourceItem))
+            stringResourceWriter.setAttribute(project, attributeName, attributeValue, resourceItem))
         .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(attributeValue)
@@ -242,23 +264,20 @@ class StringResourceWriterTest {
     val nextAttributeValue = "This attribute is even better."
     assertThat(
             stringResourceWriter.setAttribute(
-                projectRule.project, attributeName, nextAttributeValue, resourceItem))
+                project, attributeName, nextAttributeValue, resourceItem))
         .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(nextAttributeValue)
 
     // Now show we can set to the empty string.
-    assertThat(
-            stringResourceWriter.setAttribute(
-                projectRule.project, attributeName, value = "", resourceItem))
+    assertThat(stringResourceWriter.setAttribute(project, attributeName, value = "", resourceItem))
         .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEmpty()
 
     // Now remove by setting to null.
     assertThat(
-            stringResourceWriter.setAttribute(
-                projectRule.project, attributeName, value = null, resourceItem))
+            stringResourceWriter.setAttribute(project, attributeName, value = null, resourceItem))
         .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isNull()
@@ -277,7 +296,7 @@ class StringResourceWriterTest {
     val attributeValue = "such a great attribute, dude!"
     assertThat(
             stringResourceWriter.setAttribute(
-                projectRule.project,
+                project,
                 attributeName,
                 attributeValue,
                 listOf(frenchResourceItem, englishResourceItem)))
@@ -290,7 +309,7 @@ class StringResourceWriterTest {
     val nextAttributeValue = "This attribute is even better."
     assertThat(
             stringResourceWriter.setAttribute(
-                projectRule.project,
+                project,
                 attributeName,
                 nextAttributeValue,
                 listOf(frenchResourceItem, englishResourceItem)))
@@ -303,7 +322,7 @@ class StringResourceWriterTest {
     // Now show we can set to the empty string.
     assertThat(
             stringResourceWriter.setAttribute(
-                projectRule.project,
+                project,
                 attributeName,
                 value = "",
                 listOf(frenchResourceItem, englishResourceItem)))
@@ -315,7 +334,7 @@ class StringResourceWriterTest {
     // Now remove by setting to null.
     assertThat(
             stringResourceWriter.setAttribute(
-                projectRule.project,
+                project,
                 attributeName,
                 value = null,
                 listOf(frenchResourceItem, englishResourceItem)))
@@ -329,16 +348,14 @@ class StringResourceWriterTest {
   fun delete() {
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
 
-    assertThat(
-            stringResourceWriter.delete(projectRule.project, getResourceItem(KEY2, FRENCH_LOCALE)))
-        .isTrue()
+    assertThat(stringResourceWriter.delete(project, getResourceItem(KEY2, FRENCH_LOCALE))).isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
   }
 
   @Test
   fun delete_emptyCollection() {
-    assertThat(stringResourceWriter.delete(projectRule.project, listOf())).isFalse()
+    assertThat(stringResourceWriter.delete(project, listOf())).isFalse()
   }
 
   @Test
@@ -348,11 +365,150 @@ class StringResourceWriterTest {
 
     assertThat(
             stringResourceWriter.delete(
-                projectRule.project,
+                project,
                 listOf(
                     getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))))
         .isTrue()
 
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_dumb_cancel() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    respondToNextDialogWith(Messages.CANCEL)
+
+    dumbSafeDelete(getResourceItem(KEY2, FRENCH_LOCALE))
+
+    assertThat(dialogMessages).hasSize(1)
+    assertThat(dialogMessages[0]).startsWith("Delete XML tag \"string\"?")
+    // The resource should NOT be deleted because we canceled.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+  }
+
+  @Test
+  fun safeDelete_collection_dumb_cancel() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
+    respondToNextDialogWith(Messages.CANCEL)
+
+    dumbSafeDelete(
+        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE)))
+
+    assertThat(dialogMessages).hasSize(1)
+    assertThat(dialogMessages[0]).startsWith("Delete 2 XML tags?")
+    // The resources should NOT be deleted because we canceled.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
+  }
+
+  @Test
+  fun safeDelete_dumb_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    respondToNextDialogWith(Messages.OK)
+
+    dumbSafeDelete(getResourceItem(KEY2, FRENCH_LOCALE))
+
+    assertThat(dialogMessages).hasSize(1)
+    assertThat(dialogMessages[0]).startsWith("Delete XML tag \"string\"?")
+    // The resource should be deleted because we clicked "OK".
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_collection_dumb_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
+    respondToNextDialogWith(Messages.OK)
+
+    dumbSafeDelete(
+        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE)))
+
+    assertThat(dialogMessages).hasSize(1)
+    assertThat(dialogMessages[0]).startsWith("Delete 2 XML tags?")
+    // The resources should be deleted because we clicked "OK".
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_smart_cancel() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    enableHeadlessDialogs(project)
+
+    // This won't finish normally because the callback to resume the continuation is not invoked.
+    assertFailsWith<TimeoutCancellationException> {
+      interactWithSafeDeleteDialog(getResourceItem(KEY2, FRENCH_LOCALE)) {
+        it.getSafeDeleteCheckbox().isSelected = true
+        it.click("Cancel")
+      }
+    }
+
+    // Resource should NOT be deleted.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+  }
+
+  @Test
+  fun safeDelete_smart_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    enableHeadlessDialogs(project)
+
+    interactWithSafeDeleteDialog(getResourceItem(KEY2, FRENCH_LOCALE)) {
+      it.getSafeDeleteCheckbox().isSelected = true
+      it.click("OK")
+    }
+
+    // Resource should be deleted.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_smart_collection_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
+    enableHeadlessDialogs(project)
+
+    interactWithSafeDeleteDialog(
+        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))) {
+      it.getSafeDeleteCheckbox().isSelected = true
+      it.click("OK")
+    }
+
+    // Resources should be deleted.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_smart_notSafe_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    enableHeadlessDialogs(project)
+
+    interactWithSafeDeleteDialog(getResourceItem(KEY2, FRENCH_LOCALE)) {
+      // Deselect the checkbox so that it runs a not-safe delete.
+      it.getSafeDeleteCheckbox().isSelected = false
+      it.click("OK")
+    }
+
+    // Resource should be deleted, no further confirmation needed.
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun safeDelete_smart_collection_notSafe_ok() {
+    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
+    assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
+    enableHeadlessDialogs(project)
+
+    interactWithSafeDeleteDialog(
+        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))) {
+      // Deselect the checkbox so that it runs a not-safe delete.
+      it.getSafeDeleteCheckbox().isSelected = false
+      it.click("OK")
+    }
+
+    // Resources should be deleted, no further confirmation needed.
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
     assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
   }
@@ -363,7 +519,7 @@ class StringResourceWriterTest {
 
     assertThat(
             stringResourceWriter.setItemText(
-                projectRule.project, getResourceItem(KEY2, FRENCH_LOCALE), "L'Étranger"))
+                project, getResourceItem(KEY2, FRENCH_LOCALE), "L'Étranger"))
         .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""L\'Étranger""")
@@ -375,9 +531,7 @@ class StringResourceWriterTest {
 
     assertThat(
             stringResourceWriter.setItemText(
-                projectRule.project,
-                getResourceItem(KEY2, FRENCH_LOCALE),
-                "<![CDATA[L'Étranger]]>"))
+                project, getResourceItem(KEY2, FRENCH_LOCALE), "<![CDATA[L'Étranger]]>"))
         .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("<![CDATA[L'Étranger]]>")
@@ -389,9 +543,7 @@ class StringResourceWriterTest {
 
     assertThat(
             stringResourceWriter.setItemText(
-                projectRule.project,
-                getResourceItem(KEY2, FRENCH_LOCALE),
-                "<xliff:g>L'Étranger</xliff:g>"))
+                project, getResourceItem(KEY2, FRENCH_LOCALE), "<xliff:g>L'Étranger</xliff:g>"))
         .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""<xliff:g>L\'Étranger</xliff:g>""")
@@ -401,9 +553,7 @@ class StringResourceWriterTest {
   fun setItemText_deletesIfValueEmpty() {
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
 
-    assertThat(
-            stringResourceWriter.setItemText(
-                projectRule.project, getResourceItem(KEY2, FRENCH_LOCALE), ""))
+    assertThat(stringResourceWriter.setItemText(project, getResourceItem(KEY2, FRENCH_LOCALE), ""))
         .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
@@ -417,7 +567,7 @@ class StringResourceWriterTest {
 
   private fun getText(path: String, name: String): String {
     val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
-    val psiFile = PsiManager.getInstance(projectRule.project).findFile(virtualFile)!!
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile)!!
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag
         .findSubTags("string")
@@ -428,7 +578,7 @@ class StringResourceWriterTest {
   }
   private fun getAttribute(path: String, name: String, attribute: String): String? {
     val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
-    val psiFile = PsiManager.getInstance(projectRule.project).findFile(virtualFile)!!
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile)!!
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag
         .findSubTags("string")
@@ -438,7 +588,7 @@ class StringResourceWriterTest {
 
   private fun textExists(path: String, name: String): Boolean {
     val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
-    val psiFile = PsiManager.getInstance(projectRule.project).findFile(virtualFile)!!
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile)!!
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag.findSubTags("string").any { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
   }
@@ -449,6 +599,49 @@ class StringResourceWriterTest {
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag.findSubTags("string").indexOfFirst {
       name == it.getAttributeValue(SdkConstants.ATTR_NAME)
+    }
+  }
+
+  private fun respondToNextDialogWith(dialogAnswer: Int) {
+    val testDialog = TestDialog {
+      dialogMessages.add(it)
+      dialogAnswer
+    }
+    TestDialogManager.setTestDialog(testDialog)
+  }
+
+  private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
+  @OptIn(ExperimentalTime::class)
+  private fun dumbSafeDelete(items: List<ResourceItem>) {
+    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
+    runBlocking {
+      withTimeout(Duration.seconds(2)) {
+        suspendCancellableCoroutine<Unit> { cont ->
+          stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+        }
+      }
+    }
+  }
+
+  private fun interactWithSafeDeleteDialog(
+      item: ResourceItem,
+      dialogInteraction: (DialogWrapper) -> Unit
+  ) = interactWithSafeDeleteDialog(listOf(item), dialogInteraction)
+
+  @OptIn(ExperimentalTime::class)
+  private fun interactWithSafeDeleteDialog(
+      items: List<ResourceItem>,
+      dialogInteraction: (DialogWrapper) -> Unit
+  ) {
+    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = false
+    runBlocking {
+      withTimeout(Duration.seconds(20)) {
+        suspendCancellableCoroutine<Unit> { cont ->
+          createModalDialogAndInteractWithIt({
+            stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+          }) { dialogInteraction.invoke(it) }
+        }
+      }
     }
   }
 
@@ -465,5 +658,26 @@ class StringResourceWriterTest {
     private const val NEW_KEY = "new_key"
     private const val NEW_VALUE = "Hey, I'm a new value!"
     private const val NEW_VALUE_ESCAPED = """Hey, I\'m a new value!"""
+    private val SAFE_DELETE_CHECKBOX_MSG =
+        IdeBundle.message("checkbox.safe.delete.with.usage.search")
+            .replace("${BundleBase.MNEMONIC}", "")
+
+    private fun DialogWrapper.click(text: String) {
+      getTextComponent<JButton>(text) { it.text }.doClick()
+    }
+
+    private fun DialogWrapper.getSafeDeleteCheckbox(): JCheckBox =
+        getTextComponent(SAFE_DELETE_CHECKBOX_MSG) { it.text }
+
+    private inline fun <reified T> DialogWrapper.getTextComponent(
+        text: String,
+        getText: (T) -> String
+    ): T {
+      val components = TreeWalker(rootPane).descendants().toList()
+      return TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull {
+        getText(it) == text
+      }
+          ?: fail("${T::class.simpleName} '$text' not found in $components")
+    }
   }
 }

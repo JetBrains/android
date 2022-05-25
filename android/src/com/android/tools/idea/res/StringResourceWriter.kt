@@ -23,9 +23,11 @@ import com.android.ide.common.resources.escape.xml.CharacterDataEscaper
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.editors.strings.model.StringResourceKey
+import com.intellij.ide.util.DeleteHandler
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -33,6 +35,10 @@ import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlTagChild
+import com.intellij.refactoring.RefactoringBundle
+import com.intellij.refactoring.safeDelete.SafeDeleteDialog
+import com.intellij.refactoring.safeDelete.SafeDeleteProcessor
+import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.IncorrectOperationException
 import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
@@ -162,15 +168,27 @@ interface StringResourceWriter {
 
   /**
    * Deletes the given [item] from the string resource file.
-   *
    * @return `true` iff the [item] was successfully deleted
    */
   fun delete(project: Project, item: ResourceItem): Boolean = delete(project, listOf(item))
   /**
-   * Deletes all the given [items] from the string resource file.
+   * Deletes all the given [items] from the string resource files.
    * @return `true` iff the [items] were successfully deleted and [items] was not empty
    */
   fun delete(project: Project, items: Collection<ResourceItem>): Boolean
+
+  /**
+   * Attempts to safely delete the given [item] from the string resource file.
+   * @param successCallback callback invoked iff the delete operation completes successfully
+   */
+  fun safeDelete(project: Project, item: ResourceItem, successCallback: Runnable) {
+    safeDelete(project, listOf(item), successCallback)
+  }
+  /**
+   * Attempts to safely delete the given [items] from the string resource files.
+   * @param successCallback callback invoked iff the delete operation completes successfully
+   */
+  fun safeDelete(project: Project, items: Collection<ResourceItem>, successCallback: Runnable)
 
   /**
    * Sets the text of the given [item] to be [value].
@@ -396,6 +414,57 @@ private object StringResourceWriterImpl : StringResourceWriter {
     }
 
     return true
+  }
+
+  override fun safeDelete(
+      project: Project,
+      items: Collection<ResourceItem>,
+      successCallback: Runnable
+  ) {
+    // TODO(b/232444069): Long term this probably shouldn't be showing dialogs, etc. But right now
+    //  it's too difficult to separate out the confirmation dialog for the first dumb delete.
+
+    val xmlTags = items.mapNotNull { item -> getItemTag(project, item) }
+    if (xmlTags.isEmpty()) return
+
+    if (!CommonRefactoringUtil.checkReadOnlyStatusRecursively(
+        project, xmlTags, /* notifyOnFail= */ true)) {
+      return
+    }
+
+    // If we don't have usable indices, we can't really do a smart delete, so just do a normal
+    // delete with a warning and confirmation dialog.
+    if (DumbService.getInstance(project).isDumb) {
+      DeleteHandler.deletePsiElement(xmlTags.toTypedArray(), project)
+      successCallback.run()
+      return
+    }
+
+    var safeDeleteSelected = false
+    val dialog =
+        object : SafeDeleteDialog(project, xmlTags.toTypedArray(), { safeDeleteSelected = true }) {
+          init {
+            title = RefactoringBundle.message(/* key= */ "delete.title")
+          }
+
+          override fun isDelete() = true
+        }
+
+    if (!dialog.showAndGet()) return
+
+    if (safeDeleteSelected) {
+      SafeDeleteProcessor.createInstance(
+              project,
+              successCallback,
+              xmlTags.toTypedArray(),
+              dialog.isSearchInComments,
+              dialog.isSearchForTextOccurences,
+              /* askForAccessors= */ true)
+          .run()
+    } else {
+      delete(project, items)
+      successCallback.run()
+    }
   }
 
   override fun setItemText(project: Project, item: ResourceItem, value: String): Boolean {
