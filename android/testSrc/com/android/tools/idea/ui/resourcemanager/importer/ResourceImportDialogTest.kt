@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.ui.resourcemanager.model.getDesignAssets
+import com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationPanel
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.application.runInEdt
@@ -82,15 +83,18 @@ class ResourceImportDialogTest {
     val row0 = fileRows[0]
     val combos = findComponentsOfType(row0, JComboBox::class.java)
     assertEquals(2, combos.size)
-    assertEquals(DensityQualifier::class, (combos[0].selectedItem::class))
+    assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos[0].selectedItem::class))
+    assertEquals(DensityQualifier::class, ((combos[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
     assertEquals(Density.XHIGH, combos[1].selectedItem)
 
     val row1 = fileRows[1]
     val combos1 = findComponentsOfType(row1, JComboBox::class.java)
     assertEquals(4, combos1.size)
-    assertEquals(NightModeQualifier::class, (combos1[0].selectedItem::class))
+    assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos1[0].selectedItem::class))
+    assertEquals(NightModeQualifier::class, ((combos1[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
     assertEquals(NightMode.NIGHT, combos1[1].selectedItem)
-    assertEquals(DensityQualifier::class, (combos1[2].selectedItem::class))
+    assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos1[2].selectedItem::class))
+    assertEquals(DensityQualifier::class, ((combos1[2].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
     assertEquals(Density.MEDIUM, combos1[3].selectedItem)
   }
 
