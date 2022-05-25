@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
@@ -29,15 +37,8 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ListTableModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -46,8 +47,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.sdklib.repository.targets.SystemImage.*;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Displays a list of system images currently installed and allows selection of one
@@ -212,7 +224,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : defaultSystemImage;
     for (int index = 0; index < myTable.getRowCount(); index++) {
       SystemImageDescription desc = myModel.getRowValue(myTable.convertRowIndexToModel(index));
-      if (desc.equals(toFind)) {
+      if (desc.equals(toFind) || (toFind != null && desc.downloadedFrom(toFind))) {
         best = desc;
         break;
       }

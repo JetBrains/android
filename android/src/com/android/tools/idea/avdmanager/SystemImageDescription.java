@@ -106,6 +106,19 @@ public final class SystemImageDescription {
            Objects.equal(myRemotePackage, other.myRemotePackage);
   }
 
+  /**
+   * Checks if this corresponds to the downloaded system image of obj.
+   */
+  public boolean downloadedFrom(@NotNull SystemImageDescription other) {
+    if (other.getRemotePackage() == null || myRemotePackage != null) {
+      return false;
+    }
+    return Objects.equal(this.getName(), other.getName()) &&
+           Objects.equal(this.getVendor(), other.getVendor()) &&
+           Objects.equal(this.getAbiType(), other.getAbiType()) &&
+           Objects.equal(this.getTag(), other.getTag());
+  }
+
   @NotNull
   public AndroidVersion getVersion() {
     return mySystemImage.getAndroidVersion();

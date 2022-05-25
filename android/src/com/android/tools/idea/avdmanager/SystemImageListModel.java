@@ -349,6 +349,9 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
             @Override
             public void mouseClicked(MouseEvent e) {
               downloadImage(image);
+              // Clicking the download link should also select the table
+              // row that the download link is located in.
+              table.changeSelection(row, column, false, false);
             }
           });
 
