@@ -156,7 +156,7 @@ class CompactResourcePickerTest {
       LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
     val panel = CompactResourcePicker(
       AndroidFacet.getInstance(rule.module)!!,
-      configuration,
+      configuration.file,
       configuration.resourceResolver,
       ResourceType.COLOR,
       resourcePickerSources,

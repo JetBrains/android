@@ -40,6 +40,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
@@ -90,7 +91,7 @@ private const val PANEL_HEIGHT = 400
  */
 class CompactResourcePicker(
   facet: AndroidFacet,
-  configuration: Configuration,
+  contextFile: VirtualFile?,
   resourceResolver: ResourceResolver,
   resourceType: ResourceType,
   selectedPickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
@@ -209,7 +210,7 @@ class CompactResourcePicker(
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(JBUIScale.scale(1), 0, 0, 0, JBUI.CurrentTheme.Popup.separatorColor()),
       componentPadding)
-    val action = BrowseAction(facet, resourceType, configuration, sources.contains(ResourcePickerSources.THEME_ATTR),
+    val action = BrowseAction(facet, resourceType, contextFile, sources.contains(ResourcePickerSources.THEME_ATTR),
                               selectedResourceCallback, resourcePickerDialogOpenedCallback)
     add(ActionButtonWithText(action,
                              action.templatePresentation,
@@ -310,7 +311,7 @@ class CompactResourcePicker(
 private class BrowseAction(
   facet: AndroidFacet,
   resourceType: ResourceType,
-  configuration: Configuration,
+  contextFile: VirtualFile?,
   showThemeAttributes: Boolean,
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit
@@ -326,7 +327,7 @@ private class BrowseAction(
       true,
       false,
       showThemeAttributes,
-      configuration.file
+      contextFile
     )
     resourcePickerDialogOpenedCallback()
     if (resourcePickerDialog.showAndGet()) {
