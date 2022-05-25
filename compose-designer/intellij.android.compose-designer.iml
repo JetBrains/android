@@ -68,6 +68,7 @@
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.refactorings" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />

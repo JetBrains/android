@@ -21,10 +21,9 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-plugin-classpath" level="project" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
-    <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
@@ -48,6 +47,10 @@
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="kotlin.base.project-structure" />
+    <orderEntry type="module" module-name="kotlin.base.resources" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.refactorings" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.platform.core" />

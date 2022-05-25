@@ -26,9 +26,9 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.ui.JBColor
 import com.intellij.util.ArrayUtil
+import org.jetbrains.kotlin.base.util.module
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.js.isJs

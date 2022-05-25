@@ -161,7 +161,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
@@ -248,7 +248,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(

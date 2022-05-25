@@ -57,6 +57,8 @@
     <orderEntry type="module" module-name="intellij.platform.remote.core" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="kotlin.base.facet" />
     <orderEntry type="module" module-name="kotlin.base.plugin" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />

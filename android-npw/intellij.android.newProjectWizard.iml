@@ -46,6 +46,7 @@
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="kotlin.base.plugin" />
+    <orderEntry type="module" module-name="kotlin.base.resources" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />

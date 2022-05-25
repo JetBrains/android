@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.project.languageVersionSettings
+import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.load.kotlin.toSourceElement

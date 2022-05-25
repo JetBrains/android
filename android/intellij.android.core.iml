@@ -213,6 +213,9 @@
     <orderEntry type="module" module-name="kotlin.j2k.services" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
     <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="kotlin.base.facet" />
+    <orderEntry type="module" module-name="kotlin.base.project-structure" />
+    <orderEntry type="module" module-name="kotlin.base.resources" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
