@@ -157,6 +157,7 @@ studio_plugin(
             "//tools/adt/idea/room:intellij.android.room",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/android-test-retention:intellij.android.testRetention",
+            "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",

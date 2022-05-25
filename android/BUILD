@@ -124,6 +124,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
+        "//tools/adt/idea/threading-checker:intellij.android.threading-checker[module]",
     ],
 )
 

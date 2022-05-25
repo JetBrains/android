@@ -16,9 +16,9 @@
 package com.android.tools.idea.instrumentation.threading
 
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
-import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.components.service
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -50,18 +50,22 @@ class ThreadingCheckerHookImpl : ThreadingCheckerHook {
     val annotatedMethodIndex = 4
     val methodSignature =
       stackTrace[annotatedMethodIndex].className + "#" + stackTrace[annotatedMethodIndex].methodName
-    threadingViolations.computeIfAbsent(methodSignature) { AtomicLong() }.incrementAndGet()
+    val violationCount = threadingViolations.computeIfAbsent(methodSignature) { AtomicLong() }.incrementAndGet()
     val loggedStackTrace = Stream.of(*stackTrace).skip(annotatedMethodIndex.toLong()).map { it.toString() }
       .collect(Collectors.joining("\n  "))
     logger.warn(
       "$warningMessage\nViolating method: $methodSignature\nStack trace:\n$loggedStackTrace"
     )
-  }
 
-  companion object {
-    @JvmStatic
-    fun initialize() {
-      ThreadingCheckerTrampoline.installHook(service<ThreadingCheckerHookImpl>())
+    // Only show one notification per method signature
+    if (violationCount == 1L) {
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup("Threading Violation Notification")
+        .createNotification(
+          "Threading violation",
+          "$warningMessage<p>Violating method: $methodSignature",
+          NotificationType.ERROR)
+        .notify(null)
     }
   }
 }
