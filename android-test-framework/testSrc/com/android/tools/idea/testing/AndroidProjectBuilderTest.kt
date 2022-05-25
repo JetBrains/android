@@ -82,7 +82,9 @@ class AndroidProjectBuilderTest {
     expect.that(model.variants.map { it.name })
       .containsAllOf("firstAbcSecondAbcDebug", "firstAbcSecondAbcRelease", "firstAbcSecondXyzDebug", "firstAbcSecondXyzRelease",
                      "firstXyzSecondAbcDebug", "firstXyzSecondAbcRelease", "firstXyzSecondXyzDebug", "firstXyzSecondXyzRelease")
-    expect.that(model.variants.map { it.testApplicationId })
+    expect.that(model.variants.map { it.androidTestArtifact?.applicationId })
+      .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
+    expect.that(model.variants.map { it.deprecatedPreMergedTestApplicationId })
       .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
     expect.that(model.variants.map { it.versionNameWithSuffix })
       .containsAllOf("firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstXyzSuffix", "firstXyzSuffix",

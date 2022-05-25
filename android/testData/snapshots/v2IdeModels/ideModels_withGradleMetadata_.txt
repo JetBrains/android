@@ -424,6 +424,7 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : come.example.with.gradle.metadata
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -483,6 +484,7 @@ MODULE                        : withGradleMetadata.app
                     - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2
                     - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
                     - provided                    : org.jetbrains:annotations:13.0
+                ApplicationId                 : come.example.with.gradle.metadata.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

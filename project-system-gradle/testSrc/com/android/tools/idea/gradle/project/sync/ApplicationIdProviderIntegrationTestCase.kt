@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.SyncIssue
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Expect
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 
 internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
@@ -37,14 +41,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.RUN_CONFIG_ACTIVITY,
         executeMakeBeforeRun = false,
       ),
-      expectPackageName = mapOf(
-        AGP_CURRENT to "com.example.unittest",
-        AGP_35 to "from.gradle.debug",
-        AGP_40 to "from.gradle.debug",
-      ),
-      expectTestPackageName = mapOf(
-        AGP_CURRENT to "(null)",
-      )
+      expectPackageName = "from.gradle.debug",
+      expectTestPackageName = "(null)",
     ),
     def(
       stackMarker = { it() },
@@ -60,14 +58,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
       ),
-      expectPackageName = mapOf(
-        AGP_CURRENT to "one.name",
-        AGP_35 to "one.name.defaultConfig.debug",
-        AGP_40 to "one.name.defaultConfig.debug",
-      ),
-      expectTestPackageName = mapOf(
-        AGP_CURRENT to "(null)"
-      )
+      expectPackageName = "one.name.defaultConfig.debug",
+      expectTestPackageName = "(null)"
     ),
     def(
       stackMarker = { it() },
@@ -102,7 +94,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         executeMakeBeforeRun = false,
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
-      expectPackageName = "one.name",
+      expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "(null)"
     ),
     def(
@@ -130,9 +122,37 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
         testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
+      IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
       expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "one.dynamic.name.debug.test"
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API_BROKEN,
+        executeMakeBeforeRun = false, // Build is broken by the application ID not being available
+        ),
+      IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
+      expectPackageName = mapOf(
+        AGP_CURRENT to "ApkProvisionException*> [Application_ID_broken_in_variant_API.app.main] Unable to obtain main package from manifest.",
+        AGP_72 to "one.name", // TODO(b/231946504): This should also be an error
+      ),
+      expectTestPackageName = mapOf(
+        AGP_CURRENT to "(null)",
+        AGP_72 to "(null)",
+      ),
+      expectSyncIssueContent = mapOf(
+        AGP_CURRENT to listOf(
+          "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
+          "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
+          "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+        ),
+        AGP_72 to listOf(
+          "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
+          "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
+          "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+        ),
+      )
     ),
     def(
       stackMarker = { it() },
@@ -266,7 +286,17 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_35) error("instant apps are not supported by this version of AGP. ") },
       expectPackageName = "com.example.instantapp",
-      expectTestPackageName = "(null)"
+      expectTestPackageName = "(null)",
+      expectSyncIssueContent = listOf(
+        "The com.android.feature plugin is deprecated and will be removed by the end of 2019. " +
+        "Please switch to using dynamic-features or libraries. " +
+        "For more information on converting your application to using Android App Bundles, please visit " +
+        "https://developer.android.com/topic/google-play-instant/feature-module-migration",
+        "The com.android.instantapp plugin is deprecated and will be removed by the end of 2019. " +
+        "Please switch to using the Android App Bundle to build your instant app. " +
+        "For more information on migrating to Android App Bundles, please visit " +
+        "https://developer.android.com/topic/google-play-instant/feature-module-migration",
+      ),
     )
   )
 
@@ -276,12 +306,14 @@ private fun def(
   IGNORE: TestConfiguration.() -> Unit = { },
   expectPackageName: String,
   expectTestPackageName: String? = null,
-) = ApplicationIdProviderTest(
+  expectSyncIssueContent: List<String> = emptyList(),
+  ) = ApplicationIdProviderTest(
   scenario = scenario,
   IGNORE = IGNORE,
   expectPackageName = mapOf(AGP_CURRENT to expectPackageName),
   expectTestPackageName = expectTestPackageName?.let { mapOf(AGP_CURRENT to expectTestPackageName) } ?: emptyMap(),
-  stackMarker = stackMarker
+  stackMarker = stackMarker,
+  expectSyncIssueContent = mapOf(AGP_CURRENT to expectSyncIssueContent),
 )
 
 private fun def(
@@ -290,12 +322,14 @@ private fun def(
   IGNORE: TestConfiguration.() -> Unit = { },
   expectPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
   expectTestPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String> = emptyMap(),
+  expectSyncIssueContent: Map<AgpVersionSoftwareEnvironmentDescriptor, List<String>> = emptyMap(),
 ) = ApplicationIdProviderTest(
   scenario = scenario,
   IGNORE = IGNORE,
   expectPackageName = expectPackageName,
   expectTestPackageName = expectTestPackageName,
-  stackMarker = stackMarker
+  stackMarker = stackMarker,
+  expectSyncIssueContent = expectSyncIssueContent,
 )
 
 
@@ -305,6 +339,7 @@ private data class ApplicationIdProviderTest(
   override val stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
   val expectPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
   val expectTestPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
+  val expectSyncIssueContent: Map<AgpVersionSoftwareEnvironmentDescriptor, List<String>>,
 ) : ProviderTestDefinition {
 
   override fun verifyExpectations(
@@ -322,6 +357,8 @@ private data class ApplicationIdProviderTest(
     with(valueNormalizers) {
       expect.that(packageName.toTestString()).isEqualTo(expectPackageName.forVersion())
       expect.that(testPackageName.toTestString()).isEqualTo(expectTestPackageName.forVersion())
+      val syncIssueMessages = ModuleManager.getInstance(project).modules.flatMap { it.syncIssues() }.map { it.message }
+      expect.that(syncIssueMessages).containsExactlyElementsIn(expectSyncIssueContent.forVersion() ?: emptyList<String>())
     }
   }
 }

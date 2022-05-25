@@ -1377,6 +1377,7 @@ MODULE                        : navgraph.app
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                ApplicationId                 : com.example.navgraph
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1754,6 +1755,7 @@ MODULE                        : navgraph.app
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                     - provided                    : androidx.viewpager:viewpager:1.0.0@aar
                     - provided                    : com.google.android.material:material:1.0.0@aar
+                ApplicationId                 : com.example.navgraph.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2701,6 +2703,7 @@ MODULE                        : navgraph.lib
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

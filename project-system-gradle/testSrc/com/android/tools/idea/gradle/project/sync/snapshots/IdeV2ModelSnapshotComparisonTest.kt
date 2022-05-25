@@ -194,12 +194,15 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
 /**
  * we skip:
  * [IdeAndroidLibrary.lintJar] because in V2 we do check that the jar exists before populating the property.
+ * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedApplicationId] as not present in V2
+ * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedTestApplicationId] as not present in V2
  * [ModelSyncFile] as these are not present in V1.
  * [runetimeClasspath] as it is not available in V1.
- *
  */
 private val PROPERTIES_TO_SKIP = setOf(
   "/Dependencies/compileClasspath/androidLibraries/target/lintJar",
+  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedApplicationId",
+  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId"
 )
 
 private val ENTITIES_TO_SKIP = setOf(

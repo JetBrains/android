@@ -73,8 +73,6 @@ interface IdeVariantCore : IdeVariantHeader {
    */
   val manifestPlaceholders: Map<String, String>
 
-  val testApplicationId: String?
-
   /**
    * The test instrumentation runner. This is only the value set on this product flavor.
    * TODO: make test instrumentation runner available through the model.
@@ -88,6 +86,7 @@ interface IdeVariantCore : IdeVariantHeader {
 
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   val deprecatedPreMergedApplicationId: String?
+  val deprecatedPreMergedTestApplicationId: String?
 
   /**
    * Files listing any D8 backported desugared methods or core library desugared methods.

@@ -30,6 +30,7 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibrary
@@ -54,6 +55,8 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.LinkedList
 import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
@@ -203,10 +206,14 @@ internal class AndroidExtraModelProviderWorker(
                                        ?: error("Cannot get V2AndroidProject model for ${it.gradleProject}")
                   val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
                                    ?: error("Cannot get AndroidDsl model for ${it.gradleProject}")
+                  val modelIncludesApplicationId = GradleVersion.tryParse(it.versions.agp)?.agpModelIncludesApplicationId == true
+                  val legacyApplicationIdModel = if (!modelIncludesApplicationId) {
+                    controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
+                  } else { null }
 
                   val androidProjectResult =
                     AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions,
-                                                   androidDsl)
+                                                   androidDsl, legacyApplicationIdModel)
 
                   // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                   val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
@@ -228,8 +235,10 @@ internal class AndroidExtraModelProviderWorker(
                     AndroidProject::class.java,
                     shouldBuildVariant = false
                   )
+                  val legacyApplicationIdModel = controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
+
                   if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
-                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
+                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject, legacyApplicationIdModel)
 
                     val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
                     val nativeAndroidProject: NativeAndroidProject? =
@@ -519,17 +528,21 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   sealed class AndroidProjectResult {
-    class V1Project(val modelCache: ModelCache.V1, androidProject: AndroidProject) : AndroidProjectResult() {
+    class V1Project(
+      val modelCache: ModelCache.V1,
+      androidProject: AndroidProject,
+      override val legacyApplicationIdModel: LegacyApplicationIdModel?,
+    ) : AndroidProjectResult() {
       override val buildName: String? = null
       override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
       override val ideAndroidProject: IdeAndroidProjectImpl = modelCache.androidProjectFrom(androidProject)
       override val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
       override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")
-      override val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") safeGet(androidProject::getSyncIssues, null)
+      val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") safeGet(androidProject::getSyncIssues, null)
       val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
 
-      override fun createVariantFetcher(): IdeVariantFetcher = v1VariantFetcher(modelCache)
+      override fun createVariantFetcher(): IdeVariantFetcher = v1VariantFetcher(modelCache, legacyApplicationIdModel)
     }
 
     class V2Project(
@@ -537,7 +550,8 @@ internal class AndroidExtraModelProviderWorker(
       basicAndroidProject: BasicAndroidProject,
       androidProject: V2AndroidProject,
       modelVersions: Versions,
-      androidDsl: AndroidDsl
+      androidDsl: AndroidDsl,
+      override val legacyApplicationIdModel: LegacyApplicationIdModel?,
     ) : AndroidProjectResult() {
       override val buildName: String = basicAndroidProject.buildName
       override val agpVersion: String = modelVersions.agp
@@ -553,6 +567,7 @@ internal class AndroidExtraModelProviderWorker(
             androidProject = ideAndroidProject,
             basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
             variant = it,
+            legacyApplicationIdModel = legacyApplicationIdModel,
             modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion)
           )
         }
@@ -562,7 +577,6 @@ internal class AndroidExtraModelProviderWorker(
       override val defaultVariantName: String? =
         // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
         basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
-      override val syncIssues: Collection<SyncIssue>? = null
       val androidVariantResolver: AndroidVariantResolver = buildVariantNameResolver(ideAndroidProject, v2Variants)
 
       override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants)
@@ -573,8 +587,8 @@ internal class AndroidExtraModelProviderWorker(
     abstract val ideAndroidProject: IdeAndroidProjectImpl
     abstract val allVariantNames: Set<String>
     abstract val defaultVariantName: String?
-    abstract val syncIssues: Collection<SyncIssue>?
     abstract fun createVariantFetcher(): IdeVariantFetcher
+    abstract val legacyApplicationIdModel: LegacyApplicationIdModel?
   }
 
   private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
@@ -639,7 +653,9 @@ internal class AndroidExtraModelProviderWorker(
                   controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
 
                 if (syncIssues != null) {
-                  module.setSyncIssues(syncIssues)
+                  // These would have been attached above if there is no separate sync issue model.
+                  val legacyApplicationIdModelProblems = (module as? AndroidModule)?.legacyApplicationIdModel.getProblemsAsSyncIssues()
+                  module.setSyncIssues(syncIssues + legacyApplicationIdModelProblems)
                 }
               },
               fetchesV1Models = true
@@ -649,8 +665,8 @@ internal class AndroidExtraModelProviderWorker(
             ActionToRun(
               fun(controller: BuildController) {
                 val syncIssues =
-                  controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
-
+                  controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData() ?: listOf()
+                val legacyApplicationIdModelProblems = module.legacyApplicationIdModel.getProblemsAsSyncIssues()
                 // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
                 val v2UnresolvedDependenciesIssues = module.unresolvedDependencies.map {
                   IdeSyncIssueImpl(
@@ -661,10 +677,7 @@ internal class AndroidExtraModelProviderWorker(
                     type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
                   )
                 }
-
-                if (syncIssues != null) {
-                  module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues)
-                }
+                module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyApplicationIdModelProblems)
               },
               fetchesV2Models = true,
               fetchesKotlinModels = false
@@ -888,6 +901,21 @@ private fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
   }
 }
 
+private fun Throwable.stackTraceAsMultiLineMessage(): List<String> =
+  StringWriter().use { stringWriter -> PrintWriter(stringWriter).use { printStackTrace(it) }; stringWriter.toString().split(System.lineSeparator()) }
+
+private fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIssue> {
+  return this?.problems.orEmpty().map { problem ->
+    IdeSyncIssueImpl(
+      message = problem.message ?: "Unknown error in LegacyApplicationIdModelBuilder",
+      data = null,
+      multiLineMessage = problem.stackTraceAsMultiLineMessage(),
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC
+    )
+  }
+}
+
 private fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
     IdeSyncIssueImpl(
@@ -929,12 +957,15 @@ private fun createAndroidModule(
     defaultVariantName = defaultVariantName,
     variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeAndroidProject = ideNativeAndroidProject,
-    nativeModule = ideNativeModule
+    nativeModule = ideNativeModule,
+    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
   )
 
   val syncIssues = androidProjectResult.syncIssues
   // It will be overridden if we receive something here but also a proper sync issues model later.
-  if (syncIssues != null) androidModule.setSyncIssues(syncIssues.toSyncIssueData())
+  if (syncIssues != null) {
+    androidModule.setSyncIssues(syncIssues.toSyncIssueData() + androidModule.legacyApplicationIdModel.getProblemsAsSyncIssues())
+  }
 
   return androidModule
 }
@@ -964,12 +995,9 @@ private fun createAndroidModule(
     defaultVariantName = defaultVariantName,
     androidVariantResolver = androidProjectResult.androidVariantResolver,
     variantFetcher = androidProjectResult.createVariantFetcher(),
-    nativeModule = ideNativeModule
+    nativeModule = ideNativeModule,
+    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
   )
-
-  val syncIssues = androidProjectResult.syncIssues
-  // It will be overridden if we receive something here but also a proper sync issues model later.
-  if (syncIssues != null) androidModule.setSyncIssues(syncIssues.toSyncIssueData())
 
   return androidModule
 }
@@ -989,7 +1017,7 @@ catch (ignored: UnsupportedOperationException) {
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-fun v1VariantFetcher(modelCache: ModelCache.V1): IdeVariantFetcher {
+fun v1VariantFetcher(modelCache: ModelCache.V1, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -999,7 +1027,7 @@ fun v1VariantFetcher(modelCache: ModelCache.V1): IdeVariantFetcher {
     val androidModuleId = ModuleId(module.gradleProject.path, module.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
     val adjustedVariantName = module.adjustForTestFixturesSuffix(configuration.variant)
     val variant = controller.findVariantModel(module, adjustedVariantName) ?: return null
-    return modelCache.variantFrom(module.androidProject, variant, module.agpVersion, androidModuleId)
+    return modelCache.variantFrom(module.androidProject, variant, legacyApplicationIdModel, module.agpVersion, androidModuleId, )
   }
 }
 

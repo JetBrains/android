@@ -397,6 +397,7 @@ MODULE                        : project.app
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -412,6 +413,7 @@ MODULE                        : project.app
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                     runtimeClasspath              : IdeDependenciesImpl
+                ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -448,6 +450,7 @@ MODULE                        : project.app
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

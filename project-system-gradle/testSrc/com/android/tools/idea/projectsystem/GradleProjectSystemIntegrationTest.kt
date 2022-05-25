@@ -155,16 +155,16 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
       switchVariant(project, ":app", "release")
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
+      expect.that(project.appModuleSystem().getTestPackageName()).isNull()
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
-      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
+      expect.that(project.libModuleSystem().getTestPackageName()).isNull()
 
       val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.ANDROID_TESTS) }
       expect.that(releaseBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
+      expect.that(project.appModuleSystem().getTestPackageName()).isNull()
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
-      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
+      expect.that(project.libModuleSystem().getTestPackageName()).isNull()
     }
   }
 

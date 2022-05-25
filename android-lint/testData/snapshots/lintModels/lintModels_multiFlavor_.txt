@@ -22,7 +22,7 @@ MODULE                        : MultiFlavor.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode               : DISABLED
         MainArtifact
-            ApplicationId                 :
+            ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
@@ -150,7 +150,7 @@ MODULE                        : MultiFlavor.app
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
-        ApplicationId                 :
+        ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]

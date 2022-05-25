@@ -49,6 +49,7 @@ class GradleApplicationIdProvider(
   private val variant: IdeVariant
 ) : ApplicationIdProvider {
 
+  /** Returns the application ID (manifest package attribute) of the main APK - the app to launch, or the app under test. */
   override fun getPackageName(): String {
 
     fun getBaseFeatureApplicationIdProvider(baseFeatureGetter: (AndroidFacet) -> Module?): ApplicationIdProvider {
@@ -81,6 +82,7 @@ class GradleApplicationIdProvider(
     return applicationId ?: getApplicationIdFromModelOrManifest(androidFacet)
   }
 
+  /* Returns the application ID (manifest package attribute) of the test APK, or null if none. */
   override fun getTestPackageName(): String? {
     if (!forTests) return null
 
@@ -93,7 +95,7 @@ class GradleApplicationIdProvider(
 
     val projectType = androidModel.androidProject.projectType
     if (projectType === PROJECT_TYPE_TEST) {
-      return variant.testApplicationId.nullize()
+      return variant.mainArtifact.applicationId.nullize()
              ?: androidFacet.getModuleSystem().getPackageName().nullize()
              ?: throw ApkProvisionException("[" + androidFacet.module.name + "] Unable to obtain test package.")
     }
@@ -101,7 +103,7 @@ class GradleApplicationIdProvider(
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name.
-    variant.testApplicationId?.let { return it }
+    variant.androidTestArtifact?.applicationId?.let { return it }
 
     return when (projectType) {
       PROJECT_TYPE_DYNAMIC_FEATURE, PROJECT_TYPE_LIBRARY -> getApplicationIdFromModelOrManifest(androidFacet) + DEFAULT_TEST_PACKAGE_SUFFIX

@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
+import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -168,7 +169,8 @@ sealed class AndroidModule constructor(
   val androidVariantResolver: AndroidVariantResolver,
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  private val nativeModule: IdeNativeModule?
+  private val nativeModule: IdeNativeModule?,
+  val legacyApplicationIdModel: LegacyApplicationIdModel?,
 ) : GradleModule(gradleProject) {
   val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
@@ -217,7 +219,8 @@ sealed class AndroidModule constructor(
     /** Old V1 native model. It's only set if [nativeModule] is not set. */
     nativeAndroidProject: IdeNativeAndroidProject?,
     /** New V2 native model. It's only set if [nativeAndroidProject] is not set. */
-    nativeModule: IdeNativeModule?
+    nativeModule: IdeNativeModule?,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
   ) : AndroidModule(
     agpVersion = agpVersion,
     buildName = buildName,
@@ -232,7 +235,8 @@ sealed class AndroidModule constructor(
     /** Old V1 model. It's only set if [nativeModule] is not set. */
     nativeAndroidProject = nativeAndroidProject,
     /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-    nativeModule = nativeModule
+    nativeModule = nativeModule,
+    legacyApplicationIdModel = legacyApplicationIdModel,
   )
 
   class V2(
@@ -245,7 +249,8 @@ sealed class AndroidModule constructor(
     defaultVariantName: String?,
     variantFetcher: IdeVariantFetcher,
     androidVariantResolver: AndroidVariantResolver,
-    nativeModule: IdeNativeModule?
+    nativeModule: IdeNativeModule?,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
   ) : AndroidModule(
     agpVersion = agpVersion,
     buildName = buildName,
@@ -258,7 +263,8 @@ sealed class AndroidModule constructor(
     androidVariantResolver = androidVariantResolver,
     /** Old V1 model. Not used with V2. */
     nativeAndroidProject = null,
-    nativeModule = nativeModule
+    nativeModule = nativeModule,
+    legacyApplicationIdModel = legacyApplicationIdModel,
   )
 
   override fun prepare(): DeliverableGradleModule {

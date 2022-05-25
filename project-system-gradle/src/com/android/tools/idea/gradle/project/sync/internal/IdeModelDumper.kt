@@ -232,7 +232,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("VersionCode") { ideVariant.versionCode?.toString() }
         prop("VersionNameSuffix") { ideVariant.versionNameSuffix }
         prop("VersionNameWithSuffix") { ideVariant.versionNameWithSuffix }
-        prop("TestApplicationId") { ideVariant.testApplicationId }
+        prop("DeprecatedPreMergedTestApplicationId") { ideVariant.deprecatedPreMergedTestApplicationId }
         prop("DeprecatedPreMergedApplicationId") { ideVariant.deprecatedPreMergedApplicationId }
         ideVariant.proguardFiles.forEach { prop("ProguardFiles") { it.path.toPrintablePath() } }
         ideVariant.consumerProguardFiles.forEach { prop("ConsumerProguardFiles") { it.path.toPrintablePath() } }
@@ -296,6 +296,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 
     private fun dump(ideAndroidArtifact: IdeAndroidArtifact) {
       dump(ideAndroidArtifact as IdeBaseArtifact) // dump the IdeBaseArtifact part first.
+      prop("ApplicationId") { ideAndroidArtifact.applicationId }
       prop("SigningConfigName") { ideAndroidArtifact.signingConfigName }
       prop("IsSigned") { ideAndroidArtifact.isSigned.toString() }
       prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }

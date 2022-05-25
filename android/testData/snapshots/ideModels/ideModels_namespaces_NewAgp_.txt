@@ -605,6 +605,7 @@ MODULE                        : project.app
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : testData.namespaces
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -637,6 +638,7 @@ MODULE                        : project.app
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -678,6 +680,7 @@ MODULE                        : project.app
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : testData.namespaces.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -962,6 +965,7 @@ MODULE                        : project.lib
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.lib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1009,6 +1013,7 @@ MODULE                        : project.lib
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1289,6 +1294,7 @@ MODULE                        : project.otherlib
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.otherlib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1328,6 +1334,7 @@ MODULE                        : project.otherlib
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.otherlib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

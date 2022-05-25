@@ -634,6 +634,7 @@ MODULE                        : project.app
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -671,6 +672,7 @@ MODULE                        : project.app
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
+                ApplicationId                 : testData.namespaces.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1007,6 +1009,7 @@ MODULE                        : project.lib
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1331,6 +1334,7 @@ MODULE                        : project.otherlib
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.otherlib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

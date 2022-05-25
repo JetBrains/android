@@ -97,8 +97,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                         .setFlavorCount(0)
                                         .setFlavorDimension(0)
                                         .setSigningConfigCount(1))
-                   // TODO(b/184422212): .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
-                   .setAppId(AnonymizerUtil.anonymizeUtf8(UNINITIALIZED_APPLICATION_ID))
+                   .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 

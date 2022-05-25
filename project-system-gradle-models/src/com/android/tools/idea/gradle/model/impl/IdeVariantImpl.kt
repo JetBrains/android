@@ -45,12 +45,12 @@ data class IdeVariantCoreImpl(
   override val proguardFiles: Collection<File>,
   override val consumerProguardFiles: Collection<File>,
   override val manifestPlaceholders: Map<String, String>,
-  override val testApplicationId: String?,
   override val testInstrumentationRunner: String?,
   override val testInstrumentationRunnerArguments: Map<String, String>,
   override val testedTargetVariants: List<IdeTestedTargetVariantImpl>,
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
+  override val deprecatedPreMergedTestApplicationId: String?,
   override val desugaredMethodsFiles: Collection<File>
 ) : IdeVariantCore, Serializable
 

@@ -1028,6 +1028,7 @@ MODULE                        : MultiFlavor.app
             VersionCode                   : 20
             VersionNameSuffix             : -firstAbc-secondAbc-debug
             VersionNameWithSuffix         : 1.secondAbc-firstAbc-secondAbc-debug
+            DeprecatedPreMergedApplicationId        : com.example.multiflavor.firstAbc.secondAbc.debug
             ProguardFiles                 : <ROOT>/app/default.pro [-]
             ProguardFiles                 : <ROOT>/app/debug.pro [-]
             ProductFlavors                : firstAbc
@@ -1554,6 +1555,7 @@ MODULE                        : MultiFlavor.app
                             target                        : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.lifecycle:lifecycle-common:2.1.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1870,6 +1872,7 @@ MODULE                        : MultiFlavor.app
                     - provided                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                     - provided                    : androidx.viewpager:viewpager:1.0.0@aar
+                ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

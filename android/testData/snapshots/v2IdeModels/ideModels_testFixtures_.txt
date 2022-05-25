@@ -1148,6 +1148,7 @@ MODULE                        : project.app
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1425,6 +1426,7 @@ MODULE                        : project.app
                     - provided                    : com.example.publishedLib:publishedLib:1.0@aar
                     - provided                    : com.google.guava:guava:19.0
                     - provided                    : commons-io:commons-io:2.4
+                ApplicationId                 : google.simpleapplication.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2148,6 +2150,7 @@ MODULE                        : project.lib
                             target                        : <ROOT>::lib@debug/TEST_FIXTURES (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

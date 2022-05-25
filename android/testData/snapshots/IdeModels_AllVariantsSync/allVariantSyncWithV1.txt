@@ -614,7 +614,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vns
         VersionNameWithSuffix         : 1.0vns
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.barSuffix
         ProductFlavors                : basic
         ProductFlavors                : bar
         ManifestPlaceholders
@@ -1391,6 +1392,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -1585,6 +1587,7 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+            ApplicationId                 : com.example.psd.sample.app.default.test
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -1830,7 +1833,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vns
         VersionNameWithSuffix         : 1.0vns
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
@@ -2057,6 +2061,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -2251,6 +2256,7 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+            ApplicationId                 : com.example.psd.sample.app.default.test
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -2496,7 +2502,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
         VersionNameWithSuffix         : 2.0vnsvnsFoo
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
         ProductFlavors                : paid
         ProductFlavors                : bar
         ManifestPlaceholders
@@ -2724,6 +2731,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -2918,6 +2926,7 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+            ApplicationId                 : com.example.psd.sample.app.paid.test
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -3163,7 +3172,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
         VersionNameWithSuffix         : 2.0vnsvnsFoo
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
@@ -3394,6 +3404,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -3588,6 +3599,7 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+            ApplicationId                 : com.example.psd.sample.app.paid.test
             SigningConfigName             : debug
             IsSigned                      : true
             CodeShrinker                  : null
@@ -3833,7 +3845,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
         VersionNameWithSuffix         : 1.0vnsvsuffix
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.barSuffix.suffix
         ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
@@ -4060,6 +4073,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix.suffix
             SigningConfigName             : myConfig
             IsSigned                      : true
             CodeShrinker                  : null
@@ -4310,7 +4324,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
         VersionNameWithSuffix         : 1.0vnsvsuffix
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.suffix
         ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
@@ -4540,6 +4555,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix.suffix
             SigningConfigName             : myConfig
             IsSigned                      : true
             CodeShrinker                  : null
@@ -4790,7 +4806,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
         VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix
         ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
@@ -5021,6 +5038,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix
             SigningConfigName             : myConfig
             IsSigned                      : true
             CodeShrinker                  : null
@@ -5271,7 +5289,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
         VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix.suffix
         ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
@@ -5505,6 +5524,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix.suffix
             SigningConfigName             : myConfig
             IsSigned                      : true
             CodeShrinker                  : null
@@ -5755,7 +5775,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
         VersionNameWithSuffix         : 1.0vnsvnsSpecial
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.barSuffix
         ProductFlavors                : basic
         ProductFlavors                : bar
         ManifestPlaceholders
@@ -5979,6 +6000,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
             IsSigned                      : false
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
@@ -6228,7 +6250,8 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
         VersionNameWithSuffix         : 1.0vnsvnsSpecial
-        TestApplicationId             : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
@@ -6455,6 +6478,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.defaultSuffix
             IsSigned                      : false
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
@@ -6704,7 +6728,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial
         VersionNameWithSuffix         : 2.0vnsvnsFoovnsSpecial
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
         ProductFlavors                : paid
         ProductFlavors                : bar
         ManifestPlaceholders
@@ -6932,6 +6957,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
             IsSigned                      : false
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
@@ -7181,7 +7207,8 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial
         VersionNameWithSuffix         : 2.0vnsvnsFoovnsSpecial
-        TestApplicationId             : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.paid.test
+        DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.paid.defaultSuffix
         ResourceConfigurations        : en
         ResourceConfigurations        : hdpi
         ResourceConfigurations        : xhdpi
@@ -7412,6 +7439,7 @@ IdeVariants
                         target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                     - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                         target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+            ApplicationId                 : com.example.psd.sample.app.paid.defaultSuffix
             IsSigned                      : false
             CodeShrinker                  : null
             BuildTasksAndOutputInformation

@@ -516,6 +516,7 @@ MODULE                        : project.app
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : google.simpleapplication
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1176,6 +1177,7 @@ MODULE                        : project.app
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1457,6 +1459,7 @@ MODULE                        : project.app
                     - provided                    : com.example.publishedLib:publishedLib:1.0@aar
                     - provided                    : com.google.guava:guava:19.0
                     - provided                    : commons-io:commons-io:2.4
+                ApplicationId                 : google.simpleapplication.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1972,6 +1975,7 @@ MODULE                        : project.lib
             MinSdkVersion
                 ApiLevel                      : 1
                 ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : com.example.lib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -2118,6 +2122,7 @@ MODULE                        : project.lib
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

@@ -1809,6 +1809,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
                     - class                       : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
                     - class                       : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
+                ApplicationId                 : me.monori.gradleprojectpathissue
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1926,6 +1927,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
+                ApplicationId                 : me.monori.gradleprojectpathissue.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2751,6 +2753,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                ApplicationId                 : me.monori.feature.a.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3799,6 +3802,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

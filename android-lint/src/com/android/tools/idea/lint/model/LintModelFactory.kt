@@ -310,14 +310,13 @@ class LintModelFactory : LintModelModuleLoader {
         artifact: IdeAndroidArtifact
     ): LintModelAndroidArtifact {
         return DefaultLintModelAndroidArtifact(
-          applicationId = artifact.applicationId,
+          applicationId = artifact.applicationId ?: "", // TODO(b/234146319): This should probably be optional
           dependencies = getDependencies(artifact),
           generatedSourceFolders = artifact.generatedSourceFolders,
           generatedResourceFolders = artifact.generatedResourceFolders,
           classOutputs = artifact.classesFolder.toList()
         )
     }
-
     private fun getArtifact(
         artifact: IdeJavaArtifact
     ): LintModelJavaArtifact {

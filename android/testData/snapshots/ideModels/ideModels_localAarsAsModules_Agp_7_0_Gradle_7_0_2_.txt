@@ -525,6 +525,7 @@ MODULE                        : project.app
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
                             target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
+                ApplicationId                 : com.android.test.localaarsasmodules
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -564,6 +565,7 @@ MODULE                        : project.app
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : artifacts:library-debug:unspecified
+                ApplicationId                 : com.android.test.localaarsasmodules.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -907,6 +909,7 @@ MODULE                        : project.library
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.android.test.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

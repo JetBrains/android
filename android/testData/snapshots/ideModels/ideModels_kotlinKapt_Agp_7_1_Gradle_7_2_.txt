@@ -1313,6 +1313,7 @@ MODULE                        : MainActivity.app
             VersionCode                   : 1
             VersionNameSuffix             :
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.mainactivity
             ProductFlavors                : local
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -1510,6 +1511,7 @@ MODULE                        : MainActivity.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javaLib (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.mainactivity
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1786,6 +1788,7 @@ MODULE                        : MainActivity.app
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
+                ApplicationId                 : com.example.mainactivity.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2524,6 +2527,7 @@ MODULE                        : MainActivity.lib
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.lib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -3267,6 +3271,7 @@ MODULE                        : MainActivity.lib
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

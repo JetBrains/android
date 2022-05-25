@@ -131,17 +131,18 @@ class GradleAndroidModel constructor(
 
   override fun getAgpVersion(): GradleVersion = agpVersion
 
+  /**
+   * Returns the current application ID.
+   *
+   * Returns UNINITIALIZED_APPLICATION_ID in contexts that don't have an application ID, see comment on
+   * [com.android.tools.idea.gradle.model.IdeAndroidArtifactCore.applicationId]
+   */
   override fun getApplicationId(): String {
-    @Suppress("DEPRECATION")
-    return if (features.isBuildOutputFileSupported) {
-      getApplicationIdUsingCache(selectedVariantName)
-    } else selectedVariant.mainArtifact.applicationId
+    return selectedVariant.mainArtifact.applicationId ?: AndroidModel.UNINITIALIZED_APPLICATION_ID
   }
 
   override fun getAllApplicationIds(): Set<String> {
-    return variants.mapNotNull { variant ->
-      getApplicationIdUsingCache(variant.name).takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
-    }.toSet()
+    return variants.mapNotNull { variant -> variant.mainArtifact.applicationId }.toSet()
   }
 
   override fun isDebuggable(): Boolean {

@@ -43,7 +43,9 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_40("4.0.0", gradleVersion = "6.5"),
 
   // TODO(b/194469137): Use correct Gradle version.
-  AGP_41("4.1.0", gradleVersion = null);
+  AGP_41("4.1.0", gradleVersion = null),
+  AGP_72("7.2.0", gradleVersion = null),
+  ;
 
   override fun toString(): String {
     return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion)"

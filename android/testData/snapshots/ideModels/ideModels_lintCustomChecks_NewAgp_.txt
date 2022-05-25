@@ -954,6 +954,7 @@ MODULE                        : project.app
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.app
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -978,6 +979,7 @@ MODULE                        : project.app
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.app
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1017,6 +1019,7 @@ MODULE                        : project.app
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1294,6 +1297,7 @@ MODULE                        : project.library
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1334,6 +1338,7 @@ MODULE                        : project.library
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1606,6 +1611,7 @@ MODULE                        : project.library-remote
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1651,6 +1657,7 @@ MODULE                        : project.library-remote
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

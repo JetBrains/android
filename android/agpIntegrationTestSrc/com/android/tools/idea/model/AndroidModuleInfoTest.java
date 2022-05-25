@@ -39,8 +39,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    // TODO(b/184245551): Remove or rework. `getPackage` is unavailable without building.
-    // assertEquals("from.gradle", androidModuleInfo.getPackage());
+    assertEquals("from.gradle", androidModuleInfo.getPackage());
   }
 
   public void testBoth() throws Exception {
@@ -49,9 +48,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    // TODO(b/184245551): Without building does not return the correct result.
-    //                    assertEquals("from.gradle", androidModuleInfo.getPackage());
-    assertEquals("com.example.unittest", androidModuleInfo.getPackage());
+        assertEquals("from.gradle", androidModuleInfo.getPackage());
   }
 
   public void testFlavors() throws Exception {
@@ -61,8 +58,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(14, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    // TODO(b/184245551): Without building does not return the correct result.
-    //assertEquals("com.example.free.debug", androidModuleInfo.getPackage());
-    assertEquals("com.example.unittest", androidModuleInfo.getPackage());
+    assertEquals("com.example.free.debug", androidModuleInfo.getPackage());
   }
 }

@@ -71,6 +71,7 @@ interface ValueNormalizers {
   fun File.toTestString(): String
   fun <T> Result<T>.toTestString(toTestString: T.() -> String = { this?.toString() ?: "(null)" }): String
   fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion(): String
+  fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T?
 }
 
 data class TestScenario(
@@ -281,6 +282,9 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
     override fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion() =
       (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])?.trimIndent().orEmpty()
+
+    override fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T? =
+      (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])
   }
 }
 

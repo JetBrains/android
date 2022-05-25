@@ -25,6 +25,7 @@ import com.android.builder.model.v2.models.ProjectSyncIssues
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
@@ -95,6 +96,7 @@ data class ActionToRun<T>(
       KotlinGradleModel::class.java -> fetchesKotlinModels
       KaptGradleModel::class.java -> fetchesKotlinModels
       KotlinMPPGradleModel::class.java -> fetchesKotlinModels
+      LegacyApplicationIdModel::class.java -> fetchesV1Models || fetchesV2Models
       NativeModule::class.java -> fetchesV1Models || fetchesV2Models  // We trust actions request it with Gradle models.
       NativeAndroidProject::class.java -> fetchesV1Models
       NativeVariantAbi::class.java -> fetchesV1Models

@@ -1000,6 +1000,7 @@ MODULE                        : application.app
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1268,6 +1269,7 @@ MODULE                        : application.app
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
                     - provided                    : com.google.guava:guava:19.0
+                ApplicationId                 : google.simpleapplication.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

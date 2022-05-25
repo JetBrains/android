@@ -36,7 +36,7 @@ data class IdeAndroidArtifactCoreImpl(
   override val compileClasspathCore: IdeDependenciesCoreImpl,
   override val runtimeClasspathCore: IdeDependenciesCoreImpl,
   override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
-  override val applicationId: String,
+  override val applicationId: String?,
   override val signingConfigName: String?,
   override val isSigned: Boolean,
   override val generatedResourceFolders: Collection<File>,

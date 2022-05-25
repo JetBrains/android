@@ -63,7 +63,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.UsesSdk.MAX_SDK_VERSION]).isNull()
         expect.that(overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION]).isEqualTo("16")
         expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
-        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("uninitialized.application.id")
+        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.firstAbc.secondAbc.debug")
         expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
         expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
         expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("20")
@@ -82,7 +82,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.UsesSdk.MAX_SDK_VERSION]).isNull()
         expect.that(overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION]).isEqualTo("16")
         expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
-        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("uninitialized.application.id")
+        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.secondXyz.release")
         expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
         expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
         expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("31")
@@ -117,7 +117,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
       val overrides = project.gradleModule(":test")!!.getModuleSystem().getManifestOverrides().directOverrides
       assertThat(overrides).containsExactlyEntriesIn(mapOf(
         ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
-        ManifestSystemProperty.Document.PACKAGE to "uninitialized.application.id",
+        ManifestSystemProperty.Document.PACKAGE to "com.example.android.app.testmodule",
         ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
       ))
     }

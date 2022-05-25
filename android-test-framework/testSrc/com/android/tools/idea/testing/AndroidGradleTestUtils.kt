@@ -307,7 +307,7 @@ interface AndroidProjectStubBuilder {
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency>?
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
-  fun androidTestArtifact(variant: String): IdeAndroidArtifactCoreImpl?
+  fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl?
   fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl?
   fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl?
   val androidProject: IdeAndroidProjectImpl
@@ -359,8 +359,8 @@ data class AndroidProjectBuilder(
     { dimension -> buildProductFlavorContainersStub(dimension) },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl =
     { variant -> buildMainArtifactStub(variant) },
-  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
-    { variant -> buildAndroidTestArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> IdeAndroidArtifactCoreImpl? =
+    { variant, applicationId -> buildAndroidTestArtifactStub(variant, applicationId) },
   val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactCoreImpl? =
     { variant -> buildUnitTestArtifactStub(variant) },
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
@@ -438,7 +438,7 @@ data class AndroidProjectBuilder(
   fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl) =
     copy(mainArtifactStub = mainArtifactStub)
 
-  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl) =
+  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> IdeAndroidArtifactCoreImpl) =
     copy(androidTestArtifactStub = androidTestArtifactStub)
 
   fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactCoreImpl) =
@@ -508,7 +508,7 @@ data class AndroidProjectBuilder(
           androidLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
-        override fun androidTestArtifact(variant: String): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(variant)
+        override fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(variant, applicationId)
         override fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl? = unitTestArtifactStub(variant)
         override fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl? = testFixturesArtifactStub(variant)
         override val variants: List<IdeVariantCoreImpl> = variants()
@@ -767,6 +767,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
 
 fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   variant: String,
+  applicationId: String?,
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
@@ -803,7 +804,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     compileClasspathCore = dependenciesStub,
     runtimeClasspathCore = dependenciesStub,
     unresolvedDependencies = emptyList(),
-    applicationId = "applicationId",
+    applicationId = applicationId,
     signingConfigName = "defaultConfig",
     isSigned = false,
     generatedResourceFolders = listOf(
@@ -956,12 +957,13 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
         val buildType = it.buildType
         val flavorNames = flavors.map { it.name }
         val variant = (flavorNames + buildType.name).combineAsCamelCase()
+        val testApplicationId = flavors.firstNotNullResult { it.testApplicationId } ?: defaultConfig.productFlavor.testApplicationId
         IdeVariantCoreImpl(
           variant,
           variant,
           mainArtifact(variant),
           unitTestArtifact(variant),
-          androidTestArtifact(variant),
+          androidTestArtifact(variant, applicationId = testApplicationId),
           testFixturesArtifact(variant),
           buildType.name,
           flavorNames,
@@ -993,8 +995,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
                                   buildType.manifestPlaceholders.entries
                                  )
             .associate { it.key to it.value },
-          testApplicationId = flavors.firstNotNullResult { it.testApplicationId }
-                              ?: defaultConfig.productFlavor.testApplicationId,
+          deprecatedPreMergedTestApplicationId = testApplicationId,
           testInstrumentationRunner = flavors.firstNotNullResult { it.testInstrumentationRunner }
                                       ?: defaultConfig.productFlavor.testInstrumentationRunner,
           testInstrumentationRunnerArguments = (defaultConfig.productFlavor.testInstrumentationRunnerArguments.entries +

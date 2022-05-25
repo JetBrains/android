@@ -304,6 +304,7 @@ MODULE                        : project
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 12
             VersionNameWithSuffix         : 2.0
+            DeprecatedPreMergedApplicationId        : com.android.tests.basic.debug
             ResourceConfigurations        : en
             ResourceConfigurations        : nodpi
             ResourceConfigurations        : hdpi
@@ -895,6 +896,7 @@ MODULE                        : project
                             target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : com.android.tests.basic.debug
                 SigningConfigName             : myConfig
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1021,6 +1023,7 @@ MODULE                        : project
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
+                ApplicationId                 : com.android.tests.basic.debug.test
                 SigningConfigName             : myConfig
                 IsSigned                      : true
                 CodeShrinker                  : null

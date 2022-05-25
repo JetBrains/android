@@ -2201,7 +2201,8 @@ MODULE                        : project.app
             VersionCode                   : 1
             VersionNameSuffix             : vns
             VersionNameWithSuffix         : 1.0vns
-            TestApplicationId             : com.example.psd.sample.app.default.test
+            DeprecatedPreMergedTestApplicationId    : com.example.psd.sample.app.default.test
+            DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.barSuffix
             ProductFlavors                : basic
             ProductFlavors                : bar
             ManifestPlaceholders
@@ -2907,6 +2908,7 @@ MODULE                        : project.app
                     - provided                    : com.example.jlib:lib3:1.0
                     - provided                    : com.example.jlib:lib4:1.0
                     - provided                    : com.example.libs:lib2:1.0@aar
+                ApplicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3205,6 +3207,7 @@ MODULE                        : project.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
+                ApplicationId                 : com.example.psd.sample.app.default.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3633,6 +3636,7 @@ MODULE                        : project.dyn_feature
             MinSdkVersion
                 ApiLevel                      : 1
                 ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : com.example.dyn_feature
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -3678,6 +3682,7 @@ MODULE                        : project.dyn_feature
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::dyn_feature@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::dyn_feature@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.dyn_feature.test
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -3980,6 +3985,7 @@ MODULE                        : project.lib
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.projectwithappandlib.lib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -4271,6 +4277,7 @@ MODULE                        : project.lib
                             target                        : <ROOT>::jav (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.projectwithappandlib.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4659,6 +4666,7 @@ MODULE                        : project.nested1
             MinSdkVersion
                 ApiLevel                      : 1
                 ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : com.example.nested1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -4704,6 +4712,7 @@ MODULE                        : project.nested1
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::nested1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::nested1@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.nested1.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4970,6 +4979,7 @@ MODULE                        : project.nested1.deep
                 ApiLevel                      : 1
                 ApiString                     : 1
             VersionCode                   : 1
+            DeprecatedPreMergedApplicationId        : com.example.nested1.deep
             ResourceConfigurations        : en
             ResourceConfigurations        : fr
             MainArtifact
@@ -5017,6 +5027,7 @@ MODULE                        : project.nested1.deep
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::nested1:deep@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::nested1:deep@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.nested1.deep.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5392,6 +5403,7 @@ MODULE                        : project.nested2
                 ApiLevel                      : 1
                 ApiString                     : 1
             VersionNameSuffix             :
+            DeprecatedPreMergedApplicationId        : com.example.nested2
             ProductFlavors                : basic
             MainArtifact
                 Name                          : MAIN
@@ -5464,6 +5476,7 @@ MODULE                        : project.nested2
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::nested2@basicDebug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::nested2@basicDebug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.nested2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5739,6 +5752,7 @@ MODULE                        : project.nested2.deep
             MinSdkVersion
                 ApiLevel                      : 1
                 ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : com.example.nested2.deep
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -5784,6 +5798,7 @@ MODULE                        : project.nested2.deep
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::nested2:deep@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::nested2:deep@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.nested2.deep.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -6060,6 +6075,7 @@ MODULE                        : project.nested2.trans.deep2
             MinSdkVersion
                 ApiLevel                      : 1
                 ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : com.example.nested2.trans.deep2
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -6105,6 +6121,7 @@ MODULE                        : project.nested2.trans.deep2
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::nested2:trans:deep2@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::nested2:trans:deep2@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.nested2.trans.deep2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

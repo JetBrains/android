@@ -54,6 +54,7 @@ import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -738,9 +739,23 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   fun androidArtifactFrom(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
+    modelVersion: GradleVersion?,
+    mainVariantName: String,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
+
+    val applicationId: String? = if (modelVersion?.agpModelIncludesApplicationId == true) {
+      artifact.applicationId
+    } else {
+      when (name) {
+        IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName)
+        IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName + "AndroidTest")
+        IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
+      }
+    }
+
     return IdeAndroidArtifactCoreImpl(
       name = name,
       compileTaskName = artifact.compileTaskName,
@@ -753,7 +768,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       compileClasspathCore = throwingIdeDependencies(),
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
-      applicationId = "",
+      applicationId = applicationId,
       generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
       signingConfigName = artifact.signingConfigName?.deduplicate(),
       abiFilters = ImmutableSet.copyOf(artifact.abiFilters.orEmpty()),
@@ -766,6 +781,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
     )
   }
+
 
   fun androidArtifactFrom(
     ownerBuildId: BuildId,
@@ -865,6 +881,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     androidProject: IdeAndroidProjectImpl,
     basicVariant: BasicVariant,
     variant: Variant,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
     modelVersion: GradleVersion?
   ): IdeVariantCoreImpl {
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
@@ -886,19 +903,20 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     val versionNameSuffix =
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
+    val variantName = variant.name.deduplicate()
     return IdeVariantCoreImpl(
-      name = variant.name.deduplicate(),
+      name = variantName,
       displayName = variant.displayName.deduplicate(),
-      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, variant.mainArtifact),
+      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, modelVersion, variantName, legacyApplicationIdModel, variant.mainArtifact),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
         javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it)
       },
       androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, it)
+        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, modelVersion, variantName, legacyApplicationIdModel, it)
       },
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, it)
+        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, modelVersion, variantName, legacyApplicationIdModel, it)
       },
       buildType = basicVariant.buildType?.deduplicate() ?: "",
       productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
@@ -911,7 +929,6 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       instantAppCompatible = (modelVersion != null && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
-      testApplicationId = mergedFlavor.testApplicationId?.deduplicate(),
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
       testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
       testedTargetVariants = getTestedTargetVariants(variant),
@@ -920,6 +937,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
       deprecatedPreMergedApplicationId = null,
+      deprecatedPreMergedTestApplicationId = null,
       desugaredMethodsFiles = if (modelVersion?.isAtLeast(7, 3, 0, "alpha", 6, false) == true) variant.desugaredMethods else emptyList()
     )
   }
@@ -1202,8 +1220,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: Variant,
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
       modelVersion: GradleVersion?
-    ): IdeVariantCoreImpl = lock.withLock { variantFrom(androidProject, basicVariant, variant, modelVersion) }
+    ): IdeVariantCoreImpl = lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyApplicationIdModel, modelVersion) }
 
     override fun variantFrom(
       ownerBuildId: BuildId,

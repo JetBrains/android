@@ -1349,6 +1349,7 @@ MODULE                        : My_First_App.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>/firstapp::app:mysharedlibrary@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>/firstapp::app:mysharedlibrary@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.firstapp
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1506,6 +1507,7 @@ MODULE                        : My_First_App.app
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
+                ApplicationId                 : com.example.firstapp.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2500,6 +2502,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>/firstapp::app:mysharedlibrary@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>/firstapp::app:mysharedlibrary@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.mysharedlibrary.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

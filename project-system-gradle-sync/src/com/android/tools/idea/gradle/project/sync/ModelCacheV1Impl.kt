@@ -61,10 +61,12 @@ import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeFilterData
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -719,16 +721,25 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     artifact: AndroidArtifact,
     agpVersion: GradleVersion?,
     variantName: String?,
+    variantNameForDependencies: String?,
     androidModuleId: ModuleId?,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
     mlModelBindingEnabled: Boolean,
     projectType: IdeAndroidProjectType
   ): IdeModelWithPostProcessor<IdeAndroidArtifactCoreImpl> {
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
     val isAppMainArtifact = artifact.name == AndroidProject.ARTIFACT_MAIN && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP
 
-    val dependencies = dependenciesFrom(artifact, variantName, androidModuleId)
+    val dependencies = dependenciesFrom(artifact, variantNameForDependencies, androidModuleId)
+    val ideArtifactName = convertArtifactName(artifact.name)
+    val applicationId = when(ideArtifactName) {
+      // NB: the model will not be available for things that are not applicable, e.g. library and dynamic feature main
+      IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName)
+      IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
+      IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
+    }
     val androidArtifactCoreImpl = IdeAndroidArtifactCoreImpl(
-      name = convertArtifactName(artifact.name),
+      name = ideArtifactName,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = listOf(listOf(artifact.classesFolder), artifact.additionalClassesFolders).flatten(),
@@ -743,7 +754,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       compileClasspathCore = dependencies.model,
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
-      applicationId = artifact.applicationId,
+      applicationId = applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
       abiFilters = ImmutableSet.copyOf( // In AGP 4.0 and below abiFilters was nullable, normalize null to empty set.
@@ -823,6 +834,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun variantFrom(
     androidProject: IdeAndroidProjectImpl,
     variant: Variant,
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
     modelVersion: GradleVersion?,
     androidModuleId: ModuleId
   ): IdeVariantWithPostProcessor {
@@ -841,14 +853,16 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
     val mainArtifact = copyModel(variant.mainArtifact) {
       androidArtifactFrom(
-        it,
-        modelVersion,
+        artifact = it,
+        agpVersion = modelVersion,
+        variantName = variant.name,
         // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
         // we only have one main artifact that is a test artifact, so we need to handle this as a special case.
-        variantName = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) variant.name else null,
+        variantNameForDependencies = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) variant.name else null,
         androidModuleId = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) androidModuleId else null,
-        androidProject.agpFlags.mlModelBindingEnabled,
-        androidProject.projectType
+        legacyApplicationIdModel = legacyApplicationIdModel,
+        mlModelBindingEnabled = androidProject.agpFlags.mlModelBindingEnabled,
+        projectType = androidProject.projectType
       )
     }
 
@@ -858,8 +872,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
     val androidTestArtifact = copy(variant::getExtraAndroidArtifacts) {
       androidArtifactFrom(
-        it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled,
-        androidProject.projectType
+        artifact = it,
+        agpVersion = modelVersion,
+        variantName = variant.name,
+        variantNameForDependencies = variant.name,
+        androidModuleId = androidModuleId,
+        legacyApplicationIdModel = legacyApplicationIdModel,
+        mlModelBindingEnabled = androidProject.agpFlags.mlModelBindingEnabled,
+        projectType = androidProject.projectType
       )
     }.firstOrNull { it.model.isTestArtifact }
 
@@ -883,7 +903,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations,
-      testApplicationId = mergedFlavor.testApplicationId,
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
       testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments,
       testedTargetVariants = getTestedTargetVariants(variant),
@@ -891,8 +910,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId =
-      if (modelVersion?.isAtLeastIncludingPreviews(7, 1, 0) == true) null else mergedFlavor.applicationId,
+      deprecatedPreMergedApplicationId = mergedFlavor.applicationId,
+      deprecatedPreMergedTestApplicationId = mergedFlavor.testApplicationId,
       desugaredMethodsFiles = listOf()
     )
     return IdeVariantWithPostProcessor(
@@ -1256,9 +1275,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     override fun variantFrom(
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantWithPostProcessor = lock.withLock { variantFrom(androidProject, variant, modelVersion, androidModuleId) }
+    ): IdeVariantWithPostProcessor = lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId ) }
 
     override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(project) }
 

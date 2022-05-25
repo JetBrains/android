@@ -467,6 +467,7 @@ MODULE                        : project.app
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.android.app
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -482,6 +483,7 @@ MODULE                        : project.app
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                     runtimeClasspath              : IdeDependenciesImpl
+                ApplicationId                 : com.example.android.app
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -517,6 +519,7 @@ MODULE                        : project.app
                     runtimeClasspath              : IdeDependenciesImpl
                         - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.android.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -699,7 +702,8 @@ MODULE                        : project.test
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
-            TestApplicationId             : com.example.android.app.testmodule
+            DeprecatedPreMergedTestApplicationId    : com.example.android.app.testmodule
+            DeprecatedPreMergedApplicationId        : com.example.android.app.testmodule
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1420,6 +1424,7 @@ MODULE                        : project.test
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::app (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.android.app.testmodule
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1573,6 +1578,7 @@ MODULE                        : project.test2
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.android.test2
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1760,6 +1766,7 @@ MODULE                        : project.test2
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::app (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.android.test2
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

@@ -797,6 +797,7 @@ MODULE                        : kotlinMultiPlatform.app
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.android.kotlin
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -1466,6 +1467,7 @@ MODULE                        : kotlinMultiPlatform.app
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::module2@debug/commonMain (IdeModuleDependencyImpl)
                             target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.android.kotlin
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1686,6 +1688,7 @@ MODULE                        : kotlinMultiPlatform.app
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
+                ApplicationId                 : com.example.android.kotlin.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2429,6 +2432,7 @@ MODULE                        : kotlinMultiPlatform.module2
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            DeprecatedPreMergedApplicationId        : com.example.test.multiproject.module2
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -2533,6 +2537,7 @@ MODULE                        : kotlinMultiPlatform.module2
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::module2@debug/commonMain (IdeModuleDependencyImpl)
                             target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.test.multiproject.module2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

@@ -860,6 +860,7 @@ MODULE                        : project
                                 artifactAddress               : org.jacoco:org.jacoco.agent:0.8.7@jar
                 RuntimeOnlyClasses
                     - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
+                ApplicationId                 : com.android.tests.basic.debug
                 SigningConfigName             : myConfig
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -988,6 +989,7 @@ MODULE                        : project
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
+                ApplicationId                 : com.android.tests.basic.debug.test
                 SigningConfigName             : myConfig
                 IsSigned                      : true
                 CodeShrinker                  : null
