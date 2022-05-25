@@ -431,7 +431,12 @@ public abstract class TreeDetailsView extends CaptureDetailsView {
 
     @Override
     public void onRemoved() {
-      myTopDown.onDestroyed();
+      myTopDown.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myTopDown.onReattached();
     }
 
     /**
@@ -478,7 +483,12 @@ public abstract class TreeDetailsView extends CaptureDetailsView {
 
     @Override
     public void onRemoved() {
-      myBottomUp.onDestroyed();
+      myBottomUp.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myBottomUp.onReattached();
     }
   }
 

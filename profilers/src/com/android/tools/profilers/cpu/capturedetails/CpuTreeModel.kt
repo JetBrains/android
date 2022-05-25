@@ -54,8 +54,7 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType, private val range:
                     })
 
   init {
-    range.addDependency(observer).onChange(Range.Aspect.RANGE, rangeChanged)
-    rangeChanged()
+    onReattached()
   }
 
   fun sort(newOrder: Comparator<CpuTreeNode<T>>) {
@@ -67,6 +66,11 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType, private val range:
 
   fun onDestroyed() {
     range.removeDependencies(observer)
+  }
+
+  fun onReattached() {
+    range.addDependency(observer).onChange(Range.Aspect.RANGE, rangeChanged)
+    rangeChanged()
   }
 
   private fun reload() {

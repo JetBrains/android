@@ -31,7 +31,6 @@ import kotlin.math.max
 
 sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   abstract val type: Type
-  abstract fun onDestroyed()
 
   sealed class ChartDetails(clockType: ClockType, cpuCapture: CpuCapture): CaptureDetails(clockType, cpuCapture) {
     abstract val node: CaptureNode?
@@ -60,8 +59,12 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
       }
     }
 
-    override fun onDestroyed() {
-      model?.onDestroyed();
+    fun onRemoved() {
+      model?.onDestroyed()
+    }
+
+    fun onReattached() {
+      model?.onReattached()
     }
   }
 
@@ -79,7 +82,6 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     : ChartDetails(clockType, cpuCapture) {
     override val node = nodes.firstOrNull()
     override val type get() = Type.CALL_CHART
-    override fun onDestroyed() { }
   }
 
   class FlameChart internal constructor(clockType: ClockType,
@@ -93,8 +95,17 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     override var node: CaptureNode? = null
       private set
     val aspect: AspectModel<Aspect> = AspectModel()
+    private val captureNodes = captureNodes.sortedWith(Comparator.comparingLong(CaptureNode::startGlobal))
 
     init {
+      onReattached()
+    }
+
+    fun onRemoved() {
+      selectionRange.removeDependencies(aspect)
+    }
+
+    fun onReattached() {
       if (captureNodes.isNotEmpty()) {
         val captureNodes = captureNodes.sortedWith(Comparator.comparingLong(CaptureNode::startGlobal))
 
@@ -163,10 +174,6 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         selectionRange.addDependency(aspect).onChange(Range.Aspect.RANGE, selectionRangeChanged)
         selectionRangeChanged()
       }
-    }
-
-    override fun onDestroyed() {
-      selectionRange.removeDependencies(aspect)
     }
 
     /**

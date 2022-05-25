@@ -44,5 +44,13 @@ public abstract class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JCom
     return myModel;
   }
 
+  /**
+   * Clean up (e.g. releasing expensive listeners) when this tab is inactive
+   */
   abstract public void onRemoved();
+
+  /**
+   * Restore everything cleaned up in `onRemoved` to prepare for re-attachment
+   */
+  abstract public void onReattached();
 }

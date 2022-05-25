@@ -54,4 +54,8 @@ class AndroidFrameTimelineTab(profilersView: StudioProfilersView, model: Android
   override fun onRemoved() {
     // this tab doesn't leak heavy listeners
   }
+
+  override fun onReattached() {
+    // this tab doesn't remove anything to restore
+  }
 }

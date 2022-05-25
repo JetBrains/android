@@ -47,6 +47,7 @@ public abstract class CaptureDetailsView {
   }
 
   public abstract void onRemoved();
+  public abstract void onReattached();
 
   @NotNull
   public abstract JComponent getComponent();

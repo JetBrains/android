@@ -187,9 +187,10 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     }
 
     @Override
-    public void onRemoved() {
-      myCallChart.onDestroyed();
-    }
+    public void onRemoved() { }
+
+    @Override
+    public void onReattached() { }
 
     @NotNull
     private JPanel createChartPanel() {
@@ -273,7 +274,12 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
 
     @Override
     public void onRemoved() {
-      myFlameChart.onDestroyed();
+      myFlameChart.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myFlameChart.onReattached();
     }
 
     @NotNull

@@ -162,6 +162,11 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     myActiveDetailsView.onRemoved();
   }
 
+  @Override
+  public void onReattached() {
+    myActiveDetailsView.onReattached();
+  }
+
   @VisibleForTesting
   @NotNull
   FilterComponent getFilterComponent() {

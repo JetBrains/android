@@ -33,4 +33,5 @@ class CpuAnalysisEventsTab(profilersView: StudioProfilersView,
   }
 
   override fun onRemoved() { }
+  override fun onReattached() { }
 }
