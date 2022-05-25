@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.actions;
 
-import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -58,15 +57,14 @@ public abstract class AndroidAssetStudioAction extends AnAction {
            view.getDirectories().length > 0 &&
            AndroidFacet.getInstance(module) != null &&
            ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation() &&
-           getModulePaths(module, location) != null;
+           getModuleTemplate(module, location) != null;
   }
 
   @Nullable
-  private static AndroidModulePaths getModulePaths(@NotNull Module module, @NotNull VirtualFile location) {
+  private static NamedModuleTemplate getModuleTemplate(@NotNull Module module, @NotNull VirtualFile location) {
     for (NamedModuleTemplate namedTemplate : ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(location)) {
-      AndroidModulePaths paths = namedTemplate.getPaths();
-      if (!paths.getResDirectories().isEmpty()) {
-        return paths;
+      if (!namedTemplate.getPaths().getResDirectories().isEmpty()) {
+        return namedTemplate;
       }
     }
     return null;
@@ -101,12 +99,12 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    AndroidModulePaths paths = getModulePaths(module, location);
-    if (paths == null) {
+    NamedModuleTemplate template = getModuleTemplate(module, location);
+    if (template == null) {
       return;
     }
 
-    ModelWizard wizard = createWizard(facet, paths);
+    ModelWizard wizard = createWizard(facet, template);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
       dialogBuilder.setProject(facet.getModule().getProject())
@@ -123,7 +121,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
    * such as an error dialog.
    */
   @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull AndroidModulePaths paths);
+  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull NamedModuleTemplate template);
 
   @NotNull
   protected abstract Dimension getWizardMinimumSize();

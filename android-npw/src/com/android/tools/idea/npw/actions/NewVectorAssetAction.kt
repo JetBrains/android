@@ -19,8 +19,8 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep
 import com.android.tools.idea.npw.toUrl
-import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.ui.Messages
@@ -35,7 +35,7 @@ private const val VECTOR_DRAWABLE_API_LEVEL = 21
  * Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs.
  */
 class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vector Asset Studio to create an image asset") {
-  override fun createWizard(facet: AndroidFacet, paths: AndroidModulePaths): ModelWizard? {
+  override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate): ModelWizard? {
     val module = facet.module
     val status = module.getModuleSystem().canGeneratePngFromVectorGraphics()
     if (status is CapabilityNotSupported) {
@@ -51,7 +51,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
     }
 
     val wizardBuilder = ModelWizard.Builder()
-    wizardBuilder.addStep(NewVectorAssetStep(GenerateIconsModel(facet, "vectorWizard", paths), facet))
+    wizardBuilder.addStep(NewVectorAssetStep(GenerateIconsModel(facet, "vectorWizard", template), facet))
     return wizardBuilder.build()
   }
 

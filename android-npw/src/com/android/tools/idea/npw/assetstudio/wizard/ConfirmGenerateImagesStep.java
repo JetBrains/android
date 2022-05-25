@@ -51,7 +51,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -67,9 +66,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -97,11 +94,7 @@ import org.jetbrains.annotations.Nullable;
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel>
-    implements PersistentStateComponent<PersistentState> {
-  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
-  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
-
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
   private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
@@ -153,13 +146,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     super(model, "Confirm Icon Path");
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
-
-    Collator collator = Collator.getInstance();
-    myTemplates.sort((t1, t2) -> collator.compare(t1.getName(), t2.getName()));
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    orderTemplates(templates).forEach(moduleTemplatesModel::addElement);
+    orderTemplates(myTemplates).forEach(moduleTemplatesModel::addElement);
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
@@ -365,35 +355,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
-
-    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
-  }
-
-  @Override
-  public void onWizardFinished() {
-    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
-  }
-
-  @Override
-  @NotNull
-  public PersistentState getState() {
-    PersistentState state = new PersistentState();
-    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
-    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull PersistentState state) {
-    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
-    if (templateName != null) {
-      for (NamedModuleTemplate template : myTemplates) {
-        if (template.getName().equals(templateName)) {
-          mySelectedTemplate.set(template);
-          break;
-        }
-      }
-    }
+    mySelectedTemplate.set(getModel().getTemplate());
   }
 
   @Override
@@ -404,7 +366,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedTemplate.get().getPaths());
+    getModel().setTemplate(mySelectedTemplate.get());
     getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 

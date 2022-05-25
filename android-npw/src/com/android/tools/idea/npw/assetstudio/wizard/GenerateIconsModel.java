@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GenerateIconsModel extends WizardModel {
   @Nullable private IconGenerator myIconGenerator;
-  @NotNull private AndroidModulePaths myPaths;
+  @NotNull private NamedModuleTemplate myTemplate;
   @NotNull private List<File> myFilesToDelete = ImmutableList.of();
   @NotNull private final StateStorage myStateStorage;
   @NotNull private final String myWizardId;
@@ -48,10 +48,10 @@ public final class GenerateIconsModel extends WizardModel {
    *
    * @param androidFacet the Android facet
    * @param wizardId the id of the wizard owning the model. Used as a key for storing wizard state.
-   * @param paths the output directories
+   * @param template of flavor which defines the default the output directories
    */
-  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull AndroidModulePaths paths) {
-    myPaths = paths;
+  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull NamedModuleTemplate template) {
+    myTemplate = template;
     Project project = androidFacet.getModule().getProject();
     myStateStorage = project.getService(StateStorage.class);
     assert myStateStorage != null;
@@ -67,17 +67,17 @@ public final class GenerateIconsModel extends WizardModel {
     return myIconGenerator;
   }
 
-  public void setPaths(@NotNull AndroidModulePaths paths) {
-    myPaths = paths;
+  public void setTemplate(@NotNull NamedModuleTemplate template) {
+    myTemplate = template;
+  }
+
+  @NotNull
+  public NamedModuleTemplate getTemplate() {
+    return myTemplate;
   }
 
   public void setFilesToDelete(@NotNull List<File> files) {
     myFilesToDelete = ImmutableList.copyOf(files);
-  }
-
-  @NotNull
-  public AndroidModulePaths getPaths() {
-    return myPaths;
   }
 
   @Override
@@ -87,7 +87,7 @@ public final class GenerateIconsModel extends WizardModel {
       return;
     }
 
-    myIconGenerator.generateIconsToDisk(myPaths);
+    myIconGenerator.generateIconsToDisk(myTemplate.getPaths());
     for (File file : myFilesToDelete) {
       //noinspection ResultOfMethodCallIgnored
       file.delete();

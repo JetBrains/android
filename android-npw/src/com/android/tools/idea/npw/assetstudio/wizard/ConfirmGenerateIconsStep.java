@@ -39,14 +39,11 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
@@ -63,13 +60,9 @@ import org.jetbrains.annotations.NotNull;
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel>
-    implements PersistentStateComponent<PersistentState> {
+public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
   /** Limit the size of icons in the preview tree so that the tree doesn't look unnatural. */
   private static final int MAX_ICON_HEIGHT = 24;
-
-  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
-  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
 
   private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
@@ -114,35 +107,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
-
-    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
-  }
-
-  @Override
-  public void onWizardFinished() {
-    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
-  }
-
-  @Override
-  @NotNull
-  public PersistentState getState() {
-    PersistentState state = new PersistentState();
-    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
-    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull PersistentState state) {
-    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
-    if (templateName != null) {
-      for (NamedModuleTemplate template : myTemplates) {
-        if (template.getName().equals(templateName)) {
-          mySelectedTemplate.set(template);
-          break;
-        }
-      }
-    }
+    mySelectedTemplate.set(getModel().getTemplate());
   }
 
   @Override
@@ -153,7 +118,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedTemplate.get().getPaths());
+    getModel().setTemplate(mySelectedTemplate.get());
     getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
