@@ -102,7 +102,8 @@ class ComposePreviewRepresentationGradleTest {
       }, 1.0, true)
       fakeUi.root.validate()
     }
-    composePreviewRepresentation.onActivate()
+
+    runAndWaitForRefresh { composePreviewRepresentation.onActivate() }
 
     runAndWaitForRefresh {
       runBlocking {
