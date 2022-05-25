@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -93,6 +94,16 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testEmptyInlineTable() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf<String,Any>()))
+    val expected = """
+      [foo]
+      bar = { }
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   fun testInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to "quux")))
     val expected = """
@@ -133,6 +144,56 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testEmptyArray() {
+    val contents = mapOf("foo" to mapOf("bar" to listOf<String>()))
+    val expected = """
+      [foo]
+      bar = []
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testArray() {
+    val contents = mapOf("foo" to mapOf("bar" to listOf("one", "two", "three")))
+    val expected = """
+      [foo]
+      bar = ["one", "two", "three"]
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testNestedArray() {
+    val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf("two", "three"), "four")))
+    val expected = """
+      [foo]
+      bar = ["one", ["two", "three"], "four"]
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testInlineTableInArray() {
+    val contents = mapOf("foo" to mapOf("bar" to listOf("one", mapOf("two" to "three"), "four")))
+    val expected = """
+      [foo]
+      bar = ["one", { two = "three" }, "four"]
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testArrayInInlineTable() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to listOf("one", "two"), "quux" to "frob")))
+    val expected = """
+      [foo]
+      bar = { baz = ["one", "two"], quux = "frob" }
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   private fun doTest(contents: Map<String,Any>, expected: String) {
     val libsTomlFile = writeLibsTomlFile("")
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
@@ -161,6 +222,11 @@ class TomlDslWriterTest : PlatformTestCase() {
     fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
       when (value) {
         is String -> element.setNewLiteral(key, value)
+        is List<*> -> {
+          val dslList = GradleDslExpressionList(element, GradleNameElement.create(key), true)
+          value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
+          element.setNewElement(dslList)
+        }
         is Map<*,*> -> {
           val dslMap = GradleDslExpressionMap(element, GradleNameElement.create(key))
           value.forEach { (k, v) -> populate(k as String, v as Any, dslMap) }
