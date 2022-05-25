@@ -67,7 +67,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
         else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
       }
       is GradleDslExpressionList -> when (element) {
-        is GradleDslExpressionList -> factory.createArray(" ")
+        is GradleDslExpressionList -> factory.createArray("")
         is GradleDslExpressionMap -> factory.createInlineTable(" ")
         else -> factory.createLiteral("\"placeholder\"")
       }

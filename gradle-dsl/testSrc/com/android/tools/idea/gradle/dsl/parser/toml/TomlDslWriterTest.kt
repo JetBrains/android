@@ -164,6 +164,16 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testNestedEmptyArray() {
+    val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf<String>(), "two")))
+    val expected = """
+      [foo]
+      bar = ["one", [], "two"]
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   fun testNestedArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf("two", "three"), "four")))
     val expected = """
