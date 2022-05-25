@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
@@ -54,6 +56,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     val parentPsiElement = ensureParentPsi(element) ?: return null
     val project = parentPsiElement.project
     val factory = TomlPsiFactory(project)
+    val comma = factory.createInlineTable("a = \"b\", c = \"d\"").children[2]
 
     val externalNameInfo = maybeTrimForParent(element, this)
 
@@ -72,8 +75,14 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
 
     val addedElement = parentPsiElement.addAfter(psi, anchor)
 
-    when (parentPsiElement) {
-      is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
+    if (anchor != null) {
+      when (parentPsiElement) {
+        is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
+        is TomlInlineTable -> when {
+          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> Unit
+          else -> addedElement.addAfter(comma, null)
+        }
+      }
     }
 
     when (addedElement) {
@@ -99,9 +108,12 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun ensureParentPsi(element: GradleDslElement) = element.parent?.create()
 
   private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
-    val anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
+    var anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
     if (anchor == null && parent is TomlInlineTable) return parent.firstChild
     if (anchor == null && parent is TomlTable) return parent.header
+    while (anchor != null && anchor.parent != parent) {
+      anchor = anchor.parent
+    }
     return anchor ?: parent
   }
 }

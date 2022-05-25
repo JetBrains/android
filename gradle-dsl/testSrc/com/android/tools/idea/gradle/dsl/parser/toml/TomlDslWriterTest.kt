@@ -89,6 +89,8 @@ class TomlDslWriterTest : PlatformTestCase() {
       [baz]
       bazA = "bazB"
     """.trimIndent()
+
+    doTest(contents, expected)
   }
 
   fun testInlineTable() {
@@ -107,6 +109,18 @@ class TomlDslWriterTest : PlatformTestCase() {
       [foo]
       bar = { a = "b", c = "d", e = "f" }
     """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testEntriesOfMultipleKindsInInlineTable() {
+    val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to mapOf("d" to "e"), "f" to "g")))
+    val expected = """
+      [foo]
+      bar = { a = "b", c = { d = "e" }, f = "g" }
+    """.trimIndent()
+
+    doTest(contents, expected)
   }
 
   fun testNestedInlineTables() {
@@ -115,6 +129,8 @@ class TomlDslWriterTest : PlatformTestCase() {
       [foo]
       bar = { baz = { quux = "frob" } }
     """.trimIndent()
+
+    doTest(contents, expected)
   }
 
   private fun doTest(contents: Map<String,Any>, expected: String) {
