@@ -25,12 +25,10 @@ import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.executors.RunExecutorSettings
 import com.intellij.execution.impl.DefaultExecutorGroup
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
@@ -53,7 +51,11 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
     override val startActionText = actionName
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project) = true
-    override fun getStartActionText(configurationName: String) = "Profile '$configurationName' as ${profilingMode.value}"
+    override fun getStartActionText(configurationName: String) = when (profilingMode) {
+      ProfilerState.ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
+      ProfilerState.ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with full data"
+      else -> "Profile '$configurationName'"
+    }
   }
 
   private class GroupWrapper(actionGroup: ActionGroup) : ExecutorGroupWrapper(actionGroup) {
@@ -97,13 +99,13 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
 
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
 
-  override fun getRunToolbarActionText(param: String): String = "Profile: $param"
+  override fun getRunToolbarActionText(param: String): String = "Profile"
 
   override fun getRunToolbarChooserText(): String = "Profile"
 
   override fun getToolWindowIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
 
-  override fun getToolWindowId(): String = ToolWindowId.RUN
+  override fun getToolWindowId(): String = AndroidProfilerToolWindowFactory.ID
 
   override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
@@ -112,7 +114,7 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
     private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER
 
     // TODO(b/213946909): replace with real icon.
-    private val DEBUGGABLE_ICON = AllIcons.Actions.Profile
+    private val DEBUGGABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER
 
     @JvmStatic
     fun getInstance(): ProfileRunExecutorGroup? {
