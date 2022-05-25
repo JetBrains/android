@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
@@ -48,6 +47,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
    */
   @UiThread
   fun clearMessageView()
+
+  suspend fun restartLogcat()
 
   /**
    * Returns true if the attached logcat is empty

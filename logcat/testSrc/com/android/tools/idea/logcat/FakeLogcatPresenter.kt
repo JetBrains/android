@@ -39,10 +39,12 @@ import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
  */
 internal class FakeLogcatPresenter : LogcatPresenter {
   var reloadedMessages = 0
+  var logcatRestartedCount = 0
   var attachedDevice: Device? = null
 
   val messageBatches = mutableListOf<List<LogCatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
+
   @Suppress("UNUSED_PARAMETER")
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
@@ -56,6 +58,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun clearMessageView() {
     lineBatches.clear()
+  }
+
+  override suspend fun restartLogcat() {
+    logcatRestartedCount++
   }
 
   override fun isLogcatEmpty(): Boolean = lineBatches.isEmpty()

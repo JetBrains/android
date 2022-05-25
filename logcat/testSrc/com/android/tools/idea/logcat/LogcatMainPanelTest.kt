@@ -169,6 +169,7 @@ class LogcatMainPanelTest {
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
     assertThat(toolbar.actions.mapToStrings()).containsExactly(
       "Clear Logcat",
+      "Restart Logcat",
       "Scroll to the End (clicking on a particular line stops scrolling and keeps that line visible)",
       "Previous Occurrence",
       "Next Occurrence",

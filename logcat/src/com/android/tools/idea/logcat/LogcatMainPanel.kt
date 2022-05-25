@@ -28,6 +28,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StartLogcat
+import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StopLogcat
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
@@ -38,6 +40,7 @@ import com.android.tools.idea.logcat.actions.LogcatSplitterActions
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
+import com.android.tools.idea.logcat.actions.RestartLogcatAction
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
@@ -103,6 +106,8 @@ import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
@@ -202,6 +207,7 @@ internal class LogcatMainPanel(
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
+  private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
 
   init {
     editor.apply {
@@ -244,26 +250,21 @@ internal class LogcatMainPanel(
     })
 
     coroutineScope.launch(workerThread) {
-      var job: Job? = null
       headerPanel.trackSelectedDevice().collect { device ->
-        job?.cancel()
-        if (device.isOnline) {
-          withContext(uiThread) {
-            document.setText("")
-          }
-          connectedDevice.set(device)
-          job = coroutineScope.launch(Dispatchers.IO) {
-            // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
-            deviceContext.fireDeviceSelected(findIDevice(device))
-            logcatService.readLogcat(device).collect {
-              processMessages(it)
-            }
-          }
+        when {
+          device.isOnline -> logcatServiceChannel.send(StartLogcat(device))
+          else -> logcatServiceChannel.send(StopLogcat)
         }
-        else {
-          // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
-          deviceContext.fireDeviceSelected(null)
-          connectedDevice.set(null)
+      }
+    }
+
+    coroutineScope.launch {
+      var job : Job? = null
+      logcatServiceChannel.consumeEach {
+        job?.cancel()
+        job = when (it) {
+          is StartLogcat -> startLogcat(it.device)
+          StopLogcat -> stopLogcat().let { null }
         }
       }
     }
@@ -400,6 +401,7 @@ internal class LogcatMainPanel(
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {
       add(ClearLogcatAction(this@LogcatMainPanel))
+      add(RestartLogcatAction(this@LogcatMainPanel))
       add(ScrollToTheEndToolbarAction(editor).apply {
         @Suppress("DialogTitleCapitalization")
         templatePresentation.text = LogcatBundle.message("logcat.scroll.to.end.action.text")
@@ -447,8 +449,12 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
+  override suspend fun restartLogcat() {
+    val device = connectedDevice.get() ?: return
+    logcatServiceChannel.send(StartLogcat(device))
+  }
 
+  override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
@@ -468,6 +474,27 @@ internal class LogcatMainPanel(
     if (!scrollAtBottom && caretAtBottom) {
       ignoreCaretAtBottom = true
     }
+  }
+
+  private suspend fun startLogcat(device: Device): Job {
+    withContext(uiThread) {
+      document.setText("")
+    }
+    messageBacklog.get().clear()
+    connectedDevice.set(device)
+    return coroutineScope.launch(Dispatchers.IO) {
+      // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
+      deviceContext.fireDeviceSelected(findIDevice(device))
+      logcatService.readLogcat(device).collect {
+        processMessages(it)
+      }
+    }
+  }
+
+  private fun stopLogcat() {
+    // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
+    deviceContext.fireDeviceSelected(null)
+    connectedDevice.set(null)
   }
 
   private fun scrollToEnd() {
@@ -543,6 +570,11 @@ internal class LogcatMainPanel(
     }
 
     return if (logcatFilterParser.isValid(newFilter)) newFilter else null
+  }
+
+  private sealed class LogcatServiceEvent {
+    class StartLogcat(val device: Device) : LogcatServiceEvent()
+    object StopLogcat : LogcatServiceEvent()
   }
 }
 
