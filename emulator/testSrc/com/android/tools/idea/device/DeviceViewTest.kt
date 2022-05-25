@@ -31,10 +31,13 @@
 package com.android.tools.idea.device
 
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DeviceMirroringSettings
+import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeDeviceAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
@@ -46,8 +49,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JScrollPane
@@ -142,6 +149,72 @@ internal class DeviceViewTest {
         MotionEventMessage(arrayListOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(arrayListOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
+  }
+
+
+  @Test
+  fun testKeyboardInput() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    createDeviceView(150, 250, 1.5)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(225, 375))
+
+    // Check keyboard input.
+    ui.keyboard.setFocus(view)
+    for (c in ' '..'~') {
+      ui.keyboard.type(c.code)
+      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(TextInputMessage(c.toString()))
+    }
+
+    val controlCharacterCases = listOf(
+      Pair(KeyEvent.VK_ENTER, AKEYCODE_ENTER),
+      Pair(KeyEvent.VK_TAB, AKEYCODE_TAB),
+      Pair(KeyEvent.VK_ESCAPE, AKEYCODE_ESCAPE),
+      Pair(KeyEvent.VK_BACK_SPACE, AKEYCODE_DEL),
+      Pair(KeyEvent.VK_DELETE, if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL),
+      Pair(KeyEvent.VK_LEFT, AKEYCODE_DPAD_LEFT),
+      Pair(KeyEvent.VK_KP_LEFT, AKEYCODE_DPAD_LEFT),
+      Pair(KeyEvent.VK_RIGHT, AKEYCODE_DPAD_RIGHT),
+      Pair(KeyEvent.VK_KP_RIGHT, AKEYCODE_DPAD_RIGHT),
+      Pair(KeyEvent.VK_UP, AKEYCODE_DPAD_UP),
+      Pair(KeyEvent.VK_KP_UP, AKEYCODE_DPAD_UP),
+      Pair(KeyEvent.VK_DOWN, AKEYCODE_DPAD_DOWN),
+      Pair(KeyEvent.VK_KP_DOWN, AKEYCODE_DPAD_DOWN),
+      Pair(KeyEvent.VK_HOME, AKEYCODE_MOVE_HOME),
+      Pair(KeyEvent.VK_END, AKEYCODE_MOVE_END),
+      Pair(KeyEvent.VK_PAGE_DOWN, AKEYCODE_PAGE_DOWN),
+      Pair(KeyEvent.VK_PAGE_UP, AKEYCODE_PAGE_UP),
+    )
+    for (case in controlCharacterCases) {
+      ui.keyboard.pressAndRelease(case.first)
+      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, case.second, 0))
+    }
+
+    // Ctrl+Tab should be ignored.
+    with(ui.keyboard) {
+      press(KeyEvent.VK_CONTROL)
+      pressAndRelease(KeyEvent.VK_TAB)
+      release(KeyEvent.VK_CONTROL)
+    }
+    assertThat(agent.commandLog).isEmpty()
+
+    val mockFocusManager: KeyboardFocusManager = MockitoKt.mock()
+    Mockito.`when`(mockFocusManager.redispatchEvent(MockitoKt.any(Component::class.java), MockitoKt.any(KeyEvent::class.java))).thenCallRealMethod()
+    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
+    // Shift+Tab should trigger a forward local focus traversal.
+    with(ui.keyboard) {
+      setFocus(view)
+      press(KeyEvent.VK_SHIFT)
+      pressAndRelease(KeyEvent.VK_TAB)
+      release(KeyEvent.VK_SHIFT)
+    }
+    val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
+    val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
+    Mockito.verify(mockFocusManager, Mockito.atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
+    val tabEvent = arg2.allValues.firstOrNull { it.id == KeyEvent.KEY_PRESSED && it.keyCode == KeyEvent.VK_TAB && it.modifiersEx == 0 }
+    assertThat(tabEvent).isNotNull()
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
