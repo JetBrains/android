@@ -54,7 +54,7 @@ import org.bytedeco.ffmpeg.global.avutil.av_image_get_buffer_size
 import org.bytedeco.ffmpeg.global.swscale.SWS_BILINEAR
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
 import org.bytedeco.ffmpeg.global.swscale.sws_getCachedContext
-import org.bytedeco.ffmpeg.global.swscale.sws_scale
+import org.bytedeco.ffmpeg.global.swscale.sws_scale_frame
 import org.bytedeco.ffmpeg.swscale.SwsContext
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
@@ -312,8 +312,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
         renderingFrame = createRenderingFrame(size).also { this.renderingFrame = it }
       }
 
-      sws_scale(getSwsContext(renderingFrame), decodingFrame.data(), decodingFrame.linesize(), 0, decodingFrame.height(),
-                renderingFrame.data(), renderingFrame.linesize())
+      sws_scale_frame(getSwsContext(renderingFrame), renderingFrame, decodingFrame)
 
       val numBytes = av_image_get_buffer_size(renderingFrame.format(), renderingFrame.width(), renderingFrame.height(), 1)
       val framePixels = renderingFrame.data().get().asByteBufferOfSize(numBytes).asIntBuffer()
