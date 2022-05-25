@@ -277,6 +277,9 @@ interface IdeSyncIssue {
          */
         const val TYPE_ACCESSING_DISABLED_FEATURE_VARIANT_API = 49
 
+        /** Using the variant API to set the application ID to a dynamic value */
+        const val TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC = 50
+
         // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
         // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
         // an indexing issue in the past (see http://issuetracker.google.com/138278313).
