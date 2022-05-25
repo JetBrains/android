@@ -1385,6 +1385,15 @@ public final class StudioFlags {
       "Enabled",
       "Enable App Insights tool window and highlighting support.",
       true);
+
+  public static final Flag<Boolean> APP_INSIGHTS_GUTTER_SUPPORT =
+    Flag.create(
+      APP_INSIGHTS,
+      "insights.gutter",
+      "Gutter Support",
+      "Use gutter icons rather than code highlight to display insights in the editor",
+      false);
+
   public static final Flag<Boolean> NEW_CRASHLYTICS_API_ENABLED =
     Flag.create(
       APP_INSIGHTS,
