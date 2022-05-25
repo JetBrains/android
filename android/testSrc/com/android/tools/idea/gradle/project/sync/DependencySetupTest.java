@@ -48,7 +48,6 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Ignore;
 
 /**
  * Tests dependency configuration during Gradle Sync.
@@ -110,7 +109,6 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertTrue(versionChanged);
 
     runWriteCommandAction(project, buildModel::applyChanges);
-    refreshProjectFiles();
 
     try {
       requestSyncAndWait();
