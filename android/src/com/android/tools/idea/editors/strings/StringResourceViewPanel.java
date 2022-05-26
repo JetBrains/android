@@ -76,7 +76,6 @@ public class StringResourceViewPanel implements Disposable {
   private @Nullable Container myPanel;
   private final @NotNull JBLoadingPanel myLoadingPanel;
 
-  private RemoveKeysAction myRemoveKeysAction;
   private AddLocaleAction myAddLocaleAction;
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
@@ -117,7 +116,6 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initTable() {
-    myRemoveKeysAction = new RemoveKeysAction();
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(this);
 
@@ -151,8 +149,8 @@ public class StringResourceViewPanel implements Disposable {
     myAddLocaleAction = new AddLocaleAction(this);
 
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new AddKeyAction(this));
-    group.add(myRemoveKeysAction);
+    group.add(new AddKeyAction());
+    group.add(new RemoveKeysAction());
     group.add(myAddLocaleAction);
     group.add(new FilterKeysAction(myTable));
     group.add(new FilterLocalesAction(myTable));
@@ -251,7 +249,7 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   @NotNull
-  AndroidFacet getFacet() {
+  public AndroidFacet getFacet() {
     return myFacet;
   }
 

@@ -667,7 +667,7 @@ class StringResourceWriterTest {
     }
 
     private fun DialogWrapper.getSafeDeleteCheckbox(): JCheckBox =
-        getTextComponent(SAFE_DELETE_CHECKBOX_MSG) { it.text }
+      getTextComponent(SAFE_DELETE_CHECKBOX_MSG) { it.text }
 
     private inline fun <reified T> DialogWrapper.getTextComponent(
         text: String,

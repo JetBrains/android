@@ -13,49 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action;
+package com.android.tools.idea.editors.strings.action
 
-import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.StringResourceViewPanel;
-import com.android.tools.idea.res.StringResourceWriter;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.Project;
-import java.util.HashSet;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.strings.StringResourceData
+import com.android.tools.idea.res.StringResourceWriter
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.annotations.TestOnly
 
-final class AddKeyAction extends AnAction {
-  private final StringResourceViewPanel myPanel;
+/** Action to add a new string resource key. */
+class AddKeyAction
+@TestOnly
+internal constructor(private val stringResourceWriter: StringResourceWriter) :
+    PanelAction("Add Key", description = null, AllIcons.General.Add) {
+  constructor() : this(StringResourceWriter.INSTANCE)
+  override fun doUpdate(e: AnActionEvent): Boolean = e.panel.table.data != null
 
-  AddKeyAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Key", null, AllIcons.General.Add);
-    myPanel = panel;
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setEnabled(myPanel.getTable().getData() != null);
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    AndroidFacet facet = myPanel.getFacet();
-
-    StringResourceData data = myPanel.getTable().getData();
-    assert data != null;
-
-    NewStringKeyDialog dialog = new NewStringKeyDialog(facet, new HashSet<>(data.getKeys()));
-
-    if (!dialog.showAndGet()) {
-      return;
-    }
-
-    Project project = facet.getModule().getProject();
-
-    if (StringResourceWriter.INSTANCE.add(project, dialog.getKey(), dialog.getDefaultValue())) {
-      myPanel.reloadData();
+  override fun actionPerformed(e: AnActionEvent) {
+    val data: StringResourceData =
+        requireNotNull(e.panel.table.data) {
+          "Panel's StringResourceTable must contain non-null StringResourceData!"
+        }
+    val dialog = NewStringKeyDialog(e.panel.facet, data.keys.toSet())
+    if (dialog.showAndGet() &&
+        stringResourceWriter.add(e.requiredProject, dialog.key, dialog.defaultValue)) {
+      e.panel.reloadData()
     }
   }
 }
