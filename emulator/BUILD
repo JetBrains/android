@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
     ],
 )
 

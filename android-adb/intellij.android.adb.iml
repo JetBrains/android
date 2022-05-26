@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
   </component>
 </module>

@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
     ],
 )
 

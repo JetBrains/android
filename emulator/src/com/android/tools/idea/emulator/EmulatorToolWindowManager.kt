@@ -25,7 +25,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.utils.getprop
+import com.android.adblib.tools.getprop
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback

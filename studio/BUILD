@@ -217,6 +217,7 @@ studio_plugin(
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
             "//tools/base/adblib:studio.android.sdktools.adblib",
+            "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",

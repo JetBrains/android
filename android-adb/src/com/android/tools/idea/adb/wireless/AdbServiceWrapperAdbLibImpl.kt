@@ -23,7 +23,7 @@ import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.utils.getprop
+import com.android.adblib.tools.getprop
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
 import kotlinx.coroutines.Dispatchers
