@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -58,6 +59,8 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint
 import com.android.tools.idea.logcat.messages.TimestampFormat
+import com.android.tools.idea.logcat.service.LogcatService
+import com.android.tools.idea.logcat.service.LogcatServiceImpl
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AdbAdapter
 import com.android.tools.idea.logcat.util.AdbAdapterImpl
@@ -96,10 +99,10 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
@@ -145,11 +148,11 @@ internal class LogcatMainPanel(
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
-  private val packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
+  packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
   private val adbAdapter: AdbAdapter = AdbAdapterImpl(project),
-  private val deviceManagerFactory: (LogcatPresenter, IDevice) -> LogcatDeviceManager =
-    LogcatDeviceManager.getFactory(project, packageNamesProvider),
   adbSession: AdbLibSession = AdbLibService.getInstance(project).session,
+  private val logcatService: LogcatService =
+    LogcatServiceImpl(project, { AdbLibService.getInstance(project).session.deviceServices }, ProcessNameMonitor.getInstance(project)),
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
@@ -160,7 +163,8 @@ internal class LogcatMainPanel(
   private val coroutineScope = AndroidCoroutineScope(this)
 
   // TODO(aalbert): We still need a DeviceContext for screenshot & screen record actions.
-  private val deviceContext = DeviceContext()
+  @VisibleForTesting
+  val deviceContext = DeviceContext()
 
   override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {
@@ -193,12 +197,11 @@ internal class LogcatMainPanel(
     ::formatMessages,
     logcatFilterParser.parse(headerPanel.filter))
 
-  @VisibleForTesting
-  internal var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
+  private val connectedDevice = AtomicReference<Device?>()
 
   init {
     editor.apply {
@@ -235,13 +238,34 @@ internal class LogcatMainPanel(
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
 
     project.messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
-      if (deviceManager?.device == it) {
+      if (connectedDevice.get()?.serialNumber == it.serialNumber) {
         clearMessageView()
       }
     })
 
     coroutineScope.launch(workerThread) {
-      headerPanel.trackSelectedDevice().collect { onDeviceChanged(it) }
+      var job: Job? = null
+      headerPanel.trackSelectedDevice().collect { device ->
+        job?.cancel()
+        if (device.isOnline) {
+          withContext(uiThread) {
+            document.setText("")
+          }
+          connectedDevice.set(device)
+          job = coroutineScope.launch(Dispatchers.IO) {
+            // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
+            deviceContext.fireDeviceSelected(findIDevice(device))
+            logcatService.readLogcat(device).collect {
+              processMessages(it)
+            }
+          }
+        }
+        else {
+          // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
+          deviceContext.fireDeviceSelected(null)
+          connectedDevice.set(null)
+        }
+      }
     }
   }
 
@@ -359,10 +383,10 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun getConnectedDevice() = deviceManager?.device
+  override fun getConnectedDevice() = connectedDevice.get()
 
-  override fun selectDevice(device: IDevice) {
-    headerPanel.selectDevice(device)
+  override fun selectDevice(serialNumber: String) {
+    headerPanel.selectDevice(serialNumber)
   }
 
   override fun countFilterMatches(filter: String): Int {
@@ -397,8 +421,9 @@ internal class LogcatMainPanel(
   @UiThread
   override fun clearMessageView() {
     coroutineScope.launch(workerThread) {
-      deviceManager?.let {
-        if (it.device.version.apiLevel != 26) {
+      val device = connectedDevice.get()
+      if (device != null) {
+        if (device.sdk != 26) {
           // See http://b/issues/37109298#comment9.
           // TL/DR:
           // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running logcat processes.
@@ -406,13 +431,14 @@ internal class LogcatMainPanel(
           // Theoretically, we could stop the running logcat here before sending "logcat -c" to the device but this is not trivial. And we
           // have to do this for all active Logcat panels listening on this device, not only in the current project but across all projects.
           // A much easier and safer workaround is to not send a "logcat -c" command on this particular API level.
-          it.clearLogcat()
+          logcatService.clearLogcat(device)
+
         }
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")
-        if (deviceManager?.device?.version?.apiLevel == 26) {
+        if (connectedDevice.get()?.sdk == 26) {
           processMessages(listOf(LogCatMessage(
             SYSTEM_HEADER,
             "WARNING: Logcat was not cleared on the device itself because of a bug in Android 8.0 (Oreo).")))
@@ -426,9 +452,9 @@ internal class LogcatMainPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      ScreenshotAction.SERIAL_NUMBER_KEY.name -> deviceManager?.device?.serialNumber
-      ScreenshotAction.SDK_KEY.name -> deviceManager?.device?.version?.apiLevel
-      ScreenshotAction.MODEL_KEY.name -> deviceManager?.device?.getProperty(IDevice.PROP_DEVICE_MODEL)
+      ScreenshotAction.SERIAL_NUMBER_KEY.name -> connectedDevice.get()?.serialNumber
+      ScreenshotAction.SDK_KEY.name -> connectedDevice.get()?.sdk
+      ScreenshotAction.MODEL_KEY.name -> connectedDevice.get()?.model
       EDITOR.name -> editor
       else -> null
     }
@@ -451,34 +477,6 @@ internal class LogcatMainPanel(
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
     messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
-  }
-
-
-  private fun onDeviceChanged(device: Device) {
-    if (device.isOnline) {
-      coroutineScope.launch(Dispatchers.IO) {
-        val iDevice = findIDevice(device)
-        removeDeviceManager()
-        if (iDevice != null) {
-          withContext(uiThread) {
-            document.setText("")
-            deviceManager = deviceManagerFactory(this@LogcatMainPanel, iDevice)
-          }
-        }
-        deviceContext.fireDeviceSelected(iDevice)
-      }
-    }
-    else {
-      removeDeviceManager()
-      deviceContext.fireDeviceSelected(null)
-    }
-  }
-
-  private fun removeDeviceManager() {
-    deviceManager?.let {
-      Disposer.dispose(it)
-      deviceManager = null
-    }
   }
 
   private suspend fun findIDevice(device: Device): IDevice? {

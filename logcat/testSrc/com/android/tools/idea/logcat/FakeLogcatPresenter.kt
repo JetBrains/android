@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
@@ -39,7 +39,7 @@ import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
  */
 internal class FakeLogcatPresenter : LogcatPresenter {
   var reloadedMessages = 0
-  var attachedDevice: IDevice? = null
+  var attachedDevice: Device? = null
 
   val messageBatches = mutableListOf<List<LogCatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
@@ -83,8 +83,8 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun selectDevice(device: IDevice) {
-    attachedDevice = device
+  override fun selectDevice(serialNumber: String) {
+    TODO()
   }
 
   override fun countFilterMatches(filter: String): Int {

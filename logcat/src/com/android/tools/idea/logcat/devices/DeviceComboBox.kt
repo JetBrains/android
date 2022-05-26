@@ -108,6 +108,13 @@ internal class DeviceComboBox(
     }
   }
 
+  fun selectDevice(serialNumber: String) {
+    val device = deviceModel.items.find { it.serialNumber == serialNumber }
+    if (device != null) {
+      selectDevice(device)
+    }
+  }
+
   private fun selectDevice(device: Device) {
     selectedItem = device
   }
