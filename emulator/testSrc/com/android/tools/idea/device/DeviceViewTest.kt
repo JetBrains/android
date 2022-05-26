@@ -40,6 +40,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeDeviceAction
+import com.android.tools.idea.testing.mockStatic
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
@@ -58,6 +59,9 @@ import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
+import java.awt.MouseInfo
+import java.awt.Point
+import java.awt.PointerInfo
 import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -131,15 +135,15 @@ internal class DeviceViewTest {
       // Check mouse input.
       ui.mouse.press(40, 30)
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
-          MotionEventMessage(arrayListOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_DOWN, 0))
+          MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_DOWN, 0))
 
       ui.mouse.dragTo(60, 55)
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
-          MotionEventMessage(arrayListOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_MOVE, 0))
+          MotionEventMessage(listOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_MOVE, 0))
 
       ui.mouse.release()
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
-          MotionEventMessage(arrayListOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_UP, 0))
+          MotionEventMessage(listOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_UP, 0))
 
       executeDeviceAction("android.device.rotate.left", view, project)
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
@@ -148,14 +152,56 @@ internal class DeviceViewTest {
     // Check dragging over the edge of the device screen.
     ui.mouse.press(40, 50)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
-        MotionEventMessage(arrayListOf(MotionEventMessage.Pointer(298, 1273, 0)), MotionEventMessage.ACTION_DOWN, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(298, 1273, 0)), MotionEventMessage.ACTION_DOWN, 0))
     ui.mouse.dragTo(90, 60)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
-        MotionEventMessage(arrayListOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_MOVE, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
-        MotionEventMessage(arrayListOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
   }
 
+  @Test
+  fun testMultiTouch() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    createDeviceView(50, 100, 2.0)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(100, 200))
+
+    val mousePosition = Point(30, 30)
+    val pointerInfo = MockitoKt.mock<PointerInfo>()
+    Mockito.`when`(pointerInfo.location).thenReturn(mousePosition)
+    val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
+    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+
+    ui.keyboard.setFocus(view)
+    ui.mouse.moveTo(mousePosition)
+    ui.keyboard.press(KeyEvent.VK_CONTROL)
+    ui.layoutAndDispatchEvents()
+    assertAppearance(ui, "MultiTouch1")
+
+    ui.mouse.press(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(665, 689, 0), MotionEventMessage.Pointer(415, 1591, 1)),
+                           MotionEventMessage.ACTION_DOWN, 0))
+    assertAppearance(ui, "MultiTouch2")
+
+    mousePosition.x -= 10
+    mousePosition.y += 10
+    ui.mouse.dragTo(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
+                           MotionEventMessage.ACTION_MOVE, 0))
+    assertAppearance(ui, "MultiTouch3")
+
+    ui.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+      MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
+                         MotionEventMessage.ACTION_UP, 0))
+
+    ui.keyboard.release(KeyEvent.VK_CONTROL)
+    assertAppearance(ui, "MultiTouch4")
+  }
 
   @Test
   fun testKeyboardInput() {
