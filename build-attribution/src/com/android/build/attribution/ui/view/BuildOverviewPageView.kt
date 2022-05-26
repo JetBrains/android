@@ -19,7 +19,7 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.BuildOverviewPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.shouldShowWarning
 import com.android.build.attribution.ui.percentageStringHtml
@@ -44,7 +44,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent.EventType
 
 class BuildOverviewPageView(
-  val model: BuildAnalyzerViewModel,
+  val model: BuildOverviewPageModel,
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 

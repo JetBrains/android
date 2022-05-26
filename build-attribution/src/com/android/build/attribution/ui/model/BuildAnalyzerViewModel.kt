@@ -47,14 +47,7 @@ class BuildAnalyzerViewModel(
       }
     }
 
-  val shouldWarnAboutGC: Boolean
-    get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0
-
-  val shouldWarnAboutNoGCSetting: Boolean
-    get() = !warningSuppressions.suppressNoGCSettingWarning
-            && reportUiData.buildSummary.isGarbageCollectorSettingSet == false
-            && reportUiData.buildSummary.javaVersionUsed?.let { it >= 9 } ?: false
-
+  val overviewPageModel: BuildOverviewPageModel = BuildOverviewPageModel(reportUiData, warningSuppressions)
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
   val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)
 }
