@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
@@ -81,6 +82,20 @@ class AndroidJavaDebuggerTest {
     }
     runnableClientsService.stop()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
+  }
+
+  @Test
+  fun testAllInformationForApplyChangesAndPositionManger() {
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null,
+                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
+                                                                                                                                TimeUnit.SECONDS)
+    val processHandler = session!!.debugProcess.processHandler
+    // For AndroidPositionManager.
+    assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
+    // For Apply Changes.
+    val sessionInfo = processHandler.getUserData(AndroidSessionInfo.KEY)!!
+    assertThat(sessionInfo.processHandler).isEqualTo(processHandler)
+    assertThat(sessionInfo.executor).isEqualTo(executionEnvironment.executor)
   }
 
   @Test

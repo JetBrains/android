@@ -19,9 +19,11 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.AndroidSessionInfo
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
@@ -61,7 +63,14 @@ fun attachJavaDebuggerToClient(
       runInEdt {
         promise.catchError {
           val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
-          session.debugProcess.processHandler.startNotify()
+          val debugProcessHandler = session.debugProcess.processHandler
+          debugProcessHandler.startNotify()
+          val executor = executionEnvironment.executor
+          AndroidSessionInfo.create(debugProcessHandler,
+                                    executionEnvironment.runProfile as? RunConfiguration,
+                                    executor.id,
+                                    executor.actionName,
+                                    executionEnvironment.executionTarget)
           promise.setResult(session as XDebugSessionImpl)
         }
       }
@@ -141,6 +150,8 @@ private fun getDebugProcessStarter(
     promise.catchError {
       val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
                             ?: throw ExecutionException("Unable to start debugger session")
+
+      debuggerSession.process.processHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.device.version)
 
       promise.setResult(object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {
