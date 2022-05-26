@@ -76,11 +76,11 @@ public class TestUtils {
    * Returns the Kotlin version to be used in new project templates and integration tests.
    *
    * If you are looking for the version of the Kotli compiler used during code highlighting
-   * in the IDE, use KotlinPluginLayout.getInstance().getAnalyzerCompilerVersion() instead.
+   * in the IDE, use KotlinPluginLayout.getAnalyzerCompilerVersion() instead.
    */
   @NonNull
   public static String getKotlinVersionForTests() {
-    return KotlinPluginLayout.getInstance().getStandaloneCompilerVersion().getArtifactVersion();
+    return KotlinPluginLayout.getStandaloneCompilerVersion().getArtifactVersion();
   }
 
   /**

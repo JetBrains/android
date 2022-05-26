@@ -67,7 +67,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   }
 
   private fun getBestKotlinVersion() : String {
-    val compilerVersion = KotlinPluginLayout.instance.standaloneCompilerVersion
+    val compilerVersion = KotlinPluginLayout.standaloneCompilerVersion
     if (!compilerVersion.isSnapshot) {
       return compilerVersion.artifactVersion
     }
