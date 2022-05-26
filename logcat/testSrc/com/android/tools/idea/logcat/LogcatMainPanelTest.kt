@@ -38,7 +38,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -53,7 +52,6 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.setDevices
@@ -94,16 +92,14 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ConcurrencyUtil
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -373,7 +369,7 @@ class LogcatMainPanelTest {
     fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.getConnectedDevice() != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
         it.editor.document.setText("not-empty")
       }
     }
@@ -398,7 +394,7 @@ class LogcatMainPanelTest {
 
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.getConnectedDevice() != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
         it.editor.document.setText("not-empty")
       }
     }
@@ -419,10 +415,10 @@ class LogcatMainPanelTest {
     fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceContext.selectedDevice != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
       }
     }
-    assertThat(logcatMainPanel.deviceContext.selectedDevice).isEqualTo(device)
+    assertThat(logcatMainPanel.deviceManager?.device).isEqualTo(device)
   }
 
   @Test
@@ -434,10 +430,10 @@ class LogcatMainPanelTest {
     fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceContext.selectedDevice != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
       }
     }
-    assertThat(logcatMainPanel.deviceContext.selectedDevice).isEqualTo(device)
+    assertThat(logcatMainPanel.deviceManager?.device).isEqualTo(device)
   }
 
   @Test
@@ -449,10 +445,10 @@ class LogcatMainPanelTest {
     fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceContext.selectedDevice != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
       }
     }
-    assertThat(logcatMainPanel.deviceContext.selectedDevice).isEqualTo(device)
+    assertThat(logcatMainPanel.deviceManager?.device).isEqualTo(device)
   }
 
   @Test
@@ -464,10 +460,10 @@ class LogcatMainPanelTest {
     fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
-        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceContext.selectedDevice != null }
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.deviceManager != null }
       }
     }
-    assertThat(logcatMainPanel.deviceContext.selectedDevice).isEqualTo(device)
+    assertThat(logcatMainPanel.deviceManager?.device).isEqualTo(device)
   }
 
   /**
@@ -986,12 +982,20 @@ class LogcatMainPanelTest {
       foldingDetector,
       packageNamesProvider,
       adbAdapter,
+      { logcatPresenter, iDevice -> FakeLogcatDeviceManager(iDevice, logcatPresenter, packageNamesProvider) },
       adbSession,
-      FakeLogcatService(),
       zoneId,
     ).also {
       Disposer.register(projectRule.project, it)
     }
+
+  private class FakeLogcatDeviceManager(
+    device: IDevice,
+    logcatPresenter: LogcatPresenter,
+    packageNamesProvider: PackageNamesProvider,
+  ) : LogcatDeviceManager(device, logcatPresenter, packageNamesProvider) {
+    override fun clearLogcat() {}
+  }
 }
 
 private fun LogCatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
@@ -1007,14 +1011,6 @@ private fun mockDevice(serialNumber: String, avdName: String = ""): IDevice {
     `when`(it.version).thenReturn(AndroidVersion(30))
     `when`(it.avdData).thenReturn(immediateFuture(AvdData(avdName, avdName)))
   }
-}
-
-private class FakeLogcatService : LogcatService {
-  override suspend fun readLogcat(device: Device): Flow<List<LogCatMessage>> = flowOf(emptyList())
-
-  override suspend fun clearLogcat(device: Device) {
-  }
-
 }
 
 private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {

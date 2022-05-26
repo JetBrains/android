@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
@@ -67,11 +66,11 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   /**
    * Returns the connected device or null if not connected
    */
-  fun getConnectedDevice(): Device?
+  fun getConnectedDevice(): IDevice?
 
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 
-  fun selectDevice(serialNumber: String)
+  fun selectDevice(device: IDevice)
 
   fun countFilterMatches(filter: String): Int
 

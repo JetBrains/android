@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbLibSession
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
@@ -94,8 +95,8 @@ internal class LogcatHeaderPanel(
       filterComponent.text = value
     }
 
-  fun selectDevice(serialNumber: String) {
-    deviceComboBox.selectDevice(serialNumber)
+  fun selectDevice(device: IDevice) {
+    deviceComboBox.selectedItem = device
   }
 
   fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device

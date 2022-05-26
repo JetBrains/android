@@ -117,8 +117,7 @@ class LogcatPanelConfigTest {
     'isOnline': false,
     'release': '11',
     'sdk': '30',
-    'isEmulator': false,
-    'model': 'Pixel 2'
+    'isEmulator': false
   },
   'formattingConfig': {
     'preset': 'STANDARD'

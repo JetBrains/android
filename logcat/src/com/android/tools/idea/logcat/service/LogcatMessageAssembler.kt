@@ -157,12 +157,7 @@ internal class LogcatMessageAssembler(
   }
 
   private fun getApplicationId(pid: Int): String {
-    val names = processNameMonitor.getProcessNames(serialNumber, pid)
-    return when {
-      names == null -> "pid-$pid"
-      names.applicationId.isEmpty() -> names.processName
-      else -> names.applicationId
-    }
+    return processNameMonitor.getProcessNames(serialNumber, pid)?.applicationId ?: "pid-$pid"
   }
 
   /**
