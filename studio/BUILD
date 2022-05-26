@@ -591,6 +591,9 @@ py_test(
         ":updater",
         ":updater.jar",
     ],
+    tags = [
+        "no_windows",  # b/234018495
+    ],
 )
 
 py_test(
