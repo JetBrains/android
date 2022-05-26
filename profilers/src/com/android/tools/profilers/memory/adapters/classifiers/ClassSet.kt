@@ -25,12 +25,18 @@ class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.si
 
   override val stringForMatching get() = classEntry.className
 
+  override val totalRetainedSize: Long
+    get() = when (val size = classEntry.retainedSize) {
+      -1L -> super.totalRetainedSize
+      else -> size
+    }
+
   // Do nothing, as this is a leaf node (presently).
   public override fun createSubClassifier(): Classifier = Classifier.Id
 
   companion object {
     @JvmField
-    val EMPTY_SET = ClassSet(ClassDb.ClassEntry(ClassDb.INVALID_CLASS_ID.toLong(), ClassDb.INVALID_CLASS_ID.toLong(), "null"))
+    val EMPTY_SET = ClassSet(ClassDb.ClassEntry(ClassDb.INVALID_CLASS_ID.toLong(), ClassDb.INVALID_CLASS_ID.toLong(), "null", -1))
 
     @JvmStatic
     fun createDefaultClassifier(): Classifier = classClassifier()

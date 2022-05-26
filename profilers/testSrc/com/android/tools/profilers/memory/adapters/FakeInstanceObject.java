@@ -240,10 +240,18 @@ public final class FakeInstanceObject implements InstanceObject {
     private Object myArray;
     private int myArrayLength;
 
+    private ClassDb.ClassEntry myClassEntry; // if this is non-null, it overwrites `myClassId` and `myClassName`
+
+    // Conceptutally, FakeInstanceObject = captureObject x classId x className
+    //                                   | classEntry
     public Builder(@NotNull FakeCaptureObject captureObject, long classId, @NotNull String className) {
       myCaptureObject = captureObject;
       myClassId = classId;
       myClassName = className;
+    }
+
+    public Builder(@NotNull ClassDb.ClassEntry classEntry) {
+      myClassEntry = classEntry;
     }
 
     @NotNull
@@ -338,9 +346,14 @@ public final class FakeInstanceObject implements InstanceObject {
 
     @NotNull
     public FakeInstanceObject build() {
-      return new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassId, mySuperClassId, myClassName), myFields,
-                                    myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
-                                    myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize);
+      return
+        myClassEntry != null
+        ? new FakeInstanceObject(myName, myClassEntry, myFields,
+                                 myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
+                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize)
+        : new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassId, mySuperClassId, myClassName), myFields,
+                                 myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
+                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize);
     }
   }
 }

@@ -104,7 +104,12 @@ public final class FakeCaptureObject implements CaptureObject {
 
   @NotNull
   public ClassDb.ClassEntry registerClass(long classId, long superClassId, @NotNull String className) {
-    return myClassDb.registerClass(classId, superClassId, className);
+    return registerClass(classId, superClassId, className, -1);
+  }
+
+  @NotNull
+  public ClassDb.ClassEntry registerClass(long classId, long superClassId, @NotNull String className, long knownRetainedSize) {
+    return myClassDb.registerClass(classId, superClassId, className, knownRetainedSize);
   }
 
   public boolean containsClass(long classId) {

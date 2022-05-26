@@ -230,6 +230,6 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   private fun countBytes() = doGetBytesRequest().serializedSize
 
   private fun ClassObj.makeEntry(name: String = this.className) =
-    if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name)
-    else classDb.registerClass(id, name)
+    if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)
+    else classDb.registerClass(id, name, totalRetainedSize)
 }

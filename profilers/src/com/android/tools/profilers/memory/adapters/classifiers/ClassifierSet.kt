@@ -24,6 +24,7 @@ import java.util.Collections
 import java.util.IdentityHashMap
 import java.util.Objects
 import java.util.stream.Stream
+import kotlin.math.min
 import kotlin.streams.toList
 
 /**
@@ -40,6 +41,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       // Note that instances here can also appear in the set of snapshot instances (e.g. when a instance is allocated before the selection
       // and deallocation within the selection).
       val deltaInstances: MutableSet<InstanceObject>): State() {
+      var retainedSize: Long = -1 // cached retained size. `-1` means stale
       class Leaf(snapshotInstances: MutableSet<InstanceObject>, deltaInstances: MutableSet<InstanceObject>)
         : Coalesced(snapshotInstances, deltaInstances)
       class Delayed(val makeClassifier: () -> Classifier,
@@ -89,8 +91,32 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     private set
   var totalShallowSize = 0L
     private set
-  var totalRetainedSize = 0L
-    private set
+  open val totalRetainedSize: Long get() = when (val s = state) {
+    is State.Coalesced -> when (s.retainedSize) {
+      -1L -> {
+        // b(234174316) for an arbitrary classifier, neither summing over the classes
+        // nor the instances is guaranteed to give the tighter estimation, so we take their min.
+        // In practice, this problem shows up when we support classstacks in the heap dump,
+        // where a callstack may only have some of the instances of the classes.
+        val maxRetainedSizeByClass =
+          (s.snapshotInstances.asSequence() + s.deltaInstances.asSequence())
+            .map { it.classEntry }
+            .distinct()
+            .fold(0L) { sum, entry -> when {
+              entry.retainedSize == -1L || sum == Long.MAX_VALUE -> Long.MAX_VALUE
+              else -> sum + entry.retainedSize
+            }}
+        val maxRetainedSizeByInstances =
+          (s.snapshotInstances.asSequence() + s.deltaInstances.asSequence())
+            .sumOf { it.retainedSize.validOrZero() }
+        val maxRetainedSize = min(maxRetainedSizeByClass, maxRetainedSizeByInstances)
+        s.retainedSize = maxRetainedSize
+        maxRetainedSize
+      }
+      else -> s.retainedSize
+    }
+    is State.Partitioned -> s.classifier.allClassifierSets.sumOf { it.totalRetainedSize }
+  }
   var deltaShallowSize = 0L
     private set
   private var instancesWithStackInfoCount = 0
@@ -146,6 +172,10 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   open val stringForMatching: String get() = _name
   override fun getName() = _name
 
+  private fun invalidateRetainedSizeCache() = when (val s = state) {
+    is State.Coalesced -> s.retainedSize = -1
+    else -> {}
+  }
   private fun ensurePartitioned() = state.forced().also { state = it }
   protected fun coalesce() {
     state = state.retracted(::createSubClassifier)
@@ -182,7 +212,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       snapshotObjectCount += op.countChange
       totalNativeSize += op.countChange * instanceObject.nativeSize.validOrZero()
       totalShallowSize += op.countChange * instanceObject.shallowSize.toLong().validOrZero()
-      totalRetainedSize += op.countChange * instanceObject.retainedSize.validOrZero()
+      invalidateRetainedSizeCache()
       if (!instanceObject.isCallStackEmpty) {
         instancesWithStackInfoCount += op.countChange
       }
@@ -254,7 +284,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       totalNativeSize += deltaNativeSize
       this.deltaShallowSize += deltaShallowSize
       totalShallowSize += deltaShallowSize
-      totalRetainedSize += deltaRetainedSize
+      invalidateRetainedSizeCache()
       if (change.instanceChanged && !instanceObject.isCallStackEmpty) {
         instancesWithStackInfoCount += op.countChange
         needsRefiltering = true
@@ -275,7 +305,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     deallocationSize = 0
     totalShallowSize = 0
     totalNativeSize = 0
-    totalRetainedSize = 0
+    invalidateRetainedSizeCache()
     deltaShallowSize = 0
     instancesWithStackInfoCount = 0
     totalObjectSetCount = 0
@@ -397,7 +427,6 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         deallocationSize = 0
         totalShallowSize = 0
         totalNativeSize = 0
-        totalRetainedSize = 0
         instancesWithStackInfoCount = 0
         totalObjectSetCount = s.classifier.allClassifierSets.size
         filteredObjectSetCount = 0
@@ -413,7 +442,6 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
             deallocationSize += classifierSet.deallocationSize
             totalShallowSize += classifierSet.totalShallowSize
             totalNativeSize += classifierSet.totalNativeSize
-            totalRetainedSize += classifierSet.totalRetainedSize
             deltaShallowSize += classifierSet.deltaShallowSize
             instancesWithStackInfoCount += classifierSet.instancesWithStackInfoCount
             filterMatchCount += classifierSet.filterMatchCount

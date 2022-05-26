@@ -42,11 +42,21 @@ public final class ClassDb {
 
   @NotNull
   public ClassEntry registerClass(long classId, @NotNull String className) {
-    return registerClass(classId, INVALID_CLASS_ID, className);
+    return registerClass(classId, className, -1);
+  }
+
+  @NotNull
+  public ClassEntry registerClass(long classId, @NotNull String className, long retainedSize) {
+    return registerClass(classId, INVALID_CLASS_ID, className, retainedSize);
   }
 
   @NotNull
   public ClassEntry registerClass(long classId, long superClassId, @NotNull String className) {
+    return registerClass(classId, superClassId, className, -1);
+  }
+
+  @NotNull
+  public ClassEntry registerClass(long classId, long superClassId, @NotNull String className, long retainedSize) {
     ClassEntry entry = myClassEntries.get(classId);
     if (entry == null
         // FIXME(b/159029403) Below checks aren't necessary in production:
@@ -54,7 +64,7 @@ public final class ClassDb {
         //   But right now, asserting that would break an existing unrealistic test where
         //   `java.lang.Class` is absent (`HeapDumpCaptureObjectTest.testHeapDumpObjectsGeneration`)
         || superClassId != entry.mySuperClassId || !className.equals(entry.myClassName)) {
-      entry = new ClassEntry(classId, superClassId, className);
+      entry = new ClassEntry(classId, superClassId, className, retainedSize);
       myClassEntries.put(classId, entry);
     }
     return entry;
@@ -127,17 +137,26 @@ public final class ClassDb {
     @NotNull private final String myClassName;
     @NotNull private final String[] mySplitPackageName;
 
+    // known exact retained size, or -1 if not know (e.g. for live allocations)
+    private final long myRetainedSize;
+
     /**=
      * @param classId       unique identifier for the class.
      * @param superClassId  unique identifier for the direct super class.
      * @param className     fully qualified name of the class.
+     * @param retainedSize known exact retained size, or -1 if not know (e.g. for live allocations)
      */
-    public ClassEntry(long classId, long superClassId, @NotNull String className) {
+    public ClassEntry(long classId, long superClassId, @NotNull String className, long retainedSize) {
       myClassId = classId;
       mySuperClassId = superClassId;
       myClassName = className;
       String packageName = getPackageName();
       mySplitPackageName = packageName.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : packageName.split("\\.");
+      myRetainedSize = retainedSize;
+    }
+
+    public ClassEntry(long classId, long superClassId, @NotNull String className) {
+      this(classId, superClassId, className, -1);
     }
 
     public long getClassId() {
@@ -177,6 +196,10 @@ public final class ClassDb {
     @NotNull
     public String getSimpleClassName() {
       return myClassName.substring(getLastIndexOfDot() + 1);
+    }
+
+    public long getRetainedSize() {
+      return myRetainedSize;
     }
 
     @Override
