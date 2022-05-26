@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.ide.common.vectordrawable.Svg2Vector
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.LightVirtualFile
@@ -41,8 +42,9 @@ class SVGImporter : ResourceImporter {
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
 
   override fun processFile(file: File): DesignAsset? {
+    val qualifierMatcherResult = QualifierMatcher().parsePath(file.path)
     return convertSVGToVectorDrawable(file)?.let {
-      DesignAsset(it, emptyList(), ResourceType.DRAWABLE)
+      DesignAsset(it, qualifierMatcherResult.qualifiers.toList(), ResourceType.DRAWABLE, qualifierMatcherResult.resourceName)
     }
   }
 
