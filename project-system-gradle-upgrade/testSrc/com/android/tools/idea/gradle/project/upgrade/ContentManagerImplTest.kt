@@ -36,7 +36,9 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loa
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgradeSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.UpgradeSyncFailed
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.UpgradeSyncSucceeded
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
@@ -533,6 +535,30 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testSuccessfulSyncWithoutRunningProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.syncStarted(project)
+    toolWindowModel.syncSucceeded(project)
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
+    assertThat(uiStates).containsExactly(RunningSync, Loading, ReadyToRun).inOrder()
+  }
+
+  @Test
+  fun testFailingSyncWithoutRunningProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.syncStarted(project)
+    toolWindowModel.syncFailed(project, "External Sync Failure")
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
+    assertThat(uiStates).containsExactly(RunningSync, Loading, ReadyToRun).inOrder()
+  }
+
+  @Test
   fun testRunProcessor() {
     val psiFile = addMinimalBuildGradleToProject()
     var changingCurrentAgpVersion = currentAgpVersion
@@ -543,7 +569,7 @@ class ContentManagerImplTest {
     changingCurrentAgpVersion = latestAgpVersion
     toolWindowModel.syncSucceeded(project)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
-    assertThat(uiStates).containsExactly(RunningUpgrade, RunningSync, Loading, AllDone).inOrder()
+    assertThat(uiStates).containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncSucceeded).inOrder()
   }
 
   @Test
@@ -557,7 +583,40 @@ class ContentManagerImplTest {
     changingCurrentAgpVersion = latestAgpVersion
     toolWindowModel.syncFailed(project, "ContentManagerImplTest failure")
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
-    assertThat(uiStates).containsExactly(RunningUpgrade, RunningSync, UpgradeSyncFailed("ContentManagerImplTest failure")).inOrder()
+    assertThat(uiStates).containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncFailed("ContentManagerImplTest failure")).inOrder()
+  }
+
+  @Test
+  fun testRefreshAfterRunProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.runUpgrade(false)
+    toolWindowModel.syncStarted(project)
+    changingCurrentAgpVersion = latestAgpVersion
+    toolWindowModel.syncSucceeded(project)
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
+    toolWindowModel.refresh(true)
+    assertThat(uiStates)
+      .containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncSucceeded, Loading, AllDone).inOrder()
+  }
+
+  @Test
+  fun testManualSyncAfterRunProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.runUpgrade(false)
+    toolWindowModel.syncStarted(project)
+    changingCurrentAgpVersion = latestAgpVersion
+    toolWindowModel.syncSucceeded(project)
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
+    toolWindowModel.syncStarted(project)
+    toolWindowModel.syncSucceeded(project)
+    assertThat(uiStates)
+      .containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncSucceeded, RunningSync, Loading, AllDone).inOrder()
   }
 
   @Test

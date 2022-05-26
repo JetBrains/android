@@ -557,6 +557,8 @@ class AgpUpgradeRefactoringProcessor(
 
   var showBuildOutputOnSyncFailure = true
 
+  var syncRequestCallback: (() -> Unit)? = null
+
   override fun performPsiSpoilingRefactoring() {
     super.performPsiSpoilingRefactoring()
     val executedUsagesSize = executedUsages.size
@@ -568,6 +570,7 @@ class AgpUpgradeRefactoringProcessor(
       override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
     }
     val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED, dontFocusSyncFailureOutput = !showBuildOutputOnSyncFailure)
+    syncRequestCallback?.invoke()
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
     UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
       override fun undo(): Unit =

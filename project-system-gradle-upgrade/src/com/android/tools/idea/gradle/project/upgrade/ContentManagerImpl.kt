@@ -195,6 +195,12 @@ class ToolWindowModel(
       override val runTooltip = ""
       override val loadingText = "Running Sync"
     }
+    object RunningUpgradeSync : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.LOADING
+      override val runTooltip = ""
+      override val loadingText = "Running Sync"
+    }
     object AllDone : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.HIDE_TREE
@@ -233,6 +239,11 @@ class ToolWindowModel(
       override val statusMessage: StatusMessage = StatusMessage(Severity.ERROR, errorMessage.lines().first())
       override val runTooltip: String
         get() = statusMessage.text
+    }
+    object UpgradeSyncSucceeded : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.HIDE_TREE
+      override val runTooltip = ""
     }
 
     enum class ControlsEnabledState(val runEnabled: Boolean, val showPreviewEnabled: Boolean, val comboEnabled: Boolean) {
@@ -298,6 +309,8 @@ class ToolWindowModel(
     }
   }
 
+  private var processorRequestedSync: Boolean = false
+
   init {
     Disposer.register(project, this)
     refresh()
@@ -316,15 +329,20 @@ class ToolWindowModel(
     })
   }
 
-  override fun syncStarted(project: Project) = uiState.set(UIState.RunningSync)
+  override fun syncStarted(project: Project) =
+    when(processorRequestedSync) {
+      true -> uiState.set(UIState.RunningUpgradeSync)
+      false -> uiState.set(UIState.RunningSync)
+    }
   override fun syncFailed(project: Project, errorMessage: String) = syncFinished(success = false, errorMessage = errorMessage)
   override fun syncSucceeded(project: Project) = syncFinished()
   override fun syncSkipped(project: Project) = syncFinished()
 
   private fun syncFinished(success: Boolean = true, errorMessage: String = "") {
-    when (success) {
-      true -> uiState.set(UIState.Loading).also { refresh(true) }
-      false -> uiState.set(UIState.UpgradeSyncFailed(errorMessage))
+    when {
+      !processorRequestedSync -> uiState.set(UIState.Loading).also { refresh(true) }
+      success -> uiState.set(UIState.UpgradeSyncSucceeded).also { processorRequestedSync = false }
+      else -> uiState.set(UIState.UpgradeSyncFailed(errorMessage)).also { processorRequestedSync = false }
     }
   }
 
@@ -404,6 +422,7 @@ class ToolWindowModel(
     }
     else {
       newProcessor.showBuildOutputOnSyncFailure = false
+      newProcessor.syncRequestCallback = { processorRequestedSync = true }
       newProcessor.backFromPreviewAction = object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
         override fun actionPerformed(e: ActionEvent?) {
           ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }
@@ -881,6 +900,22 @@ class ContentManagerImpl(val project: Project): ContentManager {
               }
             }
           }
+          detailsPanel.add(label)
+        }
+        uiState is ToolWindowModel.UIState.UpgradeSyncSucceeded -> {
+          val sb = StringBuilder()
+          sb.append("<div><b>Sync succeeded</b></div>")
+          sb.append("<p>The upgraded project successfully synced with the IDE.  ")
+          sb.append("You should test that the upgraded project builds and passes its tests successfully before making further changes.</p>")
+          model.processor?.let { processor ->
+            sb.append("<p>The upgrade consisted of the following steps:</p>")
+            sb.append("<ul>")
+            processor.componentRefactoringProcessors.filter { it.isEnabled }.forEach {
+              sb.append("<li>${it.commandName}</li>")
+            }
+            sb.append("</ul>")
+          }
+          label.text = sb.toString()
           detailsPanel.add(label)
         }
         uiState is ToolWindowModel.UIState.AllDone -> {
