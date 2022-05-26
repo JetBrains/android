@@ -24,6 +24,7 @@ import org.junit.After
 import org.junit.Test
 import java.io.IOException
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -52,7 +53,7 @@ class SuspendingNetworkChannelTest {
     val steps = Array(5) { CountDownLatch(1) }
     val done = CountDownLatch(1)
 
-    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(null))
+    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("localhost", 0)))
     coroutineScope.launch {
       serverChannel.use {
         serverChannel.accept().use { socketChannel ->
