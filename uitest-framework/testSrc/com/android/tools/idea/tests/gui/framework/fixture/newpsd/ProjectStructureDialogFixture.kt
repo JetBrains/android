@@ -90,7 +90,7 @@ class ProjectStructureDialogFixture(
 }
 
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture {
-  waitAndInvokeMenuPath("File", "Project Structure\u2026")
+  waitAndInvokeMenuPath("File", "Project Structure...")
   return ProjectStructureDialogFixture.find(this)
 }
 

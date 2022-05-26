@@ -79,9 +79,9 @@ class NewProjectDescriptor {
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish();
       // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)
-      .getGradleToolWindow().hide();
+      //.getGradleToolWindow().hide();
 
     guiTest.waitForBackgroundTasks();
     return guiTest.ideFrame();

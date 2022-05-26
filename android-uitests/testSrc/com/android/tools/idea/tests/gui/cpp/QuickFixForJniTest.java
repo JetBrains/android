@@ -82,7 +82,7 @@ public class QuickFixForJniTest {
     editor.moveBetween("public native String  stringFromJNI();", "")
       .enterText("\npublic native void printFromJNI();");
 
-    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
+    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickOk();
 
     List<String> errors = editor.getHighlights(HighlightSeverity.ERROR);

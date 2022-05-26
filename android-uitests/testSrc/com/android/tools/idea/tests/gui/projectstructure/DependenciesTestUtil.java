@@ -126,7 +126,7 @@ public class DependenciesTestUtil {
                                              @NotNull String library,
                                              @NotNull String anotherModule,
                                              @NotNull String scope) {
-    ideFrame.invokeMenuPath("File", "Project Structure\u2026");
+    ideFrame.invokeMenuPath("File", "Project Structure...");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =

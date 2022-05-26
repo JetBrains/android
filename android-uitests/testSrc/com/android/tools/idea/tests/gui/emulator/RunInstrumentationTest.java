@@ -100,7 +100,7 @@ public class RunInstrumentationTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame()
-      .waitAndInvokeMenuPath("Run", "Edit Configurations\u2026");
+      .waitAndInvokeMenuPath("Run", "Edit Configurations...");
 
     EditConfigurationsDialogFixture.find(guiTest.robot())
       .clickAddNewConfigurationButton()

@@ -61,7 +61,7 @@ public class LintCheckWithKotlinTest {
       .moveBetween("setContentView(R.layout.activity_main)", "")
       .enterText("\nfindViewById<TextView>(0).text=\"st\"")
       .getIdeFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
+      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickOk()
       .getResults();
 

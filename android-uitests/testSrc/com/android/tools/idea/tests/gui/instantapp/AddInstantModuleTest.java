@@ -80,7 +80,7 @@ public class AddInstantModuleTest {
     // TODO: double check with tester whether it needs it or not.
     // The project is not deployed as an instant app by default anymore.
     // Enable deploying the project as an instant app.
-    ideFrame.invokeMenuPath("Run", "Edit Configurations\u2026");
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(ideFrame.robot())
       .selectDeployAsInstantApp(true)
       .clickOk();

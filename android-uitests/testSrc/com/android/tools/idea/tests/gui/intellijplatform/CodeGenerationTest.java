@@ -95,22 +95,22 @@ public class CodeGenerationTest {
       editor.moveBetween(JAVA_CODE, "");
     }
 
-    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
+    ideFrame.invokeMenuPath("Code", "Surround With...");
     getList(POPUPLIST_CLASS).clickItem("_1. if");
     assertThat(editor.getCurrentLine().contains("if () {")).isTrue();
 
-    ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
+    ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
     getList(JBLIST_CLASS).clickItem("Unwrap 'if...'");
     assertThat(editor.getCurrentLine().contains("if () {")).isFalse();
 
-    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
+    ideFrame.invokeMenuPath("Code", "Surround With...");
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_4);
     assertThat(editor.getCurrentLine().contains("while (true);")).isTrue();
 
     // Generate constructor
     ideFrame.getEditor().open(PERSON_CLASS)
       .moveBetween("public class Person {", "");
-    ideFrame.invokeMenuPath("Code", "Generate\u2026");
+    ideFrame.invokeMenuPath("Code", "Generate...");
     // Selecting Getter and Setter by clicking on DOWN key and ENTER key.
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN);

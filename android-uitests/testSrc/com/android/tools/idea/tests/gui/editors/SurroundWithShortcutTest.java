@@ -51,7 +51,7 @@ public class SurroundWithShortcutTest {
     "try {\n" +
     "            String hello = \"hello\";\n" +
     "        } catch (Exception e) {\n" +
-    "            e.printStackTrace();\n" +
+    "            throw new RuntimeException(e);\n" +
     "        }";
   private static String DO_WHILE_BLOCK =
     "do {\n" +
@@ -104,7 +104,7 @@ public class SurroundWithShortcutTest {
   }
 
   private JListFixture clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
+    ideFrame.invokeMenuPath("Code", "Surround With...");
 
     Ref<JBList> popList = new Ref<>();
     Wait.seconds(5).expecting("Popup list to show.").until(() -> {
@@ -131,7 +131,7 @@ public class SurroundWithShortcutTest {
   private void removeTryCatchAndVerify(@NotNull IdeFrameFixture ideFrame,
                                        @NotNull EditorFixture editorFixture) {
     editorFixture.select("(" + HELLO_STR + ")");
-    ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
+    ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
 
     Ref<JPanel> unwrapRemoveJPanel = new Ref<>();
     Wait.seconds(7).expecting("Unwrap/Remove popup list to show.").until(() -> {
