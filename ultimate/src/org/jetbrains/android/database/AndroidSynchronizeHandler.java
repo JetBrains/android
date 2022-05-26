@@ -6,7 +6,7 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.intellij.CommonBundle;
 import com.intellij.database.SynchronizeHandler;
-import com.intellij.database.psi.DbDataSource;
+import com.intellij.database.model.DasDataSource;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -15,49 +15,23 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class AndroidSynchronizeHandler extends SynchronizeHandler {
   private static final Logger LOG = Logger.getInstance(AndroidSynchronizeHandler.class);
 
   @Override
-  public void synchronizationStarted(@NotNull final Project project,
-                                     @NotNull Set<DbDataSource> elements) {
-    final List<AndroidDataSource> dataSourcesToSync = new ArrayList<>();
+  public void beforeSynchronize(@NotNull Project project, @NotNull DasDataSource dataSource) {
+    if (!(dataSource instanceof AndroidDataSource)) return;
+    AndroidDataSource ads = (AndroidDataSource)dataSource;
 
-    for (DbDataSource element : elements) {
-      final Object delegate = element.getDelegate();
-
-      if (delegate instanceof AndroidDataSource) {
-        dataSourcesToSync.add((AndroidDataSource)delegate);
-      }
-    }
-
-    if (dataSourcesToSync.isEmpty()) {
-      return;
-    }
-    final Set<AndroidDataSource> syncedDataSources = doSynchronize(project, dataSourcesToSync);
-
-    for (Iterator<DbDataSource> it = elements.iterator(); it.hasNext(); ) {
-      final DbDataSource element = it.next();
-      final Object delegate = element.getDelegate();
-
-      if (delegate instanceof AndroidDataSource && !syncedDataSources.contains(delegate)) {
-        it.remove();
-      }
-    }
+    doSynchronize(project, Collections.singleton(ads));
   }
 
   @NotNull
