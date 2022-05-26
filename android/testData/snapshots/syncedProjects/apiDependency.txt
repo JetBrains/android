@@ -1427,3 +1427,36 @@ PROJECT                       : testApiDependency
             *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+            CLEAN                         : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources
+            ASSEMBLE                      : :app:assembleDebug
+            REBUILD                       : <PROJECT>::lib:clean, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::app:assembleDebug
+            COMPILE_JAVA                  : <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources
+            BUNDLE                        : :app:bundleDebug
+            APK_FROM_BUNDLE               : :app:extractApksForDebug
+        TEST_COMPILE_MODE             : Android tests
+            CLEAN                         : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::lib:clean, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
+            COMPILE_JAVA                  : <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib:compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources
+            BUNDLE                        : :app:bundleDebug
+            APK_FROM_BUNDLE               : :app:extractApksForDebug
+        TEST_COMPILE_MODE             : Unit tests
+            CLEAN                         : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::app:createMockableJar
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::lib:clean, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
+            COMPILE_JAVA                  : <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:testClasses, <PROJECT>::app:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::app:createMockableJar
+            BUNDLE                        : :app:bundleDebug
+            APK_FROM_BUNDLE               : :app:extractApksForDebug
+        TEST_COMPILE_MODE             : None
+            CLEAN                         : <PROJECT>::lib:generateDebugSources, <PROJECT>::app:generateDebugSources
+            ASSEMBLE                      : :app:assembleDebug
+            REBUILD                       : <PROJECT>::lib:clean, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::app:assembleDebug
+            COMPILE_JAVA                  : <PROJECT>::lib:compileDebugSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib:compileJava, <PROJECT>::app:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::lib:generateDebugSources, <PROJECT>::app:generateDebugSources
+            BUNDLE                        : :app:bundleDebug
+            APK_FROM_BUNDLE               : :app:extractApksForDebug

@@ -510,6 +510,7 @@ private fun String.filterOutProperties(): String =
 private fun Sequence<String>.nameProperties() = com.android.tools.idea.testing.nameProperties(this)
 
 private val PROPERTIES_TO_SKIP_BY_PREFIXES = setOf(
+  "PROJECT/BUILD_TASKS/TEST_COMPILE_MODE",
   "PROJECT/LIBRARY_TABLE",
   "PROJECT/MODULE/BUILD_TASKS/TEST_COMPILE_MODE",
   "PROJECT/MODULE/Classes",

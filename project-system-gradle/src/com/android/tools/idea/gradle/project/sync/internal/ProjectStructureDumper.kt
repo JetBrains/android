@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
@@ -93,6 +94,24 @@ fun ProjectDumper.dumpProject(project: Project) {
         libraries.sortedBy { it.name }.forEach { dump(it) }
       }
     }
+    @Suppress("UnstableApiUsage")
+    dumpTasks { buildMode ->
+      fun List<Module>.sortedModules(): Array<Module> = sortedBy { it.moduleFilePath.replaceKnownPaths() }.toTypedArray()
+
+      val allModules = ModuleManager.getInstance(project).modules.toList().sortedModules()
+      val appModules = ProjectStructure.getInstance(project).appHolderModules.sortedModules()
+      val leafModules = ProjectStructure.getInstance(project).leafHolderModules.sortedModules()
+
+      when (buildMode) {
+        BuildMode.REBUILD -> allModules
+        BuildMode.COMPILE_JAVA -> allModules
+        BuildMode.ASSEMBLE -> leafModules
+        BuildMode.CLEAN -> allModules
+        BuildMode.APK_FROM_BUNDLE -> appModules
+        BuildMode.BUNDLE -> appModules
+        BuildMode.SOURCE_GEN -> allModules
+      }
+    }
   }
 }
 
@@ -157,12 +176,11 @@ fun ProjectDumper.dump(module: Module) {
       }
     }
 
-    dumpTasks(module)
+    dumpTasks{ arrayOf(module) }
   }
 }
 
-fun ProjectDumper.dumpTasks(module: Module) {
-  val singleModuleArray = arrayOf(module)
+fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Module>) {
   val taskFinder = GradleTaskFinder.getInstance()
   head("BUILD_TASKS")
   nest {
@@ -170,10 +188,11 @@ fun ProjectDumper.dumpTasks(module: Module) {
       head("TEST_COMPILE_MODE") { testCompileMode.displayName }
       nest {
         BuildMode.values().forEach { buildMode ->
-          val expectedRoot = module.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()
+          val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
+          val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
 
           fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
-            if (keys.size > 1) {
+            if (expectedRoot != null && keys.size > 1) {
               prop("ERROR") {
                 "Multiple project roots for a single module: " +
                   keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
@@ -188,12 +207,12 @@ fun ProjectDumper.dumpTasks(module: Module) {
               .toSet()
           }
 
-          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(singleModuleArray, buildMode, testCompileMode).asMap().asFirstEntry()
+          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
 
           fun getTestTasks(): Set<String> {
             val all =
-              if (testCompileMode == TestCompileType.UNIT_TESTS) GradleModuleTasksProvider(singleModuleArray).getUnitTestTasks(buildMode)
-            else GradleModuleTasksProvider(singleModuleArray).getTasksFor(buildMode, testCompileMode)
+              if (testCompileMode == TestCompileType.UNIT_TESTS) GradleModuleTasksProvider(modules).getUnitTestTasks(buildMode)
+            else GradleModuleTasksProvider(modules).getTasksFor(buildMode, testCompileMode)
             return all.asFirstEntry()
           }
 

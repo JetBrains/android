@@ -627,3 +627,36 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+            CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources
+            ASSEMBLE                      : :assembleDebug
+            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug
+            COMPILE_JAVA                  : <PROJECT>::compileDebugUnitTestSources, <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources
+            BUNDLE                        : :bundleDebug
+            APK_FROM_BUNDLE               : :extractApksForDebug
+        TEST_COMPILE_MODE             : Android tests
+            CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::generateDebugAndroidTestSources
+            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest
+            COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::generateDebugAndroidTestSources
+            BUNDLE                        : :bundleDebug
+            APK_FROM_BUNDLE               : :extractApksForDebug
+        TEST_COMPILE_MODE             : Unit tests
+            CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::createMockableJar
+            ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest
+            COMPILE_JAVA                  : <PROJECT>::compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::createMockableJar
+            BUNDLE                        : :bundleDebug
+            APK_FROM_BUNDLE               : :extractApksForDebug
+        TEST_COMPILE_MODE             : None
+            CLEAN                         : <PROJECT>::generateDebugSources
+            ASSEMBLE                      : :assembleDebug
+            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug
+            COMPILE_JAVA                  : <PROJECT>::compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::generateDebugSources
+            BUNDLE                        : :bundleDebug
+            APK_FROM_BUNDLE               : :extractApksForDebug
