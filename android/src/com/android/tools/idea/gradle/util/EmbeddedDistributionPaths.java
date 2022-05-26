@@ -195,7 +195,7 @@ public class EmbeddedDistributionPaths {
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      Path jdkRootPath = Paths.get(ideHomePath, "jre");
+      Path jdkRootPath = Paths.get(ideHomePath, "jbr");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }

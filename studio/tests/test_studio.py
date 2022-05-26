@@ -155,9 +155,9 @@ class StudioTests(unittest.TestCase):
       found = False
       for f in file.infolist():
         is_symlink = _is_symlink(f)
-        if f.filename.endswith("Contents/jre/Contents/MacOS/libjli.dylib"):
+        if f.filename.endswith("Contents/jbr/Contents/MacOS/libjli.dylib"):
           found = True
-          self.assertFalse(is_symlink, "Contents/jre/Contents/MacOS/libjli.dylib should not be symlink")
+          self.assertFalse(is_symlink, "Contents/jbr/Contents/MacOS/libjli.dylib should not be symlink")
         elif f.filename.endswith("Contents/MacOS/studio"):
           self.assertFalse(f.external_attr == 0x1ED0000, "studio should be \"-rwxr-xr-x\"")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
@@ -166,12 +166,12 @@ class StudioTests(unittest.TestCase):
         else:
           self.assertFalse(f.external_attr == 0, "Unix attributes are missing from the entry")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
-      self.assertTrue(found, "Android Studio.*.app/Contents/jre/Contents/MacOS/libjli.dylib not found")
+      self.assertTrue(found, "Android Studio.*.app/Contents/jbr/Contents/MacOS/libjli.dylib not found")
 
   def test_mac_arm_symlinks(self):
     with zipfile.ZipFile("tools/adt/idea/studio/android-studio.mac_arm.zip") as zfile:
       app_name = zfile.namelist()[0].split('/')[0]
-      jre_frameworks_home = app_name + "/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/"
+      jre_frameworks_home = app_name + "/Contents/jbr/Contents/Home/Frameworks/JavaNativeFoundation.framework/"
       # directory symbolic links
       self.assertTrue(_is_symlink(zfile.getinfo(jre_frameworks_home + "Headers")))
       self.assertTrue(_is_symlink(zfile.getinfo(jre_frameworks_home + "Modules")))

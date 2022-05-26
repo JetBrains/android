@@ -101,7 +101,7 @@ def _get_linux(dep):
 
 LINUX = struct(
     name = "linux",
-    jre = "jre/",
+    jre = "jbr/",
     get = _get_linux,
     base_path = "",
     resource_path = "",
@@ -112,7 +112,7 @@ def _get_mac(dep):
 
 MAC = struct(
     name = "mac",
-    jre = "jre/",
+    jre = "jbr/",
     get = _get_mac,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
@@ -123,7 +123,7 @@ def _get_mac_arm(dep):
 
 MAC_ARM = struct(
     name = "mac_arm",
-    jre = "jre/",
+    jre = "jbr/",
     get = _get_mac_arm,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
@@ -134,7 +134,7 @@ def _get_win(dep):
 
 WIN = struct(
     name = "win",
-    jre = "jre/",
+    jre = "jbr/",
     get = _get_win,
     base_path = "",
     resource_path = "",
