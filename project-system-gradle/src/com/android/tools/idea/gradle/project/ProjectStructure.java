@@ -147,14 +147,6 @@ public class ProjectStructure {
     }
   }
 
-  public void clearData() {
-    synchronized (myLock) {
-      myPluginVersionsInProject.clear();
-      myAppHolderModules.clear();
-      myLeafHolderModules.clear();
-    }
-  }
-
   @Nullable
   public static Module getHolder(@NotNull Module module) {
     if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return null;

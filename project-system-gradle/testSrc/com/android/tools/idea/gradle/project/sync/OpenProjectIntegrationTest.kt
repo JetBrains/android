@@ -133,7 +133,7 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
       assertThat(GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp).isNotEqualTo(lastSyncFinishedTimestamp)
       project.saveAndDump()
     }
-    // TODO(b/234005208): assertThat(before).isEqualTo(initial)
+    assertThat(before).isEqualTo(initial)
     // TODO(b/211782178): assertThat(after).isEqualTo(before)
   }
 

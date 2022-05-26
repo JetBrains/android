@@ -210,7 +210,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    */
   private fun syncFailed(message: String?, error: Throwable?) {
     val millisTook = eventLogger.syncEnded()
-    ProjectStructure.getInstance(project).clearData()
     val throwableMessage = error?.message
     // Find a none null message from either the provided message or the given throwable.
     val causeMessage: String = when {
