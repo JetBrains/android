@@ -117,11 +117,19 @@ internal class LogcatMessageAssembler(
     if (batch.lastHeader != null && batch.lastLines.isNotEmpty()) {
       coroutineScope.launch {
         delay(DELAY_MILLIS)
-        val pendingState = previousState.getAndSet(null)
-        if (pendingState?.header != null) {
-          channel.send(listOf(LogCatMessage(pendingState.header, pendingState.lines.toMessage())))
+        val message = getAndResetPendingMessage()
+        if (message != null) {
+          channel.send(listOf(message))
         }
       }
+    }
+  }
+
+  fun getAndResetPendingMessage(): LogCatMessage? {
+    val pendingState = previousState.getAndSet(null)
+    return when {
+      pendingState?.header != null -> LogCatMessage(pendingState.header, pendingState.lines.toMessage())
+      else -> null
     }
   }
 

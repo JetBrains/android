@@ -7,6 +7,7 @@ import com.android.adblib.utils.LineBatchShellCollector
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
 import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,24 @@ internal class LogcatServiceImpl(
       val messageAssembler = LogcatMessageAssembler(disposableParent, device.serialNumber, channel, processNameMonitor, coroutineContext)
       deviceServicesFactory().shell(deviceSelector, buildLogcatCommand(device), LineBatchShellCollector()).collect {
         messageAssembler.processNewLines(it)
+      }
+
+      // If the Logcat process quit`s with an error, there will be a pending message still left in the MessageAssembler.
+      // This pending message will contain the last legitimate message terminated by a `\n\n` followed by the error text.
+      // Here we extract the error message if it exists and log it as a system message.
+      val message = messageAssembler.getAndResetPendingMessage()
+      if (message != null) {
+        val split = message.message.split("\n\n", limit = 2)
+        if (split.size == 1) {
+          channel.send(listOf(message))
+        }
+        else {
+          channel.send(
+            listOf(
+              LogCatMessage(message.header, split[0]),
+              LogCatMessage(SYSTEM_HEADER, split[1])),
+          )
+        }
       }
     }
   }
