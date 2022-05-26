@@ -34,10 +34,10 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
   var defaultFormatting: FormattingOptions.Style = FormattingOptions.Style.STANDARD
 
   @OptionTag(converter = FormattingOptionsConverter::class)
-  var standardFormattingOptions: FormattingOptions = DEFAULT_STANDARD
+  var standardFormattingOptions: FormattingOptions = DEFAULT_STANDARD.copy()
 
   @OptionTag(converter = FormattingOptionsConverter::class)
-  var compactFormattingOptions: FormattingOptions = DEFAULT_COMPACT
+  var compactFormattingOptions: FormattingOptions = DEFAULT_COMPACT.copy()
 
   override fun getState(): AndroidLogcatFormattingOptions = this
 

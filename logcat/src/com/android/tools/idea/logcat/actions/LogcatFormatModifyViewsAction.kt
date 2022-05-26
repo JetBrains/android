@@ -19,7 +19,6 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
-import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatFormatDialogBase
 import com.android.tools.idea.logcat.messages.LogcatFormatPresetsDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -42,18 +41,11 @@ internal class LogcatFormatModifyViewsAction(
     LogcatFormatPresetsDialog(project, initialFormatting, defaultFormatting, object : LogcatFormatDialogBase.ApplyAction {
       override fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase) {
         val dialog = logcatFormatDialogBase as LogcatFormatPresetsDialog
-        androidLogcatFormattingOptions.standardFormattingOptions.copyFrom(dialog.standardFormattingOptions)
-        androidLogcatFormattingOptions.compactFormattingOptions.copyFrom(dialog.compactFormattingOptions)
+        androidLogcatFormattingOptions.standardFormattingOptions = dialog.standardFormattingOptions
+        androidLogcatFormattingOptions.compactFormattingOptions = dialog.compactFormattingOptions
         androidLogcatFormattingOptions.defaultFormatting = dialog.defaultFormatting
         LogcatToolWindowFactory.logcatPresenters.filter { it.formattingOptions.getStyle() != null }.forEach(LogcatPresenter::reloadMessages)
       }
     }).dialogWrapper.show()
   }
-}
-
-private fun FormattingOptions.copyFrom(other: FormattingOptions) {
-  timestampFormat = other.timestampFormat
-  processThreadFormat = other.processThreadFormat
-  tagFormat = other.tagFormat
-  appNameFormat = other.appNameFormat
 }
