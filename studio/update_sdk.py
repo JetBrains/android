@@ -191,7 +191,7 @@ def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.zip|-no-jbr.tar.gz|.win.zip)$")
   files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
@@ -200,9 +200,9 @@ def check_artifacts(dir):
   version_minor = match.group(2)
   bid = match.group(3)
   expected = [
+      "android-studio-%s.%s.%s-no-jbr.tar.gz" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.zip" % (version_major, version_minor, bid),
-      "android-studio-%s.%s.%s.tar.gz" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.win.zip" % (version_major, version_minor, bid),
       "updater-full.jar",
   ]
@@ -240,7 +240,7 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
         "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
@@ -286,7 +286,7 @@ def write_metadata(path, data):
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, sources, mac, linux, win, updater, manifest = check_artifacts(dir)
+  version, linux, sources, mac, win, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
