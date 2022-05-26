@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Arrays;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +49,11 @@ final class StringPsiUtils {
   }
 
   static void addString(@NotNull XmlFile file, @NotNull StringResourceKey key, boolean translatable, @NotNull String value) {
+    addStringBefore(file, key, translatable, value, null);
+  }
+
+  static void addStringBefore(@NotNull XmlFile file, @NotNull StringResourceKey key, boolean translatable, @NotNull String value,
+                              @Nullable StringResourceKey anchor) {
     XmlTag resources = file.getRootTag();
 
     if (resources == null) {
@@ -60,7 +67,24 @@ final class StringPsiUtils {
       string.setAttribute(SdkConstants.ATTR_TRANSLATABLE, Boolean.FALSE.toString());
     }
 
-    resources.addSubTag(string, false);
+    XmlTag beforeTag = null;
+    if (anchor != null) {
+      // Try to find the anchor (next) XmlTag, if it exists.
+      XmlTag[] resourceTags = resources.findSubTags(SdkConstants.TAG_STRING, resources.getNamespace());
+      String resourceId = anchor.getName();
+      Optional<XmlTag> tag = Arrays.stream(resourceTags)
+        .filter(it -> resourceId.equals(it.getAttributeValue(SdkConstants.ATTR_NAME))).findFirst();
+      if (tag.isPresent()) {
+        beforeTag = tag.get();
+      }
+    }
+
+    if (beforeTag == null) {
+      resources.addSubTag(string, false);
+    }
+    else {
+      resources.addBefore(string, beforeTag);
+    }
   }
 
   @NotNull

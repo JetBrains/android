@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 public class StringResourceData {
   private static final int MAX_LOCALE_LABEL_COUNT = 3;
 
-  private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
+  private final LinkedHashMap<StringResourceKey, StringResource> myKeyToResourceMap;
   private final Project myProject;
   private final StringResourceRepository myRepository;
 

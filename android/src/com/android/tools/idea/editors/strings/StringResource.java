@@ -39,6 +39,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -226,7 +227,22 @@ public final class StringResource {
 
   public @NotNull ListenableFuture<@NotNull Boolean> putTranslation(@NotNull final Locale locale, @NotNull String translation) {
     if (getTranslationAsResourceItem(locale) == null) {
-      return Futures.transform(createTranslation(locale, translation), item -> {
+      List<StringResourceKey> keys = myData.getKeys();
+      int index = keys.indexOf(myKey);
+      StringResourceKey anchor = null;
+      if (index != -1) {
+        // This translation exists in default translation. Find the anchor
+        while (++index < keys.size()) {
+          StringResourceKey next = keys.get(index);
+          // Check if this resource exist in the given Locale file.
+          if (myData.getStringResource(next).getTranslationAsResourceItem(locale) != null) {
+            anchor = next;
+            break;
+          }
+        }
+      }
+
+      return Futures.transform(createTranslationBefore(locale, translation, anchor), item -> {
         if (item == null) {
           return false;
         }
@@ -263,7 +279,8 @@ public final class StringResource {
     return Futures.immediateFuture(true);
   }
 
-  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslation(@NotNull Locale locale, @NotNull String value) {
+  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslationBefore(@NotNull Locale locale, @NotNull String value,
+                                                                                    @Nullable StringResourceKey anchor) {
     if (value.isEmpty()) {
       return Futures.immediateFuture(null);
     }
@@ -279,7 +296,9 @@ public final class StringResource {
     }
 
     XmlFile finalFile = file;
-    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(finalFile, myKey, myTranslatable, value));
+    WriteCommandAction.runWriteCommandAction(project, null, null, () ->
+      StringPsiUtils.addStringBefore(finalFile, myKey, myTranslatable, value, anchor)
+    );
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();

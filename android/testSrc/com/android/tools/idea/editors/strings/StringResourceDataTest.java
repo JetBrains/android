@@ -238,7 +238,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals(expected, tag.getValue().getText());
   }
 
-  public void testAddingTranslation() throws Exception {
+  public void testAddingNewTranslation() throws Exception {
     StringResource resource = data.getStringResource(newStringResourceKey("key4"));
     Locale locale = Locale.create("en");
 
@@ -249,10 +249,38 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
+    // There was no key4 in the default locale en, a new key would be appended to the end of file.
     XmlTag tag = getNthXmlTag(file, 4);
 
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
+  }
+
+  public void testInsertingTranslation() throws Exception {
+    // Adding key 2 first then adding key 1.
+    // To follow the order of default locale file, the tag of key 1 should be before key 2, even key 2 is added first.
+    Locale locale = Locale.create("zh");
+
+    StringResource resource2 = data.getStringResource(newStringResourceKey("key2"));
+    assertNull(resource2.getTranslationAsResourceItem(locale));
+    assertTrue(putTranslation(resource2, locale, "二"));
+    assertEquals("二", resource2.getTranslationAsString(locale));
+
+    StringResource resource4 = data.getStringResource(newStringResourceKey("key1"));
+    assertNull(resource4.getTranslationAsResourceItem(locale));
+    assertTrue(putTranslation(resource4, locale, "一"));
+    assertEquals("一", resource4.getTranslationAsString(locale));
+
+    VirtualFile file = resourceDirectory.findFileByRelativePath("values-zh/strings.xml");
+    assert file != null;
+
+    XmlTag tag1 = getNthXmlTag(file, 0);
+    assertEquals("key1", tag1.getAttributeValue(SdkConstants.ATTR_NAME));
+    assertEquals("一", tag1.getValue().getText());
+
+    XmlTag tag2 = getNthXmlTag(file, 1);
+    assertEquals("key2", tag2.getAttributeValue(SdkConstants.ATTR_NAME));
+    assertEquals("二", tag2.getValue().getText());
   }
 
   private boolean putTranslation(@NotNull StringResource resource, @NotNull Locale locale, @NotNull String value)
