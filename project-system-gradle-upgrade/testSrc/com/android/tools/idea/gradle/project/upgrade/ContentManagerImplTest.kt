@@ -547,6 +547,20 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testRunProcessorSyncFailure() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.runUpgrade(false)
+    toolWindowModel.syncStarted(project)
+    changingCurrentAgpVersion = latestAgpVersion
+    toolWindowModel.syncFailed(project, "ContentManagerImplTest failure")
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
+    assertThat(uiStates).containsExactly(RunningUpgrade, RunningSync, UpgradeSyncFailed("ContentManagerImplTest failure")).inOrder()
+  }
+
+  @Test
   fun testNecessityTreeText() {
     assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Upgrade prerequisites")
     assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade")
