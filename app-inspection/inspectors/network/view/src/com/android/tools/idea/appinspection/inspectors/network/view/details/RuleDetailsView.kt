@@ -233,7 +233,7 @@ private class BorderlessComboBoxUI: DarculaComboBoxUI(DarculaUIUtil.COMPONENT_AR
   }
 
   override fun getBorderInsets(c: Component?): Insets {
-    return JBUI.emptyInsets()
+    return JBUI.insets(0, 7)
   }
 
   override fun getOuterShape(r: Rectangle?, bw: Float, arc: Float): RectangularShape {
