@@ -82,7 +82,7 @@ data class NdkModuleModel
 
     @JvmStatic
     fun get(ndkFacet: NdkFacet): NdkModuleModel? {
-      return ndkFacet.ndkModuleModel ?: return null
+      return ndkFacet.ndkModuleModel
     }
   }
 }
