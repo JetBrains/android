@@ -45,7 +45,7 @@
                     </constraints>
                     <properties>
                       <labelFor value="6a86c"/>
-                      <text value="Icon Type:"/>
+                      <text value="Icon type:"/>
                     </properties>
                   </component>
                   <component id="6a86c" class="javax.swing.JComboBox" binding="myIconTypeCombo">

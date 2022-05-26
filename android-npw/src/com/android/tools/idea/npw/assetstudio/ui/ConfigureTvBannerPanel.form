@@ -106,7 +106,7 @@
                               </grid>
                             </constraints>
                             <properties>
-                              <text value="Layer Name:"/>
+                              <text value="Layer name:"/>
                             </properties>
                           </component>
                           <grid id="97645" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -161,7 +161,7 @@
                                   </grid>
                                 </constraints>
                                 <properties>
-                                  <text value="Image File:"/>
+                                  <text value="Image file:"/>
                                 </properties>
                               </component>
                               <component id="b4a4c" class="com.android.tools.idea.npw.assetstudio.ui.ImageAssetBrowser" binding="myForegroundImageAssetBrowser">
@@ -425,7 +425,7 @@
                               </grid>
                             </constraints>
                             <properties>
-                              <text value="Layer Name:"/>
+                              <text value="Layer name:"/>
                             </properties>
                           </component>
                           <grid id="b97644" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -472,7 +472,7 @@
                               </grid>
                             </constraints>
                             <properties>
-                              <text value="Asset Type:"/>
+                              <text value="Asset type:"/>
                             </properties>
                           </component>
                           <grid id="bd9cc4" binding="myBackgroundAssetRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
