@@ -144,6 +144,14 @@
     <option name="convert" path="ActionManager" hit="Convert to WebP..." />
     <option name="to" path="ActionManager" hit="Convert to WebP..." />
     <option name="webp" path="ActionManager" hit="Convert to WebP..." />
+    <option name="copy" path="ActionManager" hit="Copy Value" />
+    <option name="value" path="ActionManager" hit="Copy Value" />
+    <option name="clipboard" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="copy" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="resource" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="the" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="to" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="value" path="ActionManager" hit="Copy resource value to the clipboard" />
     <option name="create" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="file" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="patch" path="ActionManager" hit="Create 9-Patch file…" />
