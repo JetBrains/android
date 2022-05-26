@@ -35,6 +35,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +72,8 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   public void dispose() {
   }
 
-  static @NotNull Component newHeadingLabel(@NotNull String heading) {
-    Component label = new JBLabel(heading);
+  static @NotNull JLabel newHeadingLabel(@NotNull String heading) {
+    JLabel label = new JBLabel(heading);
     label.setFont(label.getFont().deriveFont(Font.BOLD));
 
     return label;

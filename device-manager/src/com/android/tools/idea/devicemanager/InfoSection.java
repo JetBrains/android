@@ -24,9 +24,11 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
@@ -34,9 +36,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InfoSection extends JBPanel<InfoSection> {
-  private final @NotNull Component myHeadingLabel;
-  private final @NotNull Collection<@NotNull Component> myNameLabels;
-  private final @NotNull Collection<@NotNull Component> myValueLabels;
+  private final @NotNull JLabel myHeadingLabel;
+  private final @NotNull List<@NotNull JLabel> myNameLabels;
+  private final @NotNull List<@NotNull JLabel> myValueLabels;
 
   public InfoSection(@NotNull String heading) {
     super(null);
@@ -49,7 +51,7 @@ public class InfoSection extends JBPanel<InfoSection> {
   }
 
   public final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
-    Component nameLabel = new JBLabel(name);
+    JLabel nameLabel = new JBLabel(name);
     nameLabel.setForeground(Label.disabledForeground());
 
     myNameLabels.add(nameLabel);
@@ -133,5 +135,31 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
     label.setText(String.join(", ", values));
+  }
+
+  @Override
+  public @NotNull String toString() {
+    Formatter formatter = new Formatter();
+    formatter.format("%s%n", myHeadingLabel.getText());
+
+    OptionalInt maxLength = myNameLabels.stream()
+      .map(JLabel::getText)
+      .mapToInt(CharSequence::length)
+      .max();
+
+    String format = "%-" + maxLength.orElse(1) + "s %s%n";
+
+    IntStream.range(0, myNameLabels.size()).forEach(i -> {
+      String value = myValueLabels.get(i).getText();
+
+      if (value.isEmpty()) {
+        formatter.format("%s%n", myNameLabels.get(i).getText());
+      }
+      else {
+        formatter.format(format, myNameLabels.get(i).getText(), value);
+      }
+    });
+
+    return formatter.toString();
   }
 }
