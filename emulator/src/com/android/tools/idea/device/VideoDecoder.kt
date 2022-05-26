@@ -49,7 +49,8 @@ import org.bytedeco.ffmpeg.global.avutil.AV_NOPTS_VALUE
 import org.bytedeco.ffmpeg.global.avutil.AV_PIX_FMT_BGRA
 import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
 import org.bytedeco.ffmpeg.global.avutil.av_frame_free
-import org.bytedeco.ffmpeg.global.avutil.av_image_alloc
+import org.bytedeco.ffmpeg.global.avutil.av_frame_get_buffer
+import org.bytedeco.ffmpeg.global.avutil.av_frame_make_writable
 import org.bytedeco.ffmpeg.global.avutil.av_image_get_buffer_size
 import org.bytedeco.ffmpeg.global.swscale.SWS_BILINEAR
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
@@ -310,6 +311,12 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       if (renderingFrame == null || renderingFrame.width() != size.width || renderingFrame.height() != size.height) {
         renderingFrame?.let { av_frame_free(it) }
         renderingFrame = createRenderingFrame(size).also { this.renderingFrame = it }
+        if (av_frame_get_buffer(renderingFrame, 4) < 0) {
+          throw RuntimeException("av_frame_get_buffer failed")
+        }
+      }
+      if (av_frame_make_writable(renderingFrame) < 0) {
+        throw RuntimeException("av_frame_make_writable failed")
       }
 
       sws_scale_frame(getSwsContext(renderingFrame), renderingFrame, decodingFrame)
@@ -355,7 +362,6 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
         width(size.width)
         height(size.height)
         format(AV_PIX_FMT_BGRA)
-        av_image_alloc(data(), linesize(), size.width, size.height, AV_PIX_FMT_BGRA, 1)
       }
     }
   }

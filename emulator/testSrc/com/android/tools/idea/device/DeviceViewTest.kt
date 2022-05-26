@@ -33,6 +33,7 @@ package com.android.tools.idea.device
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
@@ -215,6 +216,71 @@ internal class DeviceViewTest {
     Mockito.verify(mockFocusManager, Mockito.atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
     val tabEvent = arg2.allValues.firstOrNull { it.id == KeyEvent.KEY_PRESSED && it.keyCode == KeyEvent.VK_TAB && it.modifiersEx == 0 }
     assertThat(tabEvent).isNotNull()
+  }
+
+  @Test
+  fun testZoom() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    createDeviceView(100, 200, 2.0)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+
+    // Check zoom.
+    assertThat(view.scale).isWithin(1e-4).of(ui.screenScale * ui.root.height / device.displaySize.height)
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isFalse()
+    assertThat(view.canZoomToActual()).isTrue()
+    assertThat(view.canZoomToFit()).isFalse()
+
+    view.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(270, 570))
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToActual()).isTrue()
+    assertThat(view.canZoomToFit()).isTrue()
+
+    view.zoom(ZoomType.ACTUAL)
+    ui.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+        SetMaxVideoResolutionMessage(device.displaySize.width, device.displaySize.height))
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToActual()).isFalse()
+    assertThat(view.canZoomToFit()).isTrue()
+
+    view.zoom(ZoomType.OUT)
+    ui.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+        SetMaxVideoResolutionMessage(device.displaySize.width / 2, device.displaySize.height / 2))
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToActual()).isTrue()
+    assertThat(view.canZoomToFit()).isTrue()
+
+    view.zoom(ZoomType.FIT)
+    ui.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isFalse()
+    assertThat(view.canZoomToActual()).isTrue()
+    assertThat(view.canZoomToFit()).isFalse()
+
+    // Check clockwise rotation in zoomed-in state.
+    for (i in 0 until 4) {
+      view.zoom(ZoomType.IN)
+      ui.layoutAndDispatchEvents()
+      val expected = if (view.displayRotationQuadrants % 2 == 0)
+          SetMaxVideoResolutionMessage(270, 570) else SetMaxVideoResolutionMessage(228, 400)
+      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(expected)
+      executeDeviceAction("android.device.rotate.right", view, project)
+      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetDeviceOrientationMessage(3 - i))
+      ui.layoutAndDispatchEvents()
+      assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
+      assertThat(view.canZoomToFit()).isFalse()
+      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+    }
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
