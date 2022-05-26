@@ -224,7 +224,7 @@ class ToolWindowModel(
       override val runTooltip: String
         get() = statusMessage.text
     }
-    class SyncFailed(
+    class UpgradeSyncFailed(
       val errorMessage: String
     ): UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
@@ -323,7 +323,7 @@ class ToolWindowModel(
   private fun syncFinished(success: Boolean = true, errorMessage: String = "") {
     when (success) {
       true -> uiState.set(UIState.Loading).also { refresh(true) }
-      false -> uiState.set(UIState.SyncFailed(errorMessage))
+      false -> uiState.set(UIState.UpgradeSyncFailed(errorMessage))
     }
   }
 
@@ -855,7 +855,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
           label.text = sb.toString()
           detailsPanel.add(label)
         }
-        uiState is ToolWindowModel.UIState.SyncFailed -> {
+        uiState is ToolWindowModel.UIState.UpgradeSyncFailed -> {
           val sb = StringBuilder()
           sb.append("<div><b>Sync Failed</b></div>")
           sb.append("<p>The project failed to sync with the IDE.  ")

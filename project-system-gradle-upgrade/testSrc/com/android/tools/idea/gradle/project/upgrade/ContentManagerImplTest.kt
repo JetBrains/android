@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loa
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
-import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.SyncFailed
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.UpgradeSyncFailed
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
@@ -665,7 +665,7 @@ class ContentManagerImplTest {
     assertThat(view.treePanel.isVisible).isTrue()
     model.uiState.set(ReadyToRun)
     assertThat(view.treePanel.isVisible).isTrue()
-    model.uiState.set(SyncFailed("oops"))
+    model.uiState.set(UpgradeSyncFailed("oops"))
     assertThat(view.treePanel.isVisible).isFalse()
     model.uiState.set(ReadyToRun)
     assertThat(view.treePanel.isVisible).isTrue()
