@@ -320,8 +320,11 @@ internal class DeviceViewTest {
     for (i in 0 until 4) {
       view.zoom(ZoomType.IN)
       ui.layoutAndDispatchEvents()
-      val expected = if (view.displayRotationQuadrants % 2 == 0)
-          SetMaxVideoResolutionMessage(270, 570) else SetMaxVideoResolutionMessage(228, 400)
+      val expected = when {
+        view.displayRotationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 570)
+        SystemInfo.isMac -> SetMaxVideoResolutionMessage(228, 372)
+        else -> SetMaxVideoResolutionMessage(228, 400)
+      }
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(expected)
       executeDeviceAction("android.device.rotate.right", view, project)
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetDeviceOrientationMessage(3 - i))
