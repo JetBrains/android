@@ -89,7 +89,7 @@ internal class ComposeIssueNotificationActionTest {
       hasSyntaxErrors = true
     )
     action.update(event)
-    assertEquals("Syntax error (The preview will not update while your project contains syntax errors.)", event.presentation.toString())
+    assertEquals("Paused (The preview will not update while your project contains syntax errors.)", event.presentation.toString())
 
     composePreviewManager.currentStatus = originStatus.copy(
       isRefreshing = true
@@ -109,7 +109,7 @@ internal class ComposeIssueNotificationActionTest {
     )
     action.update(event)
     // Syntax errors take precedence over out of date
-    assertEquals("Syntax error (The preview will not update while your project contains syntax errors.)", event.presentation.toString())
+    assertEquals("Paused (The preview will not update while your project contains syntax errors.)", event.presentation.toString())
 
     composePreviewManager.currentStatus = originStatus.copy(
       hasSyntaxErrors = true,

@@ -119,11 +119,10 @@ private sealed class ComposePreviewStatusNotification(
    * The Preview found a syntax error and paused the updates.
    */
   object SyntaxError : ComposePreviewStatusNotification(
-    AllIcons.General.Error,
+    AllIcons.Process.ProgressPauseSmall,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
-    false,
-    Presentation.Error)
+    false)
 
   /**
    * The Preview found a compilation error and paused the updates.
