@@ -147,6 +147,7 @@ class ToolWindowModel(
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
       if (other !is UIState) return false
+      if (other::class !== this::class) return false
 
       if (controlsEnabledState != other.controlsEnabledState) return false
       if (layoutState != other.layoutState) return false
