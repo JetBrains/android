@@ -31,6 +31,6 @@ class FormFactorUtilsTest {
     assertNotNull(allIcons)
 
     // Note: When running unit tests, it will not load the real images, each icon uses a 1x1 pixel size
-    assertThat(allIcons!!.iconWidth).isAtLeast(withEmulatorIcons!!.iconWidth)
+    assertThat(allIcons.iconWidth).isAtLeast(withEmulatorIcons.iconWidth)
   }
 }

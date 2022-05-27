@@ -145,9 +145,9 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       }
     }
 
-  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
+  override fun getReadMoreUrl(): String = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
 
-  override fun getShortDescription(): String? =
+  override fun getShortDescription(): String =
     """
       The default Java Language Level is now Java 8, rather than the previous
       Java 7.  If your project requires building with Java 7, the project's

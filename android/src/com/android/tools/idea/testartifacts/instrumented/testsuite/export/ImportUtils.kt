@@ -108,7 +108,7 @@ private class ImportAndroidTestMatrixRunProfileState(
   private val importRunProfile: ImportAndroidTestMatrixRunProfile,
   private val historyXmlFile: File)
   : RunProfileState, HistoryTestRunnableState {
-  override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult? {
+  override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
     val handler = object: ProcessHandler() {
       override fun destroyProcessImpl() {}
       override fun detachProcessImpl() { notifyProcessTerminated(0) }

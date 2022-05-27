@@ -88,7 +88,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       return references[row]
     }
 
-    override fun getColumnClass(columnIndex: Int): Class<*>? {
+    override fun getColumnClass(columnIndex: Int): Class<*> {
       return if (columnIndex == 0) Icon::class.java else Any::class.java
     }
 

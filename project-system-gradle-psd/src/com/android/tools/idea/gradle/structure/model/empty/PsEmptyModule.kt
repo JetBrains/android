@@ -35,7 +35,7 @@ class PsEmptyModule(
   override val dependencies = object: PsDependencyCollectionBase<PsModule, Nothing, Nothing, Nothing>(this) {}
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
   override val rootDir: File? = null
-  override val icon: Icon? = AllIcons.Nodes.Module
+  override val icon: Icon = AllIcons.Nodes.Module
 
   fun init(
     name: String,

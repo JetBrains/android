@@ -26,5 +26,5 @@ import javax.swing.JCheckBox
  */
 class CheckboxProvider(parameter: BooleanParameter) : ParameterComponentProvider<JCheckBox>(parameter) {
   override fun createComponent(parameter: Parameter<*>): JCheckBox = JCheckBox(parameter.name)
-  override fun createProperty(component: JCheckBox): AbstractProperty<*>? = SelectedProperty(component)
+  override fun createProperty(component: JCheckBox): AbstractProperty<*> = SelectedProperty(component)
 }

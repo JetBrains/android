@@ -71,7 +71,7 @@ class SmallAarRClass(
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
 
-  override fun getQualifiedName(): String? = "$packageName.R"
+  override fun getQualifiedName(): String = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     return aarResources.getResourceTypes(resourceNamespace)
@@ -136,7 +136,7 @@ class TransitiveAarRClass(
 
   private val parsingLock = ReentrantLock()
 
-  override fun getQualifiedName(): String? = "$packageName.R"
+  override fun getQualifiedName(): String = "$packageName.R"
 
   override fun getInnerClasses(): Array<PsiClass> {
     return if (myClassCache.hasUpToDateValue()) {

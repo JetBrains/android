@@ -137,7 +137,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       return null
     }
 
-  override fun createCenterPanel(): JComponent? {
+  override fun createCenterPanel(): JComponent {
     return panel {
       noteRow("Please enter the Name and URL of the addon.xml for the update site")
       row("Name:") { nameField() }

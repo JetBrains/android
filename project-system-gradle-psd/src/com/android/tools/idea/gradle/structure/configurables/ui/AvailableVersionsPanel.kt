@@ -48,7 +48,7 @@ internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<Pa
     versionsTable.listTableModel.columnInfos = arrayOf(
       object : ColumnInfo<Annotated<ParsedValue<GradleVersion>>, Annotated<ParsedValue<GradleVersion>>>("Versions") {
         override fun valueOf(version: Annotated<ParsedValue<GradleVersion>>): Annotated<ParsedValue<GradleVersion>> = version
-        override fun getRenderer(item: Annotated<ParsedValue<GradleVersion>>?): TableCellRenderer? = cellRenderer
+        override fun getRenderer(item: Annotated<ParsedValue<GradleVersion>>?): TableCellRenderer = cellRenderer
       })
 
     versionsTable.selectionModel.addListSelectionListener {

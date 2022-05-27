@@ -209,7 +209,7 @@ class ArtifactRepositorySearchForm(
     private fun createAndSetColumnInfos() {
       fun column(title: String, preferredWidthTextSample: String? = null, valueOf: (FoundArtifact) -> String) =
         object : ColumnInfo<FoundArtifact, String>(title) {
-          override fun valueOf(found: FoundArtifact): String? = valueOf(found)
+          override fun valueOf(found: FoundArtifact): String = valueOf(found)
 
           @NonNls
           override fun getPreferredStringValue(): String? = preferredWidthTextSample

@@ -192,7 +192,7 @@ class ShowReportDialog(report: AnalyzedHeapReport) : DialogWrapper(false) {
     return "${report.text}$SECTION_SEPARATOR\n${report.heapProperties.liveStats}"
   }
 
-  override fun createCenterPanel(): JComponent? {
+  override fun createCenterPanel(): JComponent {
     val pane = JPanel(BorderLayout(0, 5))
     val productName = ApplicationNamesInfo.getInstance().fullProductName
 

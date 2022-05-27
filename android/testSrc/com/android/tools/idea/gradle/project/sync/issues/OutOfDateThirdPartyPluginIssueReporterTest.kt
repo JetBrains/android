@@ -80,7 +80,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
     override val type: Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
-    override val data: String? = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
+    override val data: String = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
 
     override val message: String = "This is some message"
 

@@ -32,7 +32,7 @@ object NavHorizontalActionHitProvider : NavActionHitProviderBase() {
     }
   }
 
-  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle {
     val source = component.inlineDrawRect(sceneTransform)
     return getHorizontalActionIconRect(source, sceneTransform.inlineScale)
   }

@@ -63,7 +63,7 @@ class PsDeclaredJarJavaDependency constructor(
 
   object Descriptor : ModelDescriptor<PsDeclaredJarJavaDependency, Nothing, DependencyModel> {
     override fun getResolved(model: PsDeclaredJarJavaDependency): Nothing? = null
-    override fun getParsed(model: PsDeclaredJarJavaDependency): DependencyModel? = model.parsedModel
+    override fun getParsed(model: PsDeclaredJarJavaDependency): DependencyModel = model.parsedModel
 
     override fun prepareForModification(model: PsDeclaredJarJavaDependency) = Unit
 

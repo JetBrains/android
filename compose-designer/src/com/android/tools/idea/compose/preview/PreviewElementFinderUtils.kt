@@ -123,7 +123,7 @@ private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<Stri
  */
 private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               annotatedMethod: UMethod,
-                                              overrideGroupName: String? = null): PreviewElement? {
+                                              overrideGroupName: String? = null): PreviewElement {
   val uClass: UClass = annotatedMethod.uastParent as UClass
   val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
   val previewName = previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString() ?: annotatedMethod.name

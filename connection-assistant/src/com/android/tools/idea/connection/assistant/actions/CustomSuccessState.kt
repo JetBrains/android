@@ -30,7 +30,7 @@ object CustomSuccessState : AssistActionState {
 
     override fun isMessageVisible(): Boolean = true
 
-    override fun getIcon(): Icon? = AllIcons.RunConfigurations.TestPassed
+    override fun getIcon(): Icon = AllIcons.RunConfigurations.TestPassed
 
     override fun getForeground(): Color = JBColor.BLACK
 }

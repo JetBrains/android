@@ -216,7 +216,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     get() = moduleHierarchyProvider.forProject.submodules
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
       val model = GradleAndroidModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
     }

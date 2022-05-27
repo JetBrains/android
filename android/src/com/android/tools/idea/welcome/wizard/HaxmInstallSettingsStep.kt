@@ -133,7 +133,7 @@ class HaxmInstallSettingsStep(
 
   override fun getComponent(): JComponent = panel
 
-  override fun getPreferredFocusComponent(): JComponent? = memorySlider
+  override fun getPreferredFocusComponent(): JComponent = memorySlider
 
   override fun dispose() {
     bindings.releaseAll()

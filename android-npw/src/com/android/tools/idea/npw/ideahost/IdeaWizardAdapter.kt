@@ -52,7 +52,7 @@ class IdeaWizardAdapter(
       override fun updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
       }
-      override fun getHelpId(): String? = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
+      override fun getHelpId(): String = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
     }
 
   init {

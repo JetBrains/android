@@ -32,7 +32,7 @@ import javax.swing.JComponent
  * @param requireEmulator If true, only include icons for form factors that have an emulator available.
  * @return `null` if it can't create a graphics Object to render the image (for example not enough memory)
  */
-fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon? {
+fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon {
   val filteredFormFactors = FormFactor.values().filter {
     it.hasEmulator() || !requireEmulator
   }

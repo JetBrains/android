@@ -29,7 +29,7 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
   var surfaceState: SurfaceState = SurfaceState()
     private set
 
-  override fun getState(): SurfaceState? = surfaceState
+  override fun getState(): SurfaceState = surfaceState
 
   override fun loadState(state: SurfaceState) {
     surfaceState = state

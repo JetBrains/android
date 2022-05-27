@@ -40,7 +40,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override fun getDisplayName(): String = "Variables"
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
 
-  override fun createComponent(): JComponent? {
+  override fun createComponent(): JComponent {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context, context.project, this)

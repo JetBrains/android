@@ -80,7 +80,7 @@ data class AndroidModulePathsImpl(
   override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
 }
 
-private fun File.appendPackageToRoot(packageName: String?): File? {
+private fun File.appendPackageToRoot(packageName: String?): File {
   return File(this, (packageName ?: return this).replace('.', File.separatorChar))
 }
 

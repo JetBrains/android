@@ -85,7 +85,7 @@ class PsDeclaredLibraryJavaDependency(
   object Descriptor : ModelDescriptor<PsDeclaredLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryJavaDependency): Nothing? = null
 
-    override fun getParsed(model: PsDeclaredLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
+    override fun getParsed(model: PsDeclaredLibraryJavaDependency): ArtifactDependencyModel = model.parsedModel
 
     override fun prepareForModification(model: PsDeclaredLibraryJavaDependency) = Unit
 

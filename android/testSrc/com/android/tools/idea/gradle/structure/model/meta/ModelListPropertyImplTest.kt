@@ -35,7 +35,7 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
 
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = null
-    override fun getParsed(model: Model): Model? = this
+    override fun getParsed(model: Model): Model = this
     override fun prepareForModification(model: Model) = Unit
     override fun setModified(model: Model) = Unit
   }

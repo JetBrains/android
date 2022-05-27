@@ -76,7 +76,7 @@ class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
     writeToBuildFile(ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES)
 
     val variables = object: PsVariables(stubModel, "variables", "variables", null) {
-      override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
+      override fun getContainer(from: PsModel): ExtModel = gradleBuildModel.ext()
     }
     val choices = prepareArtifactVersionChoices(notExactQuery, foundArtifact, variables)
     assertThat(choices, equalTo(listOf(

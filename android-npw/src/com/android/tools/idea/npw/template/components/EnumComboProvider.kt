@@ -46,7 +46,7 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
     return ComboBox(comboBoxModel)
   }
 
-  override fun createProperty(component: ComboBox<*>): AbstractProperty<*>? = ApiComboBoxTextProperty(component)
+  override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = ApiComboBoxTextProperty(component)
 
   /**
    * Swing property which interacts with [ApiComboBoxItem]s.

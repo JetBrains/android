@@ -279,7 +279,7 @@ class ComboBoxPropertyEditorModel(
     return values.size
   }
 
-  override fun getElementAt(index: Int): EnumValue? {
+  override fun getElementAt(index: Int): EnumValue {
     return values.elementAt(index)
   }
 

@@ -33,7 +33,7 @@ class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepo
     return Futures
       .whenAllComplete(futures)
       .call(
-        Callable { futures.mapNotNull { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
+        Callable { futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
         PooledThreadExecutor.INSTANCE)
   }
 }

@@ -204,7 +204,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
 }
 
 private class SafeArgsPsiElementCellRenderer : DefaultPsiElementCellRenderer() {
-  override fun getContainerText(element: PsiElement?, name: String?): String? {
+  override fun getContainerText(element: PsiElement?, name: String?): String {
     val tag = element as? SafeArgsXmlTag ?: error("Invalid type of $element.")
 
     val baseText = "(generated from ${super.getContainerText(tag, name)})"

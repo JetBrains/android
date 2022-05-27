@@ -38,7 +38,7 @@ class ProjectPerspectiveConfigurable(private val context: PsContext)
   override fun getDisplayName(): String = "Project"
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_PROJECT
 
-  override fun createComponent(): JComponent? =
+  override fun createComponent(): JComponent =
     ProjectPropertiesConfigPanel(context.project, context)
       .also { Disposer.register(this, it) }
       .getComponent()

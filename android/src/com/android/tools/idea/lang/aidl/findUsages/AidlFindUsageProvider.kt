@@ -45,7 +45,7 @@ class AidlFindUsageProvider : FindUsagesProvider {
 
   override fun getNodeText(element: PsiElement, useFullName: Boolean) = getDescriptiveName(element)
 
-  override fun getWordsScanner(): WordsScanner? {
+  override fun getWordsScanner(): WordsScanner {
     return DefaultWordsScanner(AidlLexer(), AidlTokenTypeSets.IDENTIFIERS, AidlTokenTypeSets.COMMENTS, TokenSet.EMPTY)
   }
 }

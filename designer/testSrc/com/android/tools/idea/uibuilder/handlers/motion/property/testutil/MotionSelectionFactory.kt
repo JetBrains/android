@@ -85,7 +85,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
              .firstOrNull { id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID)) } as? MotionSceneTag
   }
 
-  private fun findKeyFrame(keyFrameSet: MotionSceneTag, keyType: String, framePosition: Int, target: String): MotionSceneTag? {
+  private fun findKeyFrame(keyFrameSet: MotionSceneTag, keyType: String, framePosition: Int, target: String): MotionSceneTag {
     return keyFrameSet.getChildTags(keyType).singleOrNull {
       framePosition.toString() == it.getAttributeValue(MotionSceneAttrs.Key.FRAME_POSITION) &&
       target == Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Key.MOTION_TARGET))

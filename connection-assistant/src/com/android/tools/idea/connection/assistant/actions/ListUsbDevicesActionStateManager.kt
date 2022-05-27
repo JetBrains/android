@@ -133,7 +133,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     return if (myDevicesFuture.get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
   }
 
-  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
+  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage {
     val (title, body) = generateMessage()
     return StatefulButtonMessage(title, getState(project, actionData), body)
   }

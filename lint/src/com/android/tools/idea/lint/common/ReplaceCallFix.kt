@@ -102,9 +102,8 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
         val name = methodName
         if (name.startsWith("enforce") &&
             name.endsWith("Permission")) {
-          val referencedName: String? = methodExpression.getReferencedName()
-          if (referencedName != null
-              && referencedName.startsWith("check")) {
+          val referencedName = methodExpression.getReferencedName()
+          if (referencedName.startsWith("check")) {
             methodCall.getValueArgumentList()?.textRange?.let { range: TextRange ->
               val offset = range.endOffset - 1
               document.insertString(offset, ", \"TODO: message if thrown\"")

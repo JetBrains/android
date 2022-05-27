@@ -121,5 +121,5 @@ class ConfigureDynamicModuleStep(
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
     listOf(ConfigureModuleDownloadOptionsStep(model)) + super.createDependentSteps()
 
-  override fun getPreferredFocusComponent(): JComponent? = moduleName
+  override fun getPreferredFocusComponent(): JComponent = moduleName
 }

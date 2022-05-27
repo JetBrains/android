@@ -77,7 +77,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     }
   }
 
-  override fun getToolTipText(): String? {
+  override fun getToolTipText(): String {
     return propertyModel.tooltip
   }
 

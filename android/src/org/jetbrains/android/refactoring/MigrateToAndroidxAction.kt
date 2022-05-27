@@ -66,7 +66,7 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
     return module != null && GradleProjects.isIdeaAndroidModule(module)
   }
 
-  override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
+  override fun getHandler(dataContext: DataContext): RefactoringActionHandler = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
     anActionEvent.presentation.description = "Migrates to AndroidX package names"

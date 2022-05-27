@@ -75,7 +75,7 @@ private class CustomThreeStateCheckBox(
     }
   }
 
-  override fun getToolTipText(): String? {
+  override fun getToolTipText(): String {
     return propertyModel.tooltip
   }
 

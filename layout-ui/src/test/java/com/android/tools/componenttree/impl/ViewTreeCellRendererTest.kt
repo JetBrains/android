@@ -248,7 +248,7 @@ class ViewTreeCellRendererTest {
 
   private fun hasNonWhiteColors(icon: Icon): Boolean {
     var combined = 0xffffff
-    val image = toImage(icon) ?: return false
+    val image = toImage(icon)
     for (x in 0 until image.width) {
       for (y in 0 until image.height) {
         val rgb = Color(image.getRGB(x, y), true)
@@ -260,7 +260,7 @@ class ViewTreeCellRendererTest {
     return combined.and(0xffffff) != 0xffffff
   }
 
-  private fun toImage(icon: Icon): BufferedImage? {
+  private fun toImage(icon: Icon): BufferedImage {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     val g = image.createGraphics()

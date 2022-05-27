@@ -69,7 +69,7 @@ import com.intellij.util.ProcessingContext
  */
 open class DataBindingCompletionContributor : CompletionContributor() {
 
-  private val onCompletionHandler: InsertHandler<LookupElement>? = InsertHandler { context, lookupElement ->
+  private val onCompletionHandler: InsertHandler<LookupElement> = InsertHandler { context, lookupElement ->
     moveCaretInsideMethodParenthesis(lookupElement, context)
     trackCompletionAccepted(context)
   }

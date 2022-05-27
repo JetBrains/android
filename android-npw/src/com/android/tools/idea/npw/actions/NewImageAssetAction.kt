@@ -44,7 +44,7 @@ class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset 
     return JBUI.size(1020, 680)
   }
 
-  override fun getHelpUrl(): URL? {
+  override fun getHelpUrl(): URL {
     return toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
   }
 }

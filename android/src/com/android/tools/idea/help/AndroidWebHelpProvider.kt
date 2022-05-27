@@ -23,7 +23,7 @@ import com.intellij.openapi.help.WebHelpProvider
  */
 class AndroidWebHelpProvider : WebHelpProvider() {
 
-  override fun getHelpPageUrl(helpTopicId: String): String? {
+  override fun getHelpPageUrl(helpTopicId: String): String {
     Verify.verify(HELP_PREFIX == helpTopicPrefix)
 
     return HELP_URL + helpTopicId.removePrefix(helpTopicPrefix)

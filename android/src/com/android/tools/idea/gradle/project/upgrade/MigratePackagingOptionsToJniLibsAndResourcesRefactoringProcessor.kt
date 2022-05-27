@@ -73,7 +73,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.commandName")
 
-  override fun getShortDescription(): String? =
+  override fun getShortDescription(): String =
     """
       Directives to affect packaging have been split into those affecting
       libraries (.so files) and those affecting all other resources.

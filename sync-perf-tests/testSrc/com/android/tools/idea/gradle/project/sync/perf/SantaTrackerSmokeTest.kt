@@ -19,5 +19,5 @@ class SantaTrackerSmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.SANTA_TRACKER
   // Use assembleDevelopmentDebug to prevent signing tasks
   override val buildTask: String = ":santa-tracker:assembleDevelopmentDebug"
-  override val buildTaskTimeout: Long? = 5000
+  override val buildTaskTimeout: Long = 5000
 }

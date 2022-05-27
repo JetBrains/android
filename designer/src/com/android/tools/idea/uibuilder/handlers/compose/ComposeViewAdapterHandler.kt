@@ -28,6 +28,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 class ComposeViewAdapterHandler: ViewGroupHandler() {
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = false
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent): Interaction? =
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent): Interaction =
     SceneInteraction(screenView)
 }

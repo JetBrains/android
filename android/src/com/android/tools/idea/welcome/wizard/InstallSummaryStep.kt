@@ -95,7 +95,7 @@ class InstallSummaryStep(
 
   override fun getComponent(): JComponent = panel
 
-  override fun getPreferredFocusComponent(): JComponent? = summaryText
+  override fun getPreferredFocusComponent(): JComponent = summaryText
 
   override fun onEntering() {
     val packages = packagesProvider.get()

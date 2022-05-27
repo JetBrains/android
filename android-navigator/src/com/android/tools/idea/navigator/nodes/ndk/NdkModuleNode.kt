@@ -69,7 +69,7 @@ class NdkModuleNode(
     return sortKey
   }
 
-  override fun toTestString(printInfo: Queryable.PrintInfo?): String? {
+  override fun toTestString(printInfo: Queryable.PrintInfo?): String {
     return String.format("%1\$s (Native-Android-Gradle)", super.toTestString(printInfo))
   }
 

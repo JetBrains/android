@@ -68,7 +68,7 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
            !mySurface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
-  override fun getPasteTarget(): NlComponent? {
+  override fun getPasteTarget(): NlComponent {
     val selection = mySurface.selectionModel.selection
     return if (selection.size == 1) selection[0] else surface.currentNavigation
   }

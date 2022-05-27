@@ -139,7 +139,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     get() = getSubmodules(project, null)
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
       return createSourceProvidersForLegacyModule(facet)
     }
   }

@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.compose.preview.uibuilder.handler
 
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
@@ -29,6 +30,6 @@ class ComposeViewHandlerProvider: ViewHandlerProvider {
 class ComposeViewAdapterHandler: ViewGroupHandler() {
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = false
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent): Interaction? =
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent): Interaction =
     SceneInteraction(screenView)
 }

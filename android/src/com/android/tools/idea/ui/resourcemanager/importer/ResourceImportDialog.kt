@@ -338,7 +338,7 @@ class ResourceImportDialog(
     }
   }
 
-  override fun getHelpID(): String? {
+  override fun getHelpID(): String {
     return AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
   }
 

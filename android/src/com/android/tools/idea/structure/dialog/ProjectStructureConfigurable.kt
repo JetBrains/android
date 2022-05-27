@@ -18,8 +18,8 @@ package com.android.tools.idea.structure.dialog
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
@@ -206,7 +206,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
-  override fun createComponent(): JComponent? {
+  override fun createComponent(): JComponent {
     val component = MyPanel()
     mySplitter = OnePixelSplitter(false, .17f)
     mySplitter!!.setHonorComponentsMinimumSize(true)
@@ -423,7 +423,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
   }
 
-  fun getHistory(): History? = myHistory
+  fun getHistory(): History = myHistory
 
   fun add(listener: ProjectStructureListener, parentDisposable: Disposable) =
     myProjectStructureEventDispatcher.addListener(listener, parentDisposable)

@@ -204,8 +204,8 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   }
 }
 
-// For debugging
-fun ValidatorResult.toDetailedString(): String? {
+@Suppress("unused") // For debugging
+fun ValidatorResult.toDetailedString(): String {
   val builder: StringBuilder = StringBuilder().append("Result containing ").append(issues.size).append(
     " issues:\n")
   val var2: Iterator<*> = this.issues.iterator()

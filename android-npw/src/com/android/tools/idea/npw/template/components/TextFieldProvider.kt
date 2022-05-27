@@ -26,5 +26,5 @@ import javax.swing.JTextField
  */
 class TextFieldProvider(parameter: Parameter<String>) : ParameterComponentProvider<JTextField>(parameter) {
   override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
-  override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
+  override fun createProperty(component: JTextField): AbstractProperty<*> = TextProperty(component)
 }

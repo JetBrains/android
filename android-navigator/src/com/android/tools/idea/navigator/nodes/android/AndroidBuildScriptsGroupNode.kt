@@ -113,7 +113,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
     presentation.setIcon(GradleIcons.Gradle)
   }
 
-  override fun toTestString(printInfo: PrintInfo?): String? = "Gradle Scripts"
+  override fun toTestString(printInfo: PrintInfo?): String = "Gradle Scripts"
 }
 
 private fun getProguardFileType(): FileType = ProguardR8FileType.INSTANCE

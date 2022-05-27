@@ -555,7 +555,7 @@ class VariablesTable private constructor(
         else -> String::class.java
       }
 
-    override fun getValueAt(node: Any?, column: Int): Any? =
+    override fun getValueAt(node: Any?, column: Int): Any =
       when (column) {
         NAME -> node.toString()
         UNRESOLVED_VALUE -> (node as? BaseVariableNode)?.getUnresolvedValue(tableTree?.isExpanded(TreePath(node.path)) == true)

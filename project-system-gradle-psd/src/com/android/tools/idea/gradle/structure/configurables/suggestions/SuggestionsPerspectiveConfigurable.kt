@@ -71,7 +71,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   private fun createAllModulesConfigurable(module: PsModule) : ModuleSuggestionsConfigurable {
     return object : ModuleSuggestionsConfigurable(context, this@SuggestionsPerspectiveConfigurable, module) {
-      override fun getIcon(expanded: Boolean): Icon? = AllIcons.Nodes.ModuleGroup
+      override fun getIcon(expanded: Boolean): Icon = AllIcons.Nodes.ModuleGroup
     }.apply { setHistory(myHistory) }
   }
 }

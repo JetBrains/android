@@ -756,7 +756,7 @@ class LintModelFactory : LintModelModuleLoader {
         override val manifestMergeReport: File? get() = null // Injected by legacy AGP lint runner
         override val `package`: String?
             get() = null // no in the old builder model
-        override val minSdkVersion: AndroidVersion?
+        override val minSdkVersion: AndroidVersion
             get() = variant.minSdkVersion.toAndroidVersion()
         override val targetSdkVersion: AndroidVersion?
             get() = variant.targetSdkVersion?.toAndroidVersion()

@@ -62,7 +62,7 @@ class BuildAnalyzerShowActionStateManager : AssistActionStateManager() {
     return featureState(project).toButtonState()
   }
 
-  override fun getStateDisplay(project: Project, actionData: ActionData, successMessage: String?): StatefulButtonMessage? {
+  override fun getStateDisplay(project: Project, actionData: ActionData, successMessage: String?): StatefulButtonMessage {
     val featureState = featureState(project)
     return StatefulButtonMessage(featureState.toButtonMessage(), featureState.toButtonState())
   }

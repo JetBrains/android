@@ -256,7 +256,7 @@ class ColorAssetCellRenderer : ListCellRenderer<Pair<Color, String>> {
                                             value: Pair<Color, String>,
                                             index: Int,
                                             isSelected: Boolean,
-                                            cellHasFocus: Boolean): Component? {
+                                            cellHasFocus: Boolean): Component {
     cardView.title = "#${ColorUtil.toHex(value.first)}"
     cardView.subtitle = value.second
     val thumbnailSize = cardView.thumbnailSize

@@ -100,7 +100,7 @@ private object TestSlowPreviewProvider : SlowResourcePreviewProvider {
     }
   }
 
-  override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage {
     return createTestImage()
   }
 }

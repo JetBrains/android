@@ -29,7 +29,7 @@ class AidlFindUsageHandlerFactory : FindUsagesHandlerFactory() {
     return element is AidlDeclarationName
   }
 
-  override fun createFindUsagesHandler(element: PsiElement, forHighlightUsages: Boolean): FindUsagesHandler? {
+  override fun createFindUsagesHandler(element: PsiElement, forHighlightUsages: Boolean): FindUsagesHandler {
     return object : FindUsagesHandler(element) {
       override fun getSecondaryElements(): Array<PsiElement> {
         when (element) {

@@ -95,7 +95,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       else dimensions
     }
 
-    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = propertyContext.parseEditorText(text)
+    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>> = propertyContext.parseEditorText(text)
 
     override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String = when (anObject) {
       null -> ""

@@ -50,7 +50,7 @@ class ProductFlavorsPanel(
 ) {
   private val flavorDimensionNameValidator = NameValidator { module.validateFlavorDimensionName(it.orEmpty()) }
 
-  override fun getRemoveAction(): AnAction? {
+  override fun getRemoveAction(): AnAction {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {
@@ -147,7 +147,7 @@ class ProductFlavorsPanel(
     )
   }
 
-  override fun getRenameAction(): AnAction? {
+  override fun getRenameAction(): AnAction {
     return object : DumbAwareAction("Rename", "Renames", IconUtil.getEditIcon()) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {

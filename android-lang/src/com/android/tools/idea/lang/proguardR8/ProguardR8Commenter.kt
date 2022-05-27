@@ -26,5 +26,5 @@ class ProguardR8Commenter : Commenter {
 
   override fun getCommentedBlockCommentSuffix(): String? = null
 
-  override fun getLineCommentPrefix(): String? = "#"
+  override fun getLineCommentPrefix(): String = "#"
 }

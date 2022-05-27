@@ -143,7 +143,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     return qualifiedName
   }
 
-  override fun getName(): String? {
+  override fun getName(): String {
     return DataBindingUtil.BR
   }
 
@@ -159,11 +159,11 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     return fields
   }
 
-  override fun getContainingFile(): PsiFile? {
+  override fun getContainingFile(): PsiFile {
     return containingFile
   }
 
-  override fun getNameIdentifier(): PsiIdentifier? {
+  override fun getNameIdentifier(): PsiIdentifier {
     return LightIdentifier(manager, name)
   }
 

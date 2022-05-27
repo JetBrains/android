@@ -34,7 +34,7 @@ class LITableItem(private val myProp: ViewProperty, parent: PTableItem, private 
     return myName
   }
 
-  override fun getValue(): String? {
+  override fun getValue(): String {
     return myValue
   }
 

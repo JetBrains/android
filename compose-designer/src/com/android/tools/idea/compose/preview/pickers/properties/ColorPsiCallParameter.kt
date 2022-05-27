@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
@@ -43,7 +44,7 @@ internal class ColorPsiCallParameter(
   override val colorButton = object : ActionIconButton {
     override val actionButtonFocusable: Boolean = true
 
-    override val actionIcon: Icon?
+    override val actionIcon: Icon
       get() = StudioIcons.LayoutEditor.Extras.PIPETTE
 
     override val action = object : AnAction(message("picker.preview.color.action.title")) {

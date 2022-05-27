@@ -199,7 +199,7 @@ class ResourceReferencePsiElement(
 
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
 
-  override fun getPresentableText(): String? = resourceReference.resourceUrl.toString()
+  override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
 
   override fun getManager(): PsiManager = psiManager
 

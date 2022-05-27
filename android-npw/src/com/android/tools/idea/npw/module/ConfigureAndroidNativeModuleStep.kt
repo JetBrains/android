@@ -46,7 +46,7 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
     bindings.bindTwoWay(SelectedItemProperty(cppStandard), model.cppStandard)
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = appName
+  override fun getPreferredFocusComponent(): JComponent = appName
 
   override fun createMainPanel(): JPanel = panel {
     row {

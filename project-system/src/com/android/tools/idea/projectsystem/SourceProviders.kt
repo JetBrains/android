@@ -199,7 +199,7 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val mainIdeaSourceProvider: NamedIdeaSourceProvider
           get() = sourceSet
-        override val mainManifestFile: VirtualFile?
+        override val mainManifestFile: VirtualFile
           get() = sourceSet.manifestFiles.single()
       })
       Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })

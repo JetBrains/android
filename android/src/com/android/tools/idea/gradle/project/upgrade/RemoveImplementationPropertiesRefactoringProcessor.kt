@@ -63,7 +63,7 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.removeImplementationPropertiesRefactoringProcessor.commandName")
 
-  override fun getShortDescription(): String? =
+  override fun getShortDescription(): String =
     """
       The build configuration used to allow setting of properties for some
       modules, even where those properties do not have any effect for that kind

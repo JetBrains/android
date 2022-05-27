@@ -75,7 +75,7 @@ open class PsDeclaredLibraryAndroidDependency(
   object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
 
-    override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel? = model.parsedModel
+    override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel = model.parsedModel
 
     override fun prepareForModification(model: PsDeclaredLibraryAndroidDependency) = Unit
 

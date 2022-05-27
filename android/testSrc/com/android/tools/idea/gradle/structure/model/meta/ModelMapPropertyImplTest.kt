@@ -32,8 +32,8 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
   var prepareForModificationCount: Int = 0
 
   object TestModelDescriptor : ModelDescriptor<ModelMapPropertyImplTest, ModelMapPropertyImplTest, ModelMapPropertyImplTest> {
-    override fun getResolved(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
-    override fun getParsed(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+    override fun getResolved(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest = model
+    override fun getParsed(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest = model
     override fun prepareForModification(model: ModelMapPropertyImplTest) {
       model.prepareForModificationCount++
     }

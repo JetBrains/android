@@ -47,7 +47,7 @@ class PackageComboProvider(private val project: Project,
     return classComboBox
   }
 
-  override fun createProperty(component: EditorComboBox): AbstractProperty<*>? = TextProperty(component)
+  override fun createProperty(component: EditorComboBox): AbstractProperty<*> = TextProperty(component)
 
   override fun accept(component: EditorComboBox) {
     RecentsManager.getInstance(project).registerRecentEntry(recentsKey, component.text)

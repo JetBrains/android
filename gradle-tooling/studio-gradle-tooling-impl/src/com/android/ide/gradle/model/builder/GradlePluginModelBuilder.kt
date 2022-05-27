@@ -26,7 +26,7 @@ class GradlePluginModelBuilder : ToolingModelBuilder {
     return modelName == GradlePluginModel::class.java.name
   }
 
-  override fun buildAll(modelName: String, project: Project): Any? {
+  override fun buildAll(modelName: String, project: Project): Any {
     return GradlePluginModelImpl(project.plugins.map { it.javaClass.name })
   }
 }

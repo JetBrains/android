@@ -33,7 +33,7 @@ class AgpUpgradeAction: BaseRefactoringAction() {
   override fun isAvailableInEditorOnly() = false
   override fun isEnabledOnDataContext(dataContext: DataContext) = true
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = true
-  override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = AgpUpgradeActionHandler()
+  override fun getHandler(dataContext: DataContext): RefactoringActionHandler = AgpUpgradeActionHandler()
 }
 
 class AgpUpgradeActionHandler: RefactoringActionHandler {

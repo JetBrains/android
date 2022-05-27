@@ -37,7 +37,7 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
     private var ftraceParserCallback: (FtraceLine) -> Unit = state::importLine
     private val coreStartedRegex = Pattern.compile("^#+ CPU \\d buffer started #+")
 
-    override fun import(stream: StreamingReader): ModelFragment? {
+    override fun import(stream: StreamingReader): ModelFragment {
         val lineReader = StreamingLineReader(1024, stream)
         foundHeader = false
         lineReader.forEachLine(lineReaderCallback)

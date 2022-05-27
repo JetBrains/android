@@ -62,7 +62,7 @@ class ErrorDetailDialog(titleText: String,
     textArea.text = errorText
   }
 
-  override fun createCenterPanel(): JComponent? {
+  override fun createCenterPanel(): JComponent {
     val pane = JPanel(BorderLayout(0, JBUI.scale(5)))
 
     header.text = headerLabel

@@ -49,7 +49,7 @@ class BuildAttributionIssueReportingDialog(
     init()
   }
 
-  override fun createCenterPanel(): JComponent? {
+  override fun createCenterPanel(): JComponent {
     val warningText = "<html><body>" +
                       "If you are comfortable sharing the information below, copy the report and send it to the developer of plugin " +
                       "${pluginName}, so they may troubleshoot the detected issues. " +

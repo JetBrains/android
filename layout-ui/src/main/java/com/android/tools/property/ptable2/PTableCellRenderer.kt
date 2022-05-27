@@ -49,7 +49,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
                                   depth: Int,
                                   isSelected: Boolean,
                                   hasFocus: Boolean,
-                                  isExpanded: Boolean): JComponent? {
+                                  isExpanded: Boolean): JComponent {
     clear()
     setPaintFocusBorder(hasFocus)
     font = table.activeFont

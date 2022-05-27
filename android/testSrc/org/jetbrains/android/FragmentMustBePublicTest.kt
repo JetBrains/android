@@ -28,7 +28,7 @@ import org.intellij.lang.annotations.Language
 class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   private var myVisibilityInspection: VisibilityInspection? = null
 
-  override fun getInspection(): LocalInspectionTool? {
+  override fun getInspection(): LocalInspectionTool {
     return myVisibilityInspection!!.sharedLocalInspectionTool
   }
 
@@ -50,7 +50,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
     super.tearDown()
   }
 
-  private fun createTool(): VisibilityInspection? {
+  private fun createTool(): VisibilityInspection {
     val inspection = VisibilityInspection()
     inspection.SUGGEST_PRIVATE_FOR_INNERS = true
     inspection.SUGGEST_PACKAGE_LOCAL_FOR_TOP_CLASSES = true

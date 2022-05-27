@@ -138,7 +138,7 @@ private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
 val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
 
 private fun calculateTransformationsUniqueId(projectClassesTransformationProvider: ClassTransform,
-                                             nonProjectClassesTransformationProvider: ClassTransform): String? {
+                                             nonProjectClassesTransformationProvider: ClassTransform): String {
   return Hashing.goodFastHash(64).newHasher()
     .putString(projectClassesTransformationProvider.id, Charsets.UTF_8)
     .putString(nonProjectClassesTransformationProvider.id, Charsets.UTF_8)

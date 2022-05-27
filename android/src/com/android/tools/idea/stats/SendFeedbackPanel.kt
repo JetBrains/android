@@ -41,7 +41,7 @@ class SendFeedbackPanel : StatusBarWidget.Multiframe, StatusBarWidget.IconPresen
   }
 
   override fun copy(): StatusBarWidget = SendFeedbackPanel()
-  override fun getIcon(): Icon? = StudioIcons.Shell.Telemetry.SEND_FEEDBACK
+  override fun getIcon(): Icon = StudioIcons.Shell.Telemetry.SEND_FEEDBACK
   override fun getTooltipText(): String = "Send feedback to Google"
 
   override fun getClickConsumer(): Consumer<MouseEvent> = Consumer { _ ->

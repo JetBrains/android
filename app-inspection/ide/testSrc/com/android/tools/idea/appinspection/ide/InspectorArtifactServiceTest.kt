@@ -43,7 +43,7 @@ class InspectorArtifactServiceTest {
     val artifactResolverFactory = object : ArtifactResolverFactory {
       override fun getArtifactResolver(project: Project): ArtifactResolver {
         return object : ArtifactResolver {
-          override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+          override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
             return libraryPath
           }
         }

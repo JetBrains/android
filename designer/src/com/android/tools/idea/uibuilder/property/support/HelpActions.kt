@@ -64,7 +64,7 @@ object HelpActions {
     return getHelpUrl(componentName, property) + anchor
   }
 
-  private fun getHelpUrl(componentName: String, property: NlPropertyItem): String? {
+  private fun getHelpUrl(componentName: String, property: NlPropertyItem): String {
     val dotLayoutParams = when {
       componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
       property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS

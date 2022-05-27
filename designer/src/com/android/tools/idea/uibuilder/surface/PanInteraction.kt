@@ -96,6 +96,6 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
     cancel(event.info.x, event.info.y, event.info.modifiersEx)
   }
 
-  override fun getCursor(): Cursor? =
+  override fun getCursor(): Cursor =
     AdtUiCursorsProvider.getInstance().getCursor(if (isGrabbing) AdtUiCursorType.GRABBING else AdtUiCursorType.GRAB)
 }

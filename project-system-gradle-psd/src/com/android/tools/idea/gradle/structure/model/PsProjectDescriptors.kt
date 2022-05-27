@@ -48,7 +48,7 @@ import kotlin.reflect.KProperty
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
   private const val AGP_GROUP_ID_NAME = "com.android.tools.build:gradle"
   override fun getResolved(model: PsProject): Nothing? = null
-  override fun getParsed(model: PsProject): ProjectBuildModel? = model.parsedModel
+  override fun getParsed(model: PsProject): ProjectBuildModel = model.parsedModel
   override fun prepareForModification(model: PsProject) = Unit
   override fun setModified(model: PsProject) {
     model.isModified = true
@@ -140,7 +140,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
             value.maybeLiteralValue?.let { model.setGradleVersionValue(it) }
           }
 
-          override val isModified: Boolean?
+          override val isModified: Boolean
             get() =
               model.getGradleVersionValue(true) != model.getGradleVersionValue(false)
 
@@ -148,7 +148,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override val description: String = "Gradle Version"
           override val defaultValueGetter: (() -> String?)? = null
-          override val variableScope: (() -> PsVariablesScope?)? = { PsVariablesScope.NONE }
+          override val variableScope: () -> PsVariablesScope? = { PsVariablesScope.NONE }
           override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
         }
 

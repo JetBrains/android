@@ -187,7 +187,7 @@ private class FakeXmlFileContent(private val content: String) : FileContent {
 
   override fun getContentAsText() = content
   override fun getContent() = content.toByteArray()
-  override fun <T : Any?> getUserData(key: Key<T>): T? = throw UnsupportedOperationException()
+  override fun <T : Any?> getUserData(key: Key<T>): T = throw UnsupportedOperationException()
   override fun getFileType(): FileType = XmlFileType.INSTANCE
   override fun getFile() = file
   override fun getFileName() = ""

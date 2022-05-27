@@ -181,7 +181,7 @@ class AndroidTestApplicationLaunchTask(
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult? {
+  override fun run(launchContext: LaunchContext): LaunchResult {
     val printer = launchContext.consolePrinter
     val device = launchContext.device
     val launchStatus = launchContext.launchStatus

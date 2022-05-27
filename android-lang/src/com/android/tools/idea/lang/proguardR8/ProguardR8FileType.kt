@@ -33,7 +33,7 @@ class ProguardR8FileType private constructor() : LanguageFileType(ProguardR8Lang
     return EXT_PRO
   }
 
-  override fun getIcon(): Icon? {
+  override fun getIcon(): Icon {
     return AllIcons.FileTypes.Text
   }
 

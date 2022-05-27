@@ -87,7 +87,7 @@ class ResourceNamespaceFakePsiElement(
   private val resourceNamespace: ResourceNamespace,
   private val parent: XmlElement
 ) : FakePsiElement(), NavigatablePsiElement {
-  override fun getParent(): PsiElement? = parent
+  override fun getParent(): PsiElement = parent
   override fun canNavigate(): Boolean = true
 
   override fun getNavigationElement(): PsiElement {
@@ -98,7 +98,7 @@ class ResourceNamespaceFakePsiElement(
     return Manifest.getMainManifest(androidFacet)?.`package`?.xmlAttribute ?: this
   }
 
-  override fun getName(): String? {
+  override fun getName(): String {
     // An empty name makes the presentable text appear in the hover popup.
     return ""
   }

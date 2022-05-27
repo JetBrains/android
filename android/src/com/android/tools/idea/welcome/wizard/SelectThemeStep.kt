@@ -40,7 +40,7 @@ class SelectThemeStep : ModelWizardStep.WithoutModel("Select UI Theme") {
     }
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = themePanel
+  override fun getPreferredFocusComponent(): JComponent = themePanel
 
   override fun getComponent(): JComponent = root
 }

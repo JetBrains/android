@@ -46,7 +46,7 @@ class DependencyViewIssueRendererTest {
   }
 
   private fun createPath(text: String): PsPath = object : PsPath {
-    override fun getHyperlinkDestination(context: PsContext): String? = "@$text"
+    override fun getHyperlinkDestination(context: PsContext): String = "@$text"
     override fun toString(): String = text
   }
 

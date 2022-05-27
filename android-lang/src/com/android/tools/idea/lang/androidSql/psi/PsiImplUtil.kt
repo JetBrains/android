@@ -82,7 +82,7 @@ fun getSqlTable(subquery: AndroidSqlSelectSubquery): AndroidSqlTable? {
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
 
-fun getSqlTable(resultColumns: AndroidSqlResultColumns): AndroidSqlTable? = AliasColumnsTable(resultColumns)
+fun getSqlTable(resultColumns: AndroidSqlResultColumns): AndroidSqlTable = AliasColumnsTable(resultColumns)
 
 fun getTableDefinition(withClauseTable: AndroidSqlWithClauseTable): AndroidSqlTable? {
   return if (withClauseTable.withClauseTableDef.columnDefinitionNameList.isNotEmpty()) {

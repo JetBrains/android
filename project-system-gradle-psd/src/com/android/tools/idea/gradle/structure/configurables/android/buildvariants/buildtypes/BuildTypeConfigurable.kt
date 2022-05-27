@@ -30,7 +30,7 @@ class BuildTypeConfigurable(
   val context: PsContext
 ) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
   override fun getBannerSlogan() = "Build Type '${buildType.name}'"
-  override fun getIcon(expanded: Boolean): Icon? = buildType.icon
+  override fun getIcon(expanded: Boolean): Icon = buildType.icon
   override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType, context)
 }
 

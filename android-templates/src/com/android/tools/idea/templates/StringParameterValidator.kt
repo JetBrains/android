@@ -76,10 +76,10 @@ fun StringParameter.validate(
 ): String? {
   val v = value?.toString().orEmpty()
   val violations = validateStringType(project, module, provider, packageName, v, relatedValues)
-  return violations.mapNotNull { getErrorMessageForViolatedConstraint(it, v) }.firstOrNull()
+  return violations.map { getErrorMessageForViolatedConstraint(it, v) }.firstOrNull()
 }
 
-private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, value: String): String? = when (c) {
+private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, value: String): String = when (c) {
   NONEMPTY -> "Please specify $name"
   ACTIVITY -> "$name is not set to a valid activity name"
   CLASS -> "$name is not set to a valid class name"

@@ -41,7 +41,7 @@ class AndroidSqlAstNodeType(debugName: String) : IElementType(debugName, Android
 
 class AndroidSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, AndroidSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = AndroidSqlFileType.INSTANCE
-  override fun getIcon(flags: Int): Icon? = ANDROID_SQL_ICON
+  override fun getIcon(flags: Int): Icon = ANDROID_SQL_ICON
 }
 
 val ANDROID_SQL_FILE_NODE_TYPE = IFileElementType(AndroidSqlLanguage.INSTANCE)

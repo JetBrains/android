@@ -126,7 +126,7 @@ class SourceCodeEditorProviderTest {
   fun testStateSerialization() {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val representationWithState = object : TestPreviewRepresentation() {
-      override fun getState(): PreviewRepresentationState? = mapOf(
+      override fun getState(): PreviewRepresentationState = mapOf(
         "key1" to "value1",
         "key2" to "value2"
       )

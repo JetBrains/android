@@ -51,8 +51,8 @@ class WrappedPsiElement(
   override fun canNavigateToSource(): Boolean = (realElement as? Navigatable)?.canNavigateToSource() ?: false
 
   override fun getName(): String? = (realElement as? NavigationItem)?.getName()
-  override fun getPresentation(): ItemPresentation? = object : ItemPresentation {
-    override fun getPresentableText(): String? = this@WrappedPsiElement.presentableText
+  override fun getPresentation(): ItemPresentation = object : ItemPresentation {
+    override fun getPresentableText(): String = this@WrappedPsiElement.presentableText
     override fun getLocationString(): String? = (realElement as? NavigationItem)?.presentation?.locationString
     override fun getIcon(unused: Boolean): Icon? = (realElement as? NavigationItem)?.presentation?.getIcon(unused)
   }

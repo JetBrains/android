@@ -76,7 +76,7 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
     return sqliteExplorerProjectService.hasOpenDatabase()
   }
 
-  override fun getClickAction(): AnAction? {
+  override fun getClickAction(): AnAction {
     return RunSqliteStatementGutterIconAction(element.project, element, DatabaseInspectorViewsFactoryImpl.getInstance())
   }
 }

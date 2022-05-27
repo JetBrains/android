@@ -33,7 +33,7 @@ class KtsProjectPerspectiveConfigurable() :
 
   override fun getDisplayName(): String = "Project"
 
-  override fun createComponent(): JComponent? {
+  override fun createComponent(): JComponent {
     val firstLine = "Project Structure is unavailable for projects that use Gradle KTS build files."
     val secondLine = "This project uses Gradle KTS build files which are not fully supported in this version of ${ApplicationNamesInfo.getInstance().fullProductName}."
     return JPanel().apply {

@@ -849,7 +849,7 @@ data class PropertiesOperationsRefactoringInfo(
 
     override fun getCommandName(): String = commandNameSupplier.get()
 
-    override fun getShortDescription(): String? = shortDescriptionSupplier.get()
+    override fun getShortDescription(): String = shortDescriptionSupplier.get()
 
     override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
       builder.setKind(componentKind)

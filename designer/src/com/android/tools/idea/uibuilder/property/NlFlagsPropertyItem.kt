@@ -203,7 +203,7 @@ class NlFlagPropertyItem(override val flags: NlFlagsPropertyItem, name: String, 
   override val isReference: Boolean
     get() = false
 
-  override val rawValue: String?
+  override val rawValue: String
     get() = if (actualValue) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
 
   override var value: String?

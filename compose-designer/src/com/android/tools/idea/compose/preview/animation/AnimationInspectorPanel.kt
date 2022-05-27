@@ -932,7 +932,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      *   * The tick lines also match the parent height
      */
     private inner class TimelineSliderUI(slider: JSlider) : TimelinePanel(slider) {
-      fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo? =
+      fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo =
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()
           val animationYMin = component.minValue
@@ -972,8 +972,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
             val minY = TIMELINE_HEADER_HEIGHT - 1 + TIMELINE_ROW_HEIGHT * rowIndex + TIMELINE_TOP_OFFSET
             val maxY = minY + TIMELINE_ROW_HEIGHT
             val curveInfo = createCurveInfo(animation, componentId, minY, (maxY - TIMELINE_CURVE_OFFSET))
-            if (curveInfo != null)
-              InspectorPainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
+            InspectorPainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
 
             if (selectedProperties.size > index) {
               InspectorPainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, animation.grouped,

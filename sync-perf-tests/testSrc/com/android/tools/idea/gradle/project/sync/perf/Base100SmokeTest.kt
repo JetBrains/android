@@ -19,5 +19,5 @@ class Base100SmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.BASE100
   //Do not build (times out in pre submit)
   override val buildTask: String? = null
-  override val buildTaskTimeout: Long? = 5000
+  override val buildTaskTimeout: Long = 5000
 }

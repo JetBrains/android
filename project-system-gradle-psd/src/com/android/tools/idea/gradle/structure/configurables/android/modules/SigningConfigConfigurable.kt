@@ -28,7 +28,7 @@ import javax.swing.Icon
 class SigningConfigConfigurable(private val signingConfig: PsSigningConfig, val context: PsContext)
   : ChildModelConfigurable<PsSigningConfig, SigningConfigConfigPanel>(signingConfig) {
   override fun getBannerSlogan() = "Signing Config '${signingConfig.name}'"
-  override fun getIcon(expanded: Boolean): Icon? = signingConfig.icon
+  override fun getIcon(expanded: Boolean): Icon = signingConfig.icon
   override fun createPanel(): SigningConfigConfigPanel = SigningConfigConfigPanel(signingConfig, context)
 }
 

@@ -64,7 +64,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
     return wizardMinimumSize
   }
 
-  override fun getHelpUrl(): URL? {
+  override fun getHelpUrl(): URL {
     return toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
   }
 }

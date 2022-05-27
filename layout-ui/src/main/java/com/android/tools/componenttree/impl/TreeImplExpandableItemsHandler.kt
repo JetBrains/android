@@ -43,7 +43,7 @@ class TreeImplExpandableItemsHandler(private val tree: TreeImpl): TreeExpandable
       }
     }
 
-  override fun getCellKeyForPoint(point: Point): Int? {
+  override fun getCellKeyForPoint(point: Point): Int {
     // Do not expand a label if the mouse is hovering over a badge.
     // Instead allow the user to click on the badge.
     val row = (if (point.x < tree.computeBadgePosition()) super.getCellKeyForPoint(point) else null) ?: -1

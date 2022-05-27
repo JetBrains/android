@@ -228,7 +228,7 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
                     GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
       override val description: String = this@ModelPropertyCoreImpl.description
       override fun getPreferredVariableName(): String = this@ModelPropertyCoreImpl.getPreferredVariableName()
-      override fun getParsedPropertyForRead(): ResolvedPropertyModel? = resolvedProperty
+      override fun getParsedPropertyForRead(): ResolvedPropertyModel = resolvedProperty
       override fun getParsedPropertyForWrite(): ResolvedPropertyModel = resolvedProperty
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelPropertyCoreImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelPropertyCoreImpl.setter

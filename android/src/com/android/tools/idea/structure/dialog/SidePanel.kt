@@ -70,7 +70,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
   val descriptor: ListItemDescriptor<PlaceData> = object : ListItemDescriptor<PlaceData> {
     override fun getTextFor(place: PlaceData): String? = place.presentation.text
     override fun getTooltipFor(place: PlaceData): String? = null
-    override fun getIconFor(place: PlaceData): Icon? = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
+    override fun getIconFor(place: PlaceData): Icon = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
     override fun hasSeparatorAboveOf(value: PlaceData): Boolean = value.separator != null
     override fun getCaptionAboveOf(value: PlaceData): String? = value.separator
   }
