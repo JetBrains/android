@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import java.io.Serializable
 
 data class IdeBuildTypeContainerImpl(
-  override val buildType: IdeBuildType,
-  override val sourceProvider: IdeSourceProvider?,
-  override val extraSourceProviders: Collection<IdeSourceProviderContainer>
+  override val buildType: IdeBuildTypeImpl,
+  override val sourceProvider: IdeSourceProviderImpl?,
+  override val extraSourceProviders: Collection<IdeSourceProviderContainerImpl>
 ) : IdeBuildTypeContainer, Serializable

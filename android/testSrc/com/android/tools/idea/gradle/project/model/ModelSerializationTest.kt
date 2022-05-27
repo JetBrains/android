@@ -101,7 +101,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   }
 
   @Test
-  fun testAndroidModuleModel() = assertSerializable(disableEqualsCheck = true) {
+  fun testAndroidModuleModel() = assertSerializable {
     setupTestProjectFromAndroidModel(
       project,
       Projects.getBaseDirPath(project),
@@ -112,7 +112,8 @@ class ModelSerializationTest : AndroidGradleTestCase() {
 
     val module = project.gradleModule(":moduleName")
     Truth.assertThat(module).isNotNull()
-    GradleAndroidModel.get(module!!)!!.data
+
+    (GradleAndroidModel.get(module!!)!!.data as GradleAndroidModelDataImpl)
   }
 
   @Test

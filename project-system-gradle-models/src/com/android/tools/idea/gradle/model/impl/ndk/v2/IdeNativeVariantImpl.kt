@@ -20,6 +20,6 @@ import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeVariant
 import java.io.Serializable
 
 data class IdeNativeVariantImpl(
-    override val name: String,
-    override val abis: List<IdeNativeAbi>
+  override val name: String,
+  override val abis: List<IdeNativeAbi>
 ) : IdeNativeVariant, Serializable

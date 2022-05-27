@@ -16,6 +16,6 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeDependenciesInfo {
-    val includeInApk: Boolean
-    val includeInBundle: Boolean
+  val includeInApk: Boolean
+  val includeInBundle: Boolean
 }

@@ -18,15 +18,13 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
-import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
-import java.io.File
 import java.io.Serializable
 
 data class IdeDependenciesCoreImpl(
-  override val dependencies: Collection<IdeDependencyCore>
+  override val dependencies: Collection<IdeDependencyCoreImpl>
 ) : IdeDependenciesCore, Serializable
 
 data class IdeDependenciesImpl(
@@ -41,6 +39,17 @@ data class IdeDependenciesImpl(
     classpath.dependencies.flatMap(resolver::resolveModule)
 }
 
-class ThrowingIdeDependencies : IdeDependenciesCore, Serializable {
-  override val dependencies: Nothing get() = throw NotImplementedError()
+fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
+  return IdeDependenciesCoreImpl(object : Collection<IdeDependencyCoreImpl> {
+    override val size: Int get() = unexpected()
+    override fun isEmpty(): Boolean = unexpected()
+    override fun iterator(): Iterator<IdeDependencyCoreImpl> = unexpected()
+    override fun containsAll(elements: Collection<IdeDependencyCoreImpl>): Boolean = unexpected()
+    override fun contains(element: IdeDependencyCoreImpl): Boolean = unexpected()
+
+    private fun unexpected(): Nothing {
+      error("Should not be called")
+    }
+
+  })
 }

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import java.io.Serializable
 
 data class IdeVariantBuildInformationImpl(
   override val variantName: String,
-  override val buildInformation: IdeBuildTasksAndOutputInformation
+  override val buildInformation: IdeBuildTasksAndOutputInformationImpl
 ) : IdeVariantBuildInformation, Serializable
 

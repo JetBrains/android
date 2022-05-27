@@ -803,10 +803,10 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
-      return (ideVariant.mainArtifact.compileClasspath.dependencies
-              + ideVariant.unitTestArtifact?.compileClasspath?.dependencies.orEmpty()
-              + ideVariant.androidTestArtifact?.compileClasspath?.dependencies.orEmpty()
-              + ideVariant.testFixturesArtifact?.compileClasspath?.dependencies.orEmpty()
+      return (ideVariant.mainArtifact.compileClasspathCore.dependencies
+              + ideVariant.unitTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
+              + ideVariant.androidTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
+              + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
              )
         .distinct()
         .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }

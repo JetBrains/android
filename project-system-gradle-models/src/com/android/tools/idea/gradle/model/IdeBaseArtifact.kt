@@ -67,7 +67,7 @@ interface IdeBaseArtifactCore : Serializable {
    * have run, all the generated source files etc. that the IDE needs to know about should be in
    * place.
    */
-  val ideSetupTaskNames: Collection<String>
+  val ideSetupTaskNames: List<String>
 
   /**
    * Returns all the source folders that are generated. This is typically folders for the R, the
@@ -81,7 +81,7 @@ interface IdeBaseArtifactCore : Serializable {
   val unresolvedDependencies: List<IdeUnresolvedDependency>
 }
 
-interface IdeBaseArtifact: IdeBaseArtifactCore {
+interface IdeBaseArtifact : IdeBaseArtifactCore {
   val compileClasspath: IdeDependencies
   val runtimeClasspath: IdeDependencies
 }

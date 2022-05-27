@@ -390,10 +390,10 @@ private fun collectIdentifiers(
   return variants.asSequence()
     .flatMap {
       sequenceOf(
-        it.mainArtifact.compileClasspath,
-        it.androidTestArtifact?.compileClasspath,
-        it.unitTestArtifact?.compileClasspath,
-        it.testFixturesArtifact?.compileClasspath
+        it.mainArtifact.compileClasspathCore,
+        it.androidTestArtifact?.compileClasspathCore,
+        it.unitTestArtifact?.compileClasspathCore,
+        it.testFixturesArtifact?.compileClasspathCore
       )
         .filterNotNull()
     }

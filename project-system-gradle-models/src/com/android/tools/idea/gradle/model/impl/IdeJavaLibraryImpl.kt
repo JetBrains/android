@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.io.Serializable
 

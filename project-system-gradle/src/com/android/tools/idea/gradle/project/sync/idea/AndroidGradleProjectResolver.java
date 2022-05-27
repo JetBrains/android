@@ -71,6 +71,7 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable;
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
@@ -86,7 +87,6 @@ import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -119,7 +119,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.project.TestData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
@@ -497,11 +496,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                                  File rootModulePath,
                                                                  @NotNull IdeAndroidModels ideModels) {
 
-    return GradleAndroidModelData.create(moduleName,
-                                         rootModulePath,
-                                         ideModels.getAndroidProject(),
-                                         ideModels.getFetchedVariants(),
-                                         ideModels.getSelectedVariantName());
+    return GradleAndroidModelDataImpl.create(moduleName,
+                                             rootModulePath,
+                                             ideModels.getAndroidProject(),
+                                             ideModels.getFetchedVariants(),
+                                             ideModels.getSelectedVariantName());
   }
 
   /**

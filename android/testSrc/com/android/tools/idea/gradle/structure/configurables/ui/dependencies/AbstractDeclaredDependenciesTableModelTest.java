@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
+import com.android.tools.idea.gradle.project.sync.InternedModels;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.DependencyCellRenderer;
@@ -29,12 +32,12 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
+import com.android.tools.idea.testing.AndroidProjectModels;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ui.ColumnInfo;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.io.File;
 
 /**
  * Tests for {@link AbstractDeclaredDependenciesTableModel}.
@@ -58,11 +61,10 @@ public class AbstractDeclaredDependenciesTableModelTest extends PlatformTestCase
     GradleBuildModel parsedModel = mock(GradleBuildModel.class);
     when(parsedModel.ext()).thenReturn(mock(ExtModel.class));
 
-    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getName()).thenReturn("name");
-    when(androidProject.getAgpVersion()).thenReturn("7.0.0");
+    AndroidProjectModels projectModels =
+      new AndroidProjectBuilder().build().invoke("name", ":name", new File("/"), new File("/name"), "7.0.0", new InternedModels(null));
     GradleAndroidModelData gradleAndroidModel = mock(GradleAndroidModelData.class);
-    when(gradleAndroidModel.getAndroidProject()).thenReturn(androidProject);
+    when(gradleAndroidModel.getAndroidProject()).thenReturn(projectModels.getAndroidProject());
     PsAndroidModule module = new PsAndroidModule(project, ":name");
     module.init("name", null, new GradleAndroidModel(gradleAndroidModel, getProject(), mock(IdeLibraryModelResolver.class)), null, null,
                 parsedModel);

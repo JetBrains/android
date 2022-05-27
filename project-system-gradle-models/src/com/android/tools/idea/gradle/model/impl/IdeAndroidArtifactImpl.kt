@@ -17,17 +17,10 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
-import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
-import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
-import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import java.io.File
 
 data class IdeAndroidArtifactCoreImpl(
@@ -35,32 +28,32 @@ data class IdeAndroidArtifactCoreImpl(
   override val compileTaskName: String,
   override val assembleTaskName: String,
   override val classesFolder: Collection<File>,
-  override val variantSourceProvider: IdeSourceProvider?,
-  override val multiFlavorSourceProvider: IdeSourceProvider?,
-  override val ideSetupTaskNames: Collection<String>,
+  override val variantSourceProvider: IdeSourceProviderImpl?,
+  override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
+  override val ideSetupTaskNames: List<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  val compileClasspath: IdeDependenciesCore,
-  val runtimeClasspath: IdeDependenciesCore,
-  override val unresolvedDependencies: List<IdeUnresolvedDependency>,
+  override val compileClasspathCore: IdeDependenciesCoreImpl,
+  override val runtimeClasspathCore: IdeDependenciesCoreImpl,
+  override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
   override val applicationId: String,
   override val signingConfigName: String?,
   override val isSigned: Boolean,
   override val generatedResourceFolders: Collection<File>,
   override val additionalRuntimeApks: List<File>,
-  override val testOptions: IdeTestOptions?,
+  override val testOptions: IdeTestOptionsImpl?,
   override val abiFilters: Set<String>,
-  override val buildInformation: IdeBuildTasksAndOutputInformation,
+  override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
-  override val modelSyncFiles: Collection<IdeModelSyncFile>
+  override val modelSyncFiles: Collection<IdeModelSyncFileImpl>
 ) : IdeAndroidArtifactCore {
-  override val resValues: Map<String, IdeClassField> get() = emptyMap()
+  override val resValues: Map<String, IdeClassFieldImpl> get() = emptyMap()
 }
 
 data class IdeAndroidArtifactImpl(
-  private val core: IdeAndroidArtifactCoreImpl,
+  private val core: IdeAndroidArtifactCore,
   private val resolver: IdeLibraryModelResolver
-): IdeAndroidArtifact, IdeAndroidArtifactCore by core {
-  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspath, resolver)
-  override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspath, resolver)
+) : IdeAndroidArtifact, IdeAndroidArtifactCore by core {
+  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspathCore, resolver)
+  override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspathCore, resolver)
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.model
 
-import java.io.File
-
 interface IdeDependencies {
   /**
    * Returns the Android library dependencies, both direct and transitive.

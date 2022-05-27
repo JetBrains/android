@@ -24,7 +24,7 @@ interface IdeVariantHeader {
   val displayName: String
 }
 
-interface IdeVariantCore: IdeVariantHeader {
+interface IdeVariantCore : IdeVariantHeader {
   val mainArtifact: IdeAndroidArtifactCore
   val androidTestArtifact: IdeAndroidArtifactCore?
   val testFixturesArtifact: IdeAndroidArtifactCore?
@@ -95,7 +95,7 @@ interface IdeVariantCore: IdeVariantHeader {
   val desugaredMethodsFiles: Collection<File>
 }
 
-interface IdeVariant: IdeVariantCore {
+interface IdeVariant : IdeVariantCore {
   override val mainArtifact: IdeAndroidArtifact
   override val androidTestArtifact: IdeAndroidArtifact?
   override val testFixturesArtifact: IdeAndroidArtifact?

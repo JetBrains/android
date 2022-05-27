@@ -116,7 +116,7 @@ data class IdeAndroidLibraryImpl(
         folder = folder,
         _manifest = manifest.makeRelative(),
         _compileJarFiles = compileJarFiles.map { it.makeRelative() },
-        _runtimeJarFiles = runtimeJarFiles.map{ it.makeRelative() },
+        _runtimeJarFiles = runtimeJarFiles.map { it.makeRelative() },
         _resFolder = resFolder.makeRelative(),
         _resStaticLibrary = resStaticLibrary?.makeRelative(),
         _assetsFolder = assetsFolder.makeRelative(),

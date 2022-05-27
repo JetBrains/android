@@ -22,46 +22,46 @@ import java.io.File
  * module and variant.
  */
 interface IdeNativeAbi {
-    /**
-     * The ABI name. This value aligns with [com.android.build.gradle.internal.core.Abi.tag]. For
-     * example, "x86_64", "arm64-v8a".
-     */
-    val name: String
+  /**
+   * The ABI name. This value aligns with [com.android.build.gradle.internal.core.Abi.tag]. For
+   * example, "x86_64", "arm64-v8a".
+   */
+  val name: String
 
-    /**
-     * File containing compiler flags.
-     *
-     * As for now this file is always a compile_commands.json. See
-     * https://clang.llvm.org/docs/JSONCompilationDatabase.html for details of the format.
-     *
-     * This file is generated if requested in `NativeModelBuilderParameter`.
-     */
-    val sourceFlagsFile: File
+  /**
+   * File containing compiler flags.
+   *
+   * As for now this file is always a compile_commands.json. See
+   * https://clang.llvm.org/docs/JSONCompilationDatabase.html for details of the format.
+   *
+   * This file is generated if requested in `NativeModelBuilderParameter`.
+   */
+  val sourceFlagsFile: File
 
-    /**
-     * Text file containing a list of folders that contains shared libraries used by the APK.
-     *
-     * This file is generated if requested in `NativeModelBuilderParameter`.
-     */
-    val symbolFolderIndexFile: File
+  /**
+   * Text file containing a list of folders that contains shared libraries used by the APK.
+   *
+   * This file is generated if requested in `NativeModelBuilderParameter`.
+   */
+  val symbolFolderIndexFile: File
 
-    /**
-     * Text file containing a list of build files for the native build system used by this projects.
-     *
-     * For example, if CMake is used, this file contains a list of CMakeLists.txt used by the
-     * project.
-     *
-     * This file is generated if requested in `NativeModelBuilderParameter`.
-     */
-    val buildFileIndexFile: File
+  /**
+   * Text file containing a list of build files for the native build system used by this projects.
+   *
+   * For example, if CMake is used, this file contains a list of CMakeLists.txt used by the
+   * project.
+   *
+   * This file is generated if requested in `NativeModelBuilderParameter`.
+   */
+  val buildFileIndexFile: File
 
-    /**
-     * Text file containing a list of additional project files that are known to the build system.
-     *
-     * For example, if CMake is used, this file contains explicitly listed header files for a user
-     * library.
-     *
-     * This file is generated if requested in `NativeModelBuilderParameter`.
-     */
-    val additionalProjectFilesIndexFile: File?
+  /**
+   * Text file containing a list of additional project files that are known to the build system.
+   *
+   * For example, if CMake is used, this file contains explicitly listed header files for a user
+   * library.
+   *
+   * This file is generated if requested in `NativeModelBuilderParameter`.
+   */
+  val additionalProjectFilesIndexFile: File?
 }

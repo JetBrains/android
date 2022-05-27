@@ -18,11 +18,8 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeDependenciesCore
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import java.io.File
 
 data class IdeJavaArtifactCoreImpl(
@@ -30,21 +27,21 @@ data class IdeJavaArtifactCoreImpl(
   override val compileTaskName: String,
   override val assembleTaskName: String,
   override val classesFolder: Collection<File>,
-  override val variantSourceProvider: IdeSourceProvider?,
-  override val multiFlavorSourceProvider: IdeSourceProvider?,
-  override val ideSetupTaskNames: Collection<String>,
+  override val variantSourceProvider: IdeSourceProviderImpl?,
+  override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
+  override val ideSetupTaskNames: List<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  val compileClasspath: IdeDependenciesCore,
-  val runtimeClasspath: IdeDependenciesCore,
-  override val unresolvedDependencies: List<IdeUnresolvedDependency>,
+  override val compileClasspathCore: IdeDependenciesCoreImpl,
+  override val runtimeClasspathCore: IdeDependenciesCoreImpl,
+  override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
   override val mockablePlatformJar: File?
 ) : IdeJavaArtifactCore
 
 data class IdeJavaArtifactImpl(
-  private val core: IdeJavaArtifactCoreImpl,
+  private val core: IdeJavaArtifactCore,
   private val resolver: IdeLibraryModelResolver
-): IdeJavaArtifact, IdeJavaArtifactCore by core {
-  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspath, resolver)
-  override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspath, resolver)
+) : IdeJavaArtifact, IdeJavaArtifactCore by core {
+  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspathCore, resolver)
+  override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspathCore, resolver)
 }

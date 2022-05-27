@@ -63,28 +63,15 @@ import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeBuildType
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeDependenciesInfo
-import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeFilterData
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
-import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeProductFlavor
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
-import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
-import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
-import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -120,7 +107,6 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.gradle.model.impl.ThrowingIdeDependencies
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl
@@ -131,6 +117,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_AARS
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_JARS
 import com.google.common.annotations.VisibleForTesting
@@ -187,11 +174,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return IdeVectorDrawablesOptionsImpl(useSupportLibrary = options.useSupportLibrary)
   }
 
-  fun copyVectorDrawables(flavor: ProductFlavor): IdeVectorDrawablesOptions? {
+  fun copyVectorDrawables(flavor: ProductFlavor): IdeVectorDrawablesOptionsImpl? {
     val vectorDrawables: VectorDrawablesOptions = try {
       flavor.vectorDrawables
-    }
-    catch (e: UnsupportedOperationException) {
+    } catch (e: UnsupportedOperationException) {
       return null
     }
     return copyModel(vectorDrawables, ::vectorDrawablesOptionsFrom)
@@ -213,7 +199,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
       name = flavor.name,
-      resValues = copy(flavor::resValues, ::classFieldFrom) ?: mapOf(),
+      resValues = copy(flavor::resValues, ::classFieldFrom),
       proguardFiles = ImmutableList.copyOf(flavor.proguardFiles),
       consumerProguardFiles = ImmutableList.copyOf(flavor.consumerProguardFiles),
       // AGP may return internal Groovy GString implementation as a value in
@@ -267,7 +253,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
       name = buildType.name,
-      resValues = copy(buildType::resValues, ::classFieldFrom) ?: mapOf(),
+      resValues = copy(buildType::resValues, ::classFieldFrom),
       proguardFiles = ImmutableList.copyOf(buildType.proguardFiles),
       consumerProguardFiles = ImmutableList.copyOf(buildType.consumerProguardFiles),
       // AGP may return internal Groovy GString implementation as a value in
@@ -349,13 +335,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     @Suppress("SENSELESS_COMPARISON")
     return if (library.resolvedCoordinates != null) {
       mavenCoordinatesFrom(library.resolvedCoordinates)
-    }
-    else {
+    } else {
       val jarFile: File =
         if (library is JavaLibrary) {
           library.jarFile
-        }
-        else {
+        } else {
           (library as AndroidLibrary).bundle
         }
       mavenCoordinatesFrom(jarFile)
@@ -380,9 +364,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // in the same MavenCoordinates for different variants of the same module.
     if (library.project != null && library is AndroidLibrary) {
       return ((copyNewProperty(library::getBuildId)).orEmpty()
-              + library.getProject()
-              + "::"
-              + library.projectVariant)
+        + library.getProject()
+        + "::"
+        + library.projectVariant)
     }
     val coordinate: IdeMavenCoordinates = computeResolvedCoordinate(library)
     var artifactId = coordinate.artifactId
@@ -403,13 +387,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun getSymbolFilePath(androidLibrary: AndroidLibrary): String {
     return try {
       androidLibrary.symbolFile.path
-    }
-    catch (e: UnsupportedOperationException) {
+    } catch (e: UnsupportedOperationException) {
       File(androidLibrary.folder, SdkConstants.FN_RESOURCE_TEXT).path
     }
   }
 
-  class IdeDependencyCoreAndIsProvided(val dependency: IdeDependencyCore, val isProvided: Boolean)
+  class IdeDependencyCoreAndIsProvided(val dependency: IdeDependencyCoreImpl, val isProvided: Boolean)
 
   fun makeDependency(
     libraryReference: LibraryReference,
@@ -432,7 +415,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         folder = androidLibrary.folder,
         manifest = androidLibrary.manifest.path,
         compileJarFiles = listOfNotNull(
-          copyNewProperty(androidLibrary::getCompileJarFile)?.path) + androidLibrary.localJars.map { it.path },
+          copyNewProperty(androidLibrary::getCompileJarFile)?.path
+        ) + androidLibrary.localJars.map { it.path },
         runtimeJarFiles = listOf(androidLibrary.jarFile.path) + androidLibrary.localJars.map { it.path },
         resFolder = androidLibrary.resFolder.path,
         resStaticLibrary = copyNewProperty(androidLibrary::getResStaticLibrary),
@@ -520,12 +504,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           computeAddress(identifier),
           identifier.buildId,
           if (androidModuleId != null &&
-              androidModuleId.gradlePath == identifier.projectPath &&
-              androidModuleId.buildId == identifier.buildId
+            androidModuleId.gradlePath == identifier.projectPath &&
+            androidModuleId.buildId == identifier.buildId
           ) {
             variantName
-          }
-          else {
+          } else {
             null
           }
         )
@@ -534,7 +517,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
     fun populateJavaLibraries(
       javaLibraries: Collection<JavaLibrary>,
-      visited: MutableSet<String>) {
+      visited: MutableSet<String>
+    ) {
       for (javaLibrary in javaLibraries) {
         val address = computeAddress(javaLibrary)
         if (!visited.contains(address)) {
@@ -655,8 +639,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
       val runtimeOnlyClasses: Collection<File> = try {
         dependencies.runtimeOnlyClasses
-      }
-      catch (e: UnsupportedOperationException) {
+      } catch (e: UnsupportedOperationException) {
         // Gradle older than 3.4.
         emptyList()
       }
@@ -691,8 +674,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       fun(): Collection<FilterData> =
         try {
           output.filters
-        }
-        catch (ignored: UnsupportedOperationException) {
+        } catch (ignored: UnsupportedOperationException) {
           output.outputs.flatMap(OutputFile::getFilters)
         },
       ::filterDataFrom
@@ -758,14 +740,15 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       ).distinct(), // The source model can contain duplicates.
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      compileClasspath = dependencies.model,
-      runtimeClasspath = ThrowingIdeDependencies(),
+      compileClasspathCore = dependencies.model,
+      runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
       abiFilters = ImmutableSet.copyOf( // In AGP 4.0 and below abiFilters was nullable, normalize null to empty set.
-        artifact.abiFilters.orEmpty()),
+        artifact.abiFilters.orEmpty()
+      ),
       isSigned = artifact.isSigned,
       additionalRuntimeApks = copy(artifact::getAdditionalRuntimeApks, ::deduplicateFile),
       testOptions = copyNewModel(artifact::getTestOptions, ::testOptionsFrom),
@@ -787,7 +770,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return IdeModelWithPostProcessor(
       androidArtifactCoreImpl,
       postProcessor = fun(): IdeAndroidArtifactCoreImpl {
-        return androidArtifactCoreImpl.copy(runtimeClasspath = dependencies.postProcess())
+        return androidArtifactCoreImpl.copy(runtimeClasspathCore = dependencies.postProcess())
       }
     )
   }
@@ -810,8 +793,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       generatedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      compileClasspath = dependencies.model,
-      runtimeClasspath = ThrowingIdeDependencies(),
+      compileClasspathCore = dependencies.model,
+      runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
@@ -819,7 +802,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return IdeModelWithPostProcessor(
       javaArtifactCoreImpl,
       postProcessor = fun(): IdeJavaArtifactCoreImpl {
-        return javaArtifactCoreImpl.copy(runtimeClasspath = dependencies.postProcess())
+        return javaArtifactCoreImpl.copy(runtimeClasspathCore = dependencies.postProcess())
       }
     )
   }
@@ -832,14 +815,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           targetVariant = targetVariant.targetVariant
         )
       }
-    }
-    catch (e: UnsupportedOperationException) {
+    } catch (e: UnsupportedOperationException) {
       emptyList()
     }
   }
 
   fun variantFrom(
-    androidProject: IdeAndroidProject,
+    androidProject: IdeAndroidProjectImpl,
     variant: Variant,
     modelVersion: GradleVersion?,
     androidModuleId: ModuleId
@@ -847,7 +829,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
     val buildType = androidProject.buildTypes.find { it.buildType.name == variant.buildType }?.buildType
 
-    fun <T> merge(f: IdeProductFlavor.() -> T, b: IdeBuildType.() -> T, combine: (T?, T?) -> T): T {
+    fun <T> merge(f: IdeProductFlavorImpl.() -> T, b: IdeBuildTypeImpl.() -> T, combine: (T?, T?) -> T): T {
       return combine(mergedFlavor.f(), buildType?.b())
     }
 
@@ -869,7 +851,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         androidProject.projectType
       )
     }
-    
+
     val unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
       javaArtifactFrom(it, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled)
     }.firstOrNull { it.model.isTestArtifact }
@@ -897,8 +879,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
       instantAppCompatible = (modelVersion != null &&
-                              modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&
-                              variant.isInstantAppCompatible),
+        modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&
+        variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations,
       testApplicationId = mergedFlavor.testApplicationId,
@@ -909,7 +891,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId = if (modelVersion?.isAtLeastIncludingPreviews(7, 1, 0) == true) null else mergedFlavor.applicationId,
+      deprecatedPreMergedApplicationId =
+      if (modelVersion?.isAtLeastIncludingPreviews(7, 1, 0) == true) null else mergedFlavor.applicationId,
       desugaredMethodsFiles = listOf()
     )
     return IdeVariantWithPostProcessor(
@@ -973,7 +956,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun nativeVariantFrom(variantInfo: NativeVariantInfo): IdeNativeVariantInfoImpl {
     return IdeNativeVariantInfoImpl(
       abiNames = copy(variantInfo::getAbiNames, ::deduplicateString),
-      buildRootFolderMap = copy(variantInfo::getBuildRootFolderMap, ::deduplicateFile) ?: mapOf()
+      buildRootFolderMap = copy(variantInfo::getBuildRootFolderMap, ::deduplicateFile)
     )
   }
 
@@ -1038,11 +1021,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     lintConfig = copyNewProperty(options::lintConfig),
     severityOverrides = options.severityOverrides?.let { ImmutableMap.copyOf(it) },
     isCheckTestSources = modelVersion != null &&
-                         options.isCheckTestSources,
+      options.isCheckTestSources,
     isCheckDependencies = copyNewProperty({ options.isCheckDependencies }, false),
     disable = copy(options::disable, ::deduplicateString),
     enable = copy(options::enable, ::deduplicateString),
-    check = options.check?.let { ImmutableSet.copyOf(it) },
+    check = options.check.let { ImmutableSet.copyOf(it) },
     isAbortOnError = copyNewProperty({ options.isAbortOnError }, true),
     isAbsolutePaths = copyNewProperty({ options.isAbsolutePaths }, true),
     isNoLines = copyNewProperty({ options.isNoLines }, false),
@@ -1069,7 +1052,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       encoding = options.encoding,
       sourceCompatibility = options.sourceCompatibility,
       targetCompatibility = options.targetCompatibility,
-      isCoreLibraryDesugaringEnabled = copyNewProperty({ options.isCoreLibraryDesugaringEnabled }, false))
+      isCoreLibraryDesugaringEnabled = copyNewProperty({ options.isCoreLibraryDesugaringEnabled }, false)
+    )
   }
 
   fun convertNamespacing(namespacing: AaptOptions.Namespacing): IdeAaptOptions.Namespacing {
@@ -1086,30 +1070,33 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun ideVariantBuildInformationFrom(model: VariantBuildInformation,
-                                     projectType: Int): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
-    variantName = model.variantName,
-    buildInformation = IdeBuildTasksAndOutputInformationImpl(
-      assembleTaskName = model.assembleTaskName,
-      assembleTaskOutputListingFile = model.assembleTaskOutputListingFile,
-      bundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.bundleTaskName else null,
-      bundleTaskOutputListingFile = model.bundleTaskOutputListingFile,
-      apkFromBundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.apkFromBundleTaskName else null,
-      apkFromBundleTaskOutputListingFile = model.apkFromBundleTaskOutputListingFile
+  fun ideVariantBuildInformationFrom(
+    model: VariantBuildInformation,
+    projectType: Int
+  ): IdeVariantBuildInformationImpl {
+    return IdeVariantBuildInformationImpl(
+      variantName = model.variantName,
+      buildInformation = IdeBuildTasksAndOutputInformationImpl(
+        assembleTaskName = model.assembleTaskName,
+        assembleTaskOutputListingFile = model.assembleTaskOutputListingFile,
+        bundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.bundleTaskName else null,
+        bundleTaskOutputListingFile = model.bundleTaskOutputListingFile,
+        apkFromBundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.apkFromBundleTaskName else null,
+        apkFromBundleTaskOutputListingFile = model.apkFromBundleTaskOutputListingFile
+      )
     )
-  )
+  }
 
   fun createVariantBuildInformation(
     project: AndroidProject,
     agpVersion: GradleVersion?
-  ): Collection<IdeVariantBuildInformation> {
+  ): Collection<IdeVariantBuildInformationImpl> {
     return if (agpVersion != null && agpVersion.compareIgnoringQualifiers("4.1.0") >= 0) {
       // make deep copy of VariantBuildInformation.
       project.variantsBuildInformation.map { variantBuildInformation ->
         ideVariantBuildInformationFrom(variantBuildInformation, project.projectType)
       }
-    }
-    else emptyList()
+    } else emptyList()
     // VariantBuildInformation is not available.
   }
 
@@ -1122,8 +1109,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     includeInBundle = model.includeInBundle
   )
 
-  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getBooleanFlag(flag: AndroidGradlePluginProjectFlags.BooleanFlag): Boolean = this[flag]
-                                                                                                                                             ?: flag.legacyDefault
+  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getBooleanFlag(flag: AndroidGradlePluginProjectFlags.BooleanFlag): Boolean =
+    this[flag]
+      ?: flag.legacyDefault
 
   fun createIdeAndroidGradlePluginProjectFlagsImpl(
     booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>
@@ -1172,14 +1160,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
     val projectFlags = copyNewProperty(project::getFlags)
     val mlModelBindingEnabled = projectFlags?.booleanFlagMap?.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING)
-                                ?: false
+      ?: false
 
     fun productFlavorContainerFrom(container: ProductFlavorContainer) = productFlavorContainerFrom(container, mlModelBindingEnabled)
     fun buildTypeContainerFrom(container: BuildTypeContainer) = buildTypeContainerFrom(container, mlModelBindingEnabled)
 
-    val defaultConfigCopy: IdeProductFlavorContainer = copyModel(project.defaultConfig, ::productFlavorContainerFrom)
-    val buildTypesCopy: Collection<IdeBuildTypeContainer> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
-    val productFlavorCopy: Collection<IdeProductFlavorContainer> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
+    val defaultConfigCopy: IdeProductFlavorContainerImpl = copyModel(project.defaultConfig, ::productFlavorContainerFrom)
+    val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
+    val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
     val variantNamesCopy: Collection<String> =
       if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
         copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
@@ -1187,27 +1175,26 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         copy(project::getVariantNames, ::deduplicateString)
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
-    val signingConfigsCopy: Collection<IdeSigningConfig> = copy(project::getSigningConfigs, ::signingConfigFrom)
-    val lintOptionsCopy: IdeLintOptions = copyModel(project.lintOptions, { lintOptionsFrom(it, parsedModelVersion) })
+    val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)
+    val lintOptionsCopy: IdeLintOptionsImpl = copyModel(project.lintOptions, { lintOptionsFrom(it, parsedModelVersion) })
     val javaCompileOptionsCopy = copyModel(project.javaCompileOptions, ::javaCompileOptionsFrom)
     val aaptOptionsCopy = copyModel(project.aaptOptions, ::aaptOptionsFrom)
     val dynamicFeaturesCopy: Collection<String> = copy(project::getDynamicFeatures, ::deduplicateString)
     val variantBuildInformation = createVariantBuildInformation(project, parsedModelVersion)
-    val viewBindingOptionsCopy: IdeViewBindingOptions? = copyNewModel(project::getViewBindingOptions, ::viewBindingOptionsFrom)
-    val dependenciesInfoCopy: IdeDependenciesInfo? = copyNewModel(project::getDependenciesInfo, ::dependenciesInfoFrom)
+    val viewBindingOptionsCopy: IdeViewBindingOptionsImpl? = copyNewModel(project::getViewBindingOptions, ::viewBindingOptionsFrom)
+    val dependenciesInfoCopy: IdeDependenciesInfoImpl? = copyNewModel(project::getDependenciesInfo, ::dependenciesInfoFrom)
     val buildToolsVersionCopy = copyNewProperty(project::getBuildToolsVersion)
     val groupId = if (parsedModelVersion != null && parsedModelVersion.isAtLeast(3, 6, 0, "alpha", 5, false)) project.groupId else null
     val namespace = copyNewProperty(project::getNamespace)
     val testNamespace = copyNewProperty(project::getAndroidTestNamespace)
-    val lintRuleJarsCopy: List<File>? = copy(project::getLintRuleJars, ::deduplicateFile)
+    val lintRuleJarsCopy: List<File> = copy(project::getLintRuleJars, ::deduplicateFile)
 
     // AndroidProject#isBaseSplit is always non null.
     val isBaseSplit = copyNewProperty({ project.isBaseSplit }, false)
-    val agpFlags: IdeAndroidGradlePluginProjectFlags =
+    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl =
       if (projectFlags != null) {
         androidGradlePluginProjectFlagsFrom(projectFlags)
-      }
-      else {
+      } else {
         createIdeAndroidGradlePluginProjectFlagsImpl()
       }
     return IdeAndroidProjectImpl(
@@ -1267,7 +1254,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     }
 
     override fun variantFrom(
-      androidProject: IdeAndroidProject,
+      androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
@@ -1293,16 +1280,14 @@ val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
 
 private inline fun <T> safeGet(original: () -> T, default: T): T = try {
   original()
-}
-catch (ignored: UnsupportedOperationException) {
+} catch (ignored: UnsupportedOperationException) {
   default
 }
 
 private inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defaultValue: () -> T): T {
   return try {
     propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
+  } catch (ignored: UnsupportedOperationException) {
     defaultValue()
   }
 }
@@ -1314,8 +1299,7 @@ private inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defa
 private inline fun <T : Any> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): T {
   return try {
     propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
+  } catch (ignored: UnsupportedOperationException) {
     defaultValue
   }
 }
@@ -1326,7 +1310,8 @@ private inline fun <T : Any> copyNewProperty(propertyInvoker: () -> T, defaultVa
  **/
 @Suppress("unused", "UNUSED_PARAMETER")
 private inline fun <T : Collection<*>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
-  "Cannot be called. Use copy() method.")
+  "Cannot be called. Use copy() method."
+)
 
 /**
  * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
@@ -1334,7 +1319,8 @@ private inline fun <T : Collection<*>> copyNewProperty(propertyInvoker: () -> T,
  **/
 @Suppress("unused", "UNUSED_PARAMETER")
 private inline fun <T : Map<*, *>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
-  "Cannot be called. Use copy() method.")
+  "Cannot be called. Use copy() method."
+)
 
 /**
  * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
@@ -1361,8 +1347,7 @@ private inline fun <K, V : Any> copyNewModel(
   return try {
     val key: K? = getter()
     if (key != null) mapper(key) else null
-  }
-  catch (ignored: UnsupportedOperationException) {
+  } catch (ignored: UnsupportedOperationException) {
     null
   }
 }
@@ -1390,8 +1375,7 @@ internal inline fun <K : Any, R : Any, V> copyModel(key: K, key2: R, mappingFunc
 private inline fun <T : Any?> copyNewProperty(propertyInvoker: () -> T?): T? {
   return try {
     propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
+  } catch (ignored: UnsupportedOperationException) {
     null
   }
 }
@@ -1406,7 +1390,6 @@ fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: Android
   )
   // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
   return (buildFolderPath != null &&
-          // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
-          !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
+    // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
+    !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
 }
-

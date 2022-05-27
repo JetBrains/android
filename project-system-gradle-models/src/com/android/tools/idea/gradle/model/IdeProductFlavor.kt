@@ -16,63 +16,63 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeProductFlavor : IdeBaseConfig {
-    /**
-     * To learn more about configuring flavor dimensions, read
-     * [Combine multiple flavors](https://developer.android.com/studio/build/build-variants.html#flavor-dimensions).
-     */
-    val dimension: String?
+  /**
+   * To learn more about configuring flavor dimensions, read
+   * [Combine multiple flavors](https://developer.android.com/studio/build/build-variants.html#flavor-dimensions).
+   */
+  val dimension: String?
 
-    /**
-     * The name of the product flavor. This is only the value set on this product flavor.
-     */
-    val applicationId: String?
+  /**
+   * The name of the product flavor. This is only the value set on this product flavor.
+   */
+  val applicationId: String?
 
-    /**
-     * The version code associated with this flavor or null if none have been set.
-     * This is only the value set on this product flavor, not necessarily the actual
-     * version code used.
-     */
-    val versionCode: Int?
+  /**
+   * The version code associated with this flavor or null if none have been set.
+   * This is only the value set on this product flavor, not necessarily the actual
+   * version code used.
+   */
+  val versionCode: Int?
 
-    /** The version name. This is only the value set on this product flavor.
-     */
-    val versionName: String?
+  /** The version name. This is only the value set on this product flavor.
+   */
+  val versionName: String?
 
-    /** The minSdkVersion, or null if not specified. This is only the value set on this product flavor. */
-    val minSdkVersion: IdeApiVersion?
+  /** The minSdkVersion, or null if not specified. This is only the value set on this product flavor. */
+  val minSdkVersion: IdeApiVersion?
 
-    /** The targetSdkVersion, or null if not specified. This is only the value set on this product flavor. */
-    val targetSdkVersion: IdeApiVersion?
+  /** The targetSdkVersion, or null if not specified. This is only the value set on this product flavor. */
+  val targetSdkVersion: IdeApiVersion?
 
-    /** The maxSdkVersion, or null if not specified. This is only the value set on this produce flavor. */
-    val maxSdkVersion: Int?
+  /** The maxSdkVersion, or null if not specified. This is only the value set on this produce flavor. */
+  val maxSdkVersion: Int?
 
-    /**
-     * The test application id. This is only the value set on this product flavor.
-     */
-    val testApplicationId: String?
+  /**
+   * The test application id. This is only the value set on this product flavor.
+   */
+  val testApplicationId: String?
 
-    /**
-     * The test instrumentation runner. This is only the value set on this product flavor.
-     * TODO: make test instrumentation runner available through the model.
-     */
-    val testInstrumentationRunner: String?
+  /**
+   * The test instrumentation runner. This is only the value set on this product flavor.
+   * TODO: make test instrumentation runner available through the model.
+   */
+  val testInstrumentationRunner: String?
 
-    /** The arguments for the test instrumentation runner.*/
-    val testInstrumentationRunnerArguments: Map<String, String>
+  /** The arguments for the test instrumentation runner.*/
+  val testInstrumentationRunnerArguments: Map<String, String>
 
-    /** The handlingProfile value. This is only the value set on this product flavor. */
-    val testHandleProfiling: Boolean?
+  /** The handlingProfile value. This is only the value set on this product flavor. */
+  val testHandleProfiling: Boolean?
 
-    /** The functionalTest value. This is only the value set on this product flavor. */
-    val testFunctionalTest: Boolean?
+  /** The functionalTest value. This is only the value set on this product flavor. */
+  val testFunctionalTest: Boolean?
 
-    /**
-     * The resource configuration for this variant.
-     *
-     * This is the list of -c parameters for aapt.
-     */
-    val resourceConfigurations: Collection<String>
+  /**
+   * The resource configuration for this variant.
+   *
+   * This is the list of -c parameters for aapt.
+   */
+  val resourceConfigurations: Collection<String>
 
-    val vectorDrawables: IdeVectorDrawablesOptions?
+  val vectorDrawables: IdeVectorDrawablesOptions?
 }

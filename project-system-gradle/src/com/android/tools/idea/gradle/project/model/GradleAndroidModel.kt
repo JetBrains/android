@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
-import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp.Companion.mostRecentNotNull
@@ -71,7 +70,7 @@ class GradleAndroidModel constructor(
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> = androidProject.buildTypes.associateBy { it.buildType.name }
   private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
     androidProject.productFlavors.associateBy { it.productFlavor.name }
-  private val myCachedVariantsByName: Map<String, IdeVariantCoreImpl> = data.variants.associateBy { it.name }
+  private val myCachedVariantsByName: Map<String, IdeVariantCore> = data.variants.associateBy { it.name }
   private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
     myCachedVariantsByName.mapValues { (_, value) -> IdeVariantImpl(value, ideLibraryModelResolver) }
 

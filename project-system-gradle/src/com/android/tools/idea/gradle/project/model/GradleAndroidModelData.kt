@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -34,14 +36,29 @@ import java.io.File
 
 private const val ourAndroidSyncVersion = "2022-05-17/1"
 
-data class  GradleAndroidModelData(
-  val androidSyncVersion: String,
-  private val moduleName: String,
-  val rootDirPath: File,
-  val androidProject: IdeAndroidProject,
-  val variants: Collection<IdeVariantCoreImpl>,
+interface GradleAndroidModelData : ModuleModel {
+  val androidSyncVersion: String
+  val rootDirPath: File
+  val androidProject: IdeAndroidProject
+  val variants: Collection<IdeVariantCore>
   val selectedVariantName: String
-) : ModuleModel {
+  val agpVersion: GradleVersion
+  val selectedVariantCore: IdeVariantCore
+  val mainArtifactCore: IdeAndroidArtifactCore
+  fun getJavaLanguageLevel(): LanguageLevel?
+  fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariant
+  fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider>
+  fun findVariantCoreByName(variantName: String): IdeVariantCore?
+}
+
+data class GradleAndroidModelDataImpl(
+  override val androidSyncVersion: String,
+  private val moduleName: String,
+  override val rootDirPath: File,
+  override val androidProject: IdeAndroidProjectImpl,
+  override val variants: Collection<IdeVariantCoreImpl>,
+  override val selectedVariantName: String
+) : GradleAndroidModelData {
   init {
     require(androidSyncVersion == ourAndroidSyncVersion) {
       String.format(
@@ -53,32 +70,32 @@ data class  GradleAndroidModelData(
 
   override fun getModuleName(): String = moduleName
 
-  val agpVersion: GradleVersion get() = GradleVersion.parseAndroidGradlePluginVersion(androidProject.agpVersion)
+  override val agpVersion: GradleVersion get() = GradleVersion.parseAndroidGradlePluginVersion(androidProject.agpVersion)
 
-  fun findVariantCoreByName(variantName: String): IdeVariantCore? {
+  override fun findVariantCoreByName(variantName: String): IdeVariantCore? {
     // Note, when setting up projects models contain just one variant.
     return variants.find { it.name == variantName }
   }
 
-  val selectedVariantCore: IdeVariantCoreImpl
+  override val selectedVariantCore: IdeVariantCoreImpl
     get() {
       // Note, when setting up projects models contain just one variant.
       return variants.single { it.name == selectedVariantName }
     }
 
-  fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariantImpl {
+  override fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariantImpl {
     return IdeVariantImpl(selectedVariantCore, resolver)
   }
 
-  val mainArtifactCore: IdeAndroidArtifactCore get() = selectedVariantCore.mainArtifact
+  override val mainArtifactCore: IdeAndroidArtifactCore get() = selectedVariantCore.mainArtifact
 
-  fun getJavaLanguageLevel(): LanguageLevel? {
+  override fun getJavaLanguageLevel(): LanguageLevel? {
     val compileOptions = androidProject.javaCompileOptions
     val sourceCompatibility = compileOptions.sourceCompatibility
     return LanguageLevel.parse(sourceCompatibility)
   }
 
-  fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
+  override fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
     return when (artifactName) {
       IdeArtifactName.ANDROID_TEST -> androidTestSourceProviders
       IdeArtifactName.UNIT_TEST -> unitTestSourceProviders
@@ -86,7 +103,6 @@ data class  GradleAndroidModelData(
       IdeArtifactName.TEST_FIXTURES -> emptyList()
     }
   }
-
 
   companion object {
     fun findFromModuleDataNode(dataNode: DataNode<*>): GradleAndroidModelData? {
@@ -101,11 +117,11 @@ data class  GradleAndroidModelData(
     fun create(
       moduleName: String,
       rootDirPath: File,
-      androidProject: IdeAndroidProject,
+      androidProject: IdeAndroidProjectImpl,
       cachedVariants: Collection<IdeVariantCoreImpl>,
       variantName: String
     ): GradleAndroidModelData {
-      return GradleAndroidModelData(
+      return GradleAndroidModelDataImpl(
         ourAndroidSyncVersion,
         moduleName,
         rootDirPath,

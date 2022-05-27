@@ -20,9 +20,9 @@ package com.android.tools.idea.gradle.model.ndk.v2
  * module.
  */
 interface IdeNativeVariant {
-    /** Name of the variant. For example "debug", "release". */
-    val name: String
+  /** Name of the variant. For example "debug", "release". */
+  val name: String
 
-    /** ABIs in this variant. */
-    val abis: List<IdeNativeAbi>
+  /** ABIs in this variant. */
+  val abis: List<IdeNativeAbi>
 }

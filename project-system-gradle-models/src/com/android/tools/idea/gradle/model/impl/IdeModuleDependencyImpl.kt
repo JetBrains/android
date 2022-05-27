@@ -22,7 +22,7 @@ import java.io.Serializable
 
 data class IdeModuleDependencyImpl(
   override val target: IdeModuleLibrary,
-): IdeModuleDependency, Serializable {
+) : IdeModuleDependency, Serializable {
   @get:TestOnly
   val displayName: String get() = moduleLibraryDisplayName(target.buildId, target.projectPath, target.variant, target.sourceSet)
 }

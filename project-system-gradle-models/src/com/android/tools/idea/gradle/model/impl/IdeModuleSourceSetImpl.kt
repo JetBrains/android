@@ -22,10 +22,10 @@ import java.io.Serializable
 data class IdeModuleSourceSetImpl(
   override val sourceSetName: String,
   override val canBeConsumed: Boolean
-): IdeModuleSourceSet, Serializable {
+) : IdeModuleSourceSet, Serializable {
   init {
     if (sourceSetName.isEmpty()) error("sourceSetName cannot be empty")
-    if (IdeModuleWellKnownSourceSet.values().any {it.sourceSetName == sourceSetName}) {
+    if (IdeModuleWellKnownSourceSet.values().any { it.sourceSetName == sourceSetName }) {
       error("'$sourceSetName' is a well-known source set name. ")
     }
   }

@@ -19,7 +19,7 @@ import java.io.Serializable
 
 sealed interface IdeDependency<T>
 
-sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T> {
+sealed interface IdeArtifactDependency<T : IdeArtifactLibrary> : IdeDependency<T> {
   val target: T
 }
 
@@ -27,10 +27,10 @@ interface IdeDependencyCore {
   val target: LibraryReference
 }
 
-interface IdeAndroidLibraryDependency: IdeArtifactDependency<IdeAndroidLibrary>
-interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
+interface IdeAndroidLibraryDependency : IdeArtifactDependency<IdeAndroidLibrary>
+interface IdeJavaLibraryDependency : IdeArtifactDependency<IdeJavaLibrary>
 
-data class LibraryReference(val libraryIndex: Int): Serializable
+data class LibraryReference(val libraryIndex: Int) : Serializable
 
 interface IdeLibraryModelResolver {
   fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
@@ -38,7 +38,7 @@ interface IdeLibraryModelResolver {
   fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
 }
 
-interface IdeModuleDependency: IdeDependency<IdeModuleLibrary> {
+interface IdeModuleDependency : IdeDependency<IdeModuleLibrary> {
   val target: IdeModuleLibrary
 }
 

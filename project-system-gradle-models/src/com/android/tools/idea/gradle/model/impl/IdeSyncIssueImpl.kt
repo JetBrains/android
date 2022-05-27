@@ -24,4 +24,4 @@ data class IdeSyncIssueImpl(
   override val data: String?,
   override val message: String,
   override val multiLineMessage: List<String>?
-): Serializable, IdeSyncIssue
+) : Serializable, IdeSyncIssue

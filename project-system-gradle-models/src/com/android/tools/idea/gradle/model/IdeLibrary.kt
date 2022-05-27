@@ -29,7 +29,7 @@ sealed interface IdeLibrary {
   val lintJar: File?
 }
 
-sealed interface IdeArtifactLibrary: IdeLibrary {
+sealed interface IdeArtifactLibrary : IdeLibrary {
   /**
    * Returns the artifact address in a unique way.
    *
@@ -45,7 +45,7 @@ sealed interface IdeArtifactLibrary: IdeLibrary {
   val name: String
 }
 
-interface IdeAndroidLibrary: IdeArtifactLibrary {
+interface IdeAndroidLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
   val artifact: File?
 
@@ -93,7 +93,7 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
    */
   val jniFolder: File
 
-    /**
+  /**
    * Returns the location of the aidl import folder. The file may not point to an existing folder.
    */
   val aidlFolder: File
@@ -125,7 +125,7 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   val symbolFile: File
 }
 
-interface IdeJavaLibrary: IdeArtifactLibrary {
+interface IdeJavaLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
   val artifact: File
 }
@@ -149,9 +149,9 @@ enum class IdeModuleWellKnownSourceSet(
   override val canBeConsumed: Boolean
 ) : IdeModuleSourceSet {
   /**
-  * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other
-  * project would depend on unless intentionally changed in the Gradle configuration.
-  */
+   * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other
+   * project would depend on unless intentionally changed in the Gradle configuration.
+   */
   MAIN("main", true),
 
   /**

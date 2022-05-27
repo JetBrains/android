@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
-import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
 import java.io.Serializable
 
@@ -35,8 +32,8 @@ data class IdeVariantCoreImpl(
   override val testFixturesArtifact: IdeAndroidArtifactCoreImpl?,
   override val buildType: String,
   override val productFlavors: List<String>,
-  override val minSdkVersion: IdeApiVersion,
-  override val targetSdkVersion: IdeApiVersion?,
+  override val minSdkVersion: IdeApiVersionImpl,
+  override val targetSdkVersion: IdeApiVersionImpl?,
   override val maxSdkVersion: Int?,
   override val versionCode: Int?,
   override val versionNameWithSuffix: String?,
@@ -44,25 +41,25 @@ data class IdeVariantCoreImpl(
   override val instantAppCompatible: Boolean,
   override val vectorDrawablesUseSupportLibrary: Boolean,
   override val resourceConfigurations: Collection<String>,
-  override val resValues: Map<String, IdeClassField>,
+  override val resValues: Map<String, IdeClassFieldImpl>,
   override val proguardFiles: Collection<File>,
   override val consumerProguardFiles: Collection<File>,
   override val manifestPlaceholders: Map<String, String>,
   override val testApplicationId: String?,
   override val testInstrumentationRunner: String?,
   override val testInstrumentationRunnerArguments: Map<String, String>,
-  override val testedTargetVariants: List<IdeTestedTargetVariant>,
-    // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
+  override val testedTargetVariants: List<IdeTestedTargetVariantImpl>,
+  // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
   override val desugaredMethodsFiles: Collection<File>
 ) : IdeVariantCore, Serializable
 
 data class IdeVariantImpl(
-  private val core: IdeVariantCoreImpl,
+  private val core: IdeVariantCore,
   private val resolver: IdeLibraryModelResolver
-): IdeVariant, IdeVariantCore by core {
+) : IdeVariant, IdeVariantCore by core {
   override val mainArtifact: IdeAndroidArtifact = IdeAndroidArtifactImpl(core.mainArtifact, resolver)
-  override val androidTestArtifact: IdeAndroidArtifact? = core.androidTestArtifact?.let {IdeAndroidArtifactImpl(it, resolver)}
-  override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let {IdeAndroidArtifactImpl(it, resolver)}
-  override val unitTestArtifact: IdeJavaArtifact?= core.unitTestArtifact?.let {IdeJavaArtifactImpl(it, resolver)}
+  override val androidTestArtifact: IdeAndroidArtifact? = core.androidTestArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
+  override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
+  override val unitTestArtifact: IdeJavaArtifact? = core.unitTestArtifact?.let { IdeJavaArtifactImpl(it, resolver) }
 }

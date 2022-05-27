@@ -61,6 +61,7 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   val abiFilters: Set<String>
 
   val buildInformation: IdeBuildTasksAndOutputInformation
+
   /**
    * Returns the code shrinker used by this artifact or null if no shrinker is used to build this
    * artifact.
@@ -74,6 +75,8 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
    * @since 7.2
    */
   val modelSyncFiles: Collection<IdeModelSyncFile>
+  val compileClasspathCore: IdeDependenciesCore
+  val runtimeClasspathCore: IdeDependenciesCore
 }
 
-interface IdeAndroidArtifact: IdeAndroidArtifactCore, IdeBaseArtifact
+interface IdeAndroidArtifact : IdeAndroidArtifactCore, IdeBaseArtifact

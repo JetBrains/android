@@ -70,6 +70,7 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -729,7 +730,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     classesFolder = listOf(buildPath.resolve("intermediates/javac/$variant/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
-    ideSetupTaskNames = setOf("generate".appendCapitalized(variant).appendCapitalized("sources")),
+    ideSetupTaskNames = listOf("generate".appendCapitalized(variant).appendCapitalized("sources")),
     generatedSourceFolders = listOf(
       buildPath.resolve("generated/aidl_source_output_dir/${variant}/out"),
       buildPath.resolve("generated/ap_generated_sources/${variant}/out"),
@@ -737,8 +738,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
       buildPath.resolve("generated/source/buildConfig/${variant}"),
     ),
     isTestArtifact = false,
-    compileClasspath = dependenciesStub,
-    runtimeClasspath = dependenciesStub,
+    compileClasspathCore = dependenciesStub,
+    runtimeClasspathCore = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -791,7 +792,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
-    ideSetupTaskNames = setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
+    ideSetupTaskNames = listOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
     generatedSourceFolders = listOf(
       buildPath.resolve("generated/aidl_source_output_dir/${variant}AndroidTest/out"),
       buildPath.resolve("generated/ap_generated_sources/${variant}AndroidTest/out"),
@@ -799,8 +800,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
       buildPath.resolve("generated/source/buildConfig/androidTest/${variant}"),
     ),
     isTestArtifact = true,
-    compileClasspath = dependenciesStub,
-    runtimeClasspath = dependenciesStub,
+    compileClasspathCore = dependenciesStub,
+    runtimeClasspathCore = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -854,13 +855,13 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}UnitTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
-    ideSetupTaskNames = setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
+    ideSetupTaskNames = listOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
     generatedSourceFolders = listOf(
       buildPath.resolve("generated/ap_generated_sources/${variant}UnitTest/out"),
     ),
     isTestArtifact = true,
-    compileClasspath = dependencies,
-    runtimeClasspath = dependencies,
+    compileClasspathCore = dependencies,
+    runtimeClasspathCore = dependencies,
     unresolvedDependencies = emptyList(),
     mockablePlatformJar = mockablePlatformJar
   )
@@ -907,11 +908,11 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}testFixtures/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
-    ideSetupTaskNames = setOf("ideTestFixturesSetupTask1", "ideTestFixturesSetupTask2"),
+    ideSetupTaskNames = listOf("ideTestFixturesSetupTask1", "ideTestFixturesSetupTask2"),
     generatedSourceFolders = emptyList(),
     isTestArtifact = false,
-    compileClasspath = dependenciesStub,
-    runtimeClasspath = dependenciesStub,
+    compileClasspathCore = dependenciesStub,
+    runtimeClasspathCore = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -1410,7 +1411,7 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  val gradleAndroidModel = GradleAndroidModelData.create(
+  val gradleAndroidModel = GradleAndroidModelDataImpl.create(
     qualifiedModuleName,
     moduleBasePath,
     androidProject,

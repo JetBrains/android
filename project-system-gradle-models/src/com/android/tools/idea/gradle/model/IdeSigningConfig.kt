@@ -24,15 +24,15 @@ import java.io.File
  * It is not part of the DSL & API interfaces of the Android Gradle Plugin.
  */
 interface IdeSigningConfig {
-    /** Returns the name of the Signing config */
-    val name: String
+  /** Returns the name of the Signing config */
+  val name: String
 
-    /** The keystore file. */
-    val storeFile: File?
+  /** The keystore file. */
+  val storeFile: File?
 
-    /** The keystore password. */
-    val storePassword: String?
+  /** The keystore password. */
+  val storePassword: String?
 
-    /** The key alias name. */
-    val keyAlias: String?
+  /** The key alias name. */
+  val keyAlias: String?
 }

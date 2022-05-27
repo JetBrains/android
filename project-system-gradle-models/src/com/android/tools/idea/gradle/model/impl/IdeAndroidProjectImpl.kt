@@ -15,18 +15,8 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
-import com.android.tools.idea.gradle.model.IdeDependenciesInfo
-import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
-import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
-import com.android.tools.idea.gradle.model.IdeSigningConfig
-import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
-import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import java.io.File
 import java.io.Serializable
 
@@ -34,28 +24,28 @@ data class IdeAndroidProjectImpl(
   override val agpVersion: String,
   override val name: String,
   override val projectType: IdeAndroidProjectType,
-  override val defaultConfig: IdeProductFlavorContainer,
-  override val buildTypes: Collection<IdeBuildTypeContainer>,
-  override val productFlavors: Collection<IdeProductFlavorContainer>,
+  override val defaultConfig: IdeProductFlavorContainerImpl,
+  override val buildTypes: Collection<IdeBuildTypeContainerImpl>,
+  override val productFlavors: Collection<IdeProductFlavorContainerImpl>,
   override val variantNames: Collection<String>,
   override val flavorDimensions: Collection<String>,
   override val compileTarget: String,
   override val bootClasspath: Collection<String>,
-  override val signingConfigs: Collection<IdeSigningConfig>,
-  override val aaptOptions: IdeAaptOptions,
-  override val lintOptions: IdeLintOptions,
-  override val javaCompileOptions: IdeJavaCompileOptions,
+  override val signingConfigs: Collection<IdeSigningConfigImpl>,
+  override val aaptOptions: IdeAaptOptionsImpl,
+  override val lintOptions: IdeLintOptionsImpl,
+  override val javaCompileOptions: IdeJavaCompileOptionsImpl,
   override val buildFolder: File,
   override val resourcePrefix: String?,
   override val buildToolsVersion: String?,
   override val isBaseSplit: Boolean,
   override val dynamicFeatures: Collection<String>,
-  override val viewBindingOptions: IdeViewBindingOptions?,
-  override val dependenciesInfo: IdeDependenciesInfo?,
+  override val viewBindingOptions: IdeViewBindingOptionsImpl?,
+  override val dependenciesInfo: IdeDependenciesInfoImpl?,
   override val groupId: String?,
   override val namespace: String?,
-  override val agpFlags: IdeAndroidGradlePluginProjectFlags,
-  override val variantsBuildInformation: Collection<IdeVariantBuildInformation>,
+  override val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl,
+  override val variantsBuildInformation: Collection<IdeVariantBuildInformationImpl>,
   override val lintChecksJars: List<File>?,
   override val testNamespace: String?,
   override val isKaptEnabled: Boolean,
