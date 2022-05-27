@@ -82,7 +82,7 @@ class LogcatFilterPsiTest {
   fun stringKeys_singleQuote() {
     for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r' $key:'bar' $key:'b\'a\'r' $key:'b\a\r'
+            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r' $key:'bar' $key:'b\'a\'r' $key:'b\a\r' $key:'foo "bar" foo' $key: 'foo "bar" foo'
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
@@ -93,6 +93,8 @@ class LogcatFilterPsiTest {
           KeyFilter(key, "bar"),
           KeyFilter(key, "b'a'r"),
           KeyFilter(key, "b\\a\\r"),
+          KeyFilter(key, """foo "bar" foo"""),
+          KeyFilter(key, """foo "bar" foo"""),
         )
       )
     }
@@ -102,7 +104,7 @@ class LogcatFilterPsiTest {
   fun stringKeys_doubleQuote() {
     for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: "bar" $key: "b\"a\"r" $key: "b\a\r" $key:"bar" $key:"b\"a\"r" $key:"b\a\r"
+            $key: "bar" $key: "b\"a\"r" $key: "b\a\r" $key:"bar" $key:"b\"a\"r" $key:"b\a\r" $key:"foo 'bar' foo" $key: "foo 'bar' foo"
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
@@ -113,6 +115,8 @@ class LogcatFilterPsiTest {
           KeyFilter(key, "bar"),
           KeyFilter(key, "b\"a\"r"),
           KeyFilter(key, "b\\a\\r"),
+          KeyFilter(key, "foo 'bar' foo"),
+          KeyFilter(key, "foo 'bar' foo"),
         )
       )
     }

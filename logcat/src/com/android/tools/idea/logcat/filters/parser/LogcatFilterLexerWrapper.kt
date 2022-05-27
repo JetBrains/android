@@ -95,6 +95,18 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
       text[colon - 1] == '~' -> TokenValues(REGEX_KEY, REGEX_KVALUE, REGEX_KVALUE_STATE)
       else -> TokenValues(STRING_KEY, STRING_KVALUE, STRING_KVALUE_STATE)
     }
+
+    // If the value starts with a quotation mark (single or double), advance the delegate until we find the closing quote.
+    buf?.let {
+      val quote = it[pos]
+      if (quote == '\'' || quote == '"') {
+        while (it[tokenEnd - 1] != quote) {
+          if (delegate.advance() == null) {
+            break
+          }
+        }
+      }
+    }
     tokenStack.push(Token(valueType, pos, tokenEnd, YYINITIAL))
     tokenStack.push(Token(keyType, start, pos, state))
     return keyType
