@@ -47,6 +47,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
@@ -54,9 +55,7 @@ import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_free
-import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
-import org.bytedeco.ffmpeg.global.avcodec.avcodec_close
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
@@ -70,13 +69,12 @@ import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
 import org.bytedeco.ffmpeg.global.avutil.av_frame_free
 import org.bytedeco.ffmpeg.global.avutil.av_frame_get_buffer
 import org.bytedeco.ffmpeg.global.avutil.av_frame_make_writable
-import org.bytedeco.ffmpeg.global.avutil.av_image_fill_arrays
+import org.bytedeco.ffmpeg.global.avutil.av_image_get_buffer_size
 import org.bytedeco.ffmpeg.global.avutil.av_make_q
-import org.bytedeco.ffmpeg.global.swscale.SWS_FAST_BILINEAR
+import org.bytedeco.ffmpeg.global.swscale.SWS_BICUBIC
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
-import org.bytedeco.ffmpeg.global.swscale.sws_getCachedContext
-import org.bytedeco.ffmpeg.global.swscale.sws_scale_frame
-import org.bytedeco.ffmpeg.swscale.SwsContext
+import org.bytedeco.ffmpeg.global.swscale.sws_getContext
+import org.bytedeco.ffmpeg.global.swscale.sws_scale
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.Pointer
@@ -318,8 +316,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     private val packetHeader = VideoPacketHeader(displaySize)
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
-    private var swsContext: SwsContext? = null
-    private val packet = av_packet_alloc()
 
     init {
       // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
@@ -327,10 +323,21 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
         "vp8" -> AV_CODEC_ID_VP8
         "vp9" -> AV_CODEC_ID_VP9
         "h264" -> AV_CODEC_ID_H264
-        else -> throw RuntimeException("$codecName encoder not found")
+        else -> throw VideoDecoderException("$codecName encoder not found")
       }
 
-      encoder = avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
+      encoder = avcodec_find_encoder(codecId) ?: throw VideoDecoderException("$codecName encoder not found")
+    }
+
+    private fun createEncoderContext(): AVCodecContext {
+      return avcodec_alloc_context3(encoder)?.apply {
+        bit_rate(8000000L)
+        time_base(av_make_q(1, 1000))
+        framerate(av_make_q(FRAME_RATE, 1))
+        gop_size(2)
+        max_b_frames(1)
+        pix_fmt(encoder.pix_fmts().get())
+      } ?: throw VideoDecoderException("Could not allocate encoder context")
     }
 
     suspend fun start() {
@@ -361,73 +368,66 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
       lastImageFlavor = imageFlavor
 
       val size = getScaledAndRotatedDisplaySize()
-      val encoderContext = avcodec_alloc_context3(encoder)?.apply {
-        bit_rate(8000000L)
-        time_base(av_make_q(1, 1000))
-        framerate(av_make_q(FRAME_RATE, 1))
-        gop_size(2)
-        max_b_frames(1)
-        pix_fmt(encoder.pix_fmts().get())
-        width(size.width)
-        height(size.height)
-      } ?: throw RuntimeException("Could not allocate encoder context")
+      val encoderContext = createEncoderContext()
+      encoderContext.width(size.width)
+      encoderContext.height(size.height)
 
       if (avcodec_open2(encoderContext, encoder, null as AVDictionary?) < 0) {
         throw RuntimeException("avcodec_open2 failed")
+      }
+      val frame = av_frame_alloc().apply {
+        format(encoderContext.pix_fmt())
+        width(encoderContext.width())
+        height(encoderContext.height())
+      }
+
+      if (av_frame_get_buffer(frame, 0) < 0) {
+        throw RuntimeException("av_frame_get_buffer failed")
+      }
+
+      if (av_frame_make_writable(frame) < 0) {
+        throw RuntimeException("av_frame_make_writable failed")
       }
 
       val image = drawDisplayImage(size.rotatedByQuadrants(-displayOrientation), imageFlavor, displayId)
           .rotatedByQuadrants(displayOrientation)
 
+      val rgbFrame = av_frame_alloc()
+      rgbFrame.format(AV_PIX_FMT_BGR24)
+      rgbFrame.width(size.width)
+      rgbFrame.height(size.height)
+      if (av_frame_get_buffer(rgbFrame, 1) < 0) {
+        throw RuntimeException("Could not allocate the video frame data")
+      }
+
       // Copy the image to the frame with conversion to the destination format.
-      val imageData = (image.raster.dataBuffer as DataBufferByte).data
-      val rgbFrame = av_frame_alloc().apply {
-        format(AV_PIX_FMT_BGR24)
-        width(size.width)
-        height(size.height)
-      }
-      if (av_frame_get_buffer(rgbFrame, 0) < 0) {
-        throw RuntimeException("av_frame_get_buffer failed")
-      }
-      if (av_frame_make_writable(rgbFrame) < 0) {
-        throw RuntimeException("av_frame_make_writable failed")
-      }
-      av_image_fill_arrays(rgbFrame.data(), rgbFrame.linesize(), BytePointer(*imageData),
-                           rgbFrame.format(), rgbFrame.width(), rgbFrame.height(), 1)
-
-      val encodingFrame = av_frame_alloc().apply {
-        format(encoderContext.pix_fmt())
-        width(size.width)
-        height(size.height)
-      }
-      if (av_frame_get_buffer(encodingFrame, 0) < 0) {
-        throw RuntimeException("av_frame_get_buffer failed")
-      }
-      if (av_frame_make_writable(encodingFrame) < 0) {
-        throw RuntimeException("av_frame_make_writable failed")
-      }
-
-      swsContext = sws_getCachedContext(swsContext, rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
-                                        encodingFrame.width(), encodingFrame.height(), encodingFrame.format(),
-                                        SWS_FAST_BILINEAR, null, null, null as DoublePointer?)!!
-      sws_scale_frame(swsContext, encodingFrame, rgbFrame)
+      val dataBufferByte = image.raster.dataBuffer as DataBufferByte
+      val numBytes = av_image_get_buffer_size(rgbFrame.format(), rgbFrame.width(), rgbFrame.height(), 1)
+      rgbFrame.data(0).asByteBufferOfSize(numBytes).put(dataBufferByte.data)
+      val swsContext = sws_getContext(rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
+                                      frame.width(), frame.height(), frame.format(),
+                                      SWS_BICUBIC, null, null, null as DoublePointer?)!!
+      sws_scale(swsContext, rgbFrame.data(), rgbFrame.linesize(), 0, rgbFrame.height(), frame.data(), frame.linesize())
+      sws_freeContext(swsContext)
+      av_frame_free(rgbFrame)
 
       val timestamp = System.currentTimeMillis()
-      encodingFrame.pts(timestamp)
+      frame.pts(timestamp)
 
-      sendFrame(encoderContext, encodingFrame)
-      sendFrame(encoderContext, null) // Process delayed frames.
+      val packet = av_packet_alloc()
 
-      avcodec_close(encoderContext)
+      sendFrame(encoderContext, frame, packet)
+      sendFrame(encoderContext, null, packet) // Process delayed frames.
+
       avcodec_free_context(encoderContext)
-      av_frame_free(rgbFrame)
-      av_frame_free(encodingFrame)
+      av_frame_free(frame)
+      av_packet_free(packet)
     }
 
     /**
      * Sends the given frame or, if [frame] is null, sends the delayed frames.
      */
-    private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?) {
+    private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?, packet: AVPacket) {
       if (avcodec_send_frame(encoderContext, frame) < 0) {
         throw RuntimeException("avcodec_send_frame failed")
       }
@@ -463,14 +463,11 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
         buffer.put(packetData)
         buffer.flip()
         channel.writeFully(buffer)
-        av_packet_unref(packet)
       }
     }
 
     suspend fun shutdown() {
       channel.close()
-      av_packet_free(packet)
-      sws_freeContext(swsContext)
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
