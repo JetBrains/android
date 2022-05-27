@@ -57,7 +57,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
   }
 
   override fun getWizardMinimumSize(): Dimension {
-    return JBUI.size(700, 530)
+    return JBUI.size(700, 540)
   }
 
   override fun getWizardPreferredSize(): Dimension {
