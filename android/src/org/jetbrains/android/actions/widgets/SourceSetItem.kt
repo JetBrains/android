@@ -62,4 +62,6 @@ class SourceSetItem(
       return SourceSetItem(sourceSetName = name, resDirUrl = resDirUrl, displayableResDir = displayableResDir)
     }
   }
+
+  override fun toString() = "$sourceSetName ($displayableResDir)"
 }
