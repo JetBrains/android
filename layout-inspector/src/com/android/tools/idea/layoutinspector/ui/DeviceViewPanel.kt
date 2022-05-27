@@ -33,9 +33,11 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -107,9 +109,13 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
 /**
  * Panel that shows the device screen in the layout inspector.
+ *
+ * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
+  deviceModel: DeviceModel?,
   val processesModel: ProcessesModel?,
+  onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable,
@@ -128,6 +134,21 @@ class DeviceViewPanel(
   private var isMiddleMousePressed = false
   private var lastPanMouseLocation: Point? = null
 
+  private val selectDeviceAction: SelectDeviceAction? = if (deviceModel != null) {
+    SelectDeviceAction(
+      deviceModel = deviceModel,
+      onDeviceSelected = onDeviceSelected,
+      stopPresentation = SelectDeviceAction.StopPresentation(
+        "Stop Inspector",
+        "Stop running the layout inspector against the current device"),
+      onStopAction = { stopInspectors() },
+      customDeviceAttribution = ::deviceAttribution
+    )
+  }
+  else {
+    null
+  }
+
   private val selectProcessAction: SelectProcessAction? = if (processesModel != null) {
     SelectProcessAction(
       model = processesModel,
@@ -140,11 +161,33 @@ class DeviceViewPanel(
       customDeviceAttribution = ::deviceAttribution
     )
   }
-  else null
+  else {
+    null
+  }
+
+  // TODO remove [selectedProcessAction] once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
+  private val targetSelectedAction: DropDownActionWithButton? = if (
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
+  ) {
+    if (selectDeviceAction == null) {
+      null
+    }
+    else {
+      DropDownActionWithButton(selectDeviceAction, selectDeviceAction.button)
+    }
+  }
+  else {
+    if (selectProcessAction == null) {
+      null
+    }
+    else {
+      DropDownActionWithButton(selectProcessAction, selectProcessAction.button)
+    }
+  }
 
   private val contentPanel = DeviceViewContentPanel(
     layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
-    { layoutInspector.currentClient }, this, selectProcessAction, disposableParent
+    { layoutInspector.currentClient }, this, targetSelectedAction, disposableParent
   )
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
@@ -229,7 +272,7 @@ class DeviceViewPanel(
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
                                                               { contentPanel.rootLocation })
 
-  private val actionToolbar: ActionToolbar = createToolbar(selectProcessAction)
+  private val actionToolbar: ActionToolbar = createToolbar(targetSelectedAction?.dropDownAction)
 
   private val bubbleLabel = JLabel()
 

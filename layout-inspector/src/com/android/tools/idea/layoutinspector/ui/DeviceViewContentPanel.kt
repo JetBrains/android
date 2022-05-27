@@ -16,9 +16,9 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -66,6 +66,7 @@ import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Line2D
 import java.awt.geom.Point2D
+import javax.swing.JComponent
 
 private const val MARGIN = 50
 
@@ -80,6 +81,9 @@ private val HQ_RENDERING_HINTS = mapOf(
   RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
 )
 
+// We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
+data class DropDownActionWithButton(val dropDownAction: DropDownAction, val button: JComponent?)
+
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
   val stats: SessionStatistics,
@@ -87,7 +91,7 @@ class DeviceViewContentPanel(
   val viewSettings: DeviceViewSettings,
   val currentClient: () -> InspectorClient?,
   val pannable: Pannable,
-  @VisibleForTesting val selectProcessAction: SelectProcessAction?,
+  @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
@@ -108,18 +112,18 @@ class DeviceViewContentPanel(
   }
 
   init {
-    selectProcessAction?.let { selectProcessAction ->
+    selectTargetAction?.let { selectDeviceAction ->
       emptyText.appendLine("No process connected")
 
       emptyText.appendLine("Deploy your app or ")
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        val button = selectProcessAction.button
+        val button = selectDeviceAction.button
         val dataContext = DataManager.getInstance().getDataContext(button)
-        selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
-        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation,
+        selectDeviceAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectDeviceAction.dropDownAction.templatePresentation,
                                                         dataContext)
-        selectProcessAction.actionPerformed(event)
+        selectDeviceAction.dropDownAction.actionPerformed(event)
       }
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText(" to begin inspection.")

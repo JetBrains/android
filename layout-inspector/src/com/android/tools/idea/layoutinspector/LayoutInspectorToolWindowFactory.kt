@@ -20,20 +20,16 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -41,8 +37,6 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -121,12 +115,24 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         val metrics = LayoutInspectorMetrics(project, null, stats)
         launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
-        val deviceViewPanel = DeviceViewPanel(processesModel, layoutInspector, viewSettings, workbench)
+
+        val deviceModel = DeviceModel(processesModel)
+        val foregroundProcessDetection = createForegroundProcessDetection(
+          project, processesModel, deviceModel, workbench, toolWindow
+        )
+
+        val deviceViewPanel = DeviceViewPanel(
+          processesModel = processesModel,
+          deviceModel = deviceModel,
+          onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
+          layoutInspector = layoutInspector,
+          viewSettings = viewSettings,
+          disposableParent = workbench
+        )
+
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
-
-        createForegroundProcessDetection(project, processesModel, workbench, toolWindow)
 
         project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
                                                         LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
@@ -138,13 +144,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   private fun createForegroundProcessDetection(
     project: Project,
     processesModel: ProcessesModel,
+    deviceModel: DeviceModel,
     workBench: WorkBench<LayoutInspector>,
     toolWindow: ToolWindow
   ): ForegroundProcessDetection? {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
       ForegroundProcessDetectionInitializer.initialize(
         processModel = processesModel,
-        deviceModel = DeviceModel(processesModel),
+        deviceModel = deviceModel,
         coroutineScope = project.coroutineScope
       ).also {
         project.messageBus.connect(workBench).subscribe(

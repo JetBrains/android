@@ -108,7 +108,8 @@ object ForegroundProcessDetectionInitializer {
 /**
  * Keeps track of the currently selected device.
  *
- * The selected device is controlled by [ForegroundProcessDetection].
+ * The selected device is controlled by [ForegroundProcessDetection],
+ * and it is used by [SelectedDeviceAction].
  */
 class DeviceModel(private val processesModel: ProcessesModel) {
   var selectedDevice: DeviceDescriptor? = null
@@ -117,6 +118,11 @@ class DeviceModel(private val processesModel: ProcessesModel) {
   val devices: Set<DeviceDescriptor>
     get() {
       return processesModel.devices
+    }
+
+  val selectedProcess: ProcessDescriptor?
+    get() {
+      return processesModel.selectedProcess
     }
 }
 

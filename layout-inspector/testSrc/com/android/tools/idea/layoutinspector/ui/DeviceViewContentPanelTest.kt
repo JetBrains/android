@@ -622,9 +622,10 @@ class DeviceViewContentPanelTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val selectProcessAction = mock<SelectProcessAction>()
+    val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction, null)
     `when`(selectProcessAction.templatePresentation).thenReturn(mock())
     val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { client }, mock(),
-                                       selectProcessAction, disposable.disposable)
+                                       dropDownActionWithButton, disposable.disposable)
     panel.setSize(200, 200)
     val fakeUi = FakeUi(panel)
     val hand = Cursor.getPredefinedCursor(HAND_CURSOR)

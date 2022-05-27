@@ -122,7 +122,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       stats = SessionStatistics(model, treeSettings)
 
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
-      val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
+      val deviceViewPanel = DeviceViewPanel(null, null, { }, layoutInspector, viewSettings, workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
       workbench.init(deviceViewPanel, layoutInspector, listOf(
         LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
