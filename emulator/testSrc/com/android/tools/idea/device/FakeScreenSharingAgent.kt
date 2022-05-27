@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
@@ -59,9 +60,7 @@ import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_free
-import org.bytedeco.ffmpeg.global.avcodec.av_packet_make_writable
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
-import org.bytedeco.ffmpeg.global.avcodec.avcodec_close
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
@@ -75,12 +74,12 @@ import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
 import org.bytedeco.ffmpeg.global.avutil.av_frame_free
 import org.bytedeco.ffmpeg.global.avutil.av_frame_get_buffer
 import org.bytedeco.ffmpeg.global.avutil.av_frame_make_writable
-import org.bytedeco.ffmpeg.global.avutil.av_image_fill_arrays
+import org.bytedeco.ffmpeg.global.avutil.av_image_get_buffer_size
 import org.bytedeco.ffmpeg.global.avutil.av_make_q
-import org.bytedeco.ffmpeg.global.swscale.SWS_FAST_BILINEAR
+import org.bytedeco.ffmpeg.global.swscale.SWS_BICUBIC
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
 import org.bytedeco.ffmpeg.global.swscale.sws_getContext
-import org.bytedeco.ffmpeg.global.swscale.sws_scale_frame
+import org.bytedeco.ffmpeg.global.swscale.sws_scale
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.Pointer
@@ -407,26 +406,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
       if (avcodec_open2(encoderContext, encoder, null as AVDictionary?) < 0) {
         throw RuntimeException("avcodec_open2 failed")
       }
-
-      val image = drawDisplayImage(size.rotatedByQuadrants(-displayOrientation), imageFlavor, displayId)
-        .rotatedByQuadrants(displayOrientation)
-
-      // Copy the image to the frame with conversion to the destination format.
-      val imageData = (image.raster.dataBuffer as DataBufferByte).data
-      val rgbFrame = av_frame_alloc().apply {
-        format(AV_PIX_FMT_BGR24)
-        width(size.width)
-        height(size.height)
-      }
-      if (av_frame_get_buffer(rgbFrame, 0) < 0) {
-        throw RuntimeException("av_frame_get_buffer failed")
-      }
-      if (av_frame_make_writable(rgbFrame) < 0) {
-        throw RuntimeException("av_frame_make_writable failed")
-      }
-      av_image_fill_arrays(rgbFrame.data(), rgbFrame.linesize(), BytePointer(*imageData),
-                           rgbFrame.format(), rgbFrame.width(), rgbFrame.height(), 1)
-
       val encodingFrame = av_frame_alloc().apply {
         format(encoderContext.pix_fmt())
         width(size.width)
@@ -439,84 +418,92 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
         throw RuntimeException("av_frame_make_writable failed")
       }
 
+      val image = drawDisplayImage(size.rotatedByQuadrants(-displayOrientation), imageFlavor, displayId)
+        .rotatedByQuadrants(displayOrientation)
+
+      val rgbFrame = av_frame_alloc().apply {
+        format(AV_PIX_FMT_BGR24)
+        width(size.width)
+        height(size.height)
+      }
+      if (av_frame_get_buffer(rgbFrame, 1) < 0) {
+        throw RuntimeException("Could not allocate the video frame data")
+      }
+
+      // Copy the image to the frame with conversion to the destination format.
+      val dataBufferByte = image.raster.dataBuffer as DataBufferByte
+      val numBytes = av_image_get_buffer_size(rgbFrame.format(), rgbFrame.width(), rgbFrame.height(), 1)
+      rgbFrame.data(0).asByteBufferOfSize(numBytes).put(dataBufferByte.data)
       val swsContext = sws_getContext(rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
                                       encodingFrame.width(), encodingFrame.height(), encodingFrame.format(),
-                                      SWS_FAST_BILINEAR, null, null, null as DoublePointer?)!!
-      sws_scale_frame(swsContext, encodingFrame, rgbFrame)
+                                      SWS_BICUBIC, null, null, null as DoublePointer?)!!
+      sws_scale(swsContext, rgbFrame.data(), rgbFrame.linesize(), 0, rgbFrame.height(), encodingFrame.data(), encodingFrame.linesize())
       sws_freeContext(swsContext)
+      av_frame_free(rgbFrame)
 
       val timestamp = System.currentTimeMillis()
       encodingFrame.pts(timestamp)
 
+      val packet = av_packet_alloc()
+
       try {
-        sendFrame(encoderContext, encodingFrame)
-        sendFrame(encoderContext, null) // Process delayed frames.
+        sendFrame(encoderContext, encodingFrame, packet)
+        sendFrame(encoderContext, null, packet) // Process delayed frames.
       }
       finally {
-        avcodec_close(encoderContext)
-        avcodec_free_context(encoderContext)
-        av_frame_free(rgbFrame)
+        av_packet_free(packet)
         av_frame_free(encodingFrame)
+        avcodec_free_context(encoderContext)
       }
     }
 
     /**
      * Sends the given frame or, if [frame] is null, sends the delayed frames.
      */
-    private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?) {
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame" }
+    private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?, packet: AVPacket) {
       if (avcodec_send_frame(encoderContext, frame) < 0) {
         throw RuntimeException("avcodec_send_frame failed")
       }
 
       while (true) {
-        val packet = av_packet_alloc()
-
-        try {
-          av_packet_make_writable(packet)
-          val ret = avcodec_receive_packet(encoderContext, packet)
-          if (ret != 0) {
-            if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
-              throw RuntimeException("avcodec_receive_packet returned $ret")
-            }
-            FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame no more packets" }
-            break
+        val ret = avcodec_receive_packet(encoderContext, packet)
+        if (ret != 0) {
+          if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
+            throw RuntimeException("avcodec_receive_packet returned $ret")
           }
-
-          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame received packet" }
-          val pts = packet.pts()
-          if (pts == AV_NOPTS_VALUE) {
-            packetHeader.presentationTimestampUs = 0
-          }
-          else {
-            val ptsUs = pts * 1000
-            if (presentationTimestampOffset == 0L) {
-              presentationTimestampOffset = ptsUs - 1
-            }
-            packetHeader.presentationTimestampUs = ptsUs - presentationTimestampOffset
-          }
-          packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
-          packetHeader.displayOrientation = displayOrientation
-          packetHeader.frameNumber = ++frameNumber
-          val packetSize = packet.size()
-          val packetData = packet.data().asByteBufferOfSize(packetSize)
-          packetHeader.packetSize = packetSize
-          val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
-          packetHeader.serialize(buffer)
-          buffer.put(packetData)
-          buffer.flip()
-          try {
-            FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame sending packet ${packetHeader.frameNumber}" }
-            channel.writeFully(buffer)
-          }
-          catch (e: IOException) {
-            if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
-              throw e
-            }
-          }
+          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame no more packets" }
+          break
         }
-        finally {
-          av_packet_free(packet)
+
+        val pts = packet.pts()
+        if (pts == AV_NOPTS_VALUE) {
+          packetHeader.presentationTimestampUs = 0
+        }
+        else {
+          val ptsUs = pts * 1000
+          if (presentationTimestampOffset == 0L) {
+            presentationTimestampOffset = ptsUs - 1
+          }
+          packetHeader.presentationTimestampUs = ptsUs - presentationTimestampOffset
+        }
+        packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
+        packetHeader.displayOrientation = displayOrientation
+        packetHeader.frameNumber = ++frameNumber
+        val packetSize = packet.size()
+        val packetData = packet.data().asByteBufferOfSize(packetSize)
+        packetHeader.packetSize = packetSize
+        val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+        packetHeader.serialize(buffer)
+        buffer.put(packetData)
+        buffer.flip()
+        try {
+          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame sending packet ${packetHeader.frameNumber}" }
+          channel.writeFully(buffer)
+        }
+        catch (e: IOException) {
+          if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
+            throw e
+          }
         }
       }
     }
