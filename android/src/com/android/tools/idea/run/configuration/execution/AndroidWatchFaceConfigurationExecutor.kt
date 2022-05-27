@@ -99,7 +99,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, outputReceiver)
     }
     catch (ex: DeployerException) {
-      throw throw ExecutionException("Error while launching watch face, message: ${ex.details}", ex)
+      throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }
   }
 

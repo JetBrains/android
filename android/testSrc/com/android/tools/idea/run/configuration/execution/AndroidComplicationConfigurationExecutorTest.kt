@@ -19,6 +19,9 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.TestResources
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
+import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -28,6 +31,7 @@ import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -43,6 +47,7 @@ import org.mockito.Mockito.times
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
 
 
 class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
@@ -75,7 +80,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   @Test
   fun test() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
+      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     val androidComplicationConfiguration = configSettings.configuration as AndroidComplicationConfiguration
     androidComplicationConfiguration.watchFaceInfo = TestWatchFaceInfo
     androidComplicationConfiguration.setModule(myModule)
@@ -150,7 +155,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   @Test
   fun testDebug() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
+      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     val androidComplicationConfiguration = configSettings.configuration as AndroidComplicationConfiguration
     androidComplicationConfiguration.watchFaceInfo = TestWatchFaceInfo
     androidComplicationConfiguration.setModule(myModule)
@@ -262,7 +267,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   @Test
   fun testWatchFaceWarning() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
+      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     val androidComplicationConfiguration = configSettings.configuration as AndroidComplicationConfiguration
     androidComplicationConfiguration.watchFaceInfo = TestWatchFaceInfo
     androidComplicationConfiguration.setModule(myModule)
@@ -314,6 +319,50 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
+  }
+
+  @Test
+  fun testComponentActivationException() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val androidComplicationConfiguration = Mockito.spy(AndroidComplicationConfiguration(project, AndroidComplicationConfigurationType().configurationFactories.single()))
+    androidComplicationConfiguration.setModule(myModule)
+    androidComplicationConfiguration.componentName = componentName
+    androidComplicationConfiguration.watchFaceInfo = TestWatchFaceInfo
+    androidComplicationConfiguration.chosenSlots = listOf(
+      AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
+    )
+    Mockito.doNothing().`when`(androidComplicationConfiguration).verifyProviderTypes(any())
+    // Use run executor
+    val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(),
+                                               AndroidConfigurationProgramRunner(),
+                                               configSettings,
+                                               project))
+    doReturn(androidComplicationConfiguration).`when`(env).runProfile
+
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+    doReturn(emptyList<String>()).`when`(executor).getComplicationSourceTypes(any())
+
+    val failedResponse = "Component not found."
+
+    val device = getMockDevice(mapOf(
+      checkVersion to "Broadcast completed: result=1, data=\"3\""
+    ).toCommandHandlers())
+
+    val app = Mockito.mock(App::class.java)
+    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
+      .`when`(app).activateComponent(any(), any(), any(), any(AppComponent.Mode::class.java), any())
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
+                                 activitiesName = emptyList())
+    val appInstaller = TestApplicationInstaller(
+      hashMapOf(
+        Pair(appId, app),
+        Pair(TestWatchFaceInfo.appId, watchFaceApp)
+      )) // Mock app installation.
+    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
+    assertThat(e).hasMessageThat().contains("Error while launching complication, message: $failedResponse")
   }
 
   @Test

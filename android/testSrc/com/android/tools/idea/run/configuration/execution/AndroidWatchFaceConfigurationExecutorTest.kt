@@ -17,6 +17,9 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
+import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
@@ -35,6 +38,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
 
 class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
   // Expected commands
@@ -177,6 +181,29 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Clear debug app
     assertThat(commands[5]).isEqualTo(clearDebugAppBroadcast)
     assertThat(commands[6]).isEqualTo(clearDebugAppAm)
+  }
+
+  @Test
+  fun testComponentActivationException() {
+    // Use DefaultRunExecutor, equivalent of pressing run button.
+    val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
+
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
+
+    val failedResponse = "Component not found."
+
+    val device = getMockDevice(mapOf(
+      checkVersion to "Broadcast completed: result=1, data=\"3\""
+    ).toCommandHandlers())
+
+    val app = Mockito.mock(App::class.java)
+    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
+      .`when`(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
+    val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
+    assertThat(e).hasMessageThat().contains("Error while launching watch face, message: $failedResponse")
   }
 
   @Test
