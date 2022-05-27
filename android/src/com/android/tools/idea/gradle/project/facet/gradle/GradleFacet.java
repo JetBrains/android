@@ -17,22 +17,14 @@ package com.android.tools.idea.gradle.project.facet.gradle;
 
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
-import com.intellij.facet.*;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.ProjectTopics.PROJECT_ROOTS;
-import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Identifies a module as a "Gradle project".
@@ -66,7 +58,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @NotNull
   public static GradleFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
+    final var facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
     assert facetType instanceof GradleFacetType;
     return (GradleFacetType)facetType;
   }
@@ -84,33 +76,6 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   @NotNull
   public static String getFacetName() {
     return ANDROID_GRADLE_FACET_NAME;
-  }
-
-  @Override
-  public void initFacet() {
-    MessageBusConnection connection = getModule().getProject().getMessageBus().connect(this);
-    connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (!isDisposed()) {
-            Project project = getModule().getProject();
-            runWriteCommandAction(project, () -> updateConfiguration());
-          }
-        });
-      }
-    });
-    updateConfiguration();
-  }
-
-  private void updateConfiguration() {
-    GradleFacetConfiguration config = getConfiguration();
-    try {
-      saveFacetConfiguration(config);
-    }
-    catch (WriteExternalException e) {
-      Logger.getInstance(GradleFacet.class).error("Unable to save contents of 'Android-Gradle' facet", e);
-    }
   }
 
   @Nullable
