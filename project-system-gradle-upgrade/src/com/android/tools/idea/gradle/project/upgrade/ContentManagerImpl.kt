@@ -32,6 +32,7 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentRefactoringProcessor.BlockReason
@@ -39,8 +40,13 @@ import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.intellij.build.BuildContentManager
+import com.intellij.history.Label
+import com.intellij.history.LocalHistory
+import com.intellij.history.integration.LocalHistoryImpl
+import com.intellij.history.integration.ui.views.DirectoryHistoryDialog
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
@@ -58,6 +64,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -65,6 +72,7 @@ import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
@@ -113,6 +121,7 @@ class ToolWindowModel(
   val selectedVersion: GradleVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
+  var beforeUpgradeFilesStateLabel: Label? = null
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
 
@@ -508,6 +517,7 @@ class ToolWindowModel(
 
     val runnable = {
       try {
+        beforeUpgradeFilesStateLabel = LocalHistory.getInstance().putSystemLabel(project, "Before upgrade to ${processor.new}")
         processor.run()
       }
       catch (e: Exception) {
@@ -525,6 +535,25 @@ class ToolWindowModel(
         processor.setPreviewUsages(showPreview)
         runnable.invoke()
       }
+    }
+  }
+
+  fun runRevert() {
+    try {
+      val rollback = {
+        // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here?
+        beforeUpgradeFilesStateLabel!!.revert(project, project.getBaseDir())
+      }
+      ProgressManager.getInstance()
+        .runProcessWithProgressSynchronously(rollback, "Revert to pre-upgrade state\u2026", true, project)
+      // TODO (b/234575703): add separate trigger for revert
+      GradleSyncInvoker.getInstance()
+        .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE))
+    }
+    catch (e: Exception) {
+      uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error during revert.")))
+      processor?.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
+      LOG.error("Error during revert.", e)
     }
   }
 
@@ -907,6 +936,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
             }
           }
           detailsPanel.add(label)
+          detailsPanel.addRevertInfo(markRevertAsDefault = true)
         }
         uiState is ToolWindowModel.UIState.UpgradeSyncSucceeded -> {
           val sb = StringBuilder()
@@ -923,6 +953,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
           }
           label.text = sb.toString()
           detailsPanel.add(label)
+          detailsPanel.addRevertInfo(markRevertAsDefault = false)
         }
         uiState is ToolWindowModel.UIState.AllDone -> {
           val sb = StringBuilder()
@@ -986,6 +1017,27 @@ class ContentManagerImpl(val project: Project): ContentManager {
       }
       detailsPanel.revalidate()
       detailsPanel.repaint()
+    }
+
+    private fun JBPanel<JBPanel<*>>.addRevertInfo(markRevertAsDefault: Boolean) {
+      val revertButton = JButton("Revert Project Files").apply {
+        name = "revert project button"
+        toolTipText = "Revert all project files to a state recorded just before running last upgrade."
+        putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, markRevertAsDefault)
+        addActionListener { this@View.model.runRevert() }
+      }
+      val localHistoryLine = HyperlinkLabel().apply {
+        name = "open local history link"
+        setTextWithHyperlink("You can review the applied changes in <hyperlink>'Local History' dialog</hyperlink>.")
+        addHyperlinkListener {
+          val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
+          // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
+          val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
+          dialog.show()
+        }
+      }
+      add(localHistoryLine)
+      add(revertButton)
     }
   }
 

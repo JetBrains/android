@@ -22,6 +22,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
@@ -45,8 +46,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckboxTree
@@ -72,10 +75,18 @@ class ContentManagerImplTest {
 
   private val uiStates: MutableList<ToolWindowModel.UIState> = ArrayList()
 
+  private var syncRequested: Boolean = false
+
   @Before
   fun replaceSyncInvoker() {
     val ideComponents = IdeComponents(projectRule.fixture)
-    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
+    val fakeSyncInvoker = object : GradleSyncInvoker.FakeInvoker() {
+      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+        syncRequested = true
+        super.requestProjectSync(project, request, listener)
+      }
+    }
+    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
   }
 
   private fun addMinimalBuildGradleToProject() : PsiFile {
@@ -639,6 +650,32 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testRevertAfterRunProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    toolWindowModel.runUpgrade(false)
+    toolWindowModel.syncStarted(project)
+    changingCurrentAgpVersion = latestAgpVersion
+    toolWindowModel.syncSucceeded(project)
+
+    syncRequested = false
+    toolWindowModel.runRevert()
+    // Need to commit so that pending changes from vcs are propagated to psi.
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
+    assertThat(syncRequested).isTrue()
+
+    toolWindowModel.syncStarted(project)
+    changingCurrentAgpVersion = currentAgpVersion
+    toolWindowModel.syncSucceeded(project)
+
+    assertThat(uiStates).containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncSucceeded, RunningSync, Loading, ReadyToRun).inOrder()
+  }
+
+  @Test
   fun testNecessityTreeText() {
     assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Upgrade prerequisites")
     assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade")
@@ -761,6 +798,33 @@ class ContentManagerImplTest {
     assertThat(view.treePanel.isVisible).isFalse()
     model.uiState.set(ReadyToRun)
     assertThat(view.treePanel.isVisible).isTrue()
+  }
+
+  @Test
+  fun testRevertPanelVisibility() {
+    fun ContentManagerImpl.View.revertButtonVisible() =
+      TreeWalker(detailsPanel).descendants().singleOrNull { it.name == "revert project button" } ?.isVisible ?: false
+    fun ContentManagerImpl.View.localHistoryLinkVisible() =
+      TreeWalker(detailsPanel).descendants().singleOrNull { it.name == "open local history link" } ?.isVisible ?: false
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+
+    assertThat(view.revertButtonVisible()).isFalse()
+    assertThat(view.localHistoryLinkVisible()).isFalse()
+    model.uiState.set(ReadyToRun)
+    assertThat(view.revertButtonVisible()).isFalse()
+    assertThat(view.localHistoryLinkVisible()).isFalse()
+    model.uiState.set(UpgradeSyncFailed("oops"))
+    assertThat(view.revertButtonVisible()).isTrue()
+    assertThat(view.localHistoryLinkVisible()).isTrue()
+    model.uiState.set(ReadyToRun)
+    assertThat(view.revertButtonVisible()).isFalse()
+    assertThat(view.localHistoryLinkVisible()).isFalse()
+    model.uiState.set(UpgradeSyncSucceeded)
+    assertThat(view.revertButtonVisible()).isTrue()
+    assertThat(view.localHistoryLinkVisible()).isTrue()
   }
 
   fun treeString(tree: CheckboxTree): String {
