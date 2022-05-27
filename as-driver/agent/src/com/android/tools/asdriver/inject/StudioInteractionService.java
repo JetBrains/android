@@ -130,8 +130,6 @@ public class StudioInteractionService {
   }
 
   /**
-   * Finds a {@link com.intellij.openapi.ui.impl.DialogWrapperPeerImpl.MyDialog}.
-   *
    * @throws NoSuchElementException Thrown when the window doesn't exist.
    */
   private Window getDialogWrapperDialog() {
@@ -156,24 +154,19 @@ public class StudioInteractionService {
     }
   }
 
-  /**
-   * Gets the link used for updating Android Studio.
-   */
   private LinkLabel getUpdateLink(Window welcomeWindow) {
     Component updateLink = findComponentByText(welcomeWindow, IdeBundle.message("updates.notification.update.action"));
     return (LinkLabel)updateLink;
   }
 
-  /**
-   * Invokes the "Update" link.
-   */
   private void clickUpdateLink(Window welcomeWindow) {
     LinkLabel updateLinkLabel = getUpdateLink(welcomeWindow);
     updateLinkLabel.doClick();
   }
 
   /**
-   * Directly invokes the "check for updates" functionality of the platform.
+   * Directly invokes the "check for updates" functionality of the platform (as opposed to going
+   * through the UI).
    */
   private void checkForUpdates(Window welcomeWindow) {
     ActionManager am = ApplicationManager.getApplication().getService(ActionManager.class);
@@ -230,7 +223,7 @@ public class StudioInteractionService {
 
   /**
    * Invokes the "Update" button which shows at the bottom right of the "Welcome" window. This
-   * button can either be a yellow arrow or a green "teardrop" with a number in it.
+   * button can either be a yellow arrow or a green or yellow "teardrop" with a number in it.
    */
   private void invokeWelcomeScreenUpdateButton(Window welcomeWindow) {
     // The button we're looking for is an ActionLink inside an ActionLinkPanel.
@@ -289,9 +282,6 @@ public class StudioInteractionService {
     }
   }
 
-  /**
-   * Invokes the specified button.
-   */
   private void invokeButton(JButton button) {
     Action action = button.getAction();
     ActionEvent ae = new ActionEvent(button, 0, null);

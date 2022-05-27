@@ -22,6 +22,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.PatchMachinery;
 import java.util.concurrent.TimeUnit;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class UpdateTest {
@@ -60,6 +61,7 @@ public class UpdateTest {
   }
 
   @Test
+  @Ignore("b/234170016")
   public void updateTest() throws Exception {
     // TODO(b/234069200): change how we detect whether Studio is running and whether it's restarted
     //  to instead reuse the agent we inject.

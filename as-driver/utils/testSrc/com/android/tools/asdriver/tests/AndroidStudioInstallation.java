@@ -48,8 +48,8 @@ public class AndroidStudioInstallation implements AutoCloseable {
    */
   private final Path e2eTempDir;
 
+  // TODO(b/234158261): refactor both of these out of this class.
   private final Map<String, String> additionalVmOptions = new HashMap<>();
-
   private final Map<String, String> environmentVariables = new HashMap<>();
 
   public AndroidStudioInstallation() throws IOException {
@@ -227,7 +227,7 @@ public class AndroidStudioInstallation implements AutoCloseable {
 
     Files.delete(resourcesJar);
     Files.copy(newJarPath, resourcesJar);
-    
+
     Files.write(workDir.resolve("android-studio/build.txt"), buildNumber.getBytes(charset));
   }
 
