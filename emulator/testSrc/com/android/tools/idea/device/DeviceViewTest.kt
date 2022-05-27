@@ -50,7 +50,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -268,7 +267,6 @@ internal class DeviceViewTest {
     assertThat(tabEvent).isNotNull()
   }
 
-  @Ignore("b/233763372")
   @Test
   fun testZoom() {
     if (SystemInfo.isWindows) {
