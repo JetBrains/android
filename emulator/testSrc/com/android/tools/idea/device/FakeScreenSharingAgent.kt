@@ -39,12 +39,17 @@ import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avutil.AVDictionary
@@ -54,7 +59,7 @@ import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_free
-import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
+import org.bytedeco.ffmpeg.global.avcodec.av_packet_make_writable
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_close
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
@@ -74,9 +79,8 @@ import org.bytedeco.ffmpeg.global.avutil.av_image_fill_arrays
 import org.bytedeco.ffmpeg.global.avutil.av_make_q
 import org.bytedeco.ffmpeg.global.swscale.SWS_FAST_BILINEAR
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
-import org.bytedeco.ffmpeg.global.swscale.sws_getCachedContext
+import org.bytedeco.ffmpeg.global.swscale.sws_getContext
 import org.bytedeco.ffmpeg.global.swscale.sws_scale_frame
-import org.bytedeco.ffmpeg.swscale.SwsContext
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.Pointer
@@ -87,6 +91,7 @@ import java.awt.geom.Path2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.io.EOFException
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
@@ -103,15 +108,15 @@ import kotlin.math.roundToInt
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
-class FakeScreenSharingAgent(val displaySize: Dimension) {
+class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeScreenSharingAgent", 1)
   private val coroutineScope = CoroutineScope(executor.asCoroutineDispatcher() + Job())
   private var startTime = 0L
 
   private val displayId = PRIMARY_DISPLAY_ID
-  private lateinit var controller: Controller
-  private lateinit var displayStreamer: DisplayStreamer
+  private var controller: Controller? = null
+  private var displayStreamer: DisplayStreamer? = null
 
   private val clipboardInternal = AtomicReference("")
   val clipboardSynchronizationActive = AtomicBoolean()
@@ -142,21 +147,27 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
    * Starts the agent. The agent is fully initialized when the method returns.
    */
   fun start(protocol: ShellV2Protocol, command: String, hostPort: Int) {
+    FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start" }
     coroutineScope.launch {
       commandLine = command
       shellProtocol = protocol
       commandLog.clear()
       startTime = System.currentTimeMillis()
 
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start startTime=$startTime" }
       val videoChannel = SuspendingSocketChannel.open()
       val controlChannel = SuspendingSocketChannel.open()
       val socketAddress = InetSocketAddress("localhost", hostPort)
       videoChannel.connect(socketAddress)
       controlChannel.connect(socketAddress)
-      displayStreamer = DisplayStreamer(videoChannel)
-      controller = Controller(controlChannel)
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start connected channels" }
+      val displayStreamer = DisplayStreamer(videoChannel)
+      this@FakeScreenSharingAgent.displayStreamer = displayStreamer
+      val controller = Controller(controlChannel)
+      this@FakeScreenSharingAgent.controller = controller
       displayStreamer.start()
       started = true
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.started" }
       controller.run()
     }
   }
@@ -166,12 +177,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
    */
   suspend fun stop() {
     coroutineScope.run {
-      if (startTime != 0L) {
-        controller.shutdown()
-        displayStreamer.shutdown()
-        startTime = 0
-        started = false
-      }
+      shutdown()
       shellProtocol?.writeExitCode(0)
     }
   }
@@ -181,18 +187,39 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
    */
   suspend fun crash() {
     coroutineScope.run {
-      if (startTime != 0L) {
-        controller.shutdown()
-        displayStreamer.shutdown()
-        startTime = 0
-      }
+      shutdown()
       shellProtocol?.writeExitCode(139)
+    }
+  }
+
+  override fun dispose() {
+    runBlocking {
+      coroutineScope.run {
+        shutdown()
+      }
+    }
+  }
+
+  private suspend fun shutdown() {
+    if (startTime != 0L) {
+      controller?.let {
+        it.shutdown()
+        Disposer.dispose(it)
+        controller = null
+      }
+      displayStreamer?.let {
+        it.shutdown()
+        Disposer.dispose(it)
+        displayStreamer = null
+      }
+      startTime = 0
+      started = false
     }
   }
 
   suspend fun renderDisplay(flavor: Int) {
     return coroutineScope.run {
-      displayStreamer.renderDisplay(flavor)
+      displayStreamer?.renderDisplay(flavor)
     }
   }
 
@@ -286,13 +313,17 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
   }
 
   private suspend fun setDeviceOrientation(message: SetDeviceOrientationMessage) {
-    displayStreamer.displayOrientation = message.orientation
-    displayStreamer.renderDisplay()
+    displayStreamer?.let {
+      it.displayOrientation = message.orientation
+      it.renderDisplay()
+    }
   }
 
   private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
-    displayStreamer.maxVideoResolution = Dimension(message.width, message.height)
-    displayStreamer.renderDisplay()
+    displayStreamer?.let {
+      it.maxVideoResolution = Dimension(message.width, message.height)
+      it.renderDisplay()
+    }
   }
 
   private fun startClipboardSync(message: StartClipboardSyncMessage) {
@@ -305,10 +336,10 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
   }
 
   private fun sendNotification(message: ControlMessage) {
-    controller.sendNotification(message)
+    controller?.sendNotification(message)
   }
 
-  private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) {
+  private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
 
     var maxVideoResolution: Dimension? = null
     var displayOrientation: Int = 0
@@ -318,8 +349,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     private val packetHeader = VideoPacketHeader(displaySize)
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
-    private var swsContext: SwsContext? = null
-    private val packet = av_packet_alloc()
+    @Volatile var stopped = false
 
     init {
       // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
@@ -334,6 +364,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     }
 
     suspend fun start() {
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.start" }
       // Send the channel header with the name of the codec.
       val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
       header.put(codecName.toByteArray())
@@ -358,6 +389,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
      * Renders display content for the given [imageFlavor] and sends all produced video frames.
      */
     suspend fun renderDisplay(imageFlavor: Int) {
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.renderDisplay" }
       lastImageFlavor = imageFlavor
 
       val size = getScaledAndRotatedDisplaySize()
@@ -377,7 +409,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
       }
 
       val image = drawDisplayImage(size.rotatedByQuadrants(-displayOrientation), imageFlavor, displayId)
-          .rotatedByQuadrants(displayOrientation)
+        .rotatedByQuadrants(displayOrientation)
 
       // Copy the image to the frame with conversion to the destination format.
       val imageData = (image.raster.dataBuffer as DataBufferByte).data
@@ -407,70 +439,101 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
         throw RuntimeException("av_frame_make_writable failed")
       }
 
-      swsContext = sws_getCachedContext(swsContext, rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
-                                        encodingFrame.width(), encodingFrame.height(), encodingFrame.format(),
-                                        SWS_FAST_BILINEAR, null, null, null as DoublePointer?)!!
+      val swsContext = sws_getContext(rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
+                                      encodingFrame.width(), encodingFrame.height(), encodingFrame.format(),
+                                      SWS_FAST_BILINEAR, null, null, null as DoublePointer?)!!
       sws_scale_frame(swsContext, encodingFrame, rgbFrame)
+      sws_freeContext(swsContext)
 
       val timestamp = System.currentTimeMillis()
       encodingFrame.pts(timestamp)
 
-      sendFrame(encoderContext, encodingFrame)
-      sendFrame(encoderContext, null) // Process delayed frames.
-
-      avcodec_close(encoderContext)
-      avcodec_free_context(encoderContext)
-      av_frame_free(rgbFrame)
-      av_frame_free(encodingFrame)
+      try {
+        sendFrame(encoderContext, encodingFrame)
+        sendFrame(encoderContext, null) // Process delayed frames.
+      }
+      finally {
+        avcodec_close(encoderContext)
+        avcodec_free_context(encoderContext)
+        av_frame_free(rgbFrame)
+        av_frame_free(encodingFrame)
+      }
     }
 
     /**
      * Sends the given frame or, if [frame] is null, sends the delayed frames.
      */
     private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?) {
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame" }
       if (avcodec_send_frame(encoderContext, frame) < 0) {
         throw RuntimeException("avcodec_send_frame failed")
       }
 
       while (true) {
-        val ret = avcodec_receive_packet(encoderContext, packet)
-        if (ret != 0) {
-          if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
-            throw RuntimeException("avcodec_receive_packet returned $ret")
-          }
-          break
-        }
+        val packet = av_packet_alloc()
 
-        val pts = packet.pts()
-        if (pts == AV_NOPTS_VALUE) {
-          packetHeader.presentationTimestampUs = 0
-        }
-        else {
-          val ptsUs = pts * 1000
-          if (presentationTimestampOffset == 0L) {
-            presentationTimestampOffset = ptsUs - 1
+        try {
+          av_packet_make_writable(packet)
+          val ret = avcodec_receive_packet(encoderContext, packet)
+          if (ret != 0) {
+            if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
+              throw RuntimeException("avcodec_receive_packet returned $ret")
+            }
+            FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame no more packets" }
+            break
           }
-          packetHeader.presentationTimestampUs = ptsUs - presentationTimestampOffset
+
+          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame received packet" }
+          val pts = packet.pts()
+          if (pts == AV_NOPTS_VALUE) {
+            packetHeader.presentationTimestampUs = 0
+          }
+          else {
+            val ptsUs = pts * 1000
+            if (presentationTimestampOffset == 0L) {
+              presentationTimestampOffset = ptsUs - 1
+            }
+            packetHeader.presentationTimestampUs = ptsUs - presentationTimestampOffset
+          }
+          packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
+          packetHeader.displayOrientation = displayOrientation
+          packetHeader.frameNumber = ++frameNumber
+          val packetSize = packet.size()
+          val packetData = packet.data().asByteBufferOfSize(packetSize)
+          packetHeader.packetSize = packetSize
+          val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+          packetHeader.serialize(buffer)
+          buffer.put(packetData)
+          buffer.flip()
+          try {
+            FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame sending packet ${packetHeader.frameNumber}" }
+            channel.writeFully(buffer)
+          }
+          catch (e: IOException) {
+            if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
+              throw e
+            }
+          }
         }
-        packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
-        packetHeader.displayOrientation = displayOrientation
-        packetHeader.frameNumber = ++frameNumber
-        val packetSize = packet.size()
-        val packetData = packet.data().asByteBufferOfSize(packetSize)
-        packetHeader.packetSize = packetSize
-        val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
-        packetHeader.serialize(buffer)
-        buffer.put(packetData)
-        buffer.flip()
-        channel.writeFully(buffer)
-        av_packet_unref(packet)
+        finally {
+          av_packet_free(packet)
+        }
       }
     }
 
     suspend fun shutdown() {
-      channel.close()
-      av_packet_free(packet)
-      sws_freeContext(swsContext)
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.shutdown sending packet ${packetHeader.frameNumber}" }
+      stopped = true
+      if (channel.isOpen) {
+        channel.close()
+      }
+    }
+
+    override fun dispose() {
+      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.dispose sending packet ${packetHeader.frameNumber}" }
+      runBlocking {
+        shutdown()
+      }
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
@@ -521,7 +584,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     }
   }
 
-  private inner class Controller(private val channel: SuspendingSocketChannel) {
+  private inner class Controller(private val channel: SuspendingSocketChannel) : Disposable {
 
     val input = newInputStream(channel, CONTROL_MSG_BUFFER_SIZE)
     val codedInput = Base128InputStream(input)
@@ -540,12 +603,23 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
       }
       catch (_: EOFException) {
       }
-      catch (_: ClosedChannelException) {
+      catch (e: IOException) {
+        if (!isLostConnection(e)) {
+          throw e
+        }
       }
     }
 
     suspend fun shutdown() {
-      channel.close()
+      if (channel.isOpen) {
+        channel.close()
+      }
+    }
+
+    override fun dispose() {
+      runBlocking {
+        shutdown()
+      }
     }
 
     fun sendNotification(message: ControlMessage) {
@@ -583,6 +657,17 @@ class FakeScreenSharingAgent(val displaySize: Dimension) {
     @JvmStatic
     val defaultControlMessageFilter = ControlMessageFilter()
   }
+}
+
+private fun isLostConnection(exception: IOException): Boolean {
+  var ex: Throwable? = exception
+  while (ex is IOException) {
+    if (ex is ClosedChannelException || ex.message == "Broken pipe") {
+      return true
+    }
+    ex = ex.cause
+  }
+  return false
 }
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)

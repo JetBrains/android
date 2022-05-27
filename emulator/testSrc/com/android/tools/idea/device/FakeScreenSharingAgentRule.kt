@@ -127,6 +127,7 @@ internal class FakeScreenSharingAgentRule : TestRule {
   }
 
   fun disconnectDevice(device: FakeDevice) {
+    Disposer.dispose(device.agent)
     devices.remove(device)
   }
 

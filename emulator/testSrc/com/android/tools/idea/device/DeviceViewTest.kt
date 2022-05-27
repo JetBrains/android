@@ -40,6 +40,8 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeDeviceAction
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -83,6 +85,7 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
+    FlightRecorder.initialize(1000)
     savedClipboardSynchronizationState = DeviceMirroringSettings.getInstance().synchronizeClipboard
     DeviceMirroringSettings.getInstance().synchronizeClipboard = false
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
@@ -286,9 +289,16 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
-    ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-    waitForCondition(5, TimeUnit.SECONDS) { agent.started }
+    try {
+      view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
+      ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
+      FlightRecorder.log { "${TraceUtils.currentTime()} DeviceViewTest.createDeviceView waiting for agent to start" }
+      waitForCondition(15, TimeUnit.SECONDS) { agent.started }
+    }
+    catch (e: Throwable) {
+      FlightRecorder.print()
+      throw e
+    }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
