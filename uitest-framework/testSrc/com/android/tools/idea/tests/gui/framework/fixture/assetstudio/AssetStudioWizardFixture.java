@@ -35,6 +35,7 @@ import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JSliderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -150,8 +151,10 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
 
   @NotNull
   public AssetStudioWizardFixture selectResFolder(@NotNull String resFolder) {
-    new JComboBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(JComboBox.class)))
-      .selectItem(resFolder);
+    JComboBoxFixture comboBoxFixture =
+      new JComboBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(JComboBox.class)));
+    comboBoxFixture.replaceCellReader((comboBox, index) -> ((SourceSetItem)comboBox.getItemAt(index)).getSourceSetName());
+    comboBoxFixture.selectItem(resFolder);
     return this;
   }
 
