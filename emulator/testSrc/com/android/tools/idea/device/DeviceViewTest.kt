@@ -364,7 +364,7 @@ internal class DeviceViewTest {
     TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
 
   private fun getNextControlMessageAndWaitForFrame(agent: FakeScreenSharingAgent, fakeUi: FakeUi, deviceView: DeviceView): ControlMessage {
-    val message = agent.getNextControlMessage(2, TimeUnit.SECONDS)
+    val message = agent.getNextControlMessage(5, TimeUnit.SECONDS)
     // Wait for all video frames to be received.
     waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); deviceView.frameNumber == agent.frameNumber }
     return message
