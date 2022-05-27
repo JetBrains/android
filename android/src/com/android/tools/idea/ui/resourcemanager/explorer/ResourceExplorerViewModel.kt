@@ -28,6 +28,8 @@ import com.android.tools.idea.configurations.getDefaultTheme
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
+import com.android.tools.idea.ui.resourcemanager.MODULE_NAME_KEY
+import com.android.tools.idea.ui.resourcemanager.RES_MANAGER_PREF_KEY
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -51,7 +53,6 @@ import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.properties.Delegates
 
-private const val RES_MANAGER_PREF_KEY = "ResourceManagerPrefKey"
 private val LOG = Logger.getInstance(ResourceExplorerViewModel::class.java)
 
 /**
@@ -140,12 +141,19 @@ class ResourceExplorerViewModel private constructor(
   var facet: AndroidFacet by Delegates.observable(defaultFacet) { _, oldFacet, newFacet ->
     if (newFacet != oldFacet) {
       contextFileForConfiguration = null // AndroidFacet changed, optional Configuration file is not valid.
+      selectedModuleName = newFacet.mainModule.name
       unsubscribeListener(oldFacet)
       subscribeListener(newFacet)
       facetUpdaterCallback(newFacet)
       populateResourcesCallback()
     }
   }
+
+  private var selectedModuleName: String? = modelState.selectedModuleName
+    set(value) {
+      field = value
+      modelState.selectedModuleName = value
+    }
 
   var resourceTypeIndex: Int = supportedResourceTypes.indexOf(modelState.selectedResourceType)
     set(value) {
@@ -337,8 +345,16 @@ class ResourceExplorerViewModel private constructor(
         selectAssetAction,
         updateResourceCallback
       )
+
   }
 }
+
+private const val FILTER_PARAMS_KEY = "FilterParams"
+private const val LOCAL_MODULE_FILTER_KEY = "LocalModules"
+private const val LIBRARIES_FILTER_KEY = "Libraries"
+private const val FRAMEWORK_FILTER_KEY = "Framework"
+private const val THEME_ATTR_FILTER_KEY = "ThemeAttributes"
+private const val RESOURCE_TYPE_KEY = "ResourceType"
 
 /**
  * Class that holds the initial state of [ResourceExplorerViewModel].
@@ -348,15 +364,9 @@ class ResourceExplorerViewModel private constructor(
 private class ViewModelState(
   filterParams: FilterOptionsParams,
   selectedResourceType: ResourceType,
-  private val saveParams: ViewModelStateSaveParams? = null
+  private val saveParams: ViewModelStateSaveParams? = null,
+  selectedModuleName: String? = null
 ) {
-
-  private val FILTER_PARAMS_KEY = "FilterParams"
-  private val LOCAL_MODULE_FILTER_KEY = "LocalModules"
-  private val LIBRARIES_FILTER_KEY = "Libraries"
-  private val FRAMEWORK_FILTER_KEY = "Framework"
-  private val THEME_ATTR_FILTER_KEY = "ThemeAttributes"
-  private val RESOURCE_TYPE_KEY = "ResourceType"
 
   private val defaultFilterParams: FilterOptionsParams = kotlin.run {
     return@run if (saveParams != null) {
@@ -390,6 +400,12 @@ private class ViewModelState(
     }
   }
 
+  private val defaultSelectedModuleName: String? = kotlin.run {
+    return@run saveParams?.let {
+      PropertiesComponent.getInstance(saveParams.project).getValue("${saveParams.preferencesKey}.$MODULE_NAME_KEY")
+    } ?: selectedModuleName
+  }
+
   var filterParams: FilterOptionsParams by Delegates.observable(defaultFilterParams) { _, _, newValue ->
     saveParams?.let {
       val filterKey = "${saveParams.preferencesKey}.$FILTER_PARAMS_KEY"
@@ -404,6 +420,17 @@ private class ViewModelState(
   var selectedResourceType: ResourceType by Delegates.observable(defaultSelectedResourceType) { _, _, newValue ->
     saveParams?.let {
       PropertiesComponent.getInstance(saveParams.project).setValue("${saveParams.preferencesKey}.$RESOURCE_TYPE_KEY", newValue.name)
+    }
+  }
+
+  /**
+   * Temporary persistent name of the selected module in a ResourceExplorer.
+   */
+  var selectedModuleName: String? by Delegates.observable(defaultSelectedModuleName) { _, _, newValue ->
+    if(newValue != null) {
+      saveParams?.let {
+        PropertiesComponent.getInstance(saveParams.project).setValue("${saveParams.preferencesKey}.$MODULE_NAME_KEY", newValue)
+      }
     }
   }
 }

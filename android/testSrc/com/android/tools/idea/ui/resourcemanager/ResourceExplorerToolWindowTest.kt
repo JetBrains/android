@@ -18,12 +18,15 @@ package com.android.tools.idea.ui.resourcemanager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
@@ -181,5 +184,45 @@ class ResourceExplorerToolWindowTest {
     assertNotNull(label)
     assertNull(label.icon)
     assertThat(label.text).isEqualTo("Waiting for build to finish...")
+  }
+
+  @Test
+  fun rememberFacetForSecondCreate() {
+    val windowManager = ToolWindowManager.getInstance(module.project)
+    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
+    initFacet()
+    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
+    runInEdtAndWait {
+      (project.getProjectSystem() as TestProjectSystem).emulateSync(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      ClearResourceCacheAfterFirstBuild.getInstance(module.project).syncSucceeded()
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    }
+    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(ResourceExplorer::class.java)
+    var resourceExplorer = toolWindow.contentManager.contents[0].component as ResourceExplorer
+    assertThat(resourceExplorer.facet.name == "app")
+
+    // Create another module and change the facet in the resourceExplorer
+    val module2Name = "app2"
+    runInEdtAndWait {
+      addAndroidModule(module2Name, project, "com.example.app2") { resourceDir ->
+        val drawableDir = resourceDir.resolve("drawable-hdpi").apply { mkdirs() }
+        drawableDir.resolve("icon.xml").writeText("<drawable></drawable")
+      }
+    }
+    val facet2 = ModuleManager.getInstance(project).modules.first { it.name == module2Name }.androidFacet!!
+    runInEdtAndWait { resourceExplorer.facet = facet2 }
+
+    // Create a new tool window, it should remember to use the new module as it was the last selected
+    runInEdtAndWait {
+      (project.getProjectSystem() as TestProjectSystem).emulateSync(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      ClearResourceCacheAfterFirstBuild.getInstance(module.project).syncSucceeded()
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    }
+    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(ResourceExplorer::class.java)
+    val newResourceExplorer = toolWindow.contentManager.contents[0].component as ResourceExplorer
+    assertThat(newResourceExplorer).isNotEqualTo(resourceExplorer)
+    assertThat(newResourceExplorer.facet.name == "app2")
   }
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
 import com.android.tools.idea.ui.resourcemanager.findCompatibleFacets
+import com.android.tools.idea.ui.resourcemanager.getFacetForModuleName
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
@@ -254,7 +255,7 @@ class ResourceExplorerToolbarViewModel(
    * Calls [facetUpdaterCallback] when a new module is selected in the ComboBox.
    */
   fun onModuleSelected(moduleName: String?) {
-    findCompatibleFacets(facet.module.project).firstOrNull { it.module.name == moduleName }?.run(facetUpdaterCallback)
+    getFacetForModuleName(moduleName, facet.module.project)?.run(facetUpdaterCallback)
   }
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {

@@ -36,6 +36,8 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
+internal const val RES_MANAGER_PREF_KEY = "ResourceManagerPrefKey"
+
 internal val MANAGER_SUPPORTED_RESOURCES
   get() =
     arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT, ResourceType.MIPMAP,
@@ -108,6 +110,7 @@ class ResourceExplorer private constructor(
 
     /**
      * Create a new instance of [ResourceExplorer] to be used as resource picker.
+     * See [ResourceExplorerViewModel.createResPickerViewModel].
      */
     fun createResourcePicker(
       facet: AndroidFacet,

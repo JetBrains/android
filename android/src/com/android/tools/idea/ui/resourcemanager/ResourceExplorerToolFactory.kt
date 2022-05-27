@@ -86,7 +86,7 @@ private fun connectListeners(
 
 private fun createContent(toolWindow: ToolWindow, project: Project) {
   toolWindow.contentManager.removeAllContents(true)
-  val facet = findCompatibleFacetFromOpenedFiles(project)
+  val facet = findLastSelectedFacet(project) ?: findCompatibleFacetFromOpenedFiles(project)
   if (facet == null) {
     displayNoFacetView(project, toolWindow)
     return
