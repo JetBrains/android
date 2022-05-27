@@ -577,9 +577,6 @@ py_test(
         ":android-studio.mac_arm.zip",
         ":android-studio.win.zip",
     ],
-    tags = [
-        "no_windows",  # b/234018495
-    ],
 )
 
 py_test(
@@ -593,9 +590,6 @@ py_test(
         ":android-studio.win.zip",
         ":updater",
         ":updater.jar",
-    ],
-    tags = [
-        "no_windows",  # b/234018495
     ],
 )
 
