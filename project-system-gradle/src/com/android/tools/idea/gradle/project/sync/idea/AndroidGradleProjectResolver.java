@@ -159,6 +159,7 @@ import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.DefaultExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
+import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
@@ -234,6 +235,37 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   @Override
+  public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
+    Project project = getProject();
+    if (project != null) {
+      removeExternalSourceSetsAndReportWarnings(project, gradleProject);
+      attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
+    }
+
+    IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
+    if (syncError != null) {
+      throw ideAndroidSyncErrorToException(syncError);
+    }
+
+    // This is used in the special mode sync to fetch additional native variants.
+    for (IdeaModule gradleModule : gradleProject.getModules()) {
+      IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
+      if (nativeVariants != null) {
+        projectDataNode.createChild(NATIVE_VARIANTS,
+                                    new IdeAndroidNativeVariantsModelsWrapper(
+                                      GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
+                                      nativeVariants
+                                    ));
+      }
+    }
+    if (isAndroidGradleProject()) {
+      projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+    }
+
+    super.populateProjectExtraModels(gradleProject, projectDataNode);
+  }
+
+  @Override
   @Nullable
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     if (!isAndroidGradleProject()) {
@@ -241,11 +273,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
-    if (androidModels != null) {
-      // b/232441109 - This MUST be done before calling the super method, only to be done for Android modules.
-      removeExternalSourceSetsAndReportWarnings(gradleModule);
-    }
-
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
     if (moduleDataNode == null) {
       return null;
@@ -814,64 +841,54 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     return resolverCtx.hasModulesWithModel(IdeAndroidModels.class);
   }
 
-  @Override
-  public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    Project project = getProject();
-    if (project != null) {
-      attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
-    }
+  /**
+   * Find IdeaModule representations of every Gradle project included in the main build and calls
+   * {@link #removeExternalSourceSetsAndReportWarnings(Project, IdeaModule)} on each of them.
+   *
+   * @param project the project
+   * @param mainGradleBuild the IdeaProject representing the mainGradleBuild
+   */
+  private void removeExternalSourceSetsAndReportWarnings(@NotNull Project project, @NotNull IdeaProject mainGradleBuild) {
+    // We also need to process composite builds
+    ProjectImportAction.AllModels models = resolverCtx.getModels();
+    Collection<IdeaProject> compositeProjects =
+      models.getIncludedBuilds().stream().map((build) -> models.getModel(build, IdeaProject.class)).collect(Collectors.toList());
 
-    IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
-    if (syncError != null) {
-      throw ideAndroidSyncErrorToException(syncError);
-    }
-
-    // This is used in the special mode sync to fetch additional native variants.
-    for (IdeaModule gradleModule : gradleProject.getModules()) {
-      IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
-      if (nativeVariants != null) {
-        projectDataNode.createChild(NATIVE_VARIANTS,
-                                    new IdeAndroidNativeVariantsModelsWrapper(
-                                      GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
-                                      nativeVariants
-                                    ));
-      }
-    }
-    if (isAndroidGradleProject()) {
-      projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
-    }
-
-    super.populateProjectExtraModels(gradleProject, projectDataNode);
+    Stream<IdeaModule> gradleProjects =
+      Stream.concat(compositeProjects.stream().flatMap((gradleBuild) -> gradleBuild.getModules().stream()),
+                    mainGradleBuild.getModules().stream());
+    gradleProjects.forEach((gradleProject) -> removeExternalSourceSetsAndReportWarnings(project, gradleProject));
   }
 
   /**
    * This method strips all Gradle source sets from JetBrains' ExternalProject model associated with the given gradleProject.
    * It also emits a warning informing the user that these source sets were detected and ignored. Android modules do not use
    * standard Gradle source sets and as such they can be safely ignored by the IDE.
-   *
-   * This method should only ever be called on Android modules as we rely on these models to set up information for pure Java or Kotlin
-   * modules.
+   * <p>
+   * This method will ignore any non-Android modules as these source sets are required for these modules.
    *
    * @param gradleProject the module to process
    */
-  private void removeExternalSourceSetsAndReportWarnings(@NotNull IdeaModule gradleProject) {
-    Project project = getProject();
-    if (project == null) {
+  private void removeExternalSourceSetsAndReportWarnings(@NotNull Project project, @NotNull IdeaModule gradleProject) {
+    IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleProject, IdeAndroidModels.class);
+    if (androidModels == null) {
+      // Not an android module
       return;
     }
+
 
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleProject, ExternalProject.class);
     if (externalProject == null || externalProject.getSourceSets().isEmpty()) {
+      // No create source sets exist
       return;
     }
 
-    // Obtain the source set names to add the error message
+    // Obtain the existing source set names to add the error message
     String sourceSetNames = String.join(", ", externalProject.getSourceSets().keySet());
 
-    // Remove the source sets so we don't create extra modules
+    // Remove the source sets so the platform doesn't create extra modules
     DefaultExternalProject defaultExternalProject = (DefaultExternalProject)externalProject;
     defaultExternalProject.setSourceSets(emptyMap());
-
 
     Notification notification =
       new Notification("Detected Gradle source sets",
