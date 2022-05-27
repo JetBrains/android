@@ -41,7 +41,7 @@ public class InferNullityTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  private static String OK = "OK";
+  private static String ANALYZE = "Analyze";
 
   /**
    * Verifies inferring nullity of calling methods and variables that can/cannot return null.
@@ -71,7 +71,7 @@ public class InferNullityTest {
 
     DialogFixture specifyScopeDialog = findDialog(withTitle("Specify Infer Nullity Scope"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-    specifyScopeDialog.button(withText(OK)).click();
+    specifyScopeDialog.button(withText(ANALYZE)).click();
 
     EditorFixture editorFixture = ideFrame
       .getEditor()

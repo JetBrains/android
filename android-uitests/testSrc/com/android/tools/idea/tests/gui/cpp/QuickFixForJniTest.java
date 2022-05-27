@@ -83,7 +83,7 @@ public class QuickFixForJniTest {
       .enterText("\npublic native void printFromJNI();");
 
     ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
-      .clickOk();
+      .clickButton("Analyze");
 
     List<String> errors = editor.getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
