@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.utils.XmlUtils.formatFloatValue;
-import static java.lang.Math.min;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -60,7 +59,7 @@ public class VectorDrawableTransformer {
    */
   @NotNull
   public static String transform(@NotNull String originalDrawable, @NotNull Dimension targetSize) {
-    return transform(originalDrawable, targetSize, Gravity.CENTER, 1, null, null, null, 1);
+    return transform(originalDrawable, targetSize, Gravity.CENTER, 1, null, null, null, 1, true);
   }
 
   /**
@@ -83,6 +82,7 @@ public class VectorDrawableTransformer {
    * @param shift an optional shift vector in coordinates expressed as fraction of the {@code targetSize}
    * @param tint an optional tint to apply to the drawable
    * @param opacity opacity to apply to the drawable
+   * @param addClipPath add a clip path to the vector drawable
    * @return the transformed drawable; may be the same as the original if no transformation was
    *     required, or if the drawable is not a vector one
    */
@@ -94,7 +94,8 @@ public class VectorDrawableTransformer {
                                  @Nullable Rectangle2D clipRectangle,
                                  @Nullable Point2D shift,
                                  @Nullable Color tint,
-                                 double opacity) {
+                                 double opacity,
+                                 boolean addClipPath) {
     KXmlParser parser = new KXmlParser();
 
     try {
@@ -149,6 +150,12 @@ public class VectorDrawableTransformer {
         }
       }
 
+      if (Double.isNaN(originalViewportWidth) || originalViewportWidth == 0 ||
+          Double.isNaN(originalViewportHeight) || originalViewportHeight == 0) {
+        originalViewportWidth = width;
+        originalViewportHeight = height;
+      }
+
       // Components of the translation vector in viewport coordinates.
       double x = 0;
       double y = 0;
@@ -156,41 +163,30 @@ public class VectorDrawableTransformer {
         // Adjust scale.
         scaleFactor /= Math.max(clipRectangle.getWidth(), clipRectangle.getHeight());
         // Re-center the image relative to the clip rectangle.
-        x += (0.5 - clipRectangle.getCenterX()) * targetWidth * scaleFactor;
-        y += (0.5 - clipRectangle.getCenterY()) * targetHeight * scaleFactor;
+        x += (0.5 - clipRectangle.getCenterX()) * originalViewportWidth * scaleFactor;
+        y += (0.5 - clipRectangle.getCenterY()) * originalViewportHeight * scaleFactor;
       }
 
-      if (Double.isNaN(originalViewportWidth) || originalViewportWidth == 0 ||
-          Double.isNaN(originalViewportHeight) || originalViewportHeight == 0) {
-        originalViewportWidth = width;
-        originalViewportHeight = height;
+      double scaleFactorX = scaleFactor;
+      double scaleFactorY = scaleFactor;
+      double originalAspectRatio = width / height;
+      double targetAspectRatio = targetWidth / targetHeight;
+      double aspectFactor = originalAspectRatio / targetAspectRatio;
+      if (aspectFactor < 1.0) {
+        // The image was stretched horizontally, modify the scale factor to restore the original shape
+        scaleFactorX *= aspectFactor;
+      } else if (aspectFactor > 1.0) {
+        // The image was stretched vertically, modify the scale factor to restore the original shape
+        scaleFactorY /= aspectFactor;
       }
 
-      double ratio = width * originalViewportHeight / (height * originalViewportWidth);
-      if (ratio > 1) {
-        y += 0.5 * targetWidth * ratio;
-      }
-      else if (ratio < 1) {
-        x += 0.5 * targetHeight / ratio;
-      }
-      x += 0.5 * targetWidth * (1 - scaleFactor);
-      y += 0.5 * targetHeight * (1 - scaleFactor);
-
-      ratio = targetWidth * originalViewportHeight / (targetHeight * originalViewportWidth);
-      if (ratio > 1) {
-        double alignmentScale = (gravity.getHorizontalAlignment() + 1) / 2.;
-        x += alignmentScale * targetWidth * (1 - 1 / ratio) * scaleFactor;
-      }
-      else if (ratio < 1) {
-        double alignmentScale = (gravity.getVerticalAlignment() + 1) / 2.;
-        y += alignmentScale * targetHeight * (1 - ratio) * scaleFactor;
-      }
-
-      scaleFactor *= min(targetWidth / originalViewportWidth, targetHeight / originalViewportHeight);
+      // Recenter after scaling
+      x += originalViewportWidth * ((1.0 - scaleFactorX) / 2.0);
+      y += originalViewportHeight * ((1.0 - scaleFactorY) / 2.0);
 
       if (shift != null) {
-        x += targetWidth * shift.getX();
-        y += targetHeight * shift.getY();
+        x += originalViewportWidth * shift.getX();
+        y += originalViewportHeight * shift.getY();
       }
 
       StringBuilder result = new StringBuilder(originalDrawable.length() + originalDrawable.length() / 8);
@@ -212,8 +208,10 @@ public class VectorDrawableTransformer {
 
       result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
       result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
-      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
-      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
+      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT,
+                                  formatFloatValue(originalViewportWidth)));
+      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT,
+                                  formatFloatValue(originalViewportHeight)));
       if (tintValue != null) {
         result.append(String.format("%s%sandroid:tint=\"%s\"", lineSeparator, DOUBLE_INDENT, tintValue));
       }
@@ -240,16 +238,23 @@ public class VectorDrawableTransformer {
       startColumn = parser.getColumnNumber();
       String translateX = isSignificantlyDifferentFromZero(x / targetWidth) ? formatFloatValue(x) : null;
       String translateY = isSignificantlyDifferentFromZero(y / targetHeight) ? formatFloatValue(y) : null;
-      String scale = formatFloatValue(scaleFactor);
-      if (!scale.equals("1") || translateX != null || translateY != null) {
+      String scaleX = formatFloatValue(scaleFactorX);
+      String scaleY = formatFloatValue(scaleFactorY);
+      String clipX = formatFloatValue(originalViewportWidth);
+      String clipY = formatFloatValue(originalViewportHeight);
+      boolean adjustmentNeeded = !scaleX.equals("1") || !scaleY.equals("1") || translateX != null || translateY != null;
+      if (adjustmentNeeded) {
         // Wrap contents of the drawable into a translation group.
         result.append(lineSeparator).append(INDENT);
         result.append("<group");
         String delimiter = " ";
-        if (!scale.equals("1")) {
-          result.append(String.format("%sandroid:scaleX=\"%s\"", delimiter, scale));
+        if (!scaleX.equals("1")) {
+          result.append(String.format("%sandroid:scaleX=\"%s\"", delimiter, scaleX));
           delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
-          result.append(String.format("%sandroid:scaleY=\"%s\"", delimiter, scale));
+        }
+        if (!scaleY.equals("1")) {
+          result.append(String.format("%sandroid:scaleY=\"%s\"", delimiter, scaleY));
+          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
         }
         if (translateX != null) {
           result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
@@ -259,6 +264,11 @@ public class VectorDrawableTransformer {
           result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
         }
         result.append('>');
+        if (addClipPath) {
+          // Clip to viewport since the new size may have space for more:
+          result.append(lineSeparator).append(DOUBLE_INDENT);
+          result.append(String.format("<clip-path android:pathData=\"M0,0 L0,%s L%s,%s L%s,0 z\"/>", clipY, clipX, clipY, clipX));
+        }
         indent = INDENT;
       }
 
@@ -275,7 +285,7 @@ public class VectorDrawableTransformer {
         result.append(lineSeparator);
         startColumn = 1;
       }
-      if (!scale.equals("1") || translateX != null || translateY != null) {
+      if (adjustmentNeeded) {
         if (startColumn == 1) {
           result.append(INDENT);
         }

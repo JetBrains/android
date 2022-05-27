@@ -117,7 +117,7 @@ public class VectorDrawableTransformerTest {
         "      android:strokeColor=\"#00000000\"\n" +
         "      android:strokeWidth=\"1\" />\n" +
         "</vector>\n";
-    String result = VectorDrawableTransformer.transform(ORIGINAL, new Dimension(108, 108), Gravity.CENTER, 1, null, null, null, 1);
+    String result = VectorDrawableTransformer.transform(ORIGINAL, new Dimension(108, 108), Gravity.CENTER, 1, null, null, null, 1, false);
     assertEquals(expected, result);
   }
 
@@ -129,13 +129,13 @@ public class VectorDrawableTransformerTest {
         "    xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
         "    android:width=\"100dp\"\n" +
         "    android:height=\"100dp\"\n" +
-        "    android:viewportWidth=\"100\"\n" +
-        "    android:viewportHeight=\"100\"\n" +
+        "    android:viewportWidth=\"108\"\n" +
+        "    android:viewportHeight=\"108\"\n" +
         "    android:autoMirrored=\"true\">\n" +
-        "  <group android:scaleX=\"2.3148148\"\n" +
-        "      android:scaleY=\"2.3148148\"\n" +
-        "      android:translateX=\"-75\"\n" +
-        "      android:translateY=\"-75\">\n" +
+        "  <group android:scaleX=\"2.5\"\n" +
+        "      android:scaleY=\"2.5\"\n" +
+        "      android:translateX=\"-81\"\n" +
+        "      android:translateY=\"-81\">\n" +
         "    <!-- This is a shadow -->\n" +
         "    <path\n" +
         "        android:fillType=\"evenOdd\"\n" +
@@ -170,11 +170,11 @@ public class VectorDrawableTransformerTest {
         "        android:strokeWidth=\"1\" />\n" +
         "  </group>\n" +
         "</vector>\n";
-    String result = VectorDrawableTransformer.transform(ORIGINAL, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1);
+    String result = VectorDrawableTransformer.transform(ORIGINAL, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1, false);
     assertEquals(expected, result);
     // Check the same transformation but with Windows line separators.
     String original = StringUtil.replace(ORIGINAL, "\n", "\r\n");
-    result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1);
+    result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1, false);
     expected = StringUtil.replace(expected, "\n", "\r\n");
     assertEquals(expected, result);
   }
@@ -187,13 +187,13 @@ public class VectorDrawableTransformerTest {
         "    xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
         "    android:width=\"100dp\"\n" +
         "    android:height=\"100dp\"\n" +
-        "    android:viewportWidth=\"100\"\n" +
-        "    android:viewportHeight=\"100\"\n" +
+        "    android:viewportWidth=\"108\"\n" +
+        "    android:viewportHeight=\"108\"\n" +
         "    android:autoMirrored=\"true\">\n" +
-        "  <group android:scaleX=\"1.5873016\"\n" +
-        "      android:scaleY=\"1.5873016\"\n" +
-        "      android:translateX=\"-44.285713\"\n" +
-        "      android:translateY=\"-44.285713\">\n" +
+        "  <group android:scaleX=\"1.7142857\"\n" +
+        "      android:scaleY=\"1.7142857\"\n" +
+        "      android:translateX=\"-47.82857\"\n" +
+        "      android:translateY=\"-47.82857\">\n" +
         "    <!-- This is a shadow -->\n" +
         "    <path\n" +
         "        android:fillType=\"evenOdd\"\n" +
@@ -229,7 +229,7 @@ public class VectorDrawableTransformerTest {
         "  </group>\n" +
         "</vector>\n";
     String result = VectorDrawableTransformer.transform(ORIGINAL, new Dimension(100, 100), Gravity.CENTER, 1.2,
-                                                        new Rectangle2D.Double(0.2, 0.3, 0.7, 0.5), null, null, 1);
+                                                        new Rectangle2D.Double(0.2, 0.3, 0.7, 0.5), null, null, 1, false);
     assertEquals(expected, result);
   }
 
@@ -256,12 +256,12 @@ public class VectorDrawableTransformerTest {
                       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                       "    android:width=\"100dp\"\n" +
                       "    android:height=\"100dp\"\n" +
-                      "    android:viewportWidth=\"100\"\n" +
-                      "    android:viewportHeight=\"100\">\n" +
-                      "  <group android:scaleX=\"0.7407407\"\n" +
-                      "      android:scaleY=\"0.7407407\"\n" +
-                      "      android:translateX=\"15.185185\"\n" +
-                      "      android:translateY=\"-75\">\n" +
+                      "    android:viewportWidth=\"94\"\n" +
+                      "    android:viewportHeight=\"337.5\">\n" +
+                      "  <group android:scaleX=\"0.6962963\"\n" +
+                      "      android:scaleY=\"2.5\"\n" +
+                      "      android:translateX=\"14.274074\"\n" +
+                      "      android:translateY=\"-253.125\">\n" +
                       "    <group android:translateY=\"133.59375\">\n" +
                       "      <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
                       "          android:fillColor=\"#000000\"/>\n" +
@@ -272,7 +272,7 @@ public class VectorDrawableTransformerTest {
                       "    </group>\n" +
                       "  </group>\n" +
                       "</vector>\n";
-    String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1);
+    String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null, null, null, 1, false);
     assertEquals(expected, result);
   }
 
@@ -299,12 +299,12 @@ public class VectorDrawableTransformerTest {
                       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                       "    android:width=\"100dp\"\n" +
                       "    android:height=\"100dp\"\n" +
-                      "    android:viewportWidth=\"100\"\n" +
-                      "    android:viewportHeight=\"100\">\n" +
-                      "  <group android:scaleX=\"0.7407407\"\n" +
-                      "      android:scaleY=\"0.7407407\"\n" +
-                      "      android:translateX=\"25.185184\"\n" +
-                      "      android:translateY=\"-95\">\n" +
+                      "    android:viewportWidth=\"94\"\n" +
+                      "    android:viewportHeight=\"337.5\">\n" +
+                      "  <group android:scaleX=\"0.6962963\"\n" +
+                      "      android:scaleY=\"2.5\"\n" +
+                      "      android:translateX=\"23.674074\"\n" +
+                      "      android:translateY=\"-320.625\">\n" +
                       "    <group android:translateY=\"133.59375\">\n" +
                       "      <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
                       "          android:fillColor=\"#000000\"/>\n" +
@@ -315,7 +315,8 @@ public class VectorDrawableTransformerTest {
                       "    </group>\n" +
                       "  </group>\n" +
                       "</vector>\n";
-    String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null, new Point2D.Double(0.1, -0.2), null, 1);
+    String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 2.5, null,
+                                                        new Point2D.Double(0.1, -0.2), null, 1, false);
     assertEquals(expected, result);
   }
 
@@ -333,8 +334,50 @@ public class VectorDrawableTransformerTest {
         "      android:endColor=\"#FF5BFFD9\"/>\n" +
         "</shape>\n";
     String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), Gravity.CENTER, 1.2,
-                                                        new Rectangle2D.Double(0.2, 0.3, 0.7, 0.5), null, null, 1);
+                                                        new Rectangle2D.Double(0.2, 0.3, 0.7, 0.5), null, null, 1, false);
     assertEquals(original, result);
+  }
+
+  @Test
+  public void testViewportImbalance() {
+    String original = "" +
+                      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:width=\"60dp\"\n" +
+                      "    android:height=\"104dp\"\n" +
+                      "    android:viewportWidth=\"24\"\n" +
+                      "    android:viewportHeight=\"23\">\n" +
+                      "    <group\n" +
+                      "        android:translateX=\"4\"\n" +
+                      "        android:scaleX=\"1.0\"\n" +
+                      "        android:scaleY=\"1.0\">\n" +
+                      "    <path\n" +
+                      "        android:pathData=\"M2,10 l8,8 l12,-14\"\n" +
+                      "        android:strokeWidth=\"4\"\n" +
+                      "        android:strokeColor=\"@color/black\" />\n" +
+                      "    </group>\n" +
+                      "</vector>\n";
+    String expected = "" +
+                      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:width=\"120dp\"\n" +
+                      "    android:height=\"104dp\"\n" +
+                      "    android:viewportWidth=\"24\"\n" +
+                      "    android:viewportHeight=\"23\">\n" +
+                      "  <group android:scaleX=\"0.5\"\n" +
+                      "      android:translateX=\"6\">\n" +
+                      "    <clip-path android:pathData=\"M0,0 L0,23 L24,23 L24,0 z\"/>\n" +
+                      "      <group\n" +
+                      "          android:translateX=\"4\"\n" +
+                      "          android:scaleX=\"1.0\"\n" +
+                      "          android:scaleY=\"1.0\">\n" +
+                      "      <path\n" +
+                      "          android:pathData=\"M2,10 l8,8 l12,-14\"\n" +
+                      "          android:strokeWidth=\"4\"\n" +
+                      "          android:strokeColor=\"@color/black\" />\n" +
+                      "      </group>\n" +
+                      "  </group>\n" +
+                      "</vector>\n";
+    String result = VectorDrawableTransformer.transform(original, new Dimension(120, 104));
+    assertEquals(expected, result);
   }
 
   @Test

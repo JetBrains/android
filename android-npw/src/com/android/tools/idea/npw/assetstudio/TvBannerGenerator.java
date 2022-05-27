@@ -367,7 +367,7 @@ public class TvBannerGenerator extends IconGenerator {
 
   @NotNull
   private static String applyAdaptiveIconScaleFactor(@NotNull String xmlDrawableText) {
-    return transform(xmlDrawableText, SIZE_ADAPTIVE_DP, Gravity.CENTER, ADAPTIVE_ICON_SCALE_FACTOR, null, null, null, 1);
+    return transform(xmlDrawableText, SIZE_ADAPTIVE_DP, Gravity.CENTER, ADAPTIVE_ICON_SCALE_FACTOR, null, null, null, 1, false);
   }
 
   /**
