@@ -137,6 +137,8 @@
       <module fileurl="file://$PROJECT_DIR$/intellij.android.compose-common/intellij.android.compose-common.iml" filepath="$PROJECT_DIR$/intellij.android.compose-common/intellij.android.compose-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/compose-designer/intellij.android.compose-designer.iml" filepath="$PROJECT_DIR$/compose-designer/intellij.android.compose-designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/compose-designer/intellij.android.compose-designer.tests.iml" filepath="$PROJECT_DIR$/compose-designer/intellij.android.compose-designer.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compose-samples/intellij.android.compose-samples.iml" filepath="$PROJECT_DIR$/compose-samples/intellij.android.compose-samples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compose-samples/intellij.android.compose-samples.tests.iml" filepath="$PROJECT_DIR$/compose-samples/intellij.android.compose-samples.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.iml" filepath="$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.tests.iml" filepath="$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.iml" />
