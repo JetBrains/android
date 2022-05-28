@@ -334,7 +334,7 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
     assertThat(headerTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(headerTable.parent, "Add")
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
@@ -367,7 +367,7 @@ class RuleDetailsViewTest {
     }
 
     headerTable.selectionModel.addSelectionInterval(0, 0)
-    val removeAction = findAction(headerTable.parent, "Remove")
+    val removeAction = findAction(headerTable.parent.parent.parent, "Remove")
     removeAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
@@ -382,7 +382,7 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
     assertThat(headerTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(headerTable.parent, "Add")
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val findNameText = "findName"
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
@@ -423,7 +423,7 @@ class RuleDetailsViewTest {
     }
 
     headerTable.selectionModel.addSelectionInterval(0, 0)
-    val removeAction = findAction(headerTable.parent, "Remove")
+    val removeAction = findAction(headerTable.parent.parent.parent, "Remove")
     removeAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
@@ -438,7 +438,7 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
     assertThat(headerTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(headerTable.parent, "Add")
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
@@ -448,7 +448,7 @@ class RuleDetailsViewTest {
       dialog.clickDefaultButton()
     }
 
-    val editAction = findAction(headerTable.parent, "Edit")
+    val editAction = findAction(headerTable.parent.parent.parent, "Edit")
     val findNameText = "findName"
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
@@ -512,7 +512,7 @@ class RuleDetailsViewTest {
     }
 
     headerTable.selectionModel.addSelectionInterval(0, 0)
-    val moveDownAction = findAction(headerTable.parent, "Down")
+    val moveDownAction = findAction(headerTable.parent.parent.parent, "Down")
     moveDownAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
@@ -559,7 +559,7 @@ class RuleDetailsViewTest {
     val bodyTable = findComponentWithUniqueName(ruleDetailsView, "bodyRules") as TableView<*>
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(bodyTable.parent, "Add")
+    val addAction = findAction(bodyTable.parent.parent.parent, "Add")
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
@@ -582,7 +582,7 @@ class RuleDetailsViewTest {
     }
 
     bodyTable.selectionModel.addSelectionInterval(0, 0)
-    val removeAction = findAction(bodyTable.parent, "Remove")
+    val removeAction = findAction(bodyTable.parent.parent.parent, "Remove")
     removeAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
@@ -597,7 +597,7 @@ class RuleDetailsViewTest {
     val bodyTable = findComponentWithUniqueName(ruleDetailsView, "bodyRules") as TableView<*>
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(bodyTable.parent, "Add")
+    val addAction = findAction(bodyTable.parent.parent.parent, "Add")
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = false
@@ -624,7 +624,7 @@ class RuleDetailsViewTest {
     }
 
     bodyTable.selectionModel.addSelectionInterval(0, 0)
-    val removeAction = findAction(bodyTable.parent, "Remove")
+    val removeAction = findAction(bodyTable.parent.parent.parent, "Remove")
     removeAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
@@ -639,7 +639,7 @@ class RuleDetailsViewTest {
     val bodyTable = findComponentWithUniqueName(ruleDetailsView, "bodyRules") as TableView<*>
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
-    val addAction = findAction(bodyTable.parent, "Add")
+    val addAction = findAction(bodyTable.parent.parent.parent, "Add")
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.findTextArea.text = ""
@@ -647,7 +647,7 @@ class RuleDetailsViewTest {
       dialog.clickDefaultButton()
     }
 
-    val editAction = findAction(bodyTable.parent, "Edit")
+    val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.findTextArea.text).isEmpty()
@@ -684,7 +684,7 @@ class RuleDetailsViewTest {
     }
 
     bodyTable.selectionModel.addSelectionInterval(0, 0)
-    val moveDownAction = findAction(bodyTable.parent, "Down")
+    val moveDownAction = findAction(bodyTable.parent.parent.parent, "Down")
     moveDownAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList

@@ -156,20 +156,18 @@ class NetworkInspectorView(
     connectionsTab.addTab("Connection View", connectionScrollPane)
     connectionsTab.addTab("Thread View", threadsViewScrollPane)
     if (StudioFlags.ENABLE_NETWORK_INTERCEPTION.get()) {
-      val rulesViewScrollPane = JBScrollPane(rulesView.component)
-      rulesViewScrollPane.border = JBUI.Borders.empty()
-      connectionsTab.addTab("Rules", rulesViewScrollPane)
+      connectionsTab.addTab("Rules", rulesView.component)
       var selectedComponent: Component? = null
       connectionsTab.addChangeListener {
         when (connectionsTab.selectedComponent) {
           connectionScrollPane, threadsViewScrollPane ->
             // Switching tabs between connection view and threads view does not open or close details panel.
-            if (selectedComponent == rulesViewScrollPane) {
+            if (selectedComponent == rulesView.component) {
               model.detailContent =
                 if (model.selectedConnection == null) NetworkInspectorModel.DetailContent.EMPTY
                 else NetworkInspectorModel.DetailContent.CONNECTION
             }
-          rulesViewScrollPane ->
+          rulesView.component ->
             if (selectedComponent == connectionScrollPane || selectedComponent == threadsViewScrollPane) {
               model.detailContent =
                 if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY

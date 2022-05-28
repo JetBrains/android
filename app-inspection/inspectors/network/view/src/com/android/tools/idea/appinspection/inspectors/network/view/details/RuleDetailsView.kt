@@ -18,14 +18,14 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
-import com.android.tools.idea.appinspection.inspectors.network.view.rules.createDecoratedTable
+import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
+import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.ToolbarDecorator
@@ -42,7 +42,6 @@ import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.geom.RectangularShape
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -70,10 +69,10 @@ class RuleDetailsView : JPanel() {
 
   init {
     layout = TabularLayout("*", "28px,*")
-    border = BorderFactory.createEmptyBorder()
+    border = JBUI.Borders.empty()
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Rule Details")
-    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
+    instanceViewLabel.border = JBUI.Borders.emptyLeft(6)
     headingPanel.add(instanceViewLabel, BorderLayout.WEST)
     add(headingPanel, TabularLayout.Constraint(0, 0))
     scrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
@@ -210,11 +209,14 @@ class RuleDetailsView : JPanel() {
       }
     }
 
-    val container = ScrollablePanel(TabularLayout("*", "200px"))
-    container.add(createDecoratedTable(table, decorator).apply {
-      border = BorderFactory.createLineBorder(borderLight)
-    }, TabularLayout.Constraint(0, 0))
-    return JBScrollPane().apply { setViewportView(container) }
+    val decoratedTableView = decorator.createPanel()
+    val infoLabel = JBLabel(AllIcons.General.Information).apply {
+      border = JBUI.Borders.emptyRight(8)
+      isEnabled = false
+      toolTipText = "Order of rules indicate execution order."
+    }
+    decorator.actionsPanel.setToolbarLabel(infoLabel, ActionToolbarPosition.RIGHT)
+    return decoratedTableView
   }
 }
 

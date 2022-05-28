@@ -65,7 +65,7 @@ class RulesTableView(
         }
       }
     }
-    component = createDecoratedTable(table, decorator)
+    component = decorator.createPanel()
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) {
