@@ -21,7 +21,9 @@ import com.android.SdkConstants;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -48,8 +50,7 @@ public class AndroidStudioInstallation implements AutoCloseable {
    */
   private final Path e2eTempDir;
 
-  // TODO(b/234158261): refactor both of these out of this class.
-  private final Map<String, String> additionalVmOptions = new HashMap<>();
+  // TODO(b/234158261): refactor this out of this class.
   private final Map<String, String> environmentVariables = new HashMap<>();
 
   public AndroidStudioInstallation() throws IOException {
@@ -76,6 +77,7 @@ public class AndroidStudioInstallation implements AutoCloseable {
     Files.createDirectories(configDir);
 
     setConsentGranted(true);
+    createVmOptionsFile();
   }
 
   /**
@@ -85,39 +87,19 @@ public class AndroidStudioInstallation implements AutoCloseable {
     environmentVariables.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
   }
 
-  /**
-   * Writes VM options to a file that will be consumed by Android Studio. This should be called
-   * just before running Android Studio, but it should be done after all other test setup is done.
-   */
-  private void writeVmOptions() throws IOException {
+  private void createVmOptionsFile() throws IOException {
     Path agentZip = AndroidStudioInstallation.getBinPath("tools/adt/idea/as-driver/as_driver_deploy.jar");
     if (!Files.exists(agentZip)) {
       throw new IllegalStateException("agent not found at " + agentZip);
     }
 
-    StringBuilder vmOptionsBuilder =
-      new StringBuilder(String.format("-javaagent:%s\n", agentZip) +
-                        String.format("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:5006\n") +
-                        String.format("-Didea.config.path=%s/config\n", workDir) +
-                        String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
-                        String.format("-Didea.system.path=%s/system\n", workDir) +
-                        String.format("-Didea.log.path=%s/system/log\n", workDir) +
-                        String.format("-Duser.home=%s/home\n", workDir));
-
-    for (Map.Entry<String, String> entry : additionalVmOptions.entrySet()) {
-      vmOptionsBuilder.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
-    }
-
-    String vmOptions = vmOptionsBuilder.toString();
-
-    // It's easy to forget that debugging was left on, so this emits a warning in that case.
-    if (vmOptions.contains("suspend=y")) {
-      String hr = "*".repeat(80);
-      System.out.println(hr);
-      System.out.println("The JDWP suspend option is enabled, meaning the agent's VM will be suspended immediately.\n" +
-                         "If you do not attach a debugger to it, your test will time out.");
-      System.out.println(hr);
-    }
+    String vmOptions = String.format("-javaagent:%s\n", agentZip) +
+                       String.format("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:5006\n") +
+                       String.format("-Didea.config.path=%s/config\n", workDir) +
+                       String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
+                       String.format("-Didea.system.path=%s/system\n", workDir) +
+                       String.format("-Didea.log.path=%s/system/log\n", workDir) +
+                       String.format("-Duser.home=%s/home\n", workDir);
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
 
@@ -271,8 +253,23 @@ public class AndroidStudioInstallation implements AutoCloseable {
 
   public Map<String, String> getEnvironmentVariables() { return environmentVariables; }
 
-  public void addVmOption(String key, String value) {
-    additionalVmOptions.put(key, value);
+  public void addVmOption(String line) throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
+      writer.append(line).append("\n");
+    }
+  }
+
+  public void addDebugVmOption(boolean suspend) throws IOException {
+    // It's easy to forget that debugging was left on, so this emits a warning in that case.
+    if (suspend) {
+      String hr = "*".repeat(80);
+      System.out.println(hr);
+      System.out.println("The JDWP suspend option is enabled, meaning the agent's VM will be suspended immediately.\n" +
+                         "If you do not attach a debugger to it, your test will time out.");
+      System.out.println(hr);
+    }
+    String s = suspend ? "y" : "n";
+    addVmOption("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + s + ",address=localhost:5006\n");
   }
 
   public void addEnvironmentVariable(String key, String value) {
@@ -314,7 +311,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
   }
 
   public AndroidStudio run() throws IOException, InterruptedException {
-    writeVmOptions();
     determineEnvironmentVariables();
     return new AndroidStudio(this);
   }

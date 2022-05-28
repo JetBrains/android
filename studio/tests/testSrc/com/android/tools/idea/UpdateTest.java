@@ -21,6 +21,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.PatchMachinery;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,10 +32,10 @@ public class UpdateTest {
    * Our hermetic test environment will not be able to resolve Internet URLs, so we have to route
    * those requests to our own {@code FileServer}.
    */
-  private void setupHermeticEnvironment(AndroidStudioInstallation install, String fileServerOrigin) {
+  private void setupHermeticEnvironment(AndroidStudioInstallation install, String fileServerOrigin) throws IOException {
     // This skips downloading anything from https://plugins.jetbrains.com/. This will cause our
     // file server to get requests like "/files/brokenPlugins.json" and "/plugins/list".
-    install.addVmOption("-Didea.plugins.host", fileServerOrigin);
+    install.addVmOption("-Didea.plugins.host=" + fileServerOrigin);
 
     install.addEnvironmentVariable("AS_UPDATE_URL", fileServerOrigin);
     // The URL we provide as SDK_TEST_BASE_URL has to end in a slash.

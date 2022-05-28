@@ -21,17 +21,15 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import java.util.Arrays;
 import java.util.regex.Matcher;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class StartUpTest {
   @Test
-  @Ignore("b/232084720")
   public void startUpTest() throws Exception {
     try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
       try (AndroidStudio studio = install.run()) {
         // Wait for plugin manager to load all plugins
-        Matcher matcher = studio.waitForLog(".*PluginManager - Loaded bundled plugins:(.*)", 3000);
+        Matcher matcher = studio.waitForLog(".*PluginManager - Loaded bundled plugins:(.*)", 10000);
         String[] plugins = matcher.group(1).split(",");
         for (int i = 0; i < plugins.length; i++) {
           plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
@@ -85,7 +83,9 @@ public class StartUpTest {
           "Markdown",
           "Mercurial",
           "Properties",
+          "Refactoring Detector",
           "Settings Repository",
+          "Settings Sync",
           "Shell Script",
           "Smali Support",
           "Subversion",
