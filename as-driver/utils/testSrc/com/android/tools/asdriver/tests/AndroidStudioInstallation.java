@@ -50,9 +50,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
    */
   private final Path e2eTempDir;
 
-  // TODO(b/234158261): refactor this out of this class.
-  private final Map<String, String> environmentVariables = new HashMap<>();
-
   public AndroidStudioInstallation() throws IOException {
     e2eTempDir = Files.createTempDirectory("e2e-framework");
     String overrideDir = getOverrideWorkDir();
@@ -78,13 +75,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
 
     setConsentGranted(true);
     createVmOptionsFile();
-  }
-
-  /**
-   * Computes any installation-related environment variables to be consumed by Android Studio.
-   */
-  private void determineEnvironmentVariables() {
-    environmentVariables.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
   }
 
   private void createVmOptionsFile() throws IOException {
@@ -251,8 +241,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
     return ideaLog;
   }
 
-  public Map<String, String> getEnvironmentVariables() { return environmentVariables; }
-
   public void addVmOption(String line) throws IOException {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
       writer.append(line).append("\n");
@@ -270,10 +258,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
     }
     String s = suspend ? "y" : "n";
     addVmOption("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + s + ",address=localhost:5006\n");
-  }
-
-  public void addEnvironmentVariable(String key, String value) {
-    environmentVariables.put(key, value);
   }
 
   static public Path getBinPath(String bin) {
@@ -311,7 +295,12 @@ public class AndroidStudioInstallation implements AutoCloseable {
   }
 
   public AndroidStudio run() throws IOException, InterruptedException {
-    determineEnvironmentVariables();
-    return new AndroidStudio(this);
+    return run(new HashMap<>());
+  }
+
+  public AndroidStudio run(Map<String, String> env) throws IOException, InterruptedException {
+    Map<String, String> newEnv = new HashMap<>(env);
+    newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
+    return new AndroidStudio(this, newEnv);
   }
 }

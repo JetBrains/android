@@ -47,7 +47,8 @@ public class AndroidStudio implements AutoCloseable {
   private XvfbServer xvfbServer;
   private BufferedReader logReader;
 
-  public AndroidStudio(AndroidStudioInstallation installation) throws IOException, InterruptedException {
+  public AndroidStudio(AndroidStudioInstallation installation,
+                       Map<String, String> env) throws IOException, InterruptedException {
     this.installation = installation;
     Path workDir = installation.getWorkDir();
 
@@ -57,7 +58,7 @@ public class AndroidStudio implements AutoCloseable {
     pb.redirectOutput(installation.getStdout().toFile());
     pb.environment().clear();
 
-    for (Map.Entry<String, String> entry : installation.getEnvironmentVariables().entrySet()) {
+    for (Map.Entry<String, String> entry : env.entrySet()) {
       pb.environment().put(entry.getKey(), entry.getValue());
     }
     String display = System.getenv("DISPLAY");

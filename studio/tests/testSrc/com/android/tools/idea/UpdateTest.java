@@ -22,6 +22,8 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.PatchMachinery;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -30,35 +32,40 @@ public class UpdateTest {
 
   /**
    * Our hermetic test environment will not be able to resolve Internet URLs, so we have to route
-   * those requests to our own {@code FileServer}.
+   * those requests to our own {@code FileServer}. This skips downloading anything from https://plugins.jetbrains.com/.
+   * This will cause our file server to get requests like "/files/brokenPlugins.json" and "/plugins/list".
    */
-  private void setupHermeticEnvironment(AndroidStudioInstallation install, String fileServerOrigin) throws IOException {
-    // This skips downloading anything from https://plugins.jetbrains.com/. This will cause our
-    // file server to get requests like "/files/brokenPlugins.json" and "/plugins/list".
+  private void setPluginHost(AndroidStudioInstallation install, String fileServerOrigin) throws IOException {
     install.addVmOption("-Didea.plugins.host=" + fileServerOrigin);
-
-    install.addEnvironmentVariable("AS_UPDATE_URL", fileServerOrigin);
-    // The URL we provide as SDK_TEST_BASE_URL has to end in a slash.
-    String endsInSlash = fileServerOrigin.endsWith("/") ? fileServerOrigin : fileServerOrigin + "/";
-    // This skips downloading anything from https://dl.google.com. This will cause our file server
-    // to get requests like "/addons_list-5.xml" and "/repository2-2.xml".
-    install.addEnvironmentVariable("SDK_TEST_BASE_URL", endsInSlash);
   }
 
   /**
+   * Creates the environment to use when running Studio.
+   *
    * Inherits the {@code PATH} environment variable from the parent process. We do this so that
    * Python is in our {@code PATH}, otherwise {@link com.intellij.util.Restarter} won't know that
    * we can automatically update and will instead give the user instructions on how to run a shell
    * script to perform the update.
+   *
+   * Also sets the variables needed to point to the local server.
    */
-  private void inheritParentPathEnvironmentVariable(AndroidStudioInstallation install) {
+  private Map<String, String> createEnvironment(String fileServerOrigin) {
+    HashMap<String, String> env = new HashMap<>();
     String path = System.getenv("PATH");
     if (path == null) {
       throw new IllegalArgumentException("No PATH environment variable found. When running through IDEA, edit your run configuration, " +
                                          "click the box next to \"Environment variables\", then enable \"Include system environment " +
                                          "variables\".");
     }
-    install.addEnvironmentVariable("PATH", path);
+    env.put("PATH", path);
+
+    env.put("AS_UPDATE_URL", fileServerOrigin);
+    // The URL we provide as SDK_TEST_BASE_URL has to end in a slash.
+    String endsInSlash = fileServerOrigin.endsWith("/") ? fileServerOrigin : fileServerOrigin + "/";
+    // This skips downloading anything from https://dl.google.com. This will cause our file server
+    // to get requests like "/addons_list-5.xml" and "/repository2-2.xml".
+    env.put("SDK_TEST_BASE_URL", endsInSlash);
+    return env;
   }
 
   @Test
@@ -81,10 +88,10 @@ public class UpdateTest {
       patchMachinery.setupPatch();
       patchMachinery.createFakePluginAndUpdateFiles();
 
-      setupHermeticEnvironment(install, patchMachinery.getFileServerOrigin());
-      inheritParentPathEnvironmentVariable(install);
+      setPluginHost(install, patchMachinery.getFileServerOrigin());
+      Map<String, String> env = createEnvironment(patchMachinery.getFileServerOrigin());
 
-      try (AndroidStudio studio = install.run()) {
+      try (AndroidStudio studio = install.run(env)) {
         studio.debugTakeScreenshot("before");
 
         System.out.println("Updating Android Studio");
