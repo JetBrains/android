@@ -47,9 +47,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
-            AssembleTaskName              : assembleFreeDebug
-            CompileJavaTaskName           : compileFreeDebugSources
-            - AfterSyncTask               : generateFreeDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -69,20 +66,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -1232,9 +1220,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
-            AssembleTaskName              : assembleFreeDebug
-            CompileJavaTaskName           : compileFreeDebugSources
-            - AfterSyncTask               : generateFreeDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -1254,20 +1239,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/resValues/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -1799,9 +1775,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -1817,20 +1790,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -2298,9 +2262,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -2316,20 +2277,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -2795,9 +2747,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -2813,20 +2762,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -3284,9 +3224,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
-            AssembleTaskName              : assembleFreeDebug
-            CompileJavaTaskName           : compileFreeDebugSources
-            - AfterSyncTask               : generateFreeDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -3306,20 +3243,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/resValues/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -3681,9 +3609,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -3699,20 +3624,11 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle

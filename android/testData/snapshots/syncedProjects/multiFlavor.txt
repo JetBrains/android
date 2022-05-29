@@ -47,9 +47,6 @@ PROJECT                       : MultiFlavor
             TypeId                        : android
             ExternalSource                : GRADLE
             SelectedBuildVariant          : firstAbcSecondAbcDebug
-            AssembleTaskName              : assembleFirstAbcSecondAbcDebug
-            CompileJavaTaskName           : compileFirstAbcSecondAbcDebugSources
-            - AfterSyncTask               : generateFirstAbcSecondAbcDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -73,20 +70,11 @@ PROJECT                       : MultiFlavor
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle

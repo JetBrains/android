@@ -389,12 +389,6 @@ private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguratio
 private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfiguration) {
   with(androidFacetConfiguration.state ?: return) {
     prop("SelectedBuildVariant") { SELECTED_BUILD_VARIANT.nullize() }
-    prop("AssembleTaskName") { ASSEMBLE_TASK_NAME.nullize() }
-    prop("CompileJavaTaskName") { COMPILE_JAVA_TASK_NAME.nullize() }
-    prop("AssembleTestTaskName") { ASSEMBLE_TEST_TASK_NAME.nullize() }
-    prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
-    prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
-    AFTER_SYNC_TASK_NAMES.sorted().forEach { prop("- AfterSyncTask") { it } }
     prop("AllowUserConfiguration") {
       @Suppress("DEPRECATION")
       ALLOW_USER_CONFIGURATION.toString()
@@ -407,31 +401,15 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- TestResFoldersRelativePath") { it } }
     prop("AssetsFolderRelativePath") { ASSETS_FOLDER_RELATIVE_PATH.nullize() }
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
-    prop("UseCustomApkResourceFolder") { USE_CUSTOM_APK_RESOURCE_FOLDER.toString() }
-    prop("CustomApkResourceFolder") { CUSTOM_APK_RESOURCE_FOLDER.nullize() }
-    prop("CustomCompilerManifest") { CUSTOM_COMPILER_MANIFEST.nullize() }
     prop("ApkPath") { APK_PATH.nullize() }
     prop("ProjectType") { PROJECT_TYPE.toString() }
-    prop("RunProcessResourcesMavenTask") { RUN_PROCESS_RESOURCES_MAVEN_TASK.toString() }
     prop("CustomDebugKeystorePath") { CUSTOM_DEBUG_KEYSTORE_PATH.nullize() }
     prop("PackTestCode") { PACK_TEST_CODE.toString() }
     prop("RunProguard") { RUN_PROGUARD.toString() }
     prop("ProguardLogsFolderRelativePath") { PROGUARD_LOGS_FOLDER_RELATIVE_PATH.nullize() }
     prop("UseCustomManifestPackage") { USE_CUSTOM_MANIFEST_PACKAGE.toString() }
     prop("CustomManifestPackage") { CUSTOM_MANIFEST_PACKAGE.nullize() }
-    prop("AdditionalPackagingCommandLineParameters") { ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS.nullize() }
-    prop("UpdatePropertyFiles") { UPDATE_PROPERTY_FILES.nullize() }
-    prop("EnableManifestMerging") { ENABLE_MANIFEST_MERGING.toString() }
-    prop("EnablePreDexing") { ENABLE_PRE_DEXING.toString() }
-    prop("CompileCustomGeneratedSources") { COMPILE_CUSTOM_GENERATED_SOURCES.toString() }
-    prop("EnableSourcesAutogeneration") { ENABLE_SOURCES_AUTOGENERATION.toString() }
-    prop("EnableMultiDex") { ENABLE_MULTI_DEX.toString() }
-    prop("MainDexList") { MAIN_DEX_LIST.nullize() }
-    prop("MinimalMainDex") { MINIMAL_MAIN_DEX.toString() }
-    prop("IncludeAssetsFromLibraries") { myIncludeAssetsFromLibraries.toString() }
     myProGuardCfgFiles.forEach { prop("- ProGuardCfgFiles") { it } }
-    myNativeLibs.forEach { prop("- NativeLibs") { it.toString() } }
-    myNotImportedProperties.sorted().forEach { prop("- NotImportedProperties") { it.toString() } }
   }
 }
 
