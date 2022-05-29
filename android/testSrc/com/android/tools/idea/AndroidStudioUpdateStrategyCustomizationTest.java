@@ -9,13 +9,18 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class AndroidStudioUpdateStrategyCustomizationTest {
+  @Rule
+  public EdtRule edtRule = new EdtRule();
+
   private Disposable disposable;
   private AndroidStudioUpdateStrategyCustomization updateStrategyCustomization = new AndroidStudioUpdateStrategyCustomization();
 
@@ -49,9 +54,6 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
 
 
   private void setupApplication(String fullVersion, boolean eap) {
-    // drain EDT queue before creating mock app to avoid "Missing extension point: com.intellij.ideEventQueueDispatcher in container {}"
-    if (!(ApplicationManager.getApplication() instanceof MockApplication)) UIUtil.pump();
-
     MockApplication application = new MockApplication(disposable) {
       @Override
       public boolean isEAP() {
@@ -71,6 +73,7 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
    * Please delete if this is causing any flakiness.
    */
   @Test
+  @RunsInEdt // MockApplication with no ideEventQueueDispatcher EP: make sure no other activity can use EDT via Application.invokeLater
   public void testChangeDefaultChannel() {
     for (boolean eap : new boolean[]{false, true}) {
       setupApplication("Android Studio Bumblebee | 2021.1.1 Patch 3", eap);
