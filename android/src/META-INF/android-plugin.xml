@@ -566,8 +566,6 @@
 
     <projectService serviceImplementation="com.android.tools.idea.rendering.classloading.ProjectConstantRemapper"
                     serviceInterface="com.android.tools.idea.rendering.classloading.ConstantRemapper" />
-    <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveEditConfigurableProvider"
-                             key="live.edit.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
     <colorSettingsPage implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsHighlightColorConfigurable"/>
     <notificationGroup id="Live Literal Problem Notification" displayType="NONE" />
 
