@@ -19,11 +19,9 @@ import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NonNls;
@@ -41,21 +39,8 @@ import org.jetbrains.annotations.NonNls;
 public class AndroidFacetProperties {
 
   public static final String PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION = ";";
-  @NonNls public static final String ITEM_ELEMENT = "item";
-  @NonNls public static final String ARCHITECTURE_ATTRIBUTE = "architecture";
-  @NonNls public static final String URL_ATTRIBUTE = "url";
-  @NonNls public static final String TARGET_FILE_NAME_ATTRIBUTE = "targetFileName";
 
   public String SELECTED_BUILD_VARIANT = "";
-
-  public String ASSEMBLE_TASK_NAME = "";
-  public String COMPILE_JAVA_TASK_NAME = "";
-
-  public String ASSEMBLE_TEST_TASK_NAME = "";
-  public String COMPILE_JAVA_TEST_TASK_NAME = "";
-
-  @XCollection(propertyElementName = "afterSyncTasks", elementName = "task", valueAttributeName = "")
-  public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
 
   /**
    * False when the Android project is Gradle-based, true otherwise.
@@ -95,16 +80,9 @@ public class AndroidFacetProperties {
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 
-  public boolean USE_CUSTOM_APK_RESOURCE_FOLDER = false;
-  public String CUSTOM_APK_RESOURCE_FOLDER = "";
-
-  public String CUSTOM_COMPILER_MANIFEST = "";
-
   public String APK_PATH = "";
 
   public int PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_APP;
-
-  public boolean RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
 
   public String CUSTOM_DEBUG_KEYSTORE_PATH = "";
 
@@ -124,44 +102,6 @@ public class AndroidFacetProperties {
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
   public String CUSTOM_MANIFEST_PACKAGE = "";
 
-  public String ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "";
-
-  public String UPDATE_PROPERTY_FILES = "";
-
-  public boolean ENABLE_MANIFEST_MERGING = false;
-
-  public boolean ENABLE_PRE_DEXING = true;
-
-  public boolean COMPILE_CUSTOM_GENERATED_SOURCES = true;
-
-  public boolean ENABLE_SOURCES_AUTOGENERATION = true;
-
-  public boolean ENABLE_MULTI_DEX = false;
-  public String MAIN_DEX_LIST = "";
-  public boolean MINIMAL_MAIN_DEX = false;
-
-  @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";
-  @Tag(INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
-  public boolean myIncludeAssetsFromLibraries = false;
-
   @XCollection(propertyElementName = "resOverlayFolders", elementName = "path", valueAttributeName = "")
   public List<String> RES_OVERLAY_FOLDERS = new ArrayList<>();
-
-  @XCollection(propertyElementName = "additionalNativeLibs")
-  public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<>();
-
-  @XCollection(propertyElementName = "notImportedProperties", elementName = "property", valueAttributeName = "")
-  public Set<AndroidImportableProperty> myNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
-
-  @Tag(ITEM_ELEMENT)
-  public static class AndroidNativeLibDataEntry {
-    @Attribute(ARCHITECTURE_ATTRIBUTE)
-    public String myArchitecture;
-
-    @Attribute(URL_ATTRIBUTE)
-    public String myUrl;
-
-    @Attribute(TARGET_FILE_NAME_ATTRIBUTE)
-    public String myTargetFileName;
-  }
 }

@@ -43,22 +43,18 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -125,12 +121,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private RawCommandLineEditor myAdditionalPackagingCommandLineParametersField;
   private TextFieldWithBrowseButton myProguardLogsDirectoryField;
   private JBLabel myProGuardLogsDirectoryLabel;
-  private JBCheckBox myEnableMultiDexCheckBox;
-  private JBTextField myMainDexList;
-  private JCheckBox myMinimalMainDexCheckBox;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
-  private final Component myMavenTabComponent;
 
   public static final class Provider implements AndroidFacetConfiguration.EditorTabProvider {
     @Override
@@ -173,8 +165,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
-
-    myCustomAptSourceDirField.getButton().addActionListener(new MyFolderFieldListener(myCustomAptSourceDirField, getCustomResourceDirForApt(facet), false, null));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override
@@ -261,16 +251,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
     assert mavenTabIndex >= 0;
-    myMavenTabComponent = myTabbedPane.getComponentAt(mavenTabIndex);
-
     myProguardLogsDirectoryField.getButton().addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
   }
 
   @Nullable
-  public static VirtualFile getCustomResourceDirForApt(@NotNull AndroidFacet facet) {
-    return AndroidRootUtil.getFileByRelativeModulePath(facet.getModule(), facet.getProperties().CUSTOM_APK_RESOURCE_FOLDER, false);
-  }
-
   private void updateLibAndAppSpecificFields() {
     boolean lib = myIsLibraryProjectCheckbox.isSelected();
     myAssetsFolderField.setEnabled(!lib);
@@ -365,36 +349,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
 
-    if (checkRelativePath(myConfiguration.getState().APK_PATH, (String)myApkPathCombo.getComboBox().getEditor().getItem())) {
-      return true;
-    }
-
-    if (myUseCustomSourceDirectoryRadio.isSelected() != myConfiguration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER) {
-      return true;
-    }
-    if (checkRelativePath(myConfiguration.getState().CUSTOM_APK_RESOURCE_FOLDER, myCustomAptSourceDirField.getText())) {
-      return true;
-    }
-
-    if (myRunProcessResourcesRadio.isSelected() != myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK) {
-      return true;
-    }
     if (!myConfiguration.getState().CUSTOM_DEBUG_KEYSTORE_PATH.equals(getSelectedCustomKeystorePath())) {
       return true;
     }
-    if (myConfiguration.getState().ENABLE_MANIFEST_MERGING != myEnableManifestMerging.isSelected()) {
-      return true;
-    }
-    if (myConfiguration.getState().ENABLE_PRE_DEXING != myPreDexEnabledCheckBox.isSelected()) {
-      return true;
-    }
     if (myConfiguration.getState().PACK_TEST_CODE != myIncludeTestCodeAndCheckBox.isSelected()) {
-      return true;
-    }
-    if (myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION != myEnableSourcesAutogenerationCheckBox.isSelected()) {
-      return true;
-    }
-    if (myConfiguration.isIncludeAssetsFromLibraries() != myIncludeAssetsFromLibraries.isSelected()) {
       return true;
     }
     if (myConfiguration.getState().RUN_PROGUARD != myRunProguardCheckBox.isSelected()) {
@@ -403,26 +361,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (!myProGuardConfigFilesPanel.getUrls().equals(myConfiguration.getState().myProGuardCfgFiles)) {
       return true;
     }
-    if (myConfiguration.getState().ENABLE_MULTI_DEX != myEnableMultiDexCheckBox.isSelected()) {
-      return true;
-    }
-    if (myConfiguration.getState().MINIMAL_MAIN_DEX != myMinimalMainDexCheckBox.isSelected()) {
-      return true;
-    }
-    if (!myMainDexList.getText().trim().equals(myConfiguration.getState().MAIN_DEX_LIST)) {
-      return true;
-    }
     if (myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE != myUseCustomManifestPackage.isSelected()) {
       return true;
     }
     if (!myCustomManifestPackageField.getText().trim().equals(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE)) {
-      return true;
-    }
-    if (!myAdditionalPackagingCommandLineParametersField.getText().trim().equals(
-      myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS)) {
-      return true;
-    }
-    if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
       return true;
     }
     if (checkRelativePath(myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH, myProguardLogsDirectoryField.getText())) {
@@ -467,7 +409,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String absGenPathR = myRGenPathField.getText().trim();
     String absGenPathAidl = myAidlGenPathField.getText().trim();
 
-    if (absGenPathR == null || absGenPathR.isEmpty() || absGenPathAidl == null || absGenPathAidl.isEmpty()) {
+    if (absGenPathR.isEmpty() || absGenPathAidl.isEmpty()) {
       throw new ConfigurationException("Please specify source root for autogenerated files");
     }
     else {
@@ -514,46 +456,22 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myConfiguration.getState().CUSTOM_DEBUG_KEYSTORE_PATH = getSelectedCustomKeystorePath();
 
     myConfiguration.getState().PROJECT_TYPE = myIsLibraryProjectCheckbox.isSelected() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
-
-    myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
-
-    myConfiguration.getState().ENABLE_MANIFEST_MERGING = myEnableManifestMerging.isSelected();
-
-    myConfiguration.getState().ENABLE_PRE_DEXING = myPreDexEnabledCheckBox.isSelected();
-
-    myConfiguration.getState().ENABLE_MULTI_DEX = myEnableMultiDexCheckBox.isSelected();
-    myConfiguration.getState().MAIN_DEX_LIST = myMainDexList.getText().trim();
-    myConfiguration.getState().MINIMAL_MAIN_DEX = myMinimalMainDexCheckBox.isSelected();
-
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
-
-    myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION = myEnableSourcesAutogenerationCheckBox.isSelected();
-
-    myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
-
     myConfiguration.getState().RUN_PROGUARD = myRunProguardCheckBox.isSelected();
     myConfiguration.getState().myProGuardCfgFiles = myProGuardConfigFilesPanel.getUrls();
 
     boolean useCustomAptSrc = myUseCustomSourceDirectoryRadio.isSelected();
 
-    myConfiguration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER = useCustomAptSrc;
 
     myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE = myUseCustomManifestPackage.isSelected();
     myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE = myCustomManifestPackageField.getText().trim();
-    myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = myAdditionalPackagingCommandLineParametersField.getText().trim();
 
     String absAptSourcePath = myCustomAptSourceDirField.getText().trim();
     if (useCustomAptSrc) {
       if (absAptSourcePath.isEmpty()) {
         throw new ConfigurationException("Resources folder not specified");
       }
-      myConfiguration.getState().CUSTOM_APK_RESOURCE_FOLDER = '/' + getAndCheckRelativePath(absAptSourcePath, false);
     }
-    else {
-      String relPath = toRelativePath(absAptSourcePath);
-      myConfiguration.getState().CUSTOM_APK_RESOURCE_FOLDER = relPath != null ? '/' + relPath : "";
-    }
-    myConfiguration.getState().UPDATE_PROPERTY_FILES = (String)myUpdateProjectPropertiesCombo.getSelectedItem();
 
     String absProguardLogsPath = myProguardLogsDirectoryField.getText().trim();
     myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH =
@@ -612,43 +530,23 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myRunProguardCheckBox.setSelected(runProguard);
     myProGuardConfigFilesPanel.setUrls(configuration.getState().myProGuardCfgFiles);
 
-    myEnableMultiDexCheckBox.setSelected(configuration.getState().ENABLE_MULTI_DEX);
-    myMainDexList.setText(configuration.getState().MAIN_DEX_LIST);
-    myMinimalMainDexCheckBox.setSelected(configuration.getState().MINIMAL_MAIN_DEX);
-
-    myUseCustomSourceDirectoryRadio.setSelected(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
-    myUseAptResDirectoryFromPathRadio.setSelected(!configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
-
-    String aptSourcePath = configuration.getState().CUSTOM_APK_RESOURCE_FOLDER;
-    String aptSourceAbsPath = !aptSourcePath.isEmpty() ? toAbsolutePath(aptSourcePath) : "";
-    myCustomAptSourceDirField.setText(aptSourceAbsPath != null ? aptSourceAbsPath : "");
-    myCustomAptSourceDirField.setEnabled(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
-
     String apkPath = configuration.getState().APK_PATH;
     String apkAbsPath = !apkPath.isEmpty() ? toAbsolutePath(apkPath) : "";
     myApkPathCombo.getComboBox().getEditor().setItem(apkAbsPath != null ? apkAbsPath : "");
 
     myRunProcessResourcesRadio.setVisible(false);
-    myRunProcessResourcesRadio.setSelected(myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
     myCompileResourcesByIdeRadio.setVisible(false);
-    myCompileResourcesByIdeRadio.setSelected(!myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
-    myEnableManifestMerging.setSelected(myConfiguration.getState().ENABLE_MANIFEST_MERGING);
-    myPreDexEnabledCheckBox.setSelected(myConfiguration.getState().ENABLE_PRE_DEXING);
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.getState().PACK_TEST_CODE);
-    myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 
     myUseCustomManifestPackage.setSelected(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setEnabled(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setText(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE);
-    myAdditionalPackagingCommandLineParametersField.setText(myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS);
 
     String proguardLogsPath = configuration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
     String proguardLogsAbsPath = !proguardLogsPath.isEmpty() ? toAbsolutePath(proguardLogsPath) : "";
     myProguardLogsDirectoryField.setText(proguardLogsAbsPath != null ? proguardLogsAbsPath : "");
 
-    myUpdateProjectPropertiesCombo.setSelectedItem(myConfiguration.getState().UPDATE_PROPERTY_FILES);
-    myEnableSourcesAutogenerationCheckBox.setSelected(myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION);
     updateAutogenerationPanels();
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
@@ -761,7 +659,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       if (path != null) {
         initialFile = LocalFileSystem.getInstance().findFileByPath(path);
       }
-      VirtualFile[] files = chooserDirsUnderModule(initialFile, myChooseFile, false, myFilter);
+      VirtualFile[] files = chooserDirsUnderModule(initialFile, myChooseFile, myFilter);
       if (files.length > 0) {
         assert files.length == 1;
         myTextField.setText(FileUtil.toSystemDependentName(files[0].getPath()));
@@ -771,7 +669,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
   private VirtualFile[] chooserDirsUnderModule(@Nullable VirtualFile initialFile,
                                                final boolean chooseFile,
-                                               boolean chooseMultiple,
                                                @Nullable final Condition<VirtualFile> filter) {
     if (initialFile == null) {
       initialFile = myContext.getModule().getModuleFile();
@@ -782,7 +679,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         initialFile = LocalFileSystem.getInstance().findFileByPath(p);
       }
     }
-    final FileChooserDescriptor descriptor = new FileChooserDescriptor(chooseFile, !chooseFile, false, false, false, chooseMultiple) {
+    final FileChooserDescriptor descriptor = new FileChooserDescriptor(chooseFile, !chooseFile, false, false, false, false) {
       @Override
       public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
         if (!super.isFileVisible(file, showHiddenFiles)) {

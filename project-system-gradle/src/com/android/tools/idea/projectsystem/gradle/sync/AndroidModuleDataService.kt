@@ -273,7 +273,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     modulesWithSDKSetupFailureByCompileTarget.forEach { (compileTarget, modules) ->
       val message = "Could not find compile target $compileTarget for modules ${modules.joinToString(", ")}"
       NotificationGroupManager.getInstance()
-        .getNotificationGroup("Android SDK Setup Issues").createNotification(message, MessageType.ERROR).notify(project);
+        .getNotificationGroup("Android SDK Setup Issues").createNotification(message, MessageType.ERROR).notify(project)
     }
   }
 }
@@ -347,14 +347,6 @@ private fun relativePath(basePath: File, file: File?): String {
 fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
   val state = facet.properties
   state.SELECTED_BUILD_VARIANT = variant.name
-  val mainArtifact = variant.mainArtifact
-
-  // When multi test artifacts are enabled, test tasks are computed dynamically.
-  state.ASSEMBLE_TASK_NAME = mainArtifact.buildInformation.assembleTaskName
-  state.COMPILE_JAVA_TASK_NAME = mainArtifact.compileTaskName
-  state.AFTER_SYNC_TASK_NAMES = HashSet(mainArtifact.ideSetupTaskNames)
-  state.ASSEMBLE_TEST_TASK_NAME = ""
-  state.COMPILE_JAVA_TEST_TASK_NAME = ""
 }
 
 internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
