@@ -9,6 +9,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +49,9 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
 
 
   private void setupApplication(String fullVersion, boolean eap) {
+    // drain EDT queue before creating mock app to avoid "Missing extension point: com.intellij.ideEventQueueDispatcher in container {}"
+    if (!(ApplicationManager.getApplication() instanceof MockApplication)) UIUtil.pump();
+
     MockApplication application = new MockApplication(disposable) {
       @Override
       public boolean isEAP() {
