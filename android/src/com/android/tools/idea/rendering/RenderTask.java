@@ -195,6 +195,7 @@ public class RenderTask {
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
    */
   private final boolean reportOutOfDateUserClasses;
+  @NotNull private final RenderAsyncActionExecutor.RenderingPriority myPriority;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -222,7 +223,8 @@ public class RenderTask {
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
-             boolean reportOutOfDateUserClasses) {
+             boolean reportOutOfDateUserClasses,
+             @NotNull RenderAsyncActionExecutor.RenderingPriority priority) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -230,6 +232,7 @@ public class RenderTask {
       LOG.debug("Security manager was disabled");
     }
 
+    myPriority = priority;
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
@@ -376,7 +379,7 @@ public class RenderTask {
       gapWorkerField.setAccessible(true);
 
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
         try {
           ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
@@ -824,8 +827,9 @@ public class RenderTask {
 
     synchronized (myRunningFutures) {
       CompletableFuture<V> newFuture = timeout < 1 ?
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(callable) :
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, callable);
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, callable) :
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, myPriority,
+                                                                                                              callable);
       myRunningFutures.add(newFuture);
       newFuture
         .whenCompleteAsync((result, ex) -> {
@@ -1247,7 +1251,7 @@ public class RenderTask {
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> measure(modelParser))
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {
         if (session != null) {
           try {
@@ -1422,7 +1426,7 @@ public class RenderTask {
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
 
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.RenderAsyncActionExecutor.*;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.MergeCookie;
@@ -348,6 +349,8 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
+  private static final RenderingPriority DEFAULT_RENDERING_PRIORITY = RenderingPriority.HIGH;
+
   private static Logger getLogger() {
     return Logger.getInstance(RenderService.class);
   }
@@ -430,6 +433,7 @@ public class RenderService implements Disposable {
      * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
      */
     private boolean reportOutOfDateUserClasses = true;
+    @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -610,6 +614,16 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a {@link RenderingPriority} for the RenderTask.
+     * By default, the priority used is {@link RenderingPriority#HIGH}
+     */
+    @NotNull
+    public RenderTaskBuilder withPriority(@NotNull RenderingPriority priority) {
+      myPriority = priority;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -670,7 +684,7 @@ public class RenderService implements Disposable {
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses);
+                           classesToPreload, reportOutOfDateUserClasses, myPriority);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
