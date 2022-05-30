@@ -423,6 +423,9 @@ class ToolWindowModel(
     else {
       newProcessor.showBuildOutputOnSyncFailure = false
       newProcessor.syncRequestCallback = { processorRequestedSync = true }
+      newProcessor.previewExecutedCallback = {
+        ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }
+      }
       newProcessor.backFromPreviewAction = object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
         override fun actionPerformed(e: ActionEvent?) {
           ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }

@@ -526,6 +526,7 @@ class AgpUpgradeRefactoringProcessor(
         val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
         if (ensureElementsWritable(infos, viewDescriptor)) {
           execute(infos)
+          previewExecutedCallback?.invoke()
         }
       }
       val canNotMakeString = AndroidBundle.message("project.upgrade.usageView.need.reRun")
@@ -558,6 +559,7 @@ class AgpUpgradeRefactoringProcessor(
   var showBuildOutputOnSyncFailure = true
 
   var syncRequestCallback: (() -> Unit)? = null
+  var previewExecutedCallback: (() -> Unit)? = null
 
   override fun performPsiSpoilingRefactoring() {
     super.performPsiSpoilingRefactoring()
