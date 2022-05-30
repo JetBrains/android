@@ -135,7 +135,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowDisplaysUpgradeWithNoFiles() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEqualTo(
@@ -175,7 +175,7 @@ class ContentManagerImplTest {
         }
       """.trimIndent()
     )
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEqualTo(
@@ -195,7 +195,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowTreeIsEmptyWithNoFilesForNullUpgrade() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { latestAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEmpty()
@@ -230,7 +230,7 @@ class ContentManagerImplTest {
         }
       """.trimIndent()
     )
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { latestAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEmpty()
@@ -275,7 +275,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowView() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
   }
@@ -284,7 +284,7 @@ class ContentManagerImplTest {
   fun testToolWindowViewHasExpandedTree() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEqualTo("""
@@ -297,7 +297,7 @@ class ContentManagerImplTest {
   fun testToolWindowViewDisablingNodeDisablesChild() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
@@ -313,7 +313,7 @@ class ContentManagerImplTest {
   fun testToolWindowViewMandatoryCodependentDetailsPanel() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     view.tree.selectionPath = view.tree.getPathForRow(0)
@@ -326,7 +326,7 @@ class ContentManagerImplTest {
   fun testToolWindowViewClasspathProcessorDetailsPanel() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     view.tree.selectionPath = view.tree.getPathForRow(1)
@@ -354,7 +354,7 @@ class ContentManagerImplTest {
       """.trimIndent()
     )
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val java8ProcessorPath = view.tree.getPathForRow(1)
@@ -388,7 +388,7 @@ class ContentManagerImplTest {
       "gradle.properties", ""
     )
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { GradleVersion.parse("7.3.0") }, GradleVersion.parse("8.0.0"))
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val r8FullModeProcessorPath = view.tree.getPathForRow(1)
@@ -420,7 +420,7 @@ class ContentManagerImplTest {
       """.trimIndent()
     )
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val gradleVersionProcessorPath = view.tree.getPathForRow(1)
@@ -448,7 +448,7 @@ class ContentManagerImplTest {
       """.trimIndent()
     )
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val gradleVersionProcessorPath = view.tree.getPathForRow(1)
@@ -482,7 +482,7 @@ class ContentManagerImplTest {
       """.trimIndent()
     )
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEqualTo("""
@@ -497,7 +497,7 @@ class ContentManagerImplTest {
   fun testToolWindowViewHasEnabledButtons() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.okButton.isEnabled).isTrue()
@@ -511,7 +511,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowOKButtonsAreDisabledWithNoFiles() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.okButton.isEnabled).isFalse()
@@ -525,7 +525,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion }) { setOf<GradleVersion>() }
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
@@ -704,7 +704,7 @@ class ContentManagerImplTest {
   @Test
   fun testAgpVersionEditingValidation() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     assertThat(model.editingValidation("").first).isEqualTo(EditingErrorCategory.ERROR)
     assertThat(model.editingValidation("").second).isEqualTo("Invalid AGP version format.")
@@ -732,7 +732,7 @@ class ContentManagerImplTest {
   @Test
   fun testTreePanelVisibility() {
     val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.treePanel.isVisible).isTrue()

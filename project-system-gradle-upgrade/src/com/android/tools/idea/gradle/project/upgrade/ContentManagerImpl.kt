@@ -424,11 +424,11 @@ class ToolWindowModel(
       newProcessor.showBuildOutputOnSyncFailure = false
       newProcessor.syncRequestCallback = { processorRequestedSync = true }
       newProcessor.previewExecutedCallback = {
-        ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }
+        ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.run { if (isAvailable) show() }
       }
       newProcessor.backFromPreviewAction = object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
         override fun actionPerformed(e: ActionEvent?) {
-          ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }
+          ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.run { if (isAvailable) show() }
         }
       }
       val application = ApplicationManager.getApplication()
@@ -622,13 +622,13 @@ class ContentManagerImpl(val project: Project): ContentManager {
       // Force EDT here to ease the testing (see com.intellij.ide.plugins.CreateAllServicesAndExtensionsAction: it instantiates services
       //  on a background thread). There is no performance penalties when already invoked on EDT.
       ToolWindowManager.getInstance(project).registerToolWindow(
-        RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle)
+        RegisterToolWindowTask.closable(TOOL_WINDOW_ID, icons.GradleIcons.ToolWindowGradle)
       )
     }
   }
 
   override fun showContent(recommended: GradleVersion?) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(
       project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion }, recommended = recommended
@@ -1041,6 +1041,8 @@ class ContentManagerImpl(val project: Project): ContentManager {
     }
   }
 }
+
+const val TOOL_WINDOW_ID = "Upgrade Assistant"
 
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.componentRefactoringProcessorsWithAgpVersionProcessorLast
