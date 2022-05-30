@@ -1267,9 +1267,6 @@
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="animation" hit="Enable animation preview" />
-    <option name="enable" hit="Enable animation preview" />
-    <option name="preview" hit="Enable animation preview" />
     <option name="android" hit="Enable mirroring of physical Android devices" />
     <option name="devices" hit="Enable mirroring of physical Android devices" />
     <option name="enable" hit="Enable mirroring of physical Android devices" />
@@ -1282,17 +1279,6 @@
     <option name="tool" hit="Enable new Logcat tool window" />
     <option name="window" hit="Enable new Logcat tool window" />
     <option name="experimental" hit="Experimental" />
-    <option name="animation" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="animations" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="by" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="compose" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="defined" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="frame" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="framework" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="inspection" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="of" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="the" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="using" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
     <option name="gradle" hit="Gradle" />
     <option name="compose" hit="Jetpack Compose" />
     <option name="jetpack" hit="Jetpack Compose" />

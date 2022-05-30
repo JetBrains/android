@@ -64,7 +64,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
-  private JCheckBox myAnimationPreviewCheckBox;
   private JCheckBox myPreviewPickerCheckBox;
   private JLabel myPreviewPickerLabel;
   private JCheckBox myEnableNewLogcatToolCheckBox;
@@ -132,7 +131,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-           myAnimationPreviewCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
            myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled();
@@ -150,7 +148,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
     applyTraceSettings();
-    ComposeExperimentalConfiguration.getInstance().setAnimationPreviewEnabled(myAnimationPreviewCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     DeviceMirroringSettings.getInstance().setDeviceMirroringEnabled(myEnableDeviceMirroringCheckBox.isSelected());
 
@@ -312,7 +309,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     updateTraceComponents();
-    myAnimationPreviewCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled());
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
     myEnableDeviceMirroringCheckBox.setSelected(DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled());

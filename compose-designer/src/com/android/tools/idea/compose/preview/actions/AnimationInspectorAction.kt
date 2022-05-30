@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
@@ -40,7 +39,7 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
     e.presentation.apply {
       isEnabled = true
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible = ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled && getPreviewElement()?.hasAnimations == true
+      isVisible = getPreviewElement()?.hasAnimations == true
       description =
         if (isEnabled) message("action.animation.inspector.description") else message("action.animation.inspector.unavailable.title")
     }
