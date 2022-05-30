@@ -157,6 +157,21 @@ internal class DeviceViewTest {
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
+    ui.mouse.release()
+
+    // Check mouse leaving the device view while dragging.
+    ui.mouse.press(50, 40)
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(552, 1019, 0)), MotionEventMessage.ACTION_DOWN, 0))
+    ui.mouse.dragTo(55, 10)
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(679, 259, 0)), MotionEventMessage.ACTION_MOVE, 0))
+    ui.mouse.dragTo(60, -10)
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_MOVE, 0))
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
+    ui.mouse.release()
   }
 
   @Test

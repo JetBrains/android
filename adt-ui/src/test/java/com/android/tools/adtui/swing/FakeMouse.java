@@ -76,13 +76,33 @@ public final class FakeMouse {
     dragTo(point.x, point.y);
   }
 
+  /**
+   * Simulates dragging mouse pointer from the current position (determined by {@link #myCursor})
+   * to the given point. In addition to a MOUSE_DRAGGED event, may generate MOUSE_ENTERED
+   * and/or MOUSE_EXITED events, if the mouse pointer crosses component boundaries.
+   */
   public void dragTo(int x, int y) {
     if (myCursor == null) {
       throw new IllegalStateException("Mouse not pressed. Call press before dragging.");
     }
 
-    dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, myCursor.button, 1, false);
-    myCursor = new Cursor(myCursor, x, y);
+    FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    Component target = point == null ? null : point.component;
+    if (target != myFocus) {
+      if (myFocus != null) {
+        Point relative = myUi.toRelative(myFocus, x, y);
+        FakeUi.RelativePoint relativePoint = new FakeUi.RelativePoint(myFocus, relative.x, relative.y);
+        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, myCursor.button.mask, 0, 1, false);
+      }
+      if (target != null) {
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, myCursor.button.mask, 0, 1, false);
+      }
+    }
+    if (target != null) {
+      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, myCursor.button, 1, false);
+      myCursor = new Cursor(myCursor, x, y);
+    }
+    myFocus = target;
   }
 
   /**
@@ -100,6 +120,11 @@ public final class FakeMouse {
     moveTo(point.x, point.y);
   }
 
+  /**
+   * Simulates moving mouse pointer from the current position (determined by {@link #myCursor})
+   * to the given point. In addition to a MOUSE_DRAGGED event, may generate MOUSE_ENTERED
+   * and/or MOUSE_EXITED events, if the mouse pointer crosses component boundaries.
+   */
   public void moveTo(int x, int y) {
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
     Component target = point == null ? null : point.component;

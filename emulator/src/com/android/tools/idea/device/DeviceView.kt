@@ -454,7 +454,8 @@ class DeviceView(
 
     override fun mouseExited(event: MouseEvent) {
       if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0) {
-        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_UP) // Terminate the ongoing dragging.
+        // Moving over the edge of the display view will terminate the ongoing dragging.
+        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
       }
       multiTouchMode = false
     }
