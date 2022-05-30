@@ -1596,7 +1596,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   private fun PsProject.testSubscribeToNotifications(disposable: Disposable = testRootDisposable) {
-    this.onModuleChanged(disposable) { module -> changedModules.add(module.gradlePath.orEmpty()) }
+    this.onModuleChanged(disposable) { module -> changedModules.add(module.gradlePath) }
   }
 
   private fun PsAndroidModule.testSubscribeToChangeNotifications() {

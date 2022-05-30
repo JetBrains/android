@@ -274,6 +274,6 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   private fun PsProject.testSubscribeToNotifications() {
-    this.onModuleChanged(testRootDisposable) { module -> changedModules.add(module.gradlePath.orEmpty()) }
+    this.onModuleChanged(testRootDisposable) { module -> changedModules.add(module.gradlePath) }
   }
 }

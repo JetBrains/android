@@ -63,7 +63,7 @@ class LIEditableItemCellRenderer : TableCellRenderer {
     }
     
     with(value as LITableItem) {
-      val text = this.value.orEmpty()
+      val text = this.value
       myTextField.foreground = if (this.isDefaultValue(text)) fg else JBColor.BLUE
       myTextField.text = text
     }
