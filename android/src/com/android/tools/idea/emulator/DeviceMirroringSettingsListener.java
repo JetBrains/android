@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Listener of Device Mirroring settings changes.
  */
-interface DeviceMirroringSettingsListener extends EventListener {
+public interface DeviceMirroringSettingsListener extends EventListener {
   Topic<DeviceMirroringSettingsListener> TOPIC = Topic.create("Device mirroring settings", DeviceMirroringSettingsListener.class);
 
   @UiThread

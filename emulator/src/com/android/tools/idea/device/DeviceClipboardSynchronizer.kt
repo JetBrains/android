@@ -17,6 +17,7 @@ package com.android.tools.idea.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
@@ -40,31 +41,31 @@ internal class DeviceClipboardSynchronizer(
   init {
     Disposer.register(parentDisposable, this)
     copyPasteManager.addContentChangedListener(this, this)
+    deviceController.addDeviceClipboardListener(this)
+    setDeviceClipboard()
   }
 
   @UiThread
   override fun dispose() {
-    stopKeepingHostClipboardInSync()
-  }
-
-  @UiThread
-  fun setDeviceClipboardAndKeepHostClipboardInSync() {
-    deviceController.addDeviceClipboardListener(this)
-    val text = getClipboardText()
-    sendClipboardSyncMessage(text)
-  }
-
-  private fun sendClipboardSyncMessage(text: String) {
-    val message = StartClipboardSyncMessage(MAX_SYNCED_CLIPBOARD_LENGTH, text)
-    deviceController.sendControlMessage(message)
-  }
-
-  @UiThread
-  private fun stopKeepingHostClipboardInSync() {
     deviceController.removeDeviceClipboardListener(this)
     val message = StopClipboardSyncMessage()
     deviceController.sendControlMessage(message)
     lastClipboardText = ""
+  }
+
+  /**
+   * Sets the device clipboard to have the same content as the host clipboard.
+   */
+  @UiThread
+  fun setDeviceClipboard() {
+    val text = getClipboardText()
+    sendClipboardSyncMessage(text)
+  }
+
+  @UiThread
+  private fun sendClipboardSyncMessage(text: String) {
+    val message = StartClipboardSyncMessage(DeviceMirroringSettings.getInstance().maxSyncedClipboardLength, text)
+    deviceController.sendControlMessage(message)
   }
 
   @UiThread
@@ -101,7 +102,3 @@ internal class DeviceClipboardSynchronizer(
     }
   }
 }
-
-/** Max length of clipboard text to participate in clipboard synchronization. */
-// TODO: Make configurable.
-private const val MAX_SYNCED_CLIPBOARD_LENGTH = 4096

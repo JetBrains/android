@@ -44,6 +44,8 @@ import com.android.tools.idea.testing.mockStatic
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -61,6 +63,8 @@ import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -348,6 +352,26 @@ internal class DeviceViewTest {
       assertThat(view.canZoomToFit()).isFalse()
       assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
     }
+  }
+
+  @Test
+  fun testClipboardSynchronization() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    createDeviceView(100, 200, 1.5)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(150, 300))
+
+    val settings = DeviceMirroringSettings.getInstance()
+    settings.synchronizeClipboard = true
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isInstanceOf(StartClipboardSyncMessage::class.java)
+    CopyPasteManager.getInstance().setContents(StringSelection("host clipboard"))
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+        StartClipboardSyncMessage(settings.maxSyncedClipboardLength, "host clipboard"))
+    agent.clipboard = "device clipboard"
+    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    settings.synchronizeClipboard = false
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(StopClipboardSyncMessage())
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

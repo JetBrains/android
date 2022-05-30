@@ -38,7 +38,16 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
-  var synchronizeClipboard = StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()
+  var synchronizeClipboard: Boolean = StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
+  /** Max length of clipboard text to participate in clipboard synchronization. */
+  var maxSyncedClipboardLength: Int = MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT
     set(value) {
       if (field != value) {
         field = value
@@ -68,5 +77,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
     fun getInstance(): DeviceMirroringSettings {
       return ApplicationManager.getApplication().getService(DeviceMirroringSettings::class.java)
     }
+
+    private const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 4096
   }
 }

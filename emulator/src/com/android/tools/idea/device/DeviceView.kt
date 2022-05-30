@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.DeviceMirroringSettings
+import com.android.tools.idea.emulator.DeviceMirroringSettingsListener
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.emulator.isSameAspectRatio
 import com.android.tools.idea.emulator.rotatedByQuadrants
@@ -86,16 +87,17 @@ class DeviceView(
   private val deviceAbi: String,
   initialDisplayOrientation: Int?,
   private val project: Project,
-) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable {
+) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
 
   /** Area of the window occupied by the device display image in physical pixels. */
   var displayRectangle: Rectangle? = null
     private set
   private val displayTransform = AffineTransform()
   private var deviceClient: DeviceClient? = null
-  val deviceController: DeviceController?
+  internal val deviceController: DeviceController?
     get() = deviceClient?.deviceController
   private var decoder: VideoDecoder? = null
+  private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
 
   /** Size of the device display in device pixels. */
   private val deviceDisplaySize = Dimension()
@@ -146,6 +148,8 @@ class DeviceView(
 
     addKeyListener(MyKeyListener())
 
+    project.messageBus.connect(this).subscribe(DeviceMirroringSettingsListener.TOPIC, this)
+
     AndroidCoroutineScope(this).launch { initializeAgent(initialDisplayOrientation) }
   }
 
@@ -162,8 +166,7 @@ class DeviceView(
             deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
           }
           if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
-            val clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
-            clipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync()
+            clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
           }
         }
       }
@@ -291,6 +294,27 @@ class DeviceView(
     }
   }
 
+  override fun settingsChanged(settings: DeviceMirroringSettings) {
+    val controller = deviceClient?.deviceController ?: return
+    if (settings.synchronizeClipboard) {
+      val synchronizer = clipboardSynchronizer
+      if (synchronizer == null) {
+        // Start clipboard synchronization.
+        clipboardSynchronizer = DeviceClipboardSynchronizer(controller, this)
+      }
+      else {
+        // Pass the new value of maxSyncedClipboardLength to the device.
+        synchronizer.setDeviceClipboard()
+      }
+    }
+    else {
+      clipboardSynchronizer?.let {
+        // Stop clipboard synchronization.
+        Disposer.dispose(it)
+        clipboardSynchronizer = null
+      }
+    }
+  }
 
   private fun sendMotionEvent(x: Int, y: Int, action: Int) {
     val displayRectangle = displayRectangle ?: return
