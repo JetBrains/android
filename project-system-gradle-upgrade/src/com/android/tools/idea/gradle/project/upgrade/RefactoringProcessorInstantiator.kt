@@ -24,7 +24,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.firstNotNullResult
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 class RefactoringProcessorInstantiator {
   /**

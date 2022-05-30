@@ -37,7 +37,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.firstNotNullResult
 import java.util.function.Supplier
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 

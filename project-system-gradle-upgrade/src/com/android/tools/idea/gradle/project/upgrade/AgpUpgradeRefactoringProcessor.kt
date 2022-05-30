@@ -106,7 +106,8 @@ import java.util.function.Supplier
 import javax.swing.AbstractAction
 import javax.swing.Action
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+internal const val LOG_CATEGORY = "Upgrade Assistant"
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   constructor(project: Project) : super(project) {

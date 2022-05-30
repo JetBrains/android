@@ -95,7 +95,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 // "Model" here loosely in the sense of Model-View-Controller
 class ToolWindowModel(

@@ -32,7 +32,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.util.firstNotNullResult
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 class AssistantInvokerImpl : AssistantInvoker {
   @Slow

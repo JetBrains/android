@@ -61,7 +61,7 @@ import com.jetbrains.rd.util.first
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
-private val LOG = Logger.getInstance("Upgrade Assistant")
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 // **************************************************************************
 // ** Recommended upgrades
