@@ -21,6 +21,7 @@ import static com.google.common.math.IntMath.isPowerOfTwo;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.LeakHunter;
 import com.intellij.util.ReflectionUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -39,19 +40,26 @@ public final class HeapSnapshotTraverse {
 
   private static final int MAX_HEAP_TREE_SIZE = 3 * (int)1e7;
 
+  private volatile boolean myShouldAbortTraversal = false;
+  @NotNull
+  private final LowMemoryWatcher myWatcher;
   @NotNull
   private final Set<ClassLoader> myProcessedLoaders;
   @NotNull
   private final HeapTraverseChildProcessor myHeapTraverseChildProcessor;
 
   public HeapSnapshotTraverse() {
-    myProcessedLoaders = Sets.newHashSet(LeakHunter.class.getClassLoader());
-    myHeapTraverseChildProcessor = new HeapTraverseChildProcessor();
+    this(new HeapTraverseChildProcessor());
   }
 
   public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor) {
+    myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived);
     myProcessedLoaders = Sets.newHashSet(LeakHunter.class.getClassLoader());
     myHeapTraverseChildProcessor = childProcessor;
+  }
+
+  private void onLowMemorySignalReceived() {
+    myShouldAbortTraversal = true;
   }
 
   /**
@@ -73,67 +81,83 @@ public final class HeapSnapshotTraverse {
   public ErrorCode walkObjects(int maxDepth,
                                       @NotNull final Collection<?> startRoots,
                                       @NotNull final HeapSnapshotStatistics stats) {
-    final IntSet visited = new IntOpenHashSet(100);
-    final Deque<WeakReference<?>> order = new ArrayDeque<>();
-    final FieldCache fieldCache = new FieldCache();
+    try {
+      final IntSet visited = new IntOpenHashSet(100);
+      final Deque<WeakReference<?>> order = new ArrayDeque<>();
+      final FieldCache fieldCache = new FieldCache();
 
-    // collection of topological order
-    for (Object root : startRoots) {
-      if (root == null) continue;
-      ErrorCode errorCode = depthFirstTraverseHeapObjects(root, maxDepth, visited, order, fieldCache);
-      if (errorCode != ErrorCode.OK) {
-        return errorCode;
+      // collection of topological order
+      for (Object root : startRoots) {
+        if (root == null) continue;
+        ErrorCode errorCode = depthFirstTraverseHeapObjects(root, maxDepth, visited, order, fieldCache);
+        if (errorCode != ErrorCode.OK) {
+          return errorCode;
+        }
+      }
+      final Map<Integer, HeapTraverseNode> objectHashToTraverseNode = Maps.newHashMap();
+
+      // iterate over objects and update masks
+      while (!order.isEmpty()) {
+        abortTraversalIfRequested();
+        final Object currentObject = order.pop().get();
+        if (currentObject == null) {
+          continue;
+        }
+        int currentObjectHashCode = System.identityHashCode(currentObject);
+        visited.remove(currentObjectHashCode);
+
+        HeapTraverseNode node = objectHashToTraverseNode.get(currentObjectHashCode);
+        objectHashToTraverseNode.remove(currentObjectHashCode);
+
+        // Check whether the current object is a root of one of the components
+        int componentId = stats.getComponentsSet().getComponentId(currentObject);
+        long currentObjectSize = sizeOf(currentObject, fieldCache);
+        stats.addObjectToTotal(currentObjectSize);
+
+        if (node == null) {
+          node = new HeapTraverseNode();
+        }
+        // if it's a root of a component
+        if (componentId != HeapSnapshotStatistics.COMPONENT_NOT_FOUND) {
+          node.myReachableFromComponentMask |= (1 << componentId);
+          node.myRetainedMask |= (1 << componentId);
+          node.myOwnedByComponentMask = (1 << componentId);
+          node.myOwnershipWeight = HeapTraverseNode.RefWeight.DEFAULT;
+        }
+
+        // If current object is retained by any components - propagate their stats.
+        processMask(node.myRetainedMask,
+                    (index) -> stats.addRetainedObjectSizeToComponent(index, currentObjectSize));
+        if (node.myOwnedByComponentMask == 0) {
+          stats.addNonComponentObject(currentObjectSize);
+        }
+        else if (isPowerOfTwo(node.myOwnedByComponentMask)) {
+          // if only owned by one component
+          processMask(node.myOwnedByComponentMask,
+                      (index) -> stats.addOwnedObjectSizeToComponent(index, currentObjectSize));
+        }
+        else {
+          // if owned by multiple components -> add to shared
+          stats.addObjectSizeToSharedComponent(node.myOwnedByComponentMask, currentObjectSize);
+        }
+
+        // propagate to referred objects
+        propagateComponentMask(currentObject, node, visited, objectHashToTraverseNode, fieldCache);
       }
     }
-    final Map<Integer, HeapTraverseNode> objectHashToTraverseNode = Maps.newHashMap();
-
-    // iterate over objects and update masks
-    while (!order.isEmpty()) {
-      final Object currentObject = order.pop().get();
-      if (currentObject == null) {
-        continue;
-      }
-      int currentObjectHashCode = System.identityHashCode(currentObject);
-      visited.remove(currentObjectHashCode);
-
-      HeapTraverseNode node = objectHashToTraverseNode.get(currentObjectHashCode);
-      objectHashToTraverseNode.remove(currentObjectHashCode);
-
-      // Check whether the current object is a root of one of the components
-      int componentId = stats.getComponentsSet().getComponentId(currentObject);
-      long currentObjectSize = sizeOf(currentObject, fieldCache);
-      stats.addObjectToTotal(currentObjectSize);
-
-      if (node == null) {
-        node = new HeapTraverseNode();
-      }
-      // if it's a root of a component
-      if (componentId != HeapSnapshotStatistics.COMPONENT_NOT_FOUND) {
-        node.myReachableFromComponentMask |= (1 << componentId);
-        node.myRetainedMask |= (1 << componentId);
-        node.myOwnedByComponentMask = (1 << componentId);
-        node.myOwnershipWeight = HeapTraverseNode.RefWeight.DEFAULT;
-      }
-
-      // If current object is retained by any components - propagate their stats.
-      processMask(node.myRetainedMask,
-                  (index) -> stats.addRetainedObjectSizeToComponent(index, currentObjectSize));
-      if (node.myOwnedByComponentMask == 0) {
-        stats.addNonComponentObject(currentObjectSize);
-      } else if (isPowerOfTwo(node.myOwnedByComponentMask)) {
-        // if only owned by one component
-        processMask(node.myOwnedByComponentMask,
-                    (index) -> stats.addOwnedObjectSizeToComponent(index, currentObjectSize));
-      }
-      else {
-        // if owned by multiple components -> add to shared
-        stats.addObjectSizeToSharedComponent(node.myOwnedByComponentMask, currentObjectSize);
-      }
-
-      // propagate to referred objects
-      propagateComponentMask(currentObject, node, visited, objectHashToTraverseNode, fieldCache);
+    catch (HeapSnapshotTraverseException exception) {
+      return exception.getErrorCode();
+    }
+    finally {
+      myWatcher.stop();
     }
     return ErrorCode.OK;
+  }
+
+  private void abortTraversalIfRequested() throws HeapSnapshotTraverseException {
+    if (myShouldAbortTraversal) {
+      throw new HeapSnapshotTraverseException(ErrorCode.LOW_MEMORY);
+    }
   }
 
   private void addToStack(@NotNull final Node node,
@@ -189,10 +213,10 @@ public final class HeapSnapshotTraverse {
   }
 
   private ErrorCode depthFirstTraverseHeapObjects(@NotNull final Object root,
-                                                    int maxDepth,
-                                                    @NotNull final IntSet visited,
-                                                    final Deque<WeakReference<?>> order,
-                                                    @NotNull final FieldCache fieldCache) {
+                                                  int maxDepth,
+                                                  @NotNull final IntSet visited,
+                                                  final Deque<WeakReference<?>> order,
+                                                  @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     Deque<Node> stack = new ArrayDeque<>(1_000_000);
     Node rootNode = new Node(root, 0);
     stack.push(rootNode);
@@ -218,6 +242,7 @@ public final class HeapSnapshotTraverse {
       }
 
       addStronglyReferencedChildrenToStack(node, maxDepth, visited, stack, fieldCache);
+      abortTraversalIfRequested();
       node.myReferencesProcessed = true;
     }
     return ErrorCode.OK;
@@ -292,7 +317,8 @@ public final class HeapSnapshotTraverse {
 
   public enum ErrorCode {
     OK("Success"),
-    HEAP_IS_TOO_BIG("Heap is too big");
+    HEAP_IS_TOO_BIG("Heap is too big"),
+    LOW_MEMORY("LowMemory state occured during the heap traversal");
 
     private final String myClarification;
 
@@ -324,6 +350,19 @@ public final class HeapSnapshotTraverse {
 
     private int getDepth() {
       return myDepth;
+    }
+  }
+
+  private static class HeapSnapshotTraverseException extends Exception {
+    private final ErrorCode myErrorCode;
+
+    HeapSnapshotTraverseException(ErrorCode errorCode) {
+      super(errorCode.getDescription());
+      myErrorCode = errorCode;
+    }
+
+    ErrorCode getErrorCode() {
+      return myErrorCode;
     }
   }
 }

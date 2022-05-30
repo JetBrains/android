@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.heap;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.LowMemoryWatcher;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
@@ -227,6 +228,18 @@ public class HeapAnalyzerTest {
     // c and b
     Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
     Assert.assertEquals(32, componentStats.get(1).getOwnedTotalSizeOfObjects());
+  }
+
+  @Test
+  public void testTraverseReturnLowMemoryError() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse();
+
+    LowMemoryWatcher.onLowMemorySignalReceived(false);
+
+    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.LOW_MEMORY,
+                        traverse.walkObjects(MAX_DEPTH, List.of(new A()), stats));
   }
 
   private static class A {
