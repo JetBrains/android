@@ -16,6 +16,8 @@
 package com.android.tools.idea.device
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -29,7 +31,6 @@ import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
-import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
@@ -127,7 +128,38 @@ class SuspendingChannelsTest {
   }
 
   @Test
-  fun testConnect() {
+  fun testConnectAndPeerClosing() {
+    val connected = CountDownLatch(1)
+
+    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))
+    coroutineScope.launch {
+      serverChannel.use {
+        serverChannel.accept().use { socketChannel ->
+          connected.countDown()
+          socketChannel.close()
+        }
+      }
+    }
+    runBlocking {
+      SuspendingSocketChannel.open().use { channel ->
+        channel.connect(serverChannel.localAddress)
+        assertThat(connected.await(200, TimeUnit.MILLISECONDS)).isTrue()
+
+        val expectedMessage =
+            if (SystemInfo.isWindows) "An established connection was aborted by the software in your host machine" else "Broken pipe"
+        assertThrows(IOException::class.java, expectedMessage) {
+          runBlocking {
+            while (true) {
+              channel.writeFully(ByteBuffer.wrap("nock nock".toByteArray()))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testPeerClosing() {
     val connected = CountDownLatch(1)
 
     val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))

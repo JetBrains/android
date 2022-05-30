@@ -185,11 +185,7 @@ class SuspendingSocketChannel(
     }
 
     override fun failed(e: Throwable, continuation: CancellableContinuation<Int>) {
-      val exception = e as? InterruptedByTimeoutException ?:
-          IOException(if (operation == Operation.READ) "Error reading from asynchronous channel"
-                      else "Error writing to asynchronous channel",
-                      e)
-      continuation.resumeWithException(exception)
+      continuation.resumeWithException(e)
     }
   }
 
