@@ -142,7 +142,7 @@ class NetworkInspectorView(
     tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }
-    detailsPanel.minimumSize = Dimension(JBUI.scale(450), detailsPanel.minimumSize.getHeight().toInt())
+    detailsPanel.minimumSize = Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
     val threadsView = ThreadsView(model, parentPane)
     val leftSplitter = JBSplitter(true, 0.25f)
     leftSplitter.divider.border = DEFAULT_HORIZONTAL_BORDERS

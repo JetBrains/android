@@ -48,10 +48,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.plaf.ComboBoxUI
 
-private const val MINIMUM_DETAILS_VIEW_WIDTH = 400
-const val TEXT_LABEL_WIDTH = 220
-const val NUMBER_LABEL_WIDTH = 80
-
 /**
  * View to display a single network interception rule and its detailed information.
  */
@@ -75,7 +71,6 @@ class RuleDetailsView : JPanel() {
   init {
     layout = TabularLayout("*", "28px,*")
     border = BorderFactory.createEmptyBorder()
-    minimumSize = Dimension(MINIMUM_DETAILS_VIEW_WIDTH, minimumSize.height)
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Rule Details")
     instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
@@ -88,7 +83,7 @@ class RuleDetailsView : JPanel() {
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
     detailsPanel.add(
       createCategoryPanel(
-        null, JBLabel("Name:") to createTextField(rule.name, "Enter rule name", TEXT_LABEL_WIDTH, "nameTextField") { text ->
+        null, JBLabel("Name:") to createTextField(rule.name, "Enter rule name", "nameTextField") { text ->
         rule.name = text
       })
     )
@@ -111,10 +106,10 @@ class RuleDetailsView : JPanel() {
 
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
     val statusCodeData = rule.statusCodeRuleData
-    val findCodeTextField = createTextField(statusCodeData.findCode, "200", NUMBER_LABEL_WIDTH, "findCodeTextField") {
+    val findCodeTextField = createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
       statusCodeData.findCode = it
     }
-    val newCodeTextField = createTextField(statusCodeData.newCode, "500", NUMBER_LABEL_WIDTH, "newCodeTextField") {
+    val newCodeTextField = createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
       statusCodeData.newCode = it
     }
     val isActiveCheckBox = JBCheckBox("Replace with status code:").apply {
@@ -126,8 +121,13 @@ class RuleDetailsView : JPanel() {
       }
     }
     return JPanel(VerticalLayout(6)).apply {
-      add(createCategoryPanel("Response", JLabel("Apply rule for status:") to findCodeTextField,
-      isActiveCheckBox to newCodeTextField))
+      add(TitledSeparator("Response").apply { minimumSize = Dimension(0, 34) })
+      add(JPanel(TabularLayout("Fit,5px,*,40px,Fit,5px,*")).apply {
+        add(JLabel("Apply rule for status:"), TabularLayout.Constraint(0, 0))
+        add(findCodeTextField, TabularLayout.Constraint(0, 2))
+        add(isActiveCheckBox, TabularLayout.Constraint(0, 4))
+        add(newCodeTextField, TabularLayout.Constraint(0, 6))
+      })
     }
   }
 
@@ -140,19 +140,19 @@ class RuleDetailsView : JPanel() {
       }
       name = "protocolComboBox"
     }
-    val urlTextField = createTextField(rule.criteria.host, "www.google.com", TEXT_LABEL_WIDTH, "urlTextField") { text ->
+    val urlTextField = createTextField(rule.criteria.host, "www.google.com", "urlTextField") { text ->
       rule.criteria.apply {
         host = text
       }
     }
-    val portTextField = createTextField(rule.criteria.port, "80", NUMBER_LABEL_WIDTH, "portTextField") {
-      text -> rule.criteria.port = text
+    val portTextField = createTextField(rule.criteria.port, "80", "portTextField") { text ->
+      rule.criteria.port = text
     }
-    val pathTextField = createTextField(rule.criteria.path, "search", TEXT_LABEL_WIDTH, "pathTextField") {
-      text -> rule.criteria.path = text
+    val pathTextField = createTextField(rule.criteria.path, "search", "pathTextField") { text ->
+      rule.criteria.path = text
     }
-    val queryTextField = createTextField(rule.criteria.query, "q=android+studio", TEXT_LABEL_WIDTH, "queryTextField") {
-      text -> rule.criteria.query = text
+    val queryTextField = createTextField(rule.criteria.query, "q=android+studio", "queryTextField") { text ->
+      rule.criteria.query = text
     }
     val methodComboBox = BorderlessComboBox(DefaultCommonComboBoxModel("", listOf("GET", "POST"))).apply {
       isEditable = false
@@ -220,13 +220,13 @@ class RuleDetailsView : JPanel() {
 
 private class BorderlessComboBox(
   model: DefaultCommonComboBoxModel<String>
-): CommonComboBox<String, DefaultCommonComboBoxModel<String>>(model) {
+) : CommonComboBox<String, DefaultCommonComboBoxModel<String>>(model) {
   override fun setUI(ui: ComboBoxUI?) {
     super.setUI(BorderlessComboBoxUI())
   }
 }
 
-private class BorderlessComboBoxUI: DarculaComboBoxUI(DarculaUIUtil.COMPONENT_ARC.float, JBUI.insets(0), true) {
+private class BorderlessComboBoxUI : DarculaComboBoxUI(DarculaUIUtil.COMPONENT_ARC.float, JBUI.insets(0), true) {
   override fun installDefaults() {
     super.installDefaults()
     padding = JBUI.emptyInsets()

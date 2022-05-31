@@ -34,6 +34,7 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.lang.Integer.max
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -170,7 +171,7 @@ fun createCategoryPanel(
     }
 
     bodyPanel.add(component1, TabularLayout.Constraint(index, 0))
-    bodyPanel.add(component2Panel, TabularLayout.Constraint(index,  1))
+    bodyPanel.add(component2Panel, TabularLayout.Constraint(index, 1))
   }
   panel.add(bodyPanel)
   return panel
@@ -182,12 +183,13 @@ fun createCategoryPanel(
 fun createTextField(
   initialText: String?,
   hintText: String,
-  width: Int,
   name: String? = null,
   focusLost: (String) -> Unit = {}
 ) = JBTextField(initialText).apply {
-  this.emptyText.appendText(hintText)
-  preferredSize = Dimension(width, preferredSize.height)
+  emptyText.appendText(hintText)
+  // Adjust TextField size to contain hintText properly
+  preferredSize = Dimension(max(preferredSize.width, emptyText.preferredSize.width + font.size),
+                            max(preferredSize.height, emptyText.preferredSize.height))
   border = BorderFactory.createLineBorder(borderLight)
   this.name = name
   addFocusListener(object : FocusAdapter() {

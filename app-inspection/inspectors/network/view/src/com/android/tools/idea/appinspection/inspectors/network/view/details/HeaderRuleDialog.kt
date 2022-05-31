@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
@@ -22,7 +23,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.TextComponentEmptyText
-import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.JBUI
@@ -41,28 +41,28 @@ class HeaderRuleDialog(
 ) : DialogWrapper(false) {
 
   @VisibleForTesting
-  val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
+  val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
 
   @VisibleForTesting
-  val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
+  val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com")
 
   @VisibleForTesting
-  val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
+  val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
 
   @VisibleForTesting
   val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val findValueTextField: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
+  val findValueTextField: JBTextField = createTextField(null, "https://www.google.com")
 
   @VisibleForTesting
   val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control", TEXT_LABEL_WIDTH)
+  val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control")
 
   @VisibleForTesting
-  val newReplacedValueTextField: JBTextField = createTextField(null, "max-age=604800", TEXT_LABEL_WIDTH)
+  val newReplacedValueTextField: JBTextField = createTextField(null, "max-age=604800")
 
   @VisibleForTesting
   val findNameCheckBox = createFieldEnabledCheckBox("Header name:", findNameTextField, findNameRegexCheckBox)
@@ -107,7 +107,7 @@ class HeaderRuleDialog(
     border = JBUI.Borders.empty(15, 0, 0, 0)
     add(createCategoryPanel(null,
                             JBLabel("New header name:") to newAddedNameLabel,
-    JBLabel("Value:") to newAddedValueLabel))
+                            JBLabel("Value:") to newAddedValueLabel))
   }
 
   @VisibleForTesting
@@ -193,8 +193,8 @@ class HeaderRuleDialog(
     }
   }
 
-  private fun JBTextField.withRegexCheckBox(checkBox: JBCheckBox) = JPanel(HorizontalLayout(20)).apply {
-    add(this@withRegexCheckBox)
-    add(checkBox)
+  private fun JBTextField.withRegexCheckBox(checkBox: JBCheckBox) = JPanel(TabularLayout("*,20px,Fit")).apply {
+    add(this@withRegexCheckBox, TabularLayout.Constraint(0, 0))
+    add(checkBox, TabularLayout.Constraint(0, 2))
   }
 }
