@@ -87,11 +87,11 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslF
       ExtModel::class.java from {
         var at = 0
         val elements: List<GradleDslElement> = it.getCurrentElements()
-        if (!elements.isEmpty()) {
-          val firstElement = elements[0]
-          if (firstElement is ApplyDslElement || firstElement is PluginsDslElement) {
-            at += 1
+        for (element in elements) {
+          if (!(element is ApplyDslElement || element is PluginsDslElement || element is BuildScriptDslElement)) {
+            break
           }
+          at += 1
         }
         val extDslElement: ExtDslElement = it.ensurePropertyElementAt(ExtDslElement.EXT, at)
         return@from ExtModelImpl(extDslElement)
