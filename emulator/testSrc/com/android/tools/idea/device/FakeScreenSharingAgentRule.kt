@@ -77,9 +77,15 @@ internal class FakeScreenSharingAgentRule : TestRule {
       withDeviceCommandHandler(DeviceCommandHandler("sync"))
       withDeviceCommandHandler(object: DeviceCommandHandler("shell,v2") {
         override fun invoke(server: FakeAdbServer, socket: Socket, deviceState: DeviceState, args: String) {
-          val device = devices.find { it.serialNumber == deviceState.deviceId }!!
-          val shellProtocol = ShellV2Protocol(socket)
-          device.agent.start(shellProtocol, args, device.hostPort!!)
+          if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
+            val device = devices.find { it.serialNumber == deviceState.deviceId }!!
+            val shellProtocol = ShellV2Protocol(socket)
+            device.agent.start(shellProtocol, args, device.hostPort!!)
+          }
+          else {
+            writeOkay(socket.outputStream)
+            ShellV2Protocol(socket).writeExitCode(0)
+          }
         }
       })
       withDeviceCommandHandler(object: DeviceCommandHandler("reverse") {

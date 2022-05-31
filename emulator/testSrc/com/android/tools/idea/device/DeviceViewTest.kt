@@ -109,8 +109,8 @@ internal class DeviceViewTest {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
     createDeviceView(200, 300, 2.0)
-    assertThat(agent.commandLine).isEqualTo("CLASSPATH=/data/local/tmp/screen-sharing-agent.jar app_process" +
-                                            " /data/local/tmp com.android.tools.screensharing.Main --log=debug --codec=vp8")
+    assertThat(agent.commandLine).isEqualTo("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
+                                            " $DEVICE_PATH_BASE com.android.tools.screensharing.Main --log=debug --codec=vp8")
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(400, 600))
     assertThat(view.displayRotationQuadrants).isEqualTo(0)
     assertThat(view.displayRectangle?.width).isEqualTo(284)

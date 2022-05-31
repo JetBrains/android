@@ -55,7 +55,7 @@ import java.nio.file.attribute.PosixFilePermission
 internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/emulator/screen-sharing-agent"
-private const val DEVICE_PATH_BASE = "/data/local/tmp"
+internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio/mirroring"
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -73,6 +73,7 @@ internal class DeviceClient(
   internal var pushTime = 0L
   internal var startAgentTime = 0L
   internal var connectionTime = 0L
+  private val logger = thisLogger()
 
   init {
     Disposer.register(disposableParent, this)
@@ -159,7 +160,7 @@ internal class DeviceClient(
         soFile = projectDir.resolve(
             "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
-        jarFile = projectDir.resolve("app/build/intermediates/apk/$buildVariant/$apkName")
+        jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
       else {
         // Development environment for Studio.
@@ -177,7 +178,14 @@ internal class DeviceClient(
     }
 
     coroutineScope {
-      val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
+      this@DeviceClient.thisLogger()
+      val command = "mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE"
+      adb.shellV2AsLines(deviceSelector, command).collect {
+        if (it is ShellCommandOutputElement.ExitCode && it.exitCode != 0) {
+          logger.warn("Unable to create $DEVICE_PATH_BASE directory: ${it.exitCode}")
+        }
+      }
+      val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ)
       val nativeLibraryPushed = async {
         adb.syncSend(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
       }
