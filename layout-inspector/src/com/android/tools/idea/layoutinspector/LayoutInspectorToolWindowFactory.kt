@@ -86,17 +86,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       edtExecutor.execute {
         workbench.hideLoading()
 
-        val processes = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
-        Disposer.register(workbench, processes)
+        val processesModel = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
+        Disposer.register(workbench, processesModel)
         val executor = Executors.newScheduledThreadPool(1)
         Disposer.register(workbench) {
           executor.shutdown()
           executor.awaitTermination(3, TimeUnit.SECONDS)
         }
         val model = InspectorModel(project, executor)
-        model.setProcessModel(processes)
+        model.setProcessModel(processesModel)
 
-        processes.addSelectedProcessListeners {
+        processesModel.addSelectedProcessListeners {
           // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
           // encountered during a previous run.
           if (!project.isDisposed) {
@@ -108,9 +108,9 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val stats = SessionStatistics(model, treeSettings)
         val metrics = LayoutInspectorMetrics(project, null, stats)
-        launcher = InspectorClientLauncher.createDefaultLauncher(processes, model, metrics, treeSettings, workbench)
+        launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
-        val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
+        val deviceViewPanel = DeviceViewPanel(processesModel, layoutInspector, viewSettings, workbench)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
