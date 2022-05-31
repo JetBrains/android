@@ -30,13 +30,11 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import kotlinx.coroutines.launch
 
 /**
  * An action that restarts Logcat on the connected device.
@@ -49,8 +47,6 @@ internal class RestartLogcatAction(private val logcatPresenter: LogcatPresenter)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    AndroidCoroutineScope(logcatPresenter).launch {
-      logcatPresenter.restartLogcat()
-    }
+    logcatPresenter.restartLogcat()
   }
 }

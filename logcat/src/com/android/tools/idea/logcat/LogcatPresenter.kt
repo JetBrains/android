@@ -48,7 +48,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   @UiThread
   fun clearMessageView()
 
-  suspend fun restartLogcat()
+  @UiThread
+  fun restartLogcat()
 
   /**
    * Returns true if the attached logcat is empty

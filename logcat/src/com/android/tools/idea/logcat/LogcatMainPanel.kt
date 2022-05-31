@@ -449,9 +449,12 @@ internal class LogcatMainPanel(
     }
   }
 
-  override suspend fun restartLogcat() {
+  @UiThread
+  override fun restartLogcat() {
     val device = connectedDevice.get() ?: return
-    logcatServiceChannel.send(StartLogcat(device))
+    coroutineScope.launch {
+      logcatServiceChannel.send(StartLogcat(device))
+    }
   }
 
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()

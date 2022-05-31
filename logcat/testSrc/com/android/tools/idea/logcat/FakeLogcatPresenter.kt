@@ -60,7 +60,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     lineBatches.clear()
   }
 
-  override suspend fun restartLogcat() {
+  override fun restartLogcat() {
     logcatRestartedCount++
   }
 
