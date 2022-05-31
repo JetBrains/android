@@ -6,7 +6,7 @@
                     interface="com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory"
                     dynamic="true" />
     <extensionPoint interface="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap$BlockModelProvider" dynamic="true"
-                    name="blockModel"/>
+                    qualifiedName="org.jetbrains.idea.gradle.dsl.blockModel"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
