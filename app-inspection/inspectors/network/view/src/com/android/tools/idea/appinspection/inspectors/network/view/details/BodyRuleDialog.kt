@@ -47,7 +47,7 @@ class BodyRuleDialog(
   val replaceTextArea = JBTextArea(15, 25)
 
   @VisibleForTesting
-  val regexCheckBox = JBCheckBox(REGEX_TEXT)
+  val regexCheckBox = JBCheckBox()
 
   @VisibleForTesting
   val replaceEntireBodyCheckBox = JBCheckBox(REPLACE_ENTIRE_BODY_TEXT).apply {
@@ -93,7 +93,7 @@ class BodyRuleDialog(
     add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
     add(JPanel(BorderLayout()).apply {
       add(replaceEntireBodyCheckBox, BorderLayout.WEST)
-      add(regexCheckBox, BorderLayout.EAST)
+      add(regexCheckBox.withRegexLabel(), BorderLayout.EAST)
     }, TabularLayout.Constraint(2, 0))
     minimumSize = Dimension(800, preferredSize.height)
   }

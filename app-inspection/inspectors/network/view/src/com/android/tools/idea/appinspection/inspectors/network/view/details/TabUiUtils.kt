@@ -21,10 +21,14 @@ import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
@@ -40,6 +44,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import javax.swing.SwingConstants
 
 val SCROLL_UNIT = scale(10)
 
@@ -54,7 +59,7 @@ val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
 
-const val REGEX_TEXT = ".* Regex"
+const val REGEX_TEXT = "Regex"
 
 /**
  * Creates a panel with a vertical flowing layout and a consistent style.
@@ -197,4 +202,21 @@ fun createTextField(
       focusLost(text)
     }
   })
+}
+
+/**
+ * Returns a [JPanel] of a [JBCheckBox] with Regex icon and label.
+ */
+fun JBCheckBox.withRegexLabel(): JPanel {
+  val label = JBLabel(REGEX_TEXT)
+  label.icon = AllIcons.Actions.RegexHovered
+  label.disabledIcon = AllIcons.Actions.Regex
+  label.iconTextGap = 0
+  addPropertyChangeListener {
+    label.isEnabled = this@withRegexLabel.isEnabled
+  }
+  return JPanel(HorizontalLayout(0)).apply {
+    add(this@withRegexLabel)
+    add(label)
+  }
 }

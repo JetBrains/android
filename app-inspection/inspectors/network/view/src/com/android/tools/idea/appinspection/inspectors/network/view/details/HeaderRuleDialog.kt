@@ -49,13 +49,13 @@ class HeaderRuleDialog(
   val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
 
   @VisibleForTesting
-  val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
+  val findNameRegexCheckBox = JBCheckBox()
 
   @VisibleForTesting
   val findValueTextField: JBTextField = createTextField(null, "https://www.google.com")
 
   @VisibleForTesting
-  val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
+  val findValueRegexCheckBox = JBCheckBox()
 
   @VisibleForTesting
   val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control")
@@ -192,6 +192,6 @@ class HeaderRuleDialog(
 
   private fun JBTextField.withRegexCheckBox(checkBox: JBCheckBox) = JPanel(TabularLayout("*,20px,Fit")).apply {
     add(this@withRegexCheckBox, TabularLayout.Constraint(0, 0))
-    add(checkBox, TabularLayout.Constraint(0, 2))
+    add(checkBox.withRegexLabel(), TabularLayout.Constraint(0, 2))
   }
 }
