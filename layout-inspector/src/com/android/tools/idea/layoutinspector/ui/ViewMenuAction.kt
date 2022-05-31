@@ -29,6 +29,13 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
 import kotlin.reflect.KMutableProperty1
 
+const val HIGHLIGHT_COLOR_RED = 0xFF0000
+const val HIGHLIGHT_COLOR_BLUE = 0x4F9EE3
+const val HIGHLIGHT_COLOR_GREEN = 0x479345
+const val HIGHLIGHT_COLOR_YELLOW = 0xFFC66D
+const val HIGHLIGHT_COLOR_PURPLE = 0x871094
+const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
+
 object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
   class SettingsAction(name: String, val property: KMutableProperty1<DeviceViewSettings, Boolean>) : ToggleAction(name) {
     override fun isSelected(event: AnActionEvent) =
@@ -79,11 +86,11 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
   }
 
   init {
-    add(ColorSettingAction(0xFF0000, "Red"))
-    add(ColorSettingAction(0x4F9EE3, "Blue"))
-    add(ColorSettingAction(0x479345, "Green"))
-    add(ColorSettingAction(0xFFC66D, "Yellow"))
-    add(ColorSettingAction(0x871094, "Purple"))
-    add(ColorSettingAction(0xE1A336, "Orange"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_RED, "Red"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_BLUE, "Blue"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_GREEN, "Green"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_YELLOW, "Yellow"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_PURPLE, "Purple"))
+    add(ColorSettingAction(HIGHLIGHT_COLOR_ORANGE, "Orange"))
   }
 }

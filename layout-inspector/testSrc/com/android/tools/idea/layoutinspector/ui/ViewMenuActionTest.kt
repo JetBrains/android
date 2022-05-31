@@ -154,5 +154,5 @@ class FakeDeviceViewSettings: DeviceViewSettings {
   override var drawUntransformedBounds = false
   override var drawLabel = true
   override var drawFold = false
-  override var highlightColor = 0xFF0000
+  override var highlightColor = HIGHLIGHT_COLOR_RED
 }
