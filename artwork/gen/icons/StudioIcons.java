@@ -665,6 +665,8 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon PAUSE = load("/studio/icons/logcat/toolbar/pause.svg"); // 16x16
+      public static final Icon RESUME = load("/studio/icons/logcat/toolbar/resume.svg"); // 16x16
       public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
       public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg"); // 16x16
       public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.svg"); // 16x16

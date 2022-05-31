@@ -101,6 +101,18 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun isLogcatPaused(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun pauseLogcat() {
+    TODO("Not yet implemented")
+  }
+
+  override fun resumeLogcat() {
+    TODO("Not yet implemented")
+  }
+
   fun appendMessage(message: String) {
     lineBatches.add(listOf(message))
   }

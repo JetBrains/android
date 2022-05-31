@@ -39,6 +39,7 @@ import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatSplitterActions
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
+import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
 import com.android.tools.idea.logcat.devices.Device
@@ -103,6 +104,9 @@ import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -122,6 +126,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.BorderFactory
 import javax.swing.Icon
 import kotlin.math.max
 import kotlin.text.RegexOption.LITERAL
@@ -161,8 +166,11 @@ internal class LogcatMainPanel(
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
+  private var isLogcatPaused: Boolean = false
+
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
+  private val pausedBanner = EditorNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -230,7 +238,14 @@ internal class LogcatMainPanel(
     //  device/client.
     addToTop(headerPanel)
     addToLeft(toolbar.component)
-    addToCenter(editor.component)
+
+    val centerPanel = BorderLayoutPanel()
+    pausedBanner.text = LogcatBundle.message("logcat.main.panel.pause.banner.text")
+    pausedBanner.border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 1), Borders.empty(0, 5, 0, 0))
+    centerPanel.addToTop(pausedBanner)
+    centerPanel.addToCenter(editor.component)
+    pausedBanner.isVisible = false
+    addToCenter(centerPanel)
 
     initScrollToEndStateHandling()
 
@@ -259,12 +274,12 @@ internal class LogcatMainPanel(
     }
 
     coroutineScope.launch {
-      var job : Job? = null
+      var job: Job? = null
       logcatServiceChannel.consumeEach {
         job?.cancel()
         job = when (it) {
           is StartLogcat -> startLogcat(it.device)
-          StopLogcat -> stopLogcat().let { null }
+          StopLogcat -> unselectDevice().let { null }
         }
       }
     }
@@ -323,7 +338,10 @@ internal class LogcatMainPanel(
     messageBacklog.get().addAll(messages)
     tags.addAll(messages.map { it.header.tag })
     packages.addAll(messages.map(LogCatMessage::getPackageNameOrPid))
-    messageProcessor.appendMessages(messages)
+    if (!isLogcatPaused) {
+      // When paused, we don't send message to the document.
+      messageProcessor.appendMessages(messages)
+    }
   }
 
   override fun getState(): String {
@@ -401,6 +419,7 @@ internal class LogcatMainPanel(
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {
       add(ClearLogcatAction(this@LogcatMainPanel))
+      add(PauseLogcatAction(this@LogcatMainPanel))
       add(RestartLogcatAction(this@LogcatMainPanel))
       add(ScrollToTheEndToolbarAction(editor).apply {
         @Suppress("DialogTitleCapitalization")
@@ -414,10 +433,25 @@ internal class LogcatMainPanel(
       add(Separator.create())
       add(LogcatSplitterActions(splitterPopupActionGroup))
       add(Separator.create())
-      //add(DeviceScreenshotAction(project, deviceContext))
       add(ScreenshotAction())
       add(ScreenRecorderAction(project, deviceContext))
     }
+  }
+
+  @UiThread
+  override fun isLogcatPaused(): Boolean = isLogcatPaused
+
+  @UiThread
+  override fun pauseLogcat() {
+    isLogcatPaused = true
+    pausedBanner.isVisible = true
+  }
+
+  @UiThread
+  override fun resumeLogcat() {
+    isLogcatPaused = false
+    pausedBanner.isVisible = false
+    reloadMessages()
   }
 
   @UiThread
@@ -494,7 +528,7 @@ internal class LogcatMainPanel(
     }
   }
 
-  private fun stopLogcat() {
+  private fun unselectDevice() {
     // TODO(aalbert) : Get rid of this when we have our own Screenshot/Screen record actions
     deviceContext.fireDeviceSelected(null)
     connectedDevice.set(null)

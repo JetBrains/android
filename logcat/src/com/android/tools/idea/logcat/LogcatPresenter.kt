@@ -78,4 +78,10 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun countFilterMatches(filter: String): Int
 
   fun foldImmediately()
+
+  fun isLogcatPaused(): Boolean
+
+  fun pauseLogcat()
+
+  fun resumeLogcat()
 }
