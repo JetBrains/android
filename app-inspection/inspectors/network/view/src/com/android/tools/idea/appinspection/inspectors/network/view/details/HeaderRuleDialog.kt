@@ -29,7 +29,6 @@ import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -172,9 +171,7 @@ class HeaderRuleDialog(
     }
   }
 
-  override fun createNorthPanel() = tabs
-
-  override fun createCenterPanel(): JComponent? = null
+  override fun createCenterPanel() = tabs
 
   override fun doOKAction() {
     super.doOKAction()

@@ -22,7 +22,6 @@ import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
-import com.intellij.ui.components.panels.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -88,7 +87,7 @@ class BodyRuleDialog(
     }
   }
 
-  override fun createNorthPanel() = JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
+  override fun createCenterPanel() = JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
     add(createTitledPanel("Find by", findTextArea), TabularLayout.Constraint(1, 0))
     add(JSeparator(), TabularLayout.Constraint(1, 2))
     add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
@@ -98,8 +97,6 @@ class BodyRuleDialog(
     }, TabularLayout.Constraint(2, 0))
     minimumSize = Dimension(800, preferredSize.height)
   }
-
-  override fun createCenterPanel(): JComponent? = null
 
   override fun doOKAction() {
     super.doOKAction()
@@ -112,16 +109,16 @@ class BodyRuleDialog(
   }
 
   private fun createTitledPanel(titleName: String, body: JComponent): JPanel {
-    val panel = JPanel(VerticalLayout(6))
+    val panel = JPanel(TabularLayout("*", "Fit,6px,*"))
     val headingPanel = TitledSeparator(titleName)
     headingPanel.minimumSize = Dimension(0, 34)
-    panel.add(headingPanel)
+    panel.add(headingPanel, TabularLayout.Constraint(0, 0))
     val scroll = JBScrollPane(body).apply {
       // Set JBScrollPane transparent to render an inactive JBTextArea with correct background color.
       isOpaque = false
       viewport.isOpaque = false
     }
-    panel.add(scroll)
+    panel.add(scroll, TabularLayout.Constraint(2, 0))
     return panel
   }
 }
