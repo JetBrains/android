@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
@@ -93,6 +94,7 @@ fun inflate(model: NlModel): CompletableFuture<RenderResult> {
     .withPsiFile(model.file)
     .withLayoutScanner(false)
     .withLogger(logger)
+    .withPriority(RenderAsyncActionExecutor.RenderingPriority.LOW)
     .build().thenCompose { newTask ->
       if (newTask == null) {
         logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.",
