@@ -39,15 +39,7 @@ iml_module(
     iml_files = ["app-inspection.ide.tests.iml"],
     test_class = "com.android.tools.idea.appinspection.ide.AppInspectionIdeTestSuite",
     # keep sorted
-    test_data = [
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/annotations",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
-    ] + glob(["testData/**"]),
+    test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
