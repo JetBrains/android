@@ -114,12 +114,21 @@ class TransportEventPoller(
 
     @JvmOverloads
     @JvmStatic
-    fun createPoller(transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
+    fun createStartedPoller(transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
                      pollPeriodNs: Long,
                      sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
                      executorServiceForTest: ScheduledExecutorService? = null
     ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
+      startPoller(poller, pollPeriodNs, executorServiceForTest)
+      return poller
+    }
+
+    @JvmStatic
+    private fun startPoller(poller: TransportEventPoller,
+                    pollPeriodNs: Long,
+                    executorServiceForTest: ScheduledExecutorService? = null
+    ) {
       val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
         {
           try {
@@ -131,7 +140,6 @@ class TransportEventPoller(
         },
         0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
-      return poller
     }
 
     @JvmStatic

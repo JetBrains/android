@@ -132,7 +132,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     myStreamIdMap = new HashMap<>();
     myProcessIdMap = new HashMap<>();
 
-    myTransportEventPoller = TransportEventPoller.createPoller(myClient.getTransportStub(), TimeUnit.MILLISECONDS.toNanos(250));
+    myTransportEventPoller = TransportEventPoller.createStartedPoller(myClient.getTransportStub(), TimeUnit.MILLISECONDS.toNanos(250));
 
     // Register the event listeners with myTransportEventPoller
     initializeEventListeners();
