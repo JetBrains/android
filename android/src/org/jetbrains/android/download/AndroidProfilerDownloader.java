@@ -25,4 +25,9 @@ public class AndroidProfilerDownloader extends AndroidComponentDownloader {
     return Holder.INSTANCE;
   }
 
+  @Override
+  protected @NotNull String getVersion() {
+    LOG.assertTrue(super.getVersion().startsWith("30.2.0."), "Obsolete version override.");
+    return "30.2.0.1";
+  }
 }
