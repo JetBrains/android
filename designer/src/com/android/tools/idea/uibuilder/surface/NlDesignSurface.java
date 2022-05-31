@@ -870,7 +870,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
 
-        if (myShouldRunVisualLintService && VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
+        if (myShouldRunVisualLintService && !VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
           VisualLintService.getInstance().runVisualLintAnalysis(getModels(), NlDesignSurface.this.getIssueModel());
         }
       }
