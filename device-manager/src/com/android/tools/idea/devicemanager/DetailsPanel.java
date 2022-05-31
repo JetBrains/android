@@ -15,29 +15,41 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import icons.StudioIcons;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,13 +61,21 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   private final @NotNull AbstractButton myCloseButton;
   protected @Nullable Component mySummarySection;
   protected @Nullable Component myScreenDiagram;
-  protected final @NotNull Collection<@NotNull Component> myInfoSections;
+  private @Nullable AbstractButton myCopyPropertiesToClipboardButton;
+  protected final @NotNull List<@NotNull Component> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable Component myPairedDevicesPanel;
   private @Nullable JBTabbedPane myTabbedPane;
 
+  private final @NotNull Supplier<@NotNull Toolkit> myGetDefaultToolkit;
+
   protected DetailsPanel(@NotNull String heading) {
+    this(heading, Toolkit::getDefaultToolkit);
+  }
+
+  @VisibleForTesting
+  DetailsPanel(@NotNull String heading, @NotNull Supplier<@NotNull Toolkit> getDefaultToolkit) {
     super(null);
 
     myHeadingLabel = newHeadingLabel(heading);
@@ -66,6 +86,8 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     myInfoSectionPanel.setBackground(Table.BACKGROUND);
 
     myScrollPane = new JBScrollPane(myInfoSectionPanel);
+
+    myGetDefaultToolkit = getDefaultToolkit;
   }
 
   @Override
@@ -81,12 +103,50 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
 
   protected final void init() {
     initSummarySection();
+    initCopyPropertiesToClipboardButton();
     setInfoSectionPanelLayout();
     initTabbedPane();
     setLayout();
   }
 
   protected void initSummarySection() {
+  }
+
+  private void initCopyPropertiesToClipboardButton() {
+    if (myInfoSections.isEmpty()) {
+      return;
+    }
+
+    Color foreground = Label.disabledForeground();
+    Icon icon = ColoredIconGenerator.INSTANCE.generateColoredIcon(AllIcons.Actions.Copy, foreground);
+
+    myCopyPropertiesToClipboardButton = new JButton("Copy properties to clipboard", icon);
+
+    myCopyPropertiesToClipboardButton.setBorder(null);
+    myCopyPropertiesToClipboardButton.setContentAreaFilled(false);
+    myCopyPropertiesToClipboardButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    myCopyPropertiesToClipboardButton.setForeground(foreground);
+
+    int gap = myCopyPropertiesToClipboardButton.getIconTextGap();
+    Dimension size = BasicGraphicsUtils.getPreferredButtonSize(myCopyPropertiesToClipboardButton, gap);
+
+    myCopyPropertiesToClipboardButton.setMaximumSize(size);
+    myCopyPropertiesToClipboardButton.setMinimumSize(size);
+    myCopyPropertiesToClipboardButton.setPreferredSize(size);
+
+    myCopyPropertiesToClipboardButton.addActionListener(event -> copyPropertiesToClipboard());
+  }
+
+  private void copyPropertiesToClipboard() {
+    StringBuilder builder = new StringBuilder(myInfoSections.get(0).toString());
+    String separator = System.lineSeparator();
+
+    myInfoSections.subList(1, myInfoSections.size()).forEach(section ->
+                                                               builder
+                                                                 .append(separator)
+                                                                 .append(section));
+
+    myGetDefaultToolkit.get().getSystemClipboard().setContents(new StringSelection(builder.toString()), null);
   }
 
   protected void setInfoSectionPanelLayout() {
@@ -108,6 +168,14 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
       verticalGroup.addGroup(layout.createParallelGroup()
                                .addComponent(mySummarySection)
                                .addComponent(myScreenDiagram));
+    }
+
+    if (!myInfoSections.isEmpty()) {
+      horizontalGroup.addComponent(myCopyPropertiesToClipboardButton);
+
+      verticalGroup
+        .addPreferredGap(ComponentPlacement.UNRELATED)
+        .addComponent(myCopyPropertiesToClipboardButton);
     }
 
     myInfoSections.forEach(section -> {
@@ -166,6 +234,12 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
 
   public final @NotNull AbstractButton getCloseButton() {
     return myCloseButton;
+  }
+
+  @VisibleForTesting
+  final @NotNull AbstractButton getCopyPropertiesToClipboardButton() {
+    assert myCopyPropertiesToClipboardButton != null;
+    return myCopyPropertiesToClipboardButton;
   }
 
   @VisibleForTesting
