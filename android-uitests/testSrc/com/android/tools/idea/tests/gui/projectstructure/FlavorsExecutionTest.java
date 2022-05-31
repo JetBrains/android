@@ -20,7 +20,6 @@ import com.android.fakeadbserver.CommandHandler;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -60,18 +59,8 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.CommandHandlerAdapter startCmdHandler = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
-      @NotNull
-      @Override
-      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
-        deviceState.startClient(1234, 1235, PROCESS_NAME, false);
-        return "";
-      }
-    };
-
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
               .addDeviceHandler(new LogcatCommandHandler())
               .addDeviceHandler(new JdwpCommandHandler());
 
@@ -84,6 +73,12 @@ public class FlavorsExecutionTest {
       "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
+    fakeDevice.setActivityManager((args, serviceOutput) -> {
+      if ("start".equals(args.get(0))) {
+        fakeDevice.startClient(1234, 1235, PROCESS_NAME, false);
+        serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
+      }
+    });
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
 
     fakeAdbServer.start();

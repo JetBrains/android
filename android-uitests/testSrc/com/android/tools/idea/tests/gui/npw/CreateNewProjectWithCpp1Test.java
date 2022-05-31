@@ -21,7 +21,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -30,7 +29,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,18 +44,8 @@ public class CreateNewProjectWithCpp1Test {
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.CommandHandlerAdapter startCmdHandler = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
-      @NotNull
-      @Override
-      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
-        deviceState.startClient(1234, 1235, "com.example.myapplication", false);
-        return "";
-      }
-    };
-
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
               .addDeviceHandler(new JdwpCommandHandler());
 
     fakeAdbServer = adbBuilder.build();
@@ -69,6 +57,12 @@ public class CreateNewProjectWithCpp1Test {
       "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
+    fakeDevice.setActivityManager((args, serviceOutput) -> {
+      if ("start".equals(args.get(0))) {
+        fakeDevice.startClient(1234, 1235, "com.example.myapplication", false);
+        serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
+      }
+    });
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
 
     fakeAdbServer.start();

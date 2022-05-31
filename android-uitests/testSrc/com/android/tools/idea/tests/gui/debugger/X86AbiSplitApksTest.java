@@ -21,7 +21,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -32,7 +31,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,18 +49,8 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
   @Before
   public void setupFakeAdbServer() throws Exception {
 
-    ActivityManagerCommandHandler.CommandHandlerAdapter startCmdHandler = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
-      @NotNull
-      @Override
-      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
-        deviceState.startClient(1234, 1235, "com.example.basiccmakeapp", false);
-        return "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
-               + " cmp=com.example.basiccmakeapp/com.example.basiccmakeapp.MainActivity }";
-      }
-    };
     fakeAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
       // This test needs to query the device for ABIs, so we need some expanded functionality for the
       // getprop command handler:
       .addDeviceHandler(new GetAbiListPropCommandHandler(Arrays.asList("x86")))
@@ -78,7 +66,13 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
       DeviceState.HostConnectionType.LOCAL
     ).get();
     device.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
-
+    device.setActivityManager((args, serviceOutput) -> {
+      if ("start".equals(args.get(0))) {
+        device.startClient(1234, 1235, "com.example.basiccmakeapp", false);
+        serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
+                                  + " cmp=com.example.basiccmakeapp/com.example.basiccmakeapp.MainActivity }");
+      }
+    });
     fakeAdbServer.start();
     AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
   }
