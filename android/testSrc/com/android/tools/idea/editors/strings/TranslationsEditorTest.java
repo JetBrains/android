@@ -20,6 +20,7 @@ import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.editors.strings.action.AddLocaleAction;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;

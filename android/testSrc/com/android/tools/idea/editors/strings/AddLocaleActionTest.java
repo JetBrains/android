@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.strings;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.editors.strings.action.AddLocaleAction;
 import java.util.Collection;
 import java.util.Collections;
 import org.junit.Before;
