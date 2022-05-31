@@ -506,21 +506,24 @@ class ToolWindowModel(
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processorsForCheckedPresentations().forEach { it.isEnabled = true }
 
+    val runnable = {
+      try {
+        processor.run()
+      }
+      catch (e: Exception) {
+        processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
+        uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error")))
+      }
+    }
+
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      processor.run()
+      runnable.invoke()
     }
     else {
       DumbService.getInstance(processor.project).smartInvokeLater {
-        //TODO (mlazeba/xof): usages view run button should set our state to running again.
         processor.usageView?.close()
         processor.setPreviewUsages(showPreview)
-        try {
-          processor.run()
-        }
-        catch(e: Exception) {
-          processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
-          uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error")))
-        }
+        runnable.invoke()
       }
     }
   }

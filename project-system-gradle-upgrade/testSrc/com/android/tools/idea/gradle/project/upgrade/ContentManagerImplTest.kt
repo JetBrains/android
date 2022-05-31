@@ -29,8 +29,10 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.Severity
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.StatusMessage
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AllDone
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Blocked
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loading
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
@@ -50,6 +52,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
+import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -245,9 +248,9 @@ class ContentManagerImplTest {
     // Then UI is cleared showing Loading state,
     // Finally refresh logic results back in InvalidVersionError state.
     assertThat(uiStates).containsExactly(
-      InvalidVersionError(ToolWindowModel.StatusMessage(Severity.ERROR, "Invalid AGP version format.")),
+      InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format.")),
       Loading,
-      InvalidVersionError(ToolWindowModel.StatusMessage(Severity.ERROR, "Invalid AGP version format."))
+      InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format."))
     ).inOrder()
   }
 
@@ -570,6 +573,22 @@ class ContentManagerImplTest {
     toolWindowModel.syncSucceeded(project)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
     assertThat(uiStates).containsExactly(RunningUpgrade, RunningUpgradeSync, UpgradeSyncSucceeded).inOrder()
+  }
+
+  @Test
+  fun testRunProcessorWithoutWritePermission() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+
+    runWriteAction { psiFile.virtualFile.isWritable = false }
+
+    toolWindowModel.runUpgrade(false)
+    changingCurrentAgpVersion = latestAgpVersion
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
+    assertThat(uiStates).hasSize(2)
+    assertThat(uiStates[0]).isEqualTo(RunningUpgrade)
+    assertThat(uiStates[1]).isInstanceOf(CaughtException::class.java)
   }
 
   @Test
