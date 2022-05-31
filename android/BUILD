@@ -612,6 +612,7 @@ iml_module(
         },
         "other": {
             "shard_count": 3,
+            "tags": ["no_windows"],
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
