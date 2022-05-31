@@ -20,8 +20,10 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -30,6 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -137,11 +140,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
           val transportClient = TransportClient(TransportService.channelName)
           val foregroundProcessListener = object : ForegroundProcessListener {
-            override fun onNewProcess(foregroundProcess: ForegroundProcess) {
+            override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
               processesModel.selectedProcess = getProcessDescriptor(foregroundProcess)
             }
           }
-          val foregroundProcessDetection = ForegroundProcessDetection(transportClient, foregroundProcessListener)
+          val deviceModel = DeviceModel(processesModel)
+          val foregroundProcessDetection = ForegroundProcessDetection(
+            deviceModel,
+            transportClient,
+            foregroundProcessListener,
+            project.coroutineScope
+          )
 
           project.messageBus.connect(workbench).subscribe(
             ToolWindowManagerListener.TOPIC,
@@ -169,7 +178,7 @@ class ForegroundProcessDetectionWindowManagerListener(
 ) : ToolWindowManagerListener {
   init {
     if (isVisibleAtCreation) {
-      foregroundProcessDetection.start()
+      foregroundProcessDetection.startListeningForEvents()
     }
   }
 
@@ -180,10 +189,10 @@ class ForegroundProcessDetectionWindowManagerListener(
 
   private fun toggleForegroundProcessDetection(shouldStart: Boolean) {
     if (shouldStart) {
-      foregroundProcessDetection.start()
+      foregroundProcessDetection.startListeningForEvents()
     }
     else {
-      foregroundProcessDetection.stop()
+      foregroundProcessDetection.stopListeningForEvents()
     }
   }
 

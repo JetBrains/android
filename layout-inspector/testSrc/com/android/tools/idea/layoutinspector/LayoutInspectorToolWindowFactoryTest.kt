@@ -143,8 +143,8 @@ class LayoutInspectorToolWindowFactoryTest {
     toolWindow.show()
     toolWindow.hide()
 
-    verify(mockForegroundProcessDetection).start()
-    verify(mockForegroundProcessDetection).stop()
+    verify(mockForegroundProcessDetection).startListeningForEvents()
+    verify(mockForegroundProcessDetection).stopListeningForEvents()
   }
 
   @Test
@@ -155,11 +155,11 @@ class LayoutInspectorToolWindowFactoryTest {
 
     toolWindow.show()
 
-    verify(mockForegroundProcessDetection, times(2)).start()
+    verify(mockForegroundProcessDetection, times(2)).startListeningForEvents()
 
     toolWindow.hide()
 
-    verify(mockForegroundProcessDetection).stop()
+    verify(mockForegroundProcessDetection).stopListeningForEvents()
     verifyNoMoreInteractions(mockForegroundProcessDetection)
   }
 
