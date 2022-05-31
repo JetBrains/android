@@ -43,13 +43,15 @@ iml_module(
             "test_filter": "com.android.build.attribution.analyzers",
             "data": [
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-                "//tools/base/build-system:studio_repo",
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
         },
         "other": {
             "data": [
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-                "//tools/base/build-system:studio_repo",
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
         },
     },
