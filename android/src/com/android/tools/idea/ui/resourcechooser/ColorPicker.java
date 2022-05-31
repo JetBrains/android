@@ -1506,7 +1506,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
         final HintHint hint = new HintHint(this, point)
           .setPreferredPosition(Balloon.Position.above)
-          .setBorderColor(Color.BLACK)
+          .setBorderColor(HintUtil.getHintBorderColor())
           .setAwtTooltip(true)
           .setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD))
           .setTextBg(HintUtil.getInformationColor())
