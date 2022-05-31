@@ -72,7 +72,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
 
   @Nullable
   @Override
-  protected EditorHighlighter createHighlighter(EditorColorsScheme scheme) {
+  protected EditorHighlighter createHighlighter(@NotNull EditorColorsScheme scheme) {
     return null;
   }
 
@@ -89,7 +89,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
   }
 
   @Override
-  public void apply(CodeStyleSettings settings) {
+  public void apply(@NotNull CodeStyleSettings settings) {
     final AndroidXmlCodeStyleSettings androidSettings = AndroidXmlCodeStyleSettings.getInstance(settings);
     androidSettings.USE_CUSTOM_SETTINGS = myUseCustomSettings.isSelected();
 
@@ -121,7 +121,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
   }
 
   @Override
-  protected void resetImpl(CodeStyleSettings settings) {
+  protected void resetImpl(@NotNull CodeStyleSettings settings) {
     final AndroidXmlCodeStyleSettings androidSettings = AndroidXmlCodeStyleSettings.getInstance(settings);
     myUseCustomSettings.setSelected(androidSettings.USE_CUSTOM_SETTINGS);
     UIUtil.setEnabled(myFileSpecificCodeStylesPanel, androidSettings.USE_CUSTOM_SETTINGS, true);

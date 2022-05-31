@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidXmlCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
   @NotNull
   @Override
-  public Configurable createSettingsPage(CodeStyleSettings settings, CodeStyleSettings originalSettings) {
+  public Configurable createSettingsPage(@NotNull CodeStyleSettings settings, @NotNull CodeStyleSettings originalSettings) {
     return new CodeStyleAbstractConfigurable(settings, originalSettings, getConfigurableDisplayName()){
       @Override
-      protected CodeStyleAbstractPanel createPanel(final CodeStyleSettings settings) {
+      protected @NotNull CodeStyleAbstractPanel createPanel(final @NotNull CodeStyleSettings settings) {
         return new AndroidXmlCodeStylePanel(getCurrentSettings(), settings);
       }
     };
@@ -41,7 +41,7 @@ public class AndroidXmlCodeStyleSettingsProvider extends CodeStyleSettingsProvid
   }
 
   @Override
-  public CustomCodeStyleSettings createCustomSettings(CodeStyleSettings settings) {
+  public CustomCodeStyleSettings createCustomSettings(@NotNull CodeStyleSettings settings) {
     return new AndroidXmlCodeStyleSettings(settings);
   }
 }
