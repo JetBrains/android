@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,113 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action;
+package com.android.tools.idea.editors.strings.action
 
-import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.LocaleManager;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.editors.strings.LocaleList;
-import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.StringResourceViewPanel;
-import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.res.StringResourceWriter;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.StudioIcons;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.swing.JList;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.NotNull;
+import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.LocaleManager
+import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.tools.idea.editors.strings.StringResourceData
+import com.android.tools.idea.editors.strings.model.StringResourceKey
+import com.android.tools.idea.rendering.FlagManager
+import com.android.tools.idea.res.StringResourceWriter
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.SimpleListCellRenderer
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.annotations.TestOnly
 
-final class AddLocaleAction extends AnAction {
-  private final StringResourceViewPanel myPanel;
+class AddLocaleAction
+@TestOnly
+internal constructor(private val stringResourceWriter: StringResourceWriter) :
+    PanelAction(
+        text = "Add Locale",
+        description = null,
+        icon = StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE) {
+  constructor() : this(StringResourceWriter.INSTANCE)
+  override fun doUpdate(e: AnActionEvent): Boolean =
+      e.panel.table.model.keys.mapNotNull { it.directory }.isNotEmpty()
 
-  AddLocaleAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Locale", null, StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE);
-    myPanel = panel;
+  override fun actionPerformed(e: AnActionEvent) {
+    val data: StringResourceData = checkNotNull(e.panel.table.data)
+
+    JBPopupFactory.getInstance()
+        .createPopupChooserBuilder(getUnusedLocales(data.localeSet))
+        .setItemChosenCallback {
+          val key = findResourceKey(data, e.panel.facet)
+          if (stringResourceWriter.add(
+              e.requiredProject, key, data.getStringResource(key).defaultValueAsString, it)) {
+            e.panel.reloadData()
+          }
+        }
+        .setRenderer(
+            SimpleListCellRenderer.create { label, value, _ ->
+              label.icon = FlagManager.getFlagImage(value)
+              label.text = Locale.getLocaleLabel(value, /* brief= */ false)
+            })
+        .createPopup()
+        .showUnderneathOf(e.inputEvent.component)
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    long count = myPanel.getTable().getModel().getKeys().stream()
-      .filter(key -> key.getDirectory() != null)
-      .count();
-
-    event.getPresentation().setEnabled(count != 0);
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    StringResourceData data = myPanel.getTable().getData();
-    assert data != null;
-
-    JList list = new LocaleList(getLocales(data.getLocaleSet()));
-
-    JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-      .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
-      .createPopup();
-
-    popup.showUnderneathOf(event.getInputEvent().getComponent());
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static Collection<Locale> getLocales(@NotNull Collection<Locale> localesToRemove) {
-    return LocaleManager.getLanguageCodes(true).stream()
-      .flatMap(AddLocaleAction::getLocales)
-      .filter(locale -> !localesToRemove.contains(locale))
-      .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
-      .collect(Collectors.toList());
-  }
-
-  @NotNull
-  private static Stream<Locale> getLocales(@NotNull String language) {
-    Stream<Locale> regionStream = LocaleManager.getRelevantRegions(language).stream()
-      .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
-
-    return Stream.concat(Stream.of(createLocale(language)), regionStream);
-  }
-
-  @NotNull
-  private static Locale createLocale(@NotNull String language) {
-    String full = language.length() == 2 ? language : LocaleQualifier.BCP_47_PREFIX + language;
-    return Locale.create(new LocaleQualifier(full, language, null, null));
-  }
-
-  @VisibleForTesting
-  void createItem(@NotNull Locale locale) {
-    Project project = myPanel.getFacet().getModule().getProject();
-    StringResourceData data = myPanel.getTable().getData();
-    assert data != null;
-    StringResourceKey key = findResourceKey(data);
-    String defaultValue = data.getStringResource(key).getDefaultValueAsString();
-
-    if (StringResourceWriter.INSTANCE.add(project, key, defaultValue, locale)) {
-      myPanel.reloadData();
+  companion object {
+    /**
+     * Returns the list of [Locale]s that are not already present in the editor, as we don't want to
+     * offer the user the option of adding those.
+     */
+    private fun getUnusedLocales(usedLocales: Set<Locale>): List<Locale> {
+      return LocaleManager.getLanguageCodes(/* include3= */ true)
+          .flatMap(this::languageToLocales)
+          .minus(usedLocales)
+          .sortedWith(Locale.LANGUAGE_NAME_COMPARATOR)
     }
-  }
 
-  @NotNull
-  private StringResourceKey findResourceKey(@NotNull StringResourceData data) {
-    List<VirtualFile> folders = ResourceFolderManager.getInstance(myPanel.getFacet()).getFolders();
+    /** Returns the list of [Locale]s for the given language. */
+    private fun languageToLocales(language: String): List<Locale> {
+      val full = if (language.length == 2) language else LocaleQualifier.BCP_47_PREFIX + language
+      val regionlessLocale =
+          Locale.create(LocaleQualifier(full, language, /* region= */ null, /* script= */ null))
+      return listOf(regionlessLocale) +
+          LocaleManager.getRelevantRegions(language).map { region ->
+            Locale.create(LocaleQualifier(/* full= */ null, language, region, /* script= */ null))
+          }
+    }
 
-    if (!folders.isEmpty()) {
-      StringResourceKey key = new StringResourceKey("app_name", folders.get(0));
-
-      if (data.containsKey(key)) {
-        return key;
+    /**
+     * Returns a [StringResourceKey] for the resource named "app_name" or the first resource found
+     * if that does not exist.
+     */
+    private fun findResourceKey(data: StringResourceData, facet: AndroidFacet): StringResourceKey {
+      val directories = ResourceFolderManager.getInstance(facet).folders
+      if (directories.isNotEmpty()) {
+        val key = StringResourceKey(name = "app_name", directory = directories.first())
+        if (data.containsKey(key)) return key
       }
-    }
 
-    return
-      data.getKeys().stream().filter(k -> k.getDirectory() != null).findFirst().orElseThrow(IllegalStateException::new);
+      return data.keys.asSequence().filter { k -> k.directory != null }.first()
+    }
   }
 }

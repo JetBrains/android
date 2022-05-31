@@ -213,7 +213,7 @@ public class StringResourceData {
     return locale == null ? "" : Locale.getLocaleLabel(locale, false);
   }
 
-  boolean containsKey(@NotNull StringResourceKey key) {
+  public boolean containsKey(@NotNull StringResourceKey key) {
     return myKeyToResourceMap.containsKey(key);
   }
 
@@ -247,7 +247,7 @@ public class StringResourceData {
   }
 
   @NotNull
-  Set<Locale> getLocaleSet() {
+  public Set<Locale> getLocaleSet() {
     return getTranslatedLocaleStream().collect(Collectors.toSet());
   }
 

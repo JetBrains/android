@@ -77,7 +77,6 @@ public class StringResourceViewPanel implements Disposable {
   private @Nullable Container myPanel;
   private final @NotNull JBLoadingPanel myLoadingPanel;
 
-  private AddLocaleAction myAddLocaleAction;
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
 
@@ -147,12 +146,10 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initToolbar() {
-    myAddLocaleAction = new AddLocaleAction(this);
-
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new AddKeyAction());
     group.add(new RemoveKeysAction());
-    group.add(myAddLocaleAction);
+    group.add(new AddLocaleAction());
     group.add(new FilterKeysAction(myTable));
     group.add(new FilterLocalesAction(myTable));
     group.add(new ReloadStringResourcesAction(this));
@@ -267,12 +264,6 @@ public class StringResourceViewPanel implements Disposable {
   @NotNull
   JComponent getPreferredFocusedComponent() {
     return myTable.getScrollableTable();
-  }
-
-  @VisibleForTesting
-  @NotNull
-  AddLocaleAction getAddLocaleAction() {
-    return myAddLocaleAction;
   }
 
   private final class CellSelectionListener implements FrozenColumnTableListener {

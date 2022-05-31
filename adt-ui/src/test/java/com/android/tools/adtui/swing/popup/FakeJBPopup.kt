@@ -29,15 +29,15 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.ListCellRenderer
 
-/**
- * A fake [JBPopup] for tests.
- */
+/** A fake [JBPopup] for tests. */
 open class FakeJBPopup<T>(
-  val items: List<T>,
-  val isMovable: Boolean? = false,
-  val isRequestFocus: Boolean? = false,
-  private val callback: Consumer<in T>? = null,
+    val items: List<T>,
+    val isMovable: Boolean? = false,
+    val isRequestFocus: Boolean? = false,
+    val renderer: ListCellRenderer<in T>? = null,
+    private val callback: Consumer<in T>? = null,
 ) : JBPopup {
 
   enum class ShowStyle {
@@ -55,7 +55,8 @@ open class FakeJBPopup<T>(
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
-      throw IllegalArgumentException("No such item: $item. Available items: ${items.joinToString(",")}}")
+      throw IllegalArgumentException(
+          "No such item: $item. Available items: ${items.joinToString(",")}}")
     }
     callback?.consume(item)
   }
