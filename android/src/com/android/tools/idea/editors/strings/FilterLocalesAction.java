@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.editors.strings.table.LocaleColumnFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.editors.strings.table.StringResourceTableColumnFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.editors.strings.table.filter.LocaleColumnFilter;
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter;
 import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

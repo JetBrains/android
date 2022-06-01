@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter;
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.List;

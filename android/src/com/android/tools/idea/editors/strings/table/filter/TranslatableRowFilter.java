@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings.table.filter;
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.editors.strings.StringResource;
-import com.android.tools.idea.rendering.FlagManager;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 
-public final class NeedsTranslationForLocaleRowFilter extends StringResourceTableRowFilter {
-  private final Locale myLocale;
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
 
-  public NeedsTranslationForLocaleRowFilter(@NotNull Locale locale) {
-    myLocale = locale;
-  }
-
+public final class TranslatableRowFilter extends StringResourceTableRowFilter {
   @Override
   public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(FlagManager.getFlagImage(myLocale));
-    presentation.setText("Show Keys Needing a Translation for " + Locale.getLocaleLabel(myLocale, false));
+    presentation.setIcon(null);
+    presentation.setText("Show Translatable Keys");
   }
 
   @Override
   public boolean include(@NotNull Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
-    StringResource resource = entry.getModel().getStringResourceAt(entry.getIdentifier());
-    return resource.isTranslatable() && resource.getTranslationAsString(myLocale).isEmpty();
+    return !(boolean)entry.getValue(UNTRANSLATABLE_COLUMN);
   }
 }

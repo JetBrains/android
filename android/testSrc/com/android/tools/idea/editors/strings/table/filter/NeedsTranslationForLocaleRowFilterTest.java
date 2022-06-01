@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings.table.filter;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import java.util.Collections;
 import javax.swing.RowFilter.Entry;
 import org.jetbrains.android.AndroidTestCase;

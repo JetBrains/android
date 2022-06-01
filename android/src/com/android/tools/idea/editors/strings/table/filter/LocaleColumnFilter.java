@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings.table.filter;
 
 import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 
-public interface StringResourceTableColumnFilter {
+public class LocaleColumnFilter implements StringResourceTableColumnFilter {
 
-  boolean include(@NotNull Locale locale);
-  void update(@NotNull Presentation presentation);
+  @NotNull private final Locale myLocale;
+
+  public LocaleColumnFilter(@NotNull Locale locale) {
+    myLocale = locale;
+  }
+
+  @Override
+  public boolean include(@NotNull Locale locale) {
+    return myLocale.equals(locale);
+  }
+
+  @Override
+  public void update(@NotNull Presentation presentation) {
+    presentation.setIcon(FlagManager.getFlagImage(myLocale));
+    presentation.setText(Locale.getLocaleLabel(myLocale, false));
+  }
 }

@@ -18,10 +18,10 @@ package com.android.tools.idea.editors.strings;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
-import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
+import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowFilter;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.vfs.VirtualFile;

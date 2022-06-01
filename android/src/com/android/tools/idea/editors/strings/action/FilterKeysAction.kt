@@ -17,12 +17,12 @@ package com.android.tools.idea.editors.strings.action
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.editors.strings.StringResourceEditor
-import com.android.tools.idea.editors.strings.table.NeedsTranslationForLocaleRowFilter
-import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
-import com.android.tools.idea.editors.strings.table.StringResourceTableRowFilter
-import com.android.tools.idea.editors.strings.table.TextRowFilter
-import com.android.tools.idea.editors.strings.table.TranslatableRowFilter
+import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationForLocaleRowFilter
+import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowFilter
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter
+import com.android.tools.idea.editors.strings.table.filter.TextRowFilter
+import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
 import com.android.tools.idea.rendering.FlagManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -64,7 +64,7 @@ class FilterKeysAction : ComboBoxAction() {
     group.add(rowFilterUpdatingAction("Show Keys Needing Translation") { NeedsTranslationsRowFilter() })
 
     group.add(
-      object : PanelAction("Filter By Text","Filter the translations editor table keys by text", AllIcons.General.Filter) {
+      object : PanelAction("Filter By Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
           override fun doUpdate(e: AnActionEvent): Boolean = true
 
           override fun actionPerformed(e: AnActionEvent) {
@@ -95,11 +95,10 @@ class FilterKeysAction : ComboBoxAction() {
     return group
   }
 
-
   companion object {
     /**
-     * Returns a [PanelAction] that sets the row filter to filter for strings that need translation to
-     * the specified [Locale]
+     * Returns a [PanelAction] that sets the row filter to filter for strings that need translation
+     * to the specified [Locale]
      */
     private fun newShowKeysNeedingTranslationForLocaleAction(locale: Locale): PanelAction {
       val text = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"

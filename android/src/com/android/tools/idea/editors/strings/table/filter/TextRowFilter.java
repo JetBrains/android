@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings.table.filter;
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.rendering.FlagManager;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 
-public class LocaleColumnFilter implements StringResourceTableColumnFilter {
+public class TextRowFilter extends StringResourceTableRowFilter {
 
-  @NotNull private final Locale myLocale;
+  @NotNull private final String myText;
 
-  public LocaleColumnFilter(@NotNull Locale locale) {
-    myLocale = locale;
+  public TextRowFilter(@NotNull String text) {
+    myText = text;
   }
 
   @Override
-  public boolean include(@NotNull Locale locale) {
-    return myLocale.equals(locale);
+  public boolean include(Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
+    for (int i = 0; i < entry.getValueCount(); i++) {
+      String text = entry.getStringValue(i);
+      if (text.contains(myText)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
   public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(FlagManager.getFlagImage(myLocale));
-    presentation.setText(Locale.getLocaleLabel(myLocale, false));
+    presentation.setIcon(null);
+    presentation.setText("Show Keys with Values Containing \"" + myText + '"');
   }
 }
