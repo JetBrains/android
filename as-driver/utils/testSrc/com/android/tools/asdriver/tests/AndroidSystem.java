@@ -111,8 +111,8 @@ public class AndroidSystem implements AutoCloseable {
     }
   }
 
-  public Adb runAdb(String... args) throws IOException {
-    return Adb.start(sdk, fileSystem.getHome(), false, args);
+  public Adb runAdb() throws IOException {
+    return Adb.start(sdk, fileSystem.getHome());
   }
 
   public Adb runAdb(boolean startServer, String... args) throws IOException {

@@ -74,6 +74,44 @@ iml_test(
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
 )
 
+iml_test(
+    name = "EmulatorBeforeStudioTest",
+    data = [
+        ":minapp",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/base/build-system:gradle-distrib-7.2",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "no_mac",  # Untested
+        "no_windows",  # Untested
+    ],
+    test_class = "com.android.tools.idea.EmulatorBeforeStudioTest",
+)
+
+iml_test(
+    name = "EmulatorAfterStudioTest",
+    data = [
+        ":minapp",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/base/build-system:gradle-distrib-7.2",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "no_mac",  # Untested
+        "no_windows",  # Untested
+    ],
+    test_class = "com.android.tools.idea.EmulatorAfterStudioTest",
+)
+
 maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
