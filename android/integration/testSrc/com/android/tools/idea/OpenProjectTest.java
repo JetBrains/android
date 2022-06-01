@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidProject;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
@@ -41,8 +42,7 @@ public class OpenProjectTest {
     install.createFirstRunXml();
     HashMap<String, String> env = new HashMap<>();
 
-    // Set up a simple Android Sdk (an empty one works for just opening and syncing a project)
-    AndroidSdk sdk = new AndroidSdk();
+    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
     sdk.install(env);
 
     // Create a new android project, and set a fixed distribution

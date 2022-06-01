@@ -15,9 +15,6 @@
  */
 package com.android.tools.asdriver.tests;
 
-import static org.apache.commons.io.file.PathUtils.copyDirectory;
-
-import com.android.SdkConstants;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
@@ -28,7 +25,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,7 +140,6 @@ public class AndroidStudioInstallation {
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
   }
-
   /**
    * Prevents a notification about {@code .pro} files and "Shrinker Config" from popping up. This
    * notification occurs as a result of two plugins trying to register the {@code .pro} file type.
@@ -171,21 +166,6 @@ public class AndroidStudioInstallation {
       "  </component>\n" +
       "</application>";
     Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
-  }
-
-  /**
-   * Copies an already-built SDK to a path where Android Studio will find it.
-   *
-   * TODO(b/234069426): change this function to <i>point</i> at the SDK rather than copying it
-   * @param androidPlatform A string like "android-32".
-   * @throws IOException If there's a problem copying the files.
-   */
-  public void copySdk(String androidPlatform) throws IOException {
-    Path sdkSource = TestUtils.getSdk().resolve(SdkConstants.FD_PLATFORMS).resolve(androidPlatform);
-    Path dest = workDir.resolve("home/Android/Sdk").resolve(SdkConstants.FD_PLATFORMS).resolve(androidPlatform);
-    Files.createDirectories(dest.getParent());
-    System.out.println("Copying " + sdkSource + " to " + dest);
-    copyDirectory(sdkSource, dest, StandardCopyOption.REPLACE_EXISTING);
   }
 
   /**

@@ -18,6 +18,7 @@ package com.android.tools.idea;
 import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
@@ -284,7 +285,6 @@ public class UpdateTest {
       // ensure that a single notification is produced: the "Update available" notification.
       install.preventProguardNotification();
       install.createFirstRunXml();
-      install.copySdk(TestUtils.getLatestAndroidPlatform());
       install.setBuildNumber(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER);
 
       Patcher patcher = new Patcher(tempDir, install.getStudioDir());
@@ -298,6 +298,9 @@ public class UpdateTest {
 
       setPluginHost(install, fileServer.getOrigin());
       Map<String, String> env = createEnvironment(fileServer.getOrigin());
+
+      AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
+      sdk.install(env);
 
       try (AndroidStudio studio = install.run(display, env)) {
         String version = studio.version();

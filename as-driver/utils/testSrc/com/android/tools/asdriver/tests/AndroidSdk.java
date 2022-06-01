@@ -15,15 +15,21 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.android.testutils.TestUtils;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.Map;
 
 public class AndroidSdk {
+  private final Path sourceDir;
 
-  // TODO: This is a place holder SDK class, that will need more when we start using its contents
-  public void install(HashMap<String, String> env) {
-    Path path = TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux");
-    env.put("ANDROID_HOME", path.toString());
+  public AndroidSdk(Path sourceDir) {
+    this.sourceDir = sourceDir;
+  }
+
+  public void install(Map<String, String> env) {
+    env.put("ANDROID_HOME", sourceDir.toString());
+  }
+
+  public Path getSourceDir() {
+    return sourceDir;
   }
 }
