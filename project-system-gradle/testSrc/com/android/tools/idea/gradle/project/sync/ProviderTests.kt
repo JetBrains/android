@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
@@ -134,11 +135,14 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
   with(testDefinition) {
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
-    prepareGradleProject(
+    val projectPath = prepareGradleProject(
       scenario.testProject,
       "project"
     )
-
+    val gradlePropertiesPath = projectPath.resolve("gradle.properties")
+    gradlePropertiesPath.writeText(
+      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${BuildEnvironment.getInstance().compileSdkVersion}"
+    )
     openPreparedProject("project") { project ->
       try {
         val variant = scenario.variant
@@ -330,3 +334,5 @@ data class AggregateTestDefinitionImpl(
 
   override fun toString(): String = displayName()
 }
+
+infix fun <T, V> Array<T>.eachTo(value: V): Array<Pair<T, V>> = map { it to value }.toTypedArray()
