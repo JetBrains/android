@@ -26,6 +26,7 @@ import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.utils.FlightRecorder;
+import com.android.utils.TraceUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -142,7 +143,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
     assertEquals("item", tag.getName());
     WriteCommandAction.runWriteCommandAction(getProject(), () -> tag.getValue().setEscapedText("@color/color2"));
-    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT); ///
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
@@ -316,6 +317,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     catch (TimeoutException e) {
       System.out.println("ResourceNotificationManagerTest.ensureCalled: waitForResourceRepositoryUpdates timed out");
       FlightRecorder.print();
+      System.out.println("----------");
+      System.out.println(TraceUtils.getStacksOfAllThreads());
       throw e;
     }
     UIUtil.dispatchAllInvocationEvents();

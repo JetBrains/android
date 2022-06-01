@@ -782,6 +782,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // The current update action has been canceled. Proceed to the next one in the queue.
             }
             catch (Throwable e) {
+              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " finished with exception " + e + '\n' +
+                                             TraceUtils.getStackTrace(e));
               LOG.error(e);
             }
           }
