@@ -23,6 +23,8 @@ import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
@@ -34,12 +36,42 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
 
-class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
+abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
+
+  @RunWith(Parameterized::class)
+  class CurrentAgp : GradleModuleSystemIntegrationTest() {
+
+    companion object {
+      @Suppress("unused")
+      @Contract(pure = true)
+      @JvmStatic
+      @Parameterized.Parameters(name = "{0}")
+      fun test(): Collection<*> {
+        return tests.map { listOf(it).toTypedArray() }
+      }
+    }
+  }
+
+  companion object {
+    val tests =
+      listOf(TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT))
+  }
+
+  data class TestDefinition(
+    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+  ) : AgpIntegrationTestDefinition {
+    override val name: String = ""
+    override fun toString(): String = displayName()
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
+  }
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
@@ -49,6 +81,14 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
+
+  @JvmField
+  @Parameterized.Parameter(0)
+  var testDefinition: TestDefinition? = null
+
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
 
   @Test
   fun manifestOverrides() {
