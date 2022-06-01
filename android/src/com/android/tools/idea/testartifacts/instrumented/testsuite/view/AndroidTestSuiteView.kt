@@ -56,6 +56,7 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -503,9 +504,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     if (toolWindowId == toolWindowManager.activeToolWindowId) {
       return
     }
-    val displayId = "Test Results: ${toolWindowId}"
-    val group = NotificationGroup.findRegisteredGroup(displayId) ?: NotificationGroup.toolWindowGroup(displayId, toolWindowId)
-    group.createNotification(notificationTitle, notificationContent, notificationType).notify(myProject)
+    val group = NotificationGroupManager.getInstance().getNotificationGroup("Test Results")
+    group.createNotification(notificationTitle, notificationContent, notificationType)
+      .setToolWindowId(toolWindowId)
+      .notify(myProject)
   }
 
   @get:UiThread
