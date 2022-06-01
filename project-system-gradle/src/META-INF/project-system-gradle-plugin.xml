@@ -25,8 +25,6 @@
     <createLaunchTasksProvider implementation="com.android.tools.idea.testartifacts.instrumented.CreateLaunchTasksProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
-                        serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"
                         serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>

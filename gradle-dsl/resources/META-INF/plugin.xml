@@ -9,6 +9,7 @@
     Technical plugin, provides Gradle dsl API
     ]]>
   </description>
+  <depends>com.intellij.gradle</depends>
 
   <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
