@@ -1747,6 +1747,10 @@ interface GradleIntegrationTest {
     val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
   }
+
+  fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
 }
 
 /**
@@ -1756,9 +1760,9 @@ interface GradleIntegrationTest {
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
-  gradleVersion: String? = null,
-  gradlePluginVersion: String? = null,
-  kotlinVersion: String? = null,
+  gradleVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.gradleVersion,
+  gradlePluginVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.agpVersion,
+  kotlinVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.kotlinVersion,
   ndkVersion: String? = null
 ): File {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")

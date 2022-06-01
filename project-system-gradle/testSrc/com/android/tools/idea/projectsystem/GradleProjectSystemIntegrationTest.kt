@@ -95,6 +95,10 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
+
   @Test
   fun testGetDependentLibraries() {
     runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
@@ -177,10 +181,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     try {
       prepareGradleProject(
         testProjectPath,
-        "project",
-        gradleVersion = testDefinition.agpVersion.gradleVersion,
-        gradlePluginVersion = testDefinition.agpVersion.agpVersion,
-        kotlinVersion = testDefinition.agpVersion.kotlinVersion
+        "project"
       )
       openPreparedProject("project", action = test)
     }

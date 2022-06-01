@@ -136,10 +136,7 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
     outputCurrentlyRunningTest(this)
     prepareGradleProject(
       scenario.testProject,
-      "project",
-      gradleVersion = agpVersion.gradleVersion,
-      gradlePluginVersion = agpVersion.agpVersion,
-      kotlinVersion = agpVersion.kotlinVersion
+      "project"
     )
 
     openPreparedProject("project") { project ->
@@ -259,6 +256,10 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
+
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
 
   private val m2Dirs by lazy {
     (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() +
