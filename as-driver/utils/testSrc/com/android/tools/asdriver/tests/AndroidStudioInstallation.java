@@ -294,13 +294,13 @@ public class AndroidStudioInstallation implements AutoCloseable {
     System.out.println("Done deleting " + dir);
   }
 
-  public AndroidStudio run() throws IOException, InterruptedException {
-    return run(new HashMap<>());
+  public AndroidStudio run(Display display) throws IOException, InterruptedException {
+    return run(display, new HashMap<>());
   }
 
-  public AndroidStudio run(Map<String, String> env) throws IOException, InterruptedException {
+  public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
-    return new AndroidStudio(this, newEnv);
+    return new AndroidStudio(this, display, newEnv);
   }
 }

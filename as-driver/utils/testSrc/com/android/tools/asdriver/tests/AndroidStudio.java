@@ -44,10 +44,10 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final Process process;
   private final AndroidStudioInstallation installation;
-  private XvfbServer xvfbServer;
   private BufferedReader logReader;
 
   public AndroidStudio(AndroidStudioInstallation installation,
+                       Display display,
                        Map<String, String> env) throws IOException, InterruptedException {
     this.installation = installation;
     Path workDir = installation.getWorkDir();
@@ -61,17 +61,8 @@ public class AndroidStudio implements AutoCloseable {
     for (Map.Entry<String, String> entry : env.entrySet()) {
       pb.environment().put(entry.getKey(), entry.getValue());
     }
-    String display = System.getenv("DISPLAY");
-    if (display == null || display.isEmpty()) {
-      // If a display is provided use that, otherwise create one.
-      xvfbServer = new XvfbServer();
-      display = xvfbServer.launchUnusedDisplay();
-      System.out.println("Display: " + display);
-    }
-    else {
-      System.out.println("Display inherited from parent: " + display);
-    }
-    pb.environment().put("DISPLAY", display);
+
+    pb.environment().put("DISPLAY", display.getDisplay());
     pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
     String shell = System.getenv("SHELL");
     if (shell != null && !shell.isEmpty()) {
@@ -153,22 +144,6 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
-   * Thinly wraps {@code XvfbServer.debugTakeScreenshot}.
-   */
-  public void debugTakeScreenshot(String fileName) {
-    if (xvfbServer == null) {
-      System.out.println("Can't take a screenshot; xvfbServer is null");
-      return;
-    }
-    try {
-      xvfbServer.debugTakeScreenshot(fileName);
-    }
-    catch (Exception e) {
-      System.out.println("Capturing a screenshot didn't work (ignoring): " + e.getMessage());
-    }
-  }
-
-  /**
    * Waits for the server to be started by monitoring the standard out.
    *
    * @return the port at which the server was started.
@@ -227,9 +202,6 @@ public class AndroidStudio implements AutoCloseable {
     finally {
       if (logReader != null) {
         logReader.close();
-      }
-      if (xvfbServer != null) {
-        xvfbServer.kill();
       }
     }
   }

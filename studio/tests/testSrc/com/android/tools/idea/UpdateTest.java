@@ -20,7 +20,9 @@ import static junit.framework.Assert.assertTrue;
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
+import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.PatchMachinery;
+import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,7 +81,8 @@ public class UpdateTest {
       AndroidStudio.terminateAllStudioInstances();
     }
 
-    try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
+    try (Display display = new XvfbServer();
+         AndroidStudioInstallation install = new AndroidStudioInstallation()) {
       install.createFirstRunXml();
       install.copySdk(TestUtils.getLatestAndroidPlatform());
       install.setBuildNumber(PatchMachinery.PRODUCT_PREFIX + PatchMachinery.FAKE_CURRENT_BUILD_NUMBER);
@@ -91,8 +94,8 @@ public class UpdateTest {
       setPluginHost(install, patchMachinery.getFileServerOrigin());
       Map<String, String> env = createEnvironment(patchMachinery.getFileServerOrigin());
 
-      try (AndroidStudio studio = install.run(env)) {
-        studio.debugTakeScreenshot("before");
+      try (AndroidStudio studio = install.run(display, env)) {
+        display.debugTakeScreenshot("before");
 
         System.out.println("Updating Android Studio");
         boolean success = studio.updateStudio();
@@ -115,7 +118,7 @@ public class UpdateTest {
       }
 
       System.out.println("Trying to start the updated Android Studio");
-      try (AndroidStudio studio = install.run()) {
+      try (AndroidStudio studio = install.run(display)) {
         System.out.println("The new instance of Android Studio successfully started");
       } catch (Throwable t) {
         throw t;

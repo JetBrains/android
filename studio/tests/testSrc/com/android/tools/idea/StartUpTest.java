@@ -19,6 +19,8 @@ import static org.junit.Assert.assertArrayEquals;
 
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
+import com.android.tools.asdriver.tests.Display;
+import com.android.tools.asdriver.tests.XvfbServer;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import org.junit.Test;
@@ -26,8 +28,9 @@ import org.junit.Test;
 public class StartUpTest {
   @Test
   public void startUpTest() throws Exception {
-    try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
-      try (AndroidStudio studio = install.run()) {
+    try (Display display = new XvfbServer();
+         AndroidStudioInstallation install = new AndroidStudioInstallation()) {
+      try (AndroidStudio studio = install.run(display)) {
         // Wait for plugin manager to load all plugins
         Matcher matcher = studio.waitForLog(".*PluginManager - Loaded bundled plugins:(.*)", 10000);
         String[] plugins = matcher.group(1).split(",");

@@ -26,10 +26,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.SystemUtils;
 
 /**
- * An X server backed by Xvfb. Constructor searches for an available X display ID in the system
- * and starts Xvfb to use that.
+ * An X server potentially backed by Xvfb.
  */
-public class XvfbServer {
+public class XvfbServer implements Display {
   private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
   private static final String XVFB_LAUNCHER = "tools/vendor/google/testing/display/launch_xvfb.sh";
@@ -42,6 +41,18 @@ public class XvfbServer {
   private String display;
 
   private Boolean cachedCanCallImport = null;
+
+  public XvfbServer() {
+    String display = System.getenv("DISPLAY");
+    if (display == null || display.isEmpty()) {
+      // If a display is provided use that, otherwise create one.
+      this.display = launchUnusedDisplay();
+      System.out.println("Display: " + display);
+    } else {
+      this.display = display;
+      System.out.println("Display inherited from parent: " + display);
+    }
+  }
 
   /**
    * Helper function for {@link XvfbServer#debugTakeScreenshot}.
@@ -66,14 +77,15 @@ public class XvfbServer {
    * Takes a screenshot of the headless display from Xvfb on Linux.
    * @param fileName A file name for the screenshot, e.g. "before" or "after".
    */
-  public void debugTakeScreenshot(String fileName) throws IOException, RuntimeException {
+  @Override
+  public void debugTakeScreenshot(String fileName) throws IOException {
     if (!SystemUtils.IS_OS_LINUX) {
       throw new RuntimeException("debugTakeScreenshot is only available on Linux since it uses \"import\"");
     } else if (!canCallImport()) {
       throw new RuntimeException("Can't take a screenshot on Linux without \"import\"");
     }
 
-    if (!process.isAlive()) {
+    if (process == null || !process.isAlive()) {
       throw new IllegalStateException("Xvfb process is not alive to be able to take a screenshot");
     }
 
@@ -110,6 +122,11 @@ public class XvfbServer {
       e.printStackTrace();
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public String getDisplay() {
+    return display;
   }
 
   public String launchUnusedDisplay() {
@@ -155,7 +172,8 @@ public class XvfbServer {
     }
   }
 
-  public void kill() {
+  @Override
+  public void close() {
     if (process != null) {
       process.destroyForcibly();
     }
