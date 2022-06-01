@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.impl.DirectoryIndex
@@ -80,9 +82,11 @@ fun updateUsageTracker(projectPath: String, gradleSyncFailure: GradleSyncFailure
  */
 //TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
 fun fetchIdeaProjectForGradleProject(projectPath: String): Project? {
-  val projectVirtualFile = VfsUtil.findFileByIoFile(File(projectPath), true) ?: return null
-  return ProjectManager.getInstance().openProjects.firstOrNull {
-    DirectoryIndex.getInstance(it).getInfoForFile(projectVirtualFile).module != null
+  return runReadAction {
+    val projectVirtualFile = VfsUtil.findFileByIoFile(File(projectPath), false) ?: return@runReadAction null
+    ProjectManager.getInstance().openProjects.firstOrNull {
+      DirectoryIndex.getInstance(it).getInfoForFile(projectVirtualFile).module != null
+    }
   }
 }
 
