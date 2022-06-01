@@ -18,7 +18,6 @@ package com.android.tools.adtui.swing
 
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
-import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -437,7 +436,6 @@ private class HeadlessDialogWrapperPeer(
     }
 
     try {
-      val eventQueue = IdeEventQueue.getInstance()
       while (latch.count > 0) {
         if (PlatformTestUtil.dispatchNextEventIfAny() == null) {
           latch.await(10, TimeUnit.MILLISECONDS)
