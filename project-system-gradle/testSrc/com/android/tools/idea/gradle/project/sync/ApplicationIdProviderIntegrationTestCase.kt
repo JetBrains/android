@@ -274,7 +274,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.DYNAMIC_APP,
-        target = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
+        target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       expectPackageName = "google.simpleapplication",
       expectTestPackageName = "com.example.feature1.test"

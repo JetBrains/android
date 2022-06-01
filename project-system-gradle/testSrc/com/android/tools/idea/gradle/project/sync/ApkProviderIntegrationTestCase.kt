@@ -431,7 +431,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.DYNAMIC_APP,
-        target = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
+        target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
       IGNORE = { if (agpVersion == AGP_CURRENT) TODO("b/189202602") },
