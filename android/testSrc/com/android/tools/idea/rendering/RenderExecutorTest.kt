@@ -335,4 +335,29 @@ class RenderExecutorTest {
 
     future.join()
   }
+
+  @Test
+  fun testCancelLowPriority() {
+    val actionExecutor = OnDemandExecutorService()
+    val timeoutExecutorProvider = VirtualTimeScheduler()
+    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
+                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val counterHighPriority = AtomicInteger(0)
+    val counterLowPriority = AtomicInteger(0)
+
+    repeat(10) {
+      executor.runAsyncActionWithTestDefault {
+        counterHighPriority.incrementAndGet()
+      }
+      executor.runAsyncActionWithTestDefault(priority = RenderingPriority.LOW) {
+        counterLowPriority.incrementAndGet()
+      }
+    }
+    executor.cancelLowerPriorityActions(RenderingPriority.LOW)
+    val numActions = actionExecutor.runAll()
+    assertEquals(20, numActions)
+    // Only high priority tasks will run, as the low priority ones have been cancelled
+    assertEquals(10, counterHighPriority.get())
+    assertEquals(0, counterLowPriority.get())
+  }
 }

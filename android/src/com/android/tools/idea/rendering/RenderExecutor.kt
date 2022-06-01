@@ -75,7 +75,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   private val pendingActionsQueueLock: Lock = ReentrantLock()
 
   @GuardedBy("pendingActionsQueueLock")
-  private val pendingActionsQueue: Queue<CompletableFuture<*>> = PriorityQueue()
+  private val pendingActionsQueue: Queue<PriorityCompletableFuture<*>> = PriorityQueue()
   private val renderingExecutor: ExecutorService = executorProvider(threadFactory)
   private val timeoutExecutor: ScheduledExecutorService = timeoutExecutorProvider()
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
@@ -211,6 +211,18 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
           future.complete(result)
         }
       }
+  }
+
+  override fun cancelLowerPriorityActions(minPriority: RenderingPriority) {
+    pendingActionsQueueLock.withLock {
+      val tasksToCancel = mutableListOf<CompletableFuture<*>>()
+      while (pendingActionsQueue.isNotEmpty() && pendingActionsQueue.peek().renderingPriority <= minPriority) {
+        tasksToCancel.add(pendingActionsQueue.remove())
+      }
+      tasksToCancel
+    }.forEach {
+      it.cancel(false)
+    }
   }
 
   @TestOnly

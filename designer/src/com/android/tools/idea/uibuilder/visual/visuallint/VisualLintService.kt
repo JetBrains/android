@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.RenderAsyncActionExecutor
+import com.android.tools.idea.rendering.RenderExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
@@ -62,6 +64,11 @@ class VisualLintService {
 
     issueModel.addIssueProvider(issueProvider, false)
     val displayingModel = models[0]
+    displayingModel.addListener(object: ModelListener {
+      override fun modelChanged(model: NlModel) {
+        RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(RenderAsyncActionExecutor.RenderingPriority.LOW)
+      }
+    })
     val modelsToAnalyze = WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet )
 
     for (model in modelsToAnalyze) {
