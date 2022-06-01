@@ -57,7 +57,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
       @Contract(pure = true)
       @JvmStatic
       @Parameterized.Parameters(name = "{0}")
-      fun testProjects(): Collection<*> {
+      fun tests(): Collection<*> {
         return tests.map { listOf(it).toTypedArray() }
       }
     }
