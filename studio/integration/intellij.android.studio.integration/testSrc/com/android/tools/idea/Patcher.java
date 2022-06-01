@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea;
 
-import static com.android.tools.asdriver.tests.AndroidStudioInstallation.getBinPath;
-
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,7 +56,7 @@ public class Patcher {
    * Runs the patcher to produce a patch file from two input directories.
    */
   private Path runPatcher(String currentBuildNumber, String updatedBuildNumber) throws IOException, InterruptedException {
-    Path updaterBin = getBinPath("tools/adt/idea/studio/updater");
+    Path updaterBin = TestUtils.getBinPath("tools/adt/idea/studio/updater");
     Path patchDir = tempDir.resolve("patch");
     Files.createDirectories(patchDir);
     System.out.println("Creating the patch in " + patchDir);

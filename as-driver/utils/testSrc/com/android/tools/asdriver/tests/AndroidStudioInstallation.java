@@ -48,7 +48,7 @@ public class AndroidStudioInstallation {
   public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
     Path workDir = Files.createTempDirectory(tempDir, "android-studio");
     System.out.println("workDir: " + workDir);
-    Path studioZip = getBinPath("tools/adt/idea/studio/android-studio.linux.zip");
+    Path studioZip = TestUtils.getBinPath("tools/adt/idea/studio/android-studio.linux.zip");
     unzip(studioZip, workDir);
     return new AndroidStudioInstallation(workDir, workDir.resolve("android-studio"));
   }
@@ -80,7 +80,7 @@ public class AndroidStudioInstallation {
   }
 
   private void createVmOptionsFile() throws IOException {
-    Path agentZip = AndroidStudioInstallation.getBinPath("tools/adt/idea/as-driver/as_driver_deploy.jar");
+    Path agentZip = TestUtils.getBinPath("tools/adt/idea/as-driver/as_driver_deploy.jar");
     if (!Files.exists(agentZip)) {
       throw new IllegalStateException("agent not found at " + agentZip);
     }
@@ -279,15 +279,6 @@ public class AndroidStudioInstallation {
 
   public AndroidStudio attach() throws IOException, InterruptedException {
     return AndroidStudio.attach(this);
-  }
-
-  static public Path getBinPath(String bin) {
-    Path path = TestUtils.resolveWorkspacePathUnchecked(bin);
-    if (!Files.exists(path)) {
-      // running from IJ
-      path = TestUtils.resolveWorkspacePathUnchecked("bazel-bin/" + bin);
-    }
-    return path;
   }
 
   public AndroidStudio run(Display display) throws IOException, InterruptedException {
