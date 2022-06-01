@@ -50,7 +50,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
@@ -66,9 +65,6 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
-
-  @get:Rule
-  val testName = TestName()
 
   @Test
   fun testSwitchVariants() {
@@ -626,7 +622,6 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

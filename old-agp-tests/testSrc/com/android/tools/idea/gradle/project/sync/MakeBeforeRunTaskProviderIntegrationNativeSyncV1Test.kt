@@ -36,7 +36,6 @@ import com.intellij.execution.RunManager
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @OldAgpTest(agpVersions = ["4.1.0"], gradleVersions = ["LATEST"])
@@ -44,9 +43,6 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
@@ -124,7 +120,6 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

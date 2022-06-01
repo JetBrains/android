@@ -29,7 +29,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @RunsInEdt
@@ -37,9 +36,6 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun kotlinSingleVariantSync() {
@@ -61,7 +57,6 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
   override fun getAdditionalRepos(): Collection<File> = emptyList()

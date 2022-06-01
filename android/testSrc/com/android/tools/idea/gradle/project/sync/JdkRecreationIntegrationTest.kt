@@ -34,7 +34,6 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @Suppress("DEPRECATION")
@@ -44,11 +43,6 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
-
-  @get:Rule
-  val testName = TestName()
-
-  override fun getName(): String = testName.methodName
 
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 

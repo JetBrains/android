@@ -79,5 +79,5 @@ fun List<AgpIntegrationTestDefinition>.applySelectedAgpVersions(): List<AgpInteg
  * Prints a message describing the currently running test to the standard output.
  */
 fun GradleIntegrationTest.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
-  println("Testing: ${this.javaClass.simpleName}.${this.getName()}[${testDefinition.displayName()}]")
+  println("Testing: ${this.javaClass.simpleName}[${testDefinition.displayName()}]")
 }

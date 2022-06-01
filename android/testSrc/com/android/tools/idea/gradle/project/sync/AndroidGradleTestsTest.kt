@@ -32,7 +32,6 @@ import org.jetbrains.annotations.SystemIndependent
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -40,9 +39,6 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun testEmptyNotInEdt() {
@@ -97,7 +93,6 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
     assertThat(buildMessageFound).named("'BUILD SUCCESSFUL' found").isTrue()
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
 

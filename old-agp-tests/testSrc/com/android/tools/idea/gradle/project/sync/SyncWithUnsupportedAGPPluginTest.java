@@ -33,7 +33,6 @@ import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
@@ -42,9 +41,6 @@ import org.junit.rules.TestName;
 public class SyncWithUnsupportedAGPPluginTest implements GradleIntegrationTest {
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
-
-  @Rule
-  public TestName testName = new TestName();
 
   @Test
   public void testGradleSyncFails() {
@@ -58,12 +54,6 @@ public class SyncWithUnsupportedAGPPluginTest implements GradleIntegrationTest {
       , project -> null);
     assertTrue(exceptionTest[0].contains("The project is using an incompatible version (AGP 3.1.4) of the Android " +
                                                            "Gradle plugin. Minimum supported version is AGP 3.2.0."));
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return testName.getMethodName();
   }
 
   @NotNull

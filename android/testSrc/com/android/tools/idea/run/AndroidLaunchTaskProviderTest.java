@@ -56,14 +56,10 @@ import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 
 public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
-
-  @Rule
-  public TestName testName = new TestName();
 
   @NotNull
   private static String getDebuggerType() {
@@ -132,12 +128,6 @@ public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
       launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
       return Unit.INSTANCE;
     });
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return testName.getMethodName();
   }
 
   @NotNull

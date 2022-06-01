@@ -55,7 +55,6 @@ import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
@@ -253,10 +252,6 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
   @get:Rule
   var expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  var testName = TestName()
-
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

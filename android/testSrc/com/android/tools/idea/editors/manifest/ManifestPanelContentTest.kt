@@ -35,7 +35,6 @@ import com.android.utils.forEach
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.w3c.dom.Element
@@ -47,9 +46,6 @@ class ManifestPanelContentTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun testContent() {
@@ -378,7 +374,6 @@ Added from the <a href='<~>/lib/src/main/AndroidManifest.xml:2:2'>navgraph.lib</
     return fileAndPosition.substring(0, suffixPosition) to fileAndPosition.substring(suffixPosition, fileAndPosition.length)
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
   override fun getAdditionalRepos(): Collection<File> = listOf()

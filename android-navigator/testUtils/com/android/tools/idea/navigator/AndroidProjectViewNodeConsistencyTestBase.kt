@@ -31,7 +31,6 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runners.Parameterized
 import java.io.File
 import java.util.ArrayDeque
@@ -55,10 +54,6 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  @get:Rule
-  var testName = TestName()
-
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
   private interface TestContext {

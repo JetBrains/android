@@ -32,16 +32,12 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 class GradleProjectPathIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun gradleProjectPaths() {
@@ -180,7 +176,6 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =

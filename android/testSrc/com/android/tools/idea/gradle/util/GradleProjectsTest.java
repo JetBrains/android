@@ -47,7 +47,6 @@ import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -62,9 +61,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
 
   @Rule
   public Expect expect = Expect.createAndEnableStackTrace();
-
-  @Rule
-  public TestName testName = new TestName();
 
   @Test
   public void testIsGradleProjectWithRegularProject() {
@@ -138,12 +134,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   @Override
   public Collection<File> getAdditionalRepos() {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return testName.getMethodName();
   }
 
   @NotNull

@@ -51,7 +51,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
@@ -79,9 +78,6 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @Before
   fun setUp() {
@@ -204,7 +200,6 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

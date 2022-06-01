@@ -35,7 +35,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @RunsInEdt
@@ -70,12 +69,8 @@ class Jvm1_8SyncTest : GradleIntegrationTest {
   val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @get:Rule
-  var testName = TestName()
-
-  @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

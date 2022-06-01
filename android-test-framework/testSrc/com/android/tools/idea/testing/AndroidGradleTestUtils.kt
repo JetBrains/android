@@ -1719,11 +1719,6 @@ fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
  */
 interface GradleIntegrationTest {
   /**
-   * Assumed to be matched by [UsefulTestCase.getName].
-   */
-  fun getName(): String
-
-  /**
    * The base test directory to be used in tests.
    */
   fun getBaseTestPath(): @SystemDependent String
@@ -1760,14 +1755,14 @@ interface GradleIntegrationTest {
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
-  gradleVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.gradleVersion,
-  gradlePluginVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.agpVersion,
-  kotlinVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor()?.kotlinVersion,
+  gradleVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().gradleVersion,
+  gradlePluginVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().agpVersion,
+  kotlinVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().kotlinVersion,
   ndkVersion: String? = null
 ): File {
-  if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = resolveTestDataPath(testProjectPath)
   val projectPath = nameToPath(name)
+  if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
 
   AndroidGradleTests.prepareProjectForImportCore(
     srcPath, projectPath,

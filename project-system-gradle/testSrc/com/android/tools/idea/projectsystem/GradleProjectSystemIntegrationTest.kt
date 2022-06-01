@@ -39,7 +39,6 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
@@ -81,16 +80,12 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   val projectRule = AndroidProjectRule.withAndroidModels()
 
   @get:Rule
-  var testName = TestName()
-
-  @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   @JvmField
   @Parameterized.Parameter(0)
   var testDefinition: TestDefinition? = null
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

@@ -39,7 +39,6 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
@@ -75,9 +74,6 @@ abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -222,7 +218,6 @@ abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =

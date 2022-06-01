@@ -27,7 +27,6 @@ import com.google.common.truth.Expect
 import com.intellij.openapi.application.runWriteActionAndWait
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
@@ -77,10 +76,6 @@ class GradleTaskRunnerTest : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
 
-  @get:Rule
-  var testName = TestName()
-
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

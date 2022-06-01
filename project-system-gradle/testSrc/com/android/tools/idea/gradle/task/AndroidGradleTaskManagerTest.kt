@@ -31,7 +31,6 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 class AndroidGradleTaskManagerTest : GradleIntegrationTest {
@@ -41,10 +40,6 @@ class AndroidGradleTaskManagerTest : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  @get:Rule
-  var testName = TestName()
-
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"

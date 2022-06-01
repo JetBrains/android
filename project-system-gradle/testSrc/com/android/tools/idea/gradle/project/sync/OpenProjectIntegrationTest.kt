@@ -48,7 +48,6 @@ import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
@@ -61,9 +60,6 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
-
-  @get:Rule
-  val testName = TestName()
 
   @After
   fun tearDown() {
@@ -238,7 +234,6 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos() =
