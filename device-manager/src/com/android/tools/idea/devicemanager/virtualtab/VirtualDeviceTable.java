@@ -88,8 +88,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     myNewSetDevices = newSetDevices;
     initListener();
 
-    dataModel.addTableModelListener(event -> sizeWidthsToFit());
-
     Project project = panel.getProject();
 
     setDefaultEditor(LaunchOrStopValue.class, new LaunchOrStopButtonTableCellEditor(project));
@@ -150,30 +148,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private void initListener() {
     myListener = new VirtualDeviceChangeListener(getModel());
     AndroidDebugBridge.addDeviceChangeListener(myListener);
-  }
-
-  private void sizeWidthsToFit() {
-    getRowSorter().allRowsChanged();
-    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
-
-    Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
-                     JBUIScale.scale(20));
-
-    Tables.setWidths(columnModel.getColumn(sizeOnDiskViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, sizeOnDiskViewColumnIndex(), JBUIScale.scale(65)),
-                     JBUIScale.scale(20));
-
-    Tables.setWidths(columnModel.getColumn(launchOrStopViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, launchOrStopViewColumnIndex(), 0));
-
-    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
-
-    Tables.setWidths(columnModel.getColumn(editViewColumnIndex()), Tables.getPreferredColumnWidth(this, editViewColumnIndex(), 0));
-
-    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
@@ -257,6 +231,32 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     header.setResizingAllowed(false);
 
     return header;
+  }
+
+  @Override
+  public void doLayout() {
+    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
+
+    Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(sizeOnDiskViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, sizeOnDiskViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(launchOrStopViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, launchOrStopViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(editViewColumnIndex()), Tables.getPreferredColumnWidth(this, editViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
+
+    super.doLayout();
   }
 
   private int apiViewColumnIndex() {

@@ -45,14 +45,6 @@ final class PairingTable extends JBTable {
 
     tableHeader.setReorderingAllowed(false);
     tableHeader.setResizingAllowed(false);
-
-    dataModel.addTableModelListener(event -> {
-      columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(65));
-
-      Tables.setWidths(columnModel.getColumn(statusViewColumnIndex()),
-                       Tables.getPreferredColumnWidth(PairingTable.this, statusViewColumnIndex(), JBUIScale.scale(65)),
-                       JBUIScale.scale(20));
-    });
   }
 
   private void pairWearable() {
@@ -75,6 +67,17 @@ final class PairingTable extends JBTable {
     }
 
     return Optional.of(getModel().getPairings().get(convertRowIndexToModel(viewRowIndex)));
+  }
+
+  @Override
+  public void doLayout() {
+    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(65));
+
+    Tables.setWidths(columnModel.getColumn(statusViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, statusViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    super.doLayout();
   }
 
   @Override

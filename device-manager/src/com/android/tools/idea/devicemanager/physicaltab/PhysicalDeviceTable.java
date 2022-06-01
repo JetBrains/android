@@ -58,7 +58,6 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   @VisibleForTesting
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
     super(model, PhysicalDevice.class, PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
-    model.addTableModelListener(event -> sizeApiTypeAndActionsColumnWidthsToFit());
 
     Project project = panel.getProject();
     assert project != null;
@@ -86,28 +85,6 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     setShowGrid(false);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
-  }
-
-  private void sizeApiTypeAndActionsColumnWidthsToFit() {
-    getRowSorter().allRowsChanged();
-    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
-
-    Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
-                     JBUIScale.scale(20));
-
-    Tables.setWidths(columnModel.getColumn(typeViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, typeViewColumnIndex(), JBUIScale.scale(65)),
-                     JBUIScale.scale(20));
-
-    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
-
-    Tables.setWidths(columnModel.getColumn(removeViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, removeViewColumnIndex(), 0));
-
-    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
@@ -157,6 +134,30 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     header.setResizingAllowed(false);
 
     return header;
+  }
+
+  @Override
+  public void doLayout() {
+    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
+
+    Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(typeViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, typeViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(removeViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, removeViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
+
+    super.doLayout();
   }
 
   private int apiViewColumnIndex() {
