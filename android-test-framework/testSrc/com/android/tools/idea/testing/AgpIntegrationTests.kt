@@ -40,8 +40,6 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
 ) {
   AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32"),
   AGP_40("4.0.0", gradleVersion = "6.5"),
-
-  // TODO(b/194469137): Use correct Gradle version.
   AGP_41("4.1.0", gradleVersion = "6.5"),
   AGP_42("4.2.0", gradleVersion = "6.7.1"),
   AGP_70("7.0.0", gradleVersion = "7.0.2"),
