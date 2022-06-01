@@ -19,6 +19,16 @@ import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
+import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -59,52 +69,23 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
   data class TestProject(
     val template: String,
     val pathToOpen: String = "",
-    val incompatibleWithAgps: Set<AgpVersion> = emptySet(),
-    val incompatibleWithGradle: Set<GradleVersion> = emptySet()
-  ) {
-    override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
-  }
+    val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
+  ) : AgpIntegrationTestDefinition {
+    override val name: String
+      get() = "${template.removePrefix("projects/")}${pathToOpen}${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}"
 
-  enum class AgpVersion(
-    val suffix: String,
-    val legacyAgpVersion: String? = null
-  ) {
-    CURRENT("NewAgp"),
-    LEGACY_4_1("Agp_4.1", "4.1.0"),
-    LEGACY_4_2("Agp_4.2", "4.2.0"),
-    LEGACY_7_0("Agp_7.0", "7.0.0"),
-    LEGACY_7_1("Agp_7.1", "7.1.0"),
-    LEGACY_7_2("Agp_7.2", "7.2.0"),
-    ;
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): AgpIntegrationTestDefinition {
+      return copy(agpVersion = agpVersion)
+    }
 
-    override fun toString(): String = suffix
-  }
+    override fun toString(): String = name
 
-  enum class GradleVersion(
-    val suffix: String,
-    val legacyGradleVersion: String? = null
-  ) {
-    CURRENT("LATEST"),
-    LEGACY_6_5("Gradle_6.5", "6.5"),
-    LEGACY_6_7_1("Gradle_6.7.1", "6.7.1"),
-    LEGACY_7_0_2("Gradle_7.0.2", "7.0.2"),
-    LEGACY_7_2("Gradle_7.2", "7.2"),
-    LEGACY_7_3_3("Gradle_7.3.3", "7.3.3"),
-    ;
-
-    override fun toString(): String = suffix
+    override fun isCompatible(): Boolean = isCompatibleWith(agpVersion)
   }
 
   @JvmField
   @Parameterized.Parameter(0)
-  var agpVersion: AgpVersion? = null
-
-  @JvmField
-  @Parameterized.Parameter(2)
-  var gradleVersion: GradleVersion? = null
-
-  @JvmField
-  @Parameterized.Parameter(1)
   var testProjectName: TestProject? = null
 
   companion object {
@@ -114,15 +95,15 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       // Composite Build project cannot Sync using legacy Gradle due to duplicate root issue: https://github.com/gradle/gradle/issues/18874
-      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, incompatibleWithGradle = setOf(GradleVersion.LEGACY_6_7_1, GradleVersion.LEGACY_6_5)),
+      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, isCompatibleWith = { it >= AGP_70 }),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2, AgpVersion.LEGACY_7_0)),
+      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS, isCompatibleWith = { it !in setOf(AGP_41, AGP_42, AGP_70) }),
       // Test Fixtures support is available through AGP 7.2 and above.
-      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2, AgpVersion.LEGACY_7_0, AgpVersion.LEGACY_7_1)),
+      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, isCompatibleWith = { it !in setOf(AGP_41, AGP_42, AGP_70, AGP_71) }),
       TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
-      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
+      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM, isCompatibleWith = { it !in setOf(AGP_41, AGP_42) }),
       TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR),
       TestProject(TestProjectToSnapshotPaths.NAMESPACES),
       TestProject(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
@@ -130,23 +111,16 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.BASIC)
       )
 
-    fun testProjectsFor(agpAndGradleVersions: Map<AgpVersion, GradleVersion>) =
-      agpAndGradleVersions
-        .flatMap { agpAndGradleVersion ->
-          projectsList
-            .filter { agpAndGradleVersion.key !in it.incompatibleWithAgps }
-            .filter { agpAndGradleVersion.value !in it.incompatibleWithGradle }
-            .map { listOf(agpAndGradleVersion.key, it, agpAndGradleVersion.value).toTypedArray() }
-        }
-
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
-    @Parameterized.Parameters(name = "{1}\${0}")
-    fun testProjects(): Collection<*> = testProjectsFor(
-      AgpVersion.values().filter { it == AgpVersion.CURRENT }.zip(
-      GradleVersion.values().filter { it == GradleVersion.CURRENT }).toMap()
-    )
+    @Parameterized.Parameters(name = "{0}")
+    fun testParameters(): Collection<*> {
+      return testProjects().filter { it.isCompatible() }.map { listOf(it).toTypedArray() }
+    }
+
+    const val NUMBER_OF_EXPECTATIONS = 2  // Apk and ApplicationIdProvider's.
+    fun testProjects(): List<TestProject> = projectsList
   }
 
   @get:Rule
@@ -161,6 +135,10 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
   override fun getAdditionalRepos(): Collection<File> =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testProjectName?.agpVersion ?: AGP_CURRENT
+  }
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/ideModels"
 
   @Test
@@ -168,13 +146,9 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     try {
       val projectName = testProjectName ?: error("unit test parameter not initialized")
-      val agpVersion = agpVersion ?: error("unit test parameter not initialized")
-      val gradleVersion = gradleVersion ?: error("unit test parameter not initialized")
       val root = prepareGradleProject(
         projectName.template,
         "project",
-        gradleVersion.legacyGradleVersion,
-        agpVersion.legacyAgpVersion,
         ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
       )
       CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
@@ -194,3 +168,17 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     }
   }
 }
+
+private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when(this) {
+  AGP_CURRENT -> "_NewAgp"
+  AGP_35 -> "_Agp_3.5"
+  AGP_40 -> "_Agp_4.0"
+  AGP_41 -> "_Agp_4.1"
+  AGP_42 -> "_Agp_4.2"
+  AGP_70 -> "_Agp_7.0"
+  AGP_71 -> "_Agp_7.1"
+  AGP_72 -> "_Agp_7.2"
+}
+
+private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String = gradleVersion?.let {"_Gradle_$it"}.orEmpty()
+
