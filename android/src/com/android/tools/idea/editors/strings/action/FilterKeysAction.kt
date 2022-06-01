@@ -13,114 +13,112 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action;
+package com.android.tools.idea.editors.strings.action
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.editors.strings.table.NeedsTranslationForLocaleRowFilter;
-import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.editors.strings.table.StringResourceTableRowFilter;
-import com.android.tools.idea.editors.strings.table.TextRowFilter;
-import com.android.tools.idea.editors.strings.table.TranslatableRowFilter;
-import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.ui.DialogBuilder;
-import java.util.stream.IntStream;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.resources.Locale
+import com.android.tools.idea.editors.strings.StringResourceEditor
+import com.android.tools.idea.editors.strings.table.NeedsTranslationForLocaleRowFilter
+import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.editors.strings.table.StringResourceTableRowFilter
+import com.android.tools.idea.editors.strings.table.TextRowFilter
+import com.android.tools.idea.editors.strings.table.TranslatableRowFilter
+import com.android.tools.idea.rendering.FlagManager
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction
+import com.intellij.openapi.ui.DialogBuilder
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JTextField
 
-final class FilterKeysAction extends ComboBoxAction {
-  private final StringResourceTable myTable;
-
-  FilterKeysAction(@NotNull StringResourceTable table) {
-    myTable = table;
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    StringResourceTableRowFilter filter = myTable.getRowFilter();
-
-    if (filter == null) {
-      Presentation presentation = event.getPresentation();
-
-      presentation.setIcon(null);
-      presentation.setText("Show All Keys");
+/** Action to allow the user to filter keys in the Translations Editor by various properties. */
+class FilterKeysAction : ComboBoxAction() {
+  override fun update(e: AnActionEvent) {
+    val editor = e.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
+    editor.panel.table.rowFilter?.let {
+      it.update(e.presentation)
+      return
     }
-    else {
-      filter.update(event.getPresentation());
+    e.presentation.apply {
+      icon = null
+      text = "Show All Keys"
     }
   }
 
-  @NotNull
-  @Override
-  protected DefaultActionGroup createPopupActionGroup(@Nullable JComponent button) {
-    DefaultActionGroup group = DefaultActionGroup.createPopupGroup(() -> null);
+  @Deprecated("Call the two-argument version instead.")
+  override fun createPopupActionGroup(button: JComponent?): DefaultActionGroup {
+    throw UnsupportedOperationException("Call the two-argument version instead.")
+  }
 
-    group.add(new AnAction("Show All Keys") {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent event) {
-        myTable.setRowFilter(null);
+  override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
+    val group = DefaultActionGroup.createPopupGroupWithEmptyText()
+
+    group.add(rowFilterUpdatingAction("Show All Keys") { null })
+
+    group.add(rowFilterUpdatingAction("Show Translatable Keys") { TranslatableRowFilter() })
+
+    group.add(rowFilterUpdatingAction("Show Keys Needing Translation") { NeedsTranslationsRowFilter() })
+
+    group.add(
+      object : PanelAction("Filter By Text","Filter the translations editor table keys by text", AllIcons.General.Filter) {
+          override fun doUpdate(e: AnActionEvent): Boolean = true
+
+          override fun actionPerformed(e: AnActionEvent) {
+            val textField = JTextField()
+            val dialogBuilder =
+                DialogBuilder().apply {
+                  setTitle("Filter by Text")
+                  setCenterPanel(textField)
+                  setPreferredFocusComponent(textField)
+                }
+            if (dialogBuilder.showAndGet()) {
+              val filterString = textField.text
+              if (filterString.isNotEmpty()) {
+                e.panel.table.rowFilter = TextRowFilter(filterString)
+              }
+            }
+          }
+        })
+
+    val editor = dataContext.getData(PlatformDataKeys.FILE_EDITOR)
+    if (editor is StringResourceEditor) {
+      val model = editor.panel.table.model
+      StringResourceTableModel.FIXED_COLUMN_COUNT.until(model.columnCount)
+        .mapNotNull(model::getLocale)
+        .map(::newShowKeysNeedingTranslationForLocaleAction)
+        .forEach(group::add)
+    }
+    return group
+  }
+
+
+  companion object {
+    /**
+     * Returns a [PanelAction] that sets the row filter to filter for strings that need translation to
+     * the specified [Locale]
+     */
+    private fun newShowKeysNeedingTranslationForLocaleAction(locale: Locale): PanelAction {
+      val text = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
+      return rowFilterUpdatingAction(text, icon = FlagManager.getFlagImage(locale)) {
+        NeedsTranslationForLocaleRowFilter(locale)
       }
-    });
+    }
 
-    group.add(new AnAction("Show Translatable Keys") {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent event) {
-        myTable.setRowFilter(new TranslatableRowFilter());
-      }
-    });
-
-    group.add(new AnAction("Show Keys Needing Translations") {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent event) {
-        myTable.setRowFilter(new NeedsTranslationsRowFilter());
-      }
-    });
-
-    group.add(new AnAction("Filter by Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        JTextField textField = new JTextField();
-        DialogBuilder builder = new DialogBuilder();
-        builder.setTitle("Filter by Text");
-        builder.setCenterPanel(textField);
-        builder.setPreferredFocusComponent(textField);
-        if (builder.showAndGet()) {
-          String filterString = textField.getText();
-          if (!filterString.isEmpty()) {
-            myTable.setRowFilter(new TextRowFilter(filterString));
+    private fun rowFilterUpdatingAction(
+        text: String,
+        description: String? = null,
+        icon: Icon? = null,
+        rowFilterSupplier: () -> StringResourceTableRowFilter?
+    ) =
+        object : PanelAction(text, description, icon) {
+          override fun doUpdate(e: AnActionEvent): Boolean = true
+          override fun actionPerformed(e: AnActionEvent) {
+            e.panel.table.rowFilter = rowFilterSupplier.invoke()
           }
         }
-      }
-    });
-
-    StringResourceTableModel model = myTable.getModel();
-
-    IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, model.getColumnCount())
-      .mapToObj(model::getLocale)
-      .map(this::newShowKeysNeedingTranslationForLocaleAction)
-      .forEach(group::add);
-
-    return group;
-  }
-
-  @NotNull
-  private AnAction newShowKeysNeedingTranslationForLocaleAction(@NotNull Locale locale) {
-    String text = "Show Keys Needing a Translation for " + Locale.getLocaleLabel(locale, false);
-
-    return new AnAction(text, null, FlagManager.getFlagImage(locale)) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent event) {
-        myTable.setRowFilter(new NeedsTranslationForLocaleRowFilter(locale));
-      }
-    };
   }
 }

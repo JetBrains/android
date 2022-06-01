@@ -91,10 +91,30 @@ class FakeJBPopupFactory : JBPopupFactory() {
     return popup
   }
 
+  override fun createActionGroupPopup(title: String?,
+                                      actionGroup: ActionGroup,
+                                      dataContext: DataContext,
+                                      showNumbers: Boolean,
+                                      showDisabledActions: Boolean,
+                                      honorActionMnemonics: Boolean,
+                                      disposeCallback: Runnable?,
+                                      maxRowCount: Int,
+                                      preselectActionCondition: Condition<in AnAction>?): ListPopup =
+    createActionGroupPopup(
+      title,
+      actionGroup,
+      dataContext,
+      /* aid= */ null,
+      showDisabledActions,
+      disposeCallback,
+      maxRowCount,
+      preselectActionCondition,
+      /* actionPlace= */ null)
+
   override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
     FakeComponentPopupBuilder()
 
-  override fun getChildPopups(parent: Component): MutableList<JBPopup>  = popups
+  override fun getChildPopups(parent: Component): MutableList<JBPopup> = popups
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
@@ -137,18 +157,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun guessBestPopupLocation(editor: Editor): RelativePoint {
-    TODO("Not yet implemented")
-  }
-
-  override fun createActionGroupPopup(title: String?,
-                                      actionGroup: ActionGroup,
-                                      dataContext: DataContext,
-                                      showNumbers: Boolean,
-                                      showDisabledActions: Boolean,
-                                      honorActionMnemonics: Boolean,
-                                      disposeCallback: Runnable?,
-                                      maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?): ListPopup {
     TODO("Not yet implemented")
   }
 

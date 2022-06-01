@@ -52,6 +52,7 @@ open class FakeJBPopup<T>(
 
   var showStyle: ShowStyle? = null
   var showArgs: List<Any>? = null
+  private var minSize: Dimension? = null
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
@@ -107,6 +108,12 @@ open class FakeJBPopup<T>(
     showStyle = ShowStyle.SHOW_CENTERED_IN_CURRENT_WINDOW
     showArgs = listOf(project)
   }
+
+  override fun setMinimumSize(size: Dimension?) {
+    minSize = size
+  }
+
+  fun getMinimumSize(): Dimension? = minSize
 
   override fun getBestPositionFor(dataContext: DataContext): Point {
     TODO("Not yet implemented")
@@ -197,10 +204,6 @@ open class FakeJBPopup<T>(
   }
 
   override fun getOwner(): Component {
-    TODO("Not yet implemented")
-  }
-
-  override fun setMinimumSize(size: Dimension?) {
     TODO("Not yet implemented")
   }
 
