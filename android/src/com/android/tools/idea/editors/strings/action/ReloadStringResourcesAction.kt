@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action;
+package com.android.tools.idea.editors.strings.action
 
-import com.android.tools.idea.editors.strings.StringResourceViewPanel;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.command.WriteCommandAction
 
-final class ReloadStringResourcesAction extends AnAction {
-  private final StringResourceViewPanel myPanel;
+/** Action that reloads string resources into the panel. */
+class ReloadStringResourcesAction : PanelAction("Reload string resources", null, AllIcons.Actions.Refresh) {
 
-  ReloadStringResourcesAction(@NotNull StringResourceViewPanel panel) {
-    super("Reload string resources", null, AllIcons.Actions.Refresh);
-    myPanel = panel;
-  }
+  override fun doUpdate(e: AnActionEvent): Boolean = true
 
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    Project project = myPanel.getFacet().getModule().getProject();
-    WriteCommandAction.runWriteCommandAction(project, () -> myPanel.reloadData());
-  }
+  override fun actionPerformed(e: AnActionEvent) = e.panel.reloadData()
 }
