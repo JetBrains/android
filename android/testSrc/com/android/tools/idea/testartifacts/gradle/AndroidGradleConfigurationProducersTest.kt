@@ -169,34 +169,26 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val  methodConfiguration = createGradleConfigurationFromPsiElement(project, methodPsiElement)
     assertThat(methodConfiguration).isNotNull()
     val methodConfigTask = ExternalSystemExecuteTaskTask(project, methodConfiguration!!.settings, null, methodConfiguration)
-/* b/233935347
     assertThat(ExternalSystemUtil.getConsoleManagerFor(methodConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
-b/233935347 */
 
     // Verify We can render class Run configurations using GradleTestsExecutionConsoleManager.
     val classConfiguration = createAndroidGradleTestConfigurationFromClass(project, "google.simpleapplication.UnitTest")
     assertThat(classConfiguration).isNotNull()
     val classConfigTask = ExternalSystemExecuteTaskTask(project, classConfiguration!!.settings, null, classConfiguration)
-/* b/233935347
     assertThat(ExternalSystemUtil.getConsoleManagerFor(classConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
-b/233935347 */
 
     // Verify We can render package Run configurations using GradleTestsExecutionConsoleManager.
     val packagePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
     val packageConfiguration = createGradleConfigurationFromPsiElement(project, packagePsiElement)
     assertThat(packageConfiguration).isNotNull()
     val packageConfigTask = ExternalSystemExecuteTaskTask(project, packageConfiguration!!.settings, null, packageConfiguration)
-/* b/233935347
     assertThat(ExternalSystemUtil.getConsoleManagerFor(packageConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
-b/233935347 */
 
     // Verify We can render directory Run configurations using GradleTestsExecutionConsoleManager.
     val  directoryConfiguration = createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java")
     assertThat(directoryConfiguration).isNotNull()
     val directoryConfigTask = ExternalSystemExecuteTaskTask(project, directoryConfiguration!!.settings, null, directoryConfiguration)
-/* b/233935347
     assertThat(ExternalSystemUtil.getConsoleManagerFor(directoryConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
-b/233935347 */
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {
