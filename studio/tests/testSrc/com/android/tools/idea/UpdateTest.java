@@ -102,7 +102,7 @@ public class UpdateTest {
         assertTrue("updateStudio failed", success);
         // The first Studio process should no longer be running.
         System.out.println("Waiting for the original instance of Android Studio to have closed");
-        studio.waitFor(20, TimeUnit.SECONDS);
+        studio.waitForProcess(20, TimeUnit.SECONDS);
 
         // Ensure it restarted on its own.
         System.out.println("Waiting for Android Studio to restart automatically");

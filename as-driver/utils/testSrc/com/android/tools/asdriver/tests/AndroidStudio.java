@@ -23,8 +23,6 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -36,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class AndroidStudio implements AutoCloseable {
@@ -44,7 +41,7 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final Process process;
   private final AndroidStudioInstallation installation;
-  private BufferedReader logReader;
+  private StreamedFileReader ideaReader;
 
   public AndroidStudio(AndroidStudioInstallation installation,
                        Display display,
@@ -54,8 +51,6 @@ public class AndroidStudio implements AutoCloseable {
 
 
     ProcessBuilder pb = new ProcessBuilder(workDir.resolve("android-studio/bin/studio.sh").toString());
-    pb.redirectError(installation.getStderr().toFile());
-    pb.redirectOutput(installation.getStdout().toFile());
     pb.environment().clear();
 
     for (Map.Entry<String, String> entry : env.entrySet()) {
@@ -70,8 +65,10 @@ public class AndroidStudio implements AutoCloseable {
     }
 
     System.out.println("Starting Android Studio");
+    pb.redirectOutput(installation.getStdout().getPath().toFile());
+    pb.redirectError(installation.getStderr().getPath().toFile());
     process = pb.start();
-    int port = waitForDriverServer(installation.getStdout(), 30000);
+    int port = waitForDriverServer();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
@@ -148,60 +145,35 @@ public class AndroidStudio implements AutoCloseable {
    *
    * @return the port at which the server was started.
    */
-  private int waitForDriverServer(Path stdout, int timeoutMillis) throws IOException, InterruptedException {
-    try (BufferedReader reader = new BufferedReader(new FileReader(stdout.toFile()))) {
-      String pattern = "as-driver server listening at: (.*)";
-      Matcher matcher = waitForMatchingLine(reader, pattern, timeoutMillis);
-      return Integer.parseInt(matcher.group(1));
-    }
+  private int waitForDriverServer() throws IOException, InterruptedException {
+    return Integer.parseInt(
+      installation.getStdout().waitForMatchingLine("as-driver server listening at: (.*)", 30, TimeUnit.SECONDS).group(1));
   }
 
-  public int waitFor() throws InterruptedException {
+  public int waitForProcess() throws InterruptedException {
     return process.waitFor();
   }
 
-  public boolean waitFor(long timeout, TimeUnit unit) throws InterruptedException {
+  public boolean waitForProcess(long timeout, TimeUnit unit) throws InterruptedException {
     return process.waitFor(timeout, unit);
   }
 
   public Matcher waitForLog(String regex, int timeoutMillis) throws IOException, InterruptedException {
-    if (logReader == null) {
-      logReader = new BufferedReader(new FileReader(installation.getIdeaLog().toFile()));
+    if (ideaReader == null) {
+      ideaReader = new StreamedFileReader(installation.getIdeaLog());
     }
-    return waitForMatchingLine(logReader, regex, timeoutMillis);
-  }
-
-  private Matcher waitForMatchingLine(BufferedReader reader, String regex, int timeoutMillis) throws IOException, InterruptedException {
-    Pattern pattern = Pattern.compile(regex);
-    long now = System.currentTimeMillis();
-    long elapsed = 0;
-    Matcher matcher = null;
-    while (elapsed < timeoutMillis) {
-      String line = reader.readLine();
-      matcher = line == null ? null : pattern.matcher(line);
-      if (matcher != null && matcher.matches()) {
-        break;
-      }
-      if (line == null) {
-        Thread.sleep(Math.min(1000, timeoutMillis - elapsed));
-      }
-      elapsed = System.currentTimeMillis() - now;
-    }
-    if (matcher == null) {
-      throw new InterruptedException(String.format("Timed out after %dms while waiting for line", timeoutMillis));
-    }
-    return matcher;
+    return ideaReader.waitForMatchingLine(regex, timeoutMillis, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public void close() throws Exception {
     try {
       kill(1);
-      waitFor();
+      waitForProcess();
     }
     finally {
-      if (logReader != null) {
-        logReader.close();
+      if (ideaReader != null) {
+        ideaReader.close();
       }
     }
   }

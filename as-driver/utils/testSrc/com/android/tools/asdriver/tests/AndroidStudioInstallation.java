@@ -39,8 +39,8 @@ import java.util.stream.Stream;
 public class AndroidStudioInstallation implements AutoCloseable {
 
   private final Path workDir;
-  private final Path stdout;
-  private final Path stderr;
+  private final StreamedFileReader stdout;
+  private final StreamedFileReader stderr;
   private final Path ideaLog;
   private final Path vmOptionsPath;
 
@@ -65,8 +65,8 @@ public class AndroidStudioInstallation implements AutoCloseable {
       System.out.println("workDir (overridden by environment variable): " + workDir + ". Skipping unzip process.");
     }
 
-    stdout = workDir.resolve("stdout.txt");
-    stderr = workDir.resolve("stderr.txt");
+    stdout = new StreamedFileReader(workDir.resolve("stdout.txt"));
+    stderr = new StreamedFileReader(workDir.resolve("stderr.txt"));
 
     ideaLog = workDir.resolve("system/log/idea.log");
     vmOptionsPath = workDir.resolve("studio.vmoptions");
@@ -118,14 +118,8 @@ public class AndroidStudioInstallation implements AutoCloseable {
    */
   public void emitLogs() {
     try {
-      String stdoutContents = Files.readString(stdout);
-      String stderrContents = Files.readString(stderr);
-      System.out.println("Emitting logs from the agent:");
-      System.out.println("===STDOUT===");
-      System.out.println(stdoutContents);
-      System.out.println("===STDERR===");
-      System.out.println(stderrContents);
-      System.out.println("===END===");
+      stdout.printContents();
+      stderr.printContents();
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -229,12 +223,12 @@ public class AndroidStudioInstallation implements AutoCloseable {
     return e2eTempDir;
   }
 
-  public Path getStderr() {
-    return stderr;
+  public StreamedFileReader getStdout() {
+    return stdout;
   }
 
-  public Path getStdout() {
-    return stdout;
+  public StreamedFileReader getStderr() {
+    return stderr;
   }
 
   public Path getIdeaLog() {
