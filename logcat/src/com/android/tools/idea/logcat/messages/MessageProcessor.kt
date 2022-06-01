@@ -21,9 +21,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -34,8 +33,6 @@ import java.time.Clock
 const val CHANNEL_CAPACITY = 10
 const val MAX_TIME_PER_BATCH_MS = 100
 const val MAX_MESSAGES_PER_BATCH = 5000
-
-private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 
 /**
  * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
@@ -85,7 +82,7 @@ internal class MessageProcessor @TestOnly constructor(
   @TestOnly
   internal fun start() {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
-      thisLogger().error("Error processing logcat message", e)
+      LOGGER.error("Error processing logcat message", e)
     }
     AndroidCoroutineScope(logcatPresenter, workerThread).launch(exceptionHandler) {
       // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
@@ -110,7 +107,7 @@ internal class MessageProcessor @TestOnly constructor(
         @Suppress("EXPERIMENTAL_API_USAGE")
         if (messageChannel.isEmpty || now - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
           logcatPresenter.appendMessages(textAccumulator)
-          logger.debug {
+          LOGGER.debug {
             val timeSinceStart = now - startTime
             val timeSinceLastFlush = now - lastFlushTime
             "timeSinceStart: $timeSinceStart timeSinceLastFlush (ms): $timeSinceLastFlush  numMessages: $numMessages totalMessages=$totalMessages"

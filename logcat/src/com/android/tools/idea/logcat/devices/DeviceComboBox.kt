@@ -21,8 +21,8 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.ColoredListCellRenderer
@@ -56,7 +56,6 @@ internal class DeviceComboBox(
   private val deviceTracker: IDeviceComboBoxDeviceTracker,
   coroutineScope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)
 ) : ComboBox<Device>() {
-  private val logger = thisLogger()
 
   private val selectionChannel = Channel<Device>(1)
 
@@ -81,7 +80,7 @@ internal class DeviceComboBox(
 
     coroutineScope.launch {
       deviceTracker.trackDevices().collect {
-        logger.debug("trackDevices: $it")
+        LOGGER.debug("trackDevices: $it")
         when (it) {
           is Added -> deviceAdded(it.device)
           is StateChanged -> deviceStateChanged(it.device)
@@ -170,7 +169,7 @@ internal class DeviceComboBox(
     fun replaceItem(device: Device, setSelected: Boolean) {
       val index = idToIndexMap[device.deviceId]
       if (index == null) {
-        thisLogger().warn("Device ${device.deviceId} expected to exist but was not found")
+        LOGGER.warn("Device ${device.deviceId} expected to exist but was not found")
         return
       }
       setElementAt(device, index)

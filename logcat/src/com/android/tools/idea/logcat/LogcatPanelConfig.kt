@@ -19,6 +19,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowF
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.util.LOGGER
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
@@ -29,7 +30,6 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.components.StoragePathMacros
-import com.intellij.openapi.diagnostic.thisLogger
 import java.lang.reflect.Type
 
 private const val PROPERTY_NAME_PRESET = "preset"
@@ -61,7 +61,7 @@ internal data class LogcatPanelConfig(
         }
       }
       catch (e: JsonSyntaxException) {
-        thisLogger().warn("Invalid state", e)
+        LOGGER.warn("Invalid state", e)
         null
       }
     }
@@ -95,7 +95,7 @@ internal data class LogcatPanelConfig(
         }
       }
       catch (e: JsonSyntaxException) {
-        thisLogger().warn("Invalid state", e)
+        LOGGER.warn("Invalid state", e)
         null
       }
     }

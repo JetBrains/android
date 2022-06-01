@@ -24,7 +24,7 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
-import com.intellij.openapi.diagnostic.thisLogger
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -57,7 +57,6 @@ internal class DeviceComboBoxDeviceTracker(
   private val adbSession: AdbLibSession = AdbLibService.getSession(project),
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
-  private val logger = thisLogger()
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
     return flow {
@@ -67,7 +66,7 @@ internal class DeviceComboBoxDeviceTracker(
           trackDevicesInternal()
         }
         catch (e: IOException) {
-          logger.info("Device tracker exception, restarting it...", e)
+          LOGGER.info("Device tracker exception, restarting it...", e)
           emit(TrackingReset(e))
           continue
         }
@@ -172,7 +171,7 @@ internal class DeviceComboBoxDeviceTracker(
 
   private fun DeviceInfo.getAvdName(properties: Map<String, String>): String =
     properties.getValue(PROP_AVD_NAME).ifBlank { properties.getValue(PROP_AVD_NAME_PRE_31) }.ifBlank {
-      logger.warn("Emulator has no avd_name property")
+      LOGGER.warn("Emulator has no avd_name property")
       serialNumber
     }
 
