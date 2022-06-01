@@ -19,6 +19,7 @@ import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.action.AddKeyAction;
 import com.android.tools.idea.editors.strings.action.AddLocaleAction;
+import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
 import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
