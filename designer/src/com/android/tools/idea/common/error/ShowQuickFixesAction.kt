@@ -16,10 +16,10 @@
 package com.android.tools.idea.common.error
 
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.UpdateInBackground
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.ColoredListCellRenderer
@@ -28,7 +28,9 @@ import java.awt.event.MouseEvent
 import javax.swing.JList
 import kotlin.streams.toList
 
-class ShowQuickFixesAction : AnAction(), UpdateInBackground {
+class ShowQuickFixesAction : AnAction() {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation

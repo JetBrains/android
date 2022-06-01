@@ -34,12 +34,12 @@ import com.android.tools.idea.wizard.template.WizardUiContext
 import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.actionSystem.UpdateInBackground
 import com.intellij.openapi.module.Module
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
@@ -62,7 +62,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val templateName: String,
   private val minSdkApi: Int,
   private val templateConstraints: Collection<TemplateConstraint> = setOf()
-) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null), UpdateInBackground {
+) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
 
   @Deprecated("Please use the main constructor")
   constructor(
@@ -79,6 +79,8 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   init {
     templatePresentation.icon = if (isActivityTemplate) StudioIcons.Shell.Filetree.ACTIVITY else StudioIcons.Shell.Filetree.ANDROID_FILE
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
