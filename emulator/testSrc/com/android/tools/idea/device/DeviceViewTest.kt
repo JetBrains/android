@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.tools.idea.device
 
 import com.android.testutils.ImageDiffUtil
@@ -41,8 +26,6 @@ import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.testing.mockStatic
-import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.ide.CopyPasteManager
@@ -92,7 +75,6 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
-    FlightRecorder.initialize(1000)
     savedClipboardSynchronizationState = DeviceMirroringSettings.getInstance().synchronizeClipboard
     DeviceMirroringSettings.getInstance().synchronizeClipboard = false
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
@@ -375,16 +357,9 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    try {
-      view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
-      ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-      FlightRecorder.log { "${TraceUtils.currentTime()} DeviceViewTest.createDeviceView waiting for agent to start" }
-      waitForCondition(15, TimeUnit.SECONDS) { agent.started }
-    }
-    catch (e: Throwable) {
-      FlightRecorder.print()
-      throw e
-    }
+    view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
+    ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
+    waitForCondition(15, TimeUnit.SECONDS) { agent.started }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {

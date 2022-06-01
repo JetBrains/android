@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.tools.idea.device
 
 import com.android.annotations.concurrency.UiThread
@@ -39,8 +24,6 @@ import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
-import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -146,27 +129,23 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
    * Starts the agent. The agent is fully initialized when the method returns.
    */
   fun start(protocol: ShellV2Protocol, command: String, hostPort: Int) {
-    FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start" }
     coroutineScope.launch {
       commandLine = command
       shellProtocol = protocol
       commandLog.clear()
       startTime = System.currentTimeMillis()
 
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start startTime=$startTime" }
       val videoChannel = SuspendingSocketChannel.open()
       val controlChannel = SuspendingSocketChannel.open()
       val socketAddress = InetSocketAddress("localhost", hostPort)
       videoChannel.connect(socketAddress)
       controlChannel.connect(socketAddress)
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.start connected channels" }
       val displayStreamer = DisplayStreamer(videoChannel)
       this@FakeScreenSharingAgent.displayStreamer = displayStreamer
       val controller = Controller(controlChannel)
       this@FakeScreenSharingAgent.controller = controller
       displayStreamer.start()
       started = true
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.started" }
       controller.run()
     }
   }
@@ -363,7 +342,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
     }
 
     suspend fun start() {
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.start" }
       // Send the channel header with the name of the codec.
       val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
       header.put(codecName.toByteArray())
@@ -388,7 +366,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
      * Renders display content for the given [imageFlavor] and sends all produced video frames.
      */
     suspend fun renderDisplay(imageFlavor: Int) {
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.renderDisplay" }
       lastImageFlavor = imageFlavor
 
       val size = getScaledAndRotatedDisplaySize()
@@ -471,7 +448,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
           if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
             throw RuntimeException("avcodec_receive_packet returned $ret")
           }
-          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame no more packets" }
           break
         }
 
@@ -497,7 +473,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
         buffer.put(packetData)
         buffer.flip()
         try {
-          FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.sendFrame sending packet ${packetHeader.frameNumber}" }
           channel.writeFully(buffer)
         }
         catch (e: IOException) {
@@ -509,7 +484,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
     }
 
     suspend fun shutdown() {
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.shutdown sending packet ${packetHeader.frameNumber}" }
       stopped = true
       if (channel.isOpen) {
         channel.close()
@@ -517,7 +491,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
     }
 
     override fun dispose() {
-      FlightRecorder.log { "${TraceUtils.currentTime()} FakeScreenSharingAgent.DisplayStreamer.dispose sending packet ${packetHeader.frameNumber}" }
       runBlocking {
         shutdown()
       }
