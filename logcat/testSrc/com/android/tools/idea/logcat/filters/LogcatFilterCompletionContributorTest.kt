@@ -28,9 +28,11 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +47,6 @@ private val STRING_KEYS = listOf(
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val KEYS = STRING_KEYS + "level:" + "age:" + "package:mine " + "is:"
 private val IS_VALUES = listOf("crash ", "stacktrace ")
 
 /**
@@ -59,9 +60,15 @@ class LogcatFilterCompletionContributorTest {
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
 
+  private val history by lazy { AndroidLogcatFilterHistory() }
+
   @Before
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
+    ApplicationManager.getApplication().replaceService(
+      AndroidLogcatFilterHistory::class.java,
+      history,
+      projectRule.project)
   }
 
   @Test
@@ -79,6 +86,72 @@ class LogcatFilterCompletionContributorTest {
       "package:",
       "package:mine ",
       "tag:")
+  }
+
+  @Test
+  fun complete_keys_withHistory() {
+    history.favorites.add("favorite item")
+    history.nonFavorites.add("history item")
+    fixture.configure("")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "age:",
+      "is:",
+      "level:",
+      "line:",
+      "message:",
+      "package:",
+      "package:mine ",
+      "tag:",
+      "favorite item",
+      "history item",
+    )
+  }
+
+  /**
+   * This test uses the tag key, but it represents the behavior of the other keys as well.
+   *
+   * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
+   */
+  @Test
+  fun complete_tag() {
+    fixture.configure("ta$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "tag:",
+      "tag~:",
+      "-tag:",
+      "-tag~:"
+    )
+  }
+
+  /**
+   * This test uses the tag key, but it represents the behavior of the other keys as well.
+   *
+   * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
+   */
+  @Test
+  fun complete_tag_withHistory() {
+    history.favorites.add("favorite item")
+    history.favorites.add("tag:favorite")
+    history.nonFavorites.add("history item")
+    history.nonFavorites.add("tag:history")
+    fixture.configure("ta$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "tag:",
+      "tag~:",
+      "-tag:",
+      "-tag~:",
+      "tag:favorite",
+      "tag:history",
+    )
   }
 
   @Test

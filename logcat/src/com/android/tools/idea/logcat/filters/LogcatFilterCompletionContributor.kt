@@ -121,7 +121,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                  }
                }
                result.addAllElements(
-                 if (text == DUMMY_IDENTIFIER_TRIMMED) KEYS.map(String::toLookupElement) else ALL_KEYS.map(String::toLookupElement))
+                 if (text == DUMMY_IDENTIFIER_TRIMMED) KEYS.lookupsWithHistory() else ALL_KEYS.lookupsWithHistory())
                if (hasAndroidProject(parameters.editor)) {
                  result.addElement(MY_PACKAGE.toLookupElement())
                }
@@ -191,4 +191,14 @@ private fun CompletionParameters.getRealTextLength(): Int {
 private fun hasAndroidProject(editor: Editor): Boolean {
   val project = editor.project ?: return false
   return editor.getUserData(AndroidProjectDetector.KEY)?.isAndroidProject(project) ?: false
+}
+
+private fun List<String>.lookupsWithHistory(): List<LookupElementBuilder> {
+  val history = AndroidLogcatFilterHistory.getInstance()
+  val lookups = mutableSetOf<String>()
+  lookups.addAll(this)
+  lookups.addAll(history.favorites)
+  lookups.addAll(history.nonFavorites)
+
+  return lookups.map(String::toLookupElement)
 }
