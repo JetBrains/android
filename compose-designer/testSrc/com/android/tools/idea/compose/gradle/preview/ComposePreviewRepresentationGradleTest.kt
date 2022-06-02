@@ -485,7 +485,7 @@ class ComposePreviewRepresentationGradleTest {
     val previewRepresentation = ComposePreviewRepresentation(psiFile, object : PreviewElementProvider<PreviewElement> {
       override suspend fun previewElements(): Sequence<PreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> view }
+    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }

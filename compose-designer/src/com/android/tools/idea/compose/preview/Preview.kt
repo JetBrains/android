@@ -20,9 +20,7 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.render
-import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
@@ -34,7 +32,6 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -80,7 +77,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
@@ -89,7 +85,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -369,7 +364,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection // We should call this before assigning newValue to instanceIdFilter
     val peerPreviews = previewElementProvider.previewElements().count()
     previewElementProvider.instanceFilter = element
-    sceneComponentProvider.enabled = false
+    composeWorkBench.hasComponentsOverlay = false
     val startUpStart = System.currentTimeMillis()
     forceRefresh(quickRefresh)?.invokeOnCompletion {
       surface.sceneManagers.forEach { it.resetTouchEventsCounter() }
@@ -379,9 +374,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       fpsCounter.resetAndStart()
       ticker.start()
-      delegateInteractionHandler.delegate = interactiveInteractionHandler
-      composeWorkBench.showPinToolbar = false
-      composeWorkBench.updateVisibilityAndNotifications()
+      composeWorkBench.isInteractive = true
 
       if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
         // While in interactive mode, display a small ripple when clicking
@@ -406,16 +399,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private fun onStaticPreviewStart() {
-    sceneComponentProvider.enabled = true
+    composeWorkBench.hasComponentsOverlay = true
     surface.background = defaultSurfaceBackground
   }
 
   private fun onInteractivePreviewStop() {
     interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
     surface.disableMouseClickDisplay()
-    delegateInteractionHandler.delegate = staticPreviewInteractionHandler
-    composeWorkBench.showPinToolbar = true
-    composeWorkBench.updateVisibilityAndNotifications()
+    composeWorkBench.isInteractive = false
     ticker.stop()
     previewElementProvider.clearInstanceIdFilter()
     logInteractiveSessionMetrics()
@@ -445,8 +436,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           ComposePreviewAnimationManager.onAnimationInspectorOpened()
           previewElementProvider.instanceFilter = value
           animationInspection.set(true)
-          sceneComponentProvider.enabled = false
-          composeWorkBench.showPinToolbar = false
+          composeWorkBench.hasComponentsOverlay = false
+          composeWorkBench.isAnimationPreview = true
 
           // Open the animation inspection panel
           composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
@@ -474,7 +465,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
-    composeWorkBench.showPinToolbar = true
+    composeWorkBench.isAnimationPreview = false
     previewElementProvider.instanceFilter = null
   }
 
@@ -507,55 +498,27 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 
-  private val dataProvider = DataProvider {
-    when (it) {
-      COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
-      // The Compose preview NlModels do not point to the actual file but to a synthetic file
-      // generated for Layoutlib. This ensures we return the right file.
-      CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
-      CommonDataKeys.PROJECT.name -> project
-      else -> null
-    }
-  }
-
-  private val delegateInteractionHandler = DelegateInteractionHandler()
-  private val sceneComponentProvider = ComposeSceneComponentProvider()
-
   private val composeWorkBench: ComposePreviewView = invokeAndWaitIfNeeded {
     composePreviewViewProvider.invoke(
       project,
       psiFilePointer,
       projectBuildStatusManager,
-      dataProvider,
-      createMainDesignSurface(
-        project,
-        navigationHandler,
-        delegateInteractionHandler,
-        dataProvider, // Will be overridden by the preview provider
-        this,
-        sceneComponentProvider),
-      listOf(
-        createPinnedDesignSurfaceBuilder(
-          project,
-          navigationHandler,
-          delegateInteractionHandler,
-          dataProvider,
-          this,
-          sceneComponentProvider
-        )
-      ),
-      this,
+      navigationHandler, {
+        return@invoke when (it) {
+          COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
+          // The Compose preview NlModels do not point to the actual file but to a synthetic file
+          // generated for Layoutlib. This ensures we return the right file.
+          CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
+          CommonDataKeys.PROJECT.name -> project
+          else -> null
+        }
+      }, this,
       PinAllPreviewElementsAction(
         {
           PinnedPreviewElementManager.getInstance(project).isPinned(psiFile)
         }, previewElementProvider),
       UnpinAllPreviewElementsAction)
   }
-
-  private val staticPreviewInteractionHandler = NlInteractionHandler(composeWorkBench.mainSurface).also {
-    delegateInteractionHandler.delegate = it
-  }
-  private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(composeWorkBench.mainSurface) }
 
   private val pinnedSurface: NlDesignSurface
     get() = composeWorkBench.pinnedSurface

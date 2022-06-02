@@ -16,11 +16,15 @@
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewView
-import com.android.tools.idea.compose.preview.createMainDesignSurface
+import com.android.tools.idea.compose.preview.createPreviewDesignSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
@@ -34,21 +38,25 @@ internal val SceneViewPeerPanel.displayName: String
   get() = sceneView.sceneManager.model.modelDisplayName ?: ""
 
 internal class TestComposePreviewView(parentDisposable: Disposable, project: Project) : ComposePreviewView, JPanel() {
-  override val surfaces: List<NlDesignSurface> = listOf(NlDesignSurface.builder(project, parentDisposable)
+  override val pinnedSurface: NlDesignSurface = NlDesignSurface.builder(project, parentDisposable)
     .setNavigationHandler(PreviewNavigationHandler())
-    .build())
-  override val mainSurface: NlDesignSurface = createMainDesignSurface(
+    .build()
+  override val mainSurface: NlDesignSurface = createPreviewDesignSurface(
     project,
     PreviewNavigationHandler(),
     DelegateInteractionHandler(),
     { null },
     parentDisposable,
-    ComposeSceneComponentProvider()
-  ).build()
+    DesignSurface.ZoomControlsPolicy.HIDDEN,
+    sceneManagerProvider = { surface, model ->
+      LayoutlibSceneManager(model, surface, ComposeSceneComponentProvider(), ComposeSceneUpdateListener()) { RealTimeSessionClock() }
+    })
   override val component: JComponent
     get() = this
   override var bottomPanel: JComponent? = null
-  override var showPinToolbar: Boolean = true
+  override var hasComponentsOverlay: Boolean = false
+  override var isInteractive: Boolean = false
+  override var isAnimationPreview: Boolean = false
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false

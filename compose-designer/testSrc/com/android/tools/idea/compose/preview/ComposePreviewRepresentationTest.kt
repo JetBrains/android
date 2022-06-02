@@ -37,12 +37,14 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-internal class TestComposePreviewView(override val surfaces: List<NlDesignSurface>,
+internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurface,
                                       override val mainSurface: NlDesignSurface) : ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
   override var bottomPanel: JComponent? = null
-  override var showPinToolbar: Boolean = true
+  override var hasComponentsOverlay: Boolean = false
+  override var isInteractive: Boolean = false
+  override var isAnimationPreview: Boolean = false
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
@@ -109,11 +111,11 @@ class ComposePreviewRepresentationTest {
       }
     })
 
-    val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
+    val composeView = TestComposePreviewView(pinnedSurface, mainSurface)
     val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
       override suspend fun previewElements(): Sequence<PreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> composeView }
+    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> composeView }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
 
