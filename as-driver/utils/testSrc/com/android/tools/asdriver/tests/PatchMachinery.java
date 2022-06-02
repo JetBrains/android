@@ -69,10 +69,10 @@ public class PatchMachinery implements AutoCloseable {
   Path modifiedWorkDir;
   private FileServer fileServer;
 
-  public PatchMachinery(AndroidStudioInstallation install) throws IOException {
+  public PatchMachinery(Path e2eTempDir, AndroidStudioInstallation install) throws IOException {
     workDir = install.getWorkDir();
-    e2eTempDir = install.getE2eTempDir();
-    modifiedWorkDir = e2eTempDir.resolve("patch_machinery");
+    this.e2eTempDir = e2eTempDir;
+    modifiedWorkDir = this.e2eTempDir.resolve("patch_machinery");
 
     startFileServer();
   }

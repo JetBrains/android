@@ -24,14 +24,19 @@ import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.PatchMachinery;
 import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class UpdateTest {
 
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
   /**
    * Our hermetic test environment will not be able to resolve Internet URLs, so we have to route
    * those requests to our own {@code FileServer}. This skips downloading anything from https://plugins.jetbrains.com/.
@@ -81,13 +86,14 @@ public class UpdateTest {
       AndroidStudio.terminateAllStudioInstances();
     }
 
-    try (Display display = new XvfbServer();
-         AndroidStudioInstallation install = new AndroidStudioInstallation()) {
+    try (Display display = new XvfbServer()) {
+      Path e2eTempDir = tempFolder.newFolder("e2e-framework").toPath();
+      AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempFolder);
       install.createFirstRunXml();
       install.copySdk(TestUtils.getLatestAndroidPlatform());
       install.setBuildNumber(PatchMachinery.PRODUCT_PREFIX + PatchMachinery.FAKE_CURRENT_BUILD_NUMBER);
 
-      PatchMachinery patchMachinery = new PatchMachinery(install);
+      PatchMachinery patchMachinery = new PatchMachinery(e2eTempDir, install);
       patchMachinery.setupPatch();
       patchMachinery.createFakePluginAndUpdateFiles();
 

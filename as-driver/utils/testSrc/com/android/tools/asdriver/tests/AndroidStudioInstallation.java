@@ -22,7 +22,6 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -31,39 +30,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
+import org.junit.rules.TemporaryFolder;
 
-public class AndroidStudioInstallation implements AutoCloseable {
+public class AndroidStudioInstallation {
 
   private final Path workDir;
   private final StreamedFileReader stdout;
   private final StreamedFileReader stderr;
+  private final Path studioDir;
   private final Path ideaLog;
   private final Path vmOptionsPath;
 
-  /**
-   * A temporary directory that is deleted on exit. This is to be used for arbitrary test tasks,
-   * e.g. unzipping .jar files.
-   */
-  private final Path e2eTempDir;
+  public static AndroidStudioInstallation fromZip(TemporaryFolder temp) throws IOException {
+    Path workDir = temp.newFolder("android-studio").toPath();
+    System.out.println("workDir: " + workDir);
+    Path studioZip = getBinPath("tools/adt/idea/studio/android-studio.linux.zip");
+    unzip(studioZip, workDir);
+    return new AndroidStudioInstallation(workDir, workDir.resolve("android-studio"));
+  }
 
-  public AndroidStudioInstallation() throws IOException {
-    e2eTempDir = Files.createTempDirectory("e2e-framework");
-    String overrideDir = getOverrideWorkDir();
+  static public AndroidStudioInstallation fromDir(TemporaryFolder temp, Path studioDir) throws IOException {
+    Path workDir = temp.newFolder("android-studio").toPath();
+    return new AndroidStudioInstallation(workDir, studioDir);
+  }
 
-    if (overrideDir == null) {
-      //TODO: Set up as data to run in bazel
-      workDir = Files.createTempDirectory("android-studio");
-      System.out.println("workDir: " + workDir);
-      Path studioZip = getBinPath("tools/adt/idea/studio/android-studio.linux.zip");
-      unzip(studioZip, workDir);
-    } else {
-      workDir = Path.of(overrideDir);
-      System.out.println("workDir (overridden by environment variable): " + workDir + ". Skipping unzip process.");
-    }
+  private AndroidStudioInstallation(Path workDir, Path studioDir) throws IOException {
+    this.workDir = workDir;
+    this.studioDir = studioDir;
 
     stdout = new StreamedFileReader(workDir.resolve("stdout.txt"));
     stderr = new StreamedFileReader(workDir.resolve("stderr.txt"));
@@ -92,15 +87,7 @@ public class AndroidStudioInstallation implements AutoCloseable {
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
 
-  /**
-   * For quicker development, the working directory can be overridden to point to an already-
-   * unzipped copy of Android Studio (on slower machines, unzipping can take ~20 seconds).
-   */
-  private String getOverrideWorkDir() {
-    return System.getenv("OVERRIDE_WORK_DIR");
-  }
-
-  private void unzip(Path zipFile, Path outDir) throws IOException {
+  private static void unzip(Path zipFile, Path outDir) throws IOException {
     System.out.println("Unzipping...");
     long startTime = System.currentTimeMillis();
     InstallerUtil.unzip(zipFile, outDir, Files.size(zipFile), new FakeProgressIndicator());
@@ -175,7 +162,7 @@ public class AndroidStudioInstallation implements AutoCloseable {
    */
   public void setBuildNumber(String buildNumber) throws IOException {
     Path resourcesJar = workDir.resolve("android-studio/lib/resources.jar");
-    Path tempDir = e2eTempDir.resolve("modify_resources_jar");
+    Path tempDir = Files.createTempDirectory("modify_resources_jar");
     Path unzippedDir = tempDir.resolve("unzipped");
     Files.createDirectories(unzippedDir);
     InstallerUtil.unzip(resourcesJar, unzippedDir, Files.size(resourcesJar), new FakeProgressIndicator());
@@ -218,10 +205,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
     return workDir;
   }
 
-  public Path getE2eTempDir() {
-    return e2eTempDir;
-  }
-
   public StreamedFileReader getStdout() {
     return stdout;
   }
@@ -260,31 +243,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
       path = TestUtils.resolveWorkspacePathUnchecked("bazel-bin/" + bin);
     }
     return path;
-  }
-
-  @Override
-  public void close() throws Exception {
-    // If the user provided their own directory, then keep the contents around
-    // to make future runs faster.
-    if (getOverrideWorkDir() != null) {
-      System.out.println("Skipping deletion of working directory due to override");
-      return;
-    }
-    deleteDirectory(workDir);
-    deleteDirectory(e2eTempDir);
-  }
-
-  /**
-   * Recursively deletes the given directory.
-   */
-  private void deleteDirectory(Path dir) throws IOException {
-    System.out.println("Deleting directory " + dir);
-    try (Stream<Path> walk = Files.walk(dir)) {
-      walk.sorted(Comparator.reverseOrder())
-        .map(Path::toFile)
-        .forEach(File::delete);
-    }
-    System.out.println("Done deleting " + dir);
   }
 
   public AndroidStudio run(Display display) throws IOException, InterruptedException {
