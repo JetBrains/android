@@ -49,6 +49,8 @@ iml_module(
             "data": [
                 "//tools/adt/idea/android/testData",
             ],
+            # TODO(b/234749894) restore after fixing flakes
+            "tags": ["no_test_windows"],
         },
     },
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
