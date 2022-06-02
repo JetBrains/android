@@ -46,10 +46,8 @@ internal class FakeScreenSharingAgentRule : TestRule {
   private val projectRule = ProjectRule()
   private val fakeAdbRule: FakeAdbRule
   private val fakeAdbServiceRule: FakeAdbServiceRule
-  private var disposable: Disposable? = null
   private val testEnvironment = object : ExternalResource() {
     override fun before() {
-      disposable = Disposer.newDisposable()
       val binDir = Paths.get(StudioPathManager.getBinariesRoot())
       // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
       createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
@@ -59,15 +57,15 @@ internal class FakeScreenSharingAgentRule : TestRule {
     }
 
     override fun after() {
-      disposable?.let { Disposer.dispose(it)}
       while (devices.isNotEmpty()) {
         disconnectDevice(devices.last())
       }
     }
   }
 
+  @Suppress("UnstableApiUsage")
   val testRootDisposable: Disposable
-    get() = disposable ?: throw IllegalStateException()
+    get() = projectRule.project.earlyDisposable
 
   val project: ProjectEx
     get() = projectRule.project
@@ -126,9 +124,10 @@ internal class FakeScreenSharingAgentRule : TestRule {
                     manufacturer: String = "Google",
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
-    val device = FakeDevice(serialNumber, displaySize, abi)
+    val deviceState =
+        fakeAdbRule.attachDevice(serialNumber, manufacturer, model, "Some Android Version", apiLevel.toString(), hostConnectionType)
+    val device = FakeDevice(serialNumber, displaySize, abi, deviceState)
     devices.add(device)
-    fakeAdbRule.attachDevice(serialNumber, manufacturer, model, "Some Android Version", apiLevel.toString(), hostConnectionType)
     return device
   }
 
@@ -146,8 +145,8 @@ internal class FakeScreenSharingAgentRule : TestRule {
     }
   }
 
-  class FakeDevice(val serialNumber: String, val displaySize: Dimension, val abi: String) {
-    val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize)
+  class FakeDevice(val serialNumber: String, val displaySize: Dimension, val abi: String, val deviceState: DeviceState) {
+    val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState)
     var hostPort: Int? = null
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.device
 
 import com.android.annotations.concurrency.UiThread
+import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
@@ -75,6 +76,7 @@ import java.awt.image.DataBufferByte
 import java.io.EOFException
 import java.io.IOException
 import java.net.InetSocketAddress
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.nio.channels.ClosedChannelException
@@ -90,7 +92,7 @@ import kotlin.math.roundToInt
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
-class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
+class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeScreenSharingAgent", 1)
   private val coroutineScope = CoroutineScope(executor.asCoroutineDispatcher() + Job())
@@ -101,7 +103,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
   private var displayStreamer: DisplayStreamer? = null
 
   private val clipboardInternal = AtomicReference("")
-  val clipboardSynchronizationActive = AtomicBoolean()
+  private val clipboardSynchronizationActive = AtomicBoolean()
   var clipboard: String
     get() = clipboardInternal.get()
     set(value) {
@@ -119,7 +121,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
   var commandLine: String? = null
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
-  var started = false
+  var running = false
   @Volatile
   var frameNumber: Long = 0
 
@@ -145,7 +147,10 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
       val controller = Controller(controlChannel)
       this@FakeScreenSharingAgent.controller = controller
       displayStreamer.start()
-      started = true
+      deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
+      deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
+      deviceState.deleteFile(DEVICE_PATH_BASE)
+      running = true
       controller.run()
     }
   }
@@ -155,8 +160,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
    */
   suspend fun stop() {
     coroutineScope.run {
-      shutdown()
-      shellProtocol?.writeExitCode(0)
+      terminateAgent(0)
     }
   }
 
@@ -165,8 +169,17 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
    */
   suspend fun crash() {
     coroutineScope.run {
-      shutdown()
-      shellProtocol?.writeExitCode(139)
+      terminateAgent(139)
+    }
+  }
+
+  private suspend fun terminateAgent(exitCode: Int) {
+    shutdown()
+    try {
+      shellProtocol?.writeExitCode(exitCode)
+    }
+    catch (_: SocketException) {
+      // Can happen if the shellProtocol's socket is already closed.
     }
   }
 
@@ -191,7 +204,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
         displayStreamer = null
       }
       startTime = 0
-      started = false
+      running = false
     }
   }
 
@@ -215,9 +228,9 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
     var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
     while (waitUnit > 0) {
       UIUtil.dispatchAllInvocationEvents()
-      val call = commandLog.poll(waitUnit, TimeUnit.MILLISECONDS)
-      if (call != null && filter.test(call)) {
-        return call
+      val command = commandLog.poll(waitUnit, TimeUnit.MILLISECONDS)
+      if (command != null && filter.test(command)) {
+        return command
       }
       waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
     }
@@ -551,6 +564,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
     val codedOutput = Base128OutputStream(newOutputStream(channel, CONTROL_MSG_BUFFER_SIZE))
 
     suspend fun run() {
+      var exitCode = 0
       try {
         while (true) {
           @Suppress("BlockingMethodInNonBlockingContext") // The InputStream.available method is non-blocking.
@@ -565,8 +579,12 @@ class FakeScreenSharingAgent(val displaySize: Dimension) : Disposable {
       }
       catch (e: IOException) {
         if (!isLostConnection(e)) {
+          exitCode = 139
           throw e
         }
+      }
+      finally {
+        terminateAgent(exitCode)
       }
     }
 

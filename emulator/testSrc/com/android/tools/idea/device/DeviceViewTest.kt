@@ -359,7 +359,7 @@ internal class DeviceViewTest {
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
     view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
     ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-    waitForCondition(15, TimeUnit.SECONDS) { agent.started }
+    waitForCondition(15, TimeUnit.SECONDS) { agent.running }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {

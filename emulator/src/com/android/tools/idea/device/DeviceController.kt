@@ -26,6 +26,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.launch
 import java.io.EOFException
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -83,7 +84,13 @@ class DeviceController(
           }
         }
         catch (_: EOFException) {
-          return@launch
+          break
+        }
+        catch (e: IOException) {
+          if (e.message == "Connection reset by peer") {
+            break
+          }
+          throw e
         }
       }
     }

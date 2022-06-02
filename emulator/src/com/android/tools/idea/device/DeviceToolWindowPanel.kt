@@ -74,9 +74,6 @@ internal class DeviceToolWindowPanel(
       displayPanel?.zoomToolbarVisible = value
     }
 
-  @get:TestOnly
-  var lastUiState: DeviceUiState? = null
-
   init {
     background = primaryPanelBackground
 
@@ -106,7 +103,6 @@ internal class DeviceToolWindowPanel(
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     mirroringStarted()
 
-    lastUiState = null
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
 
@@ -141,7 +137,6 @@ internal class DeviceToolWindowPanel(
     displayPanel = null
     primaryDeviceView = null
     mainToolbar.targetComponent = this
-    lastUiState = uiState
     return uiState
   }
 
@@ -158,7 +153,7 @@ internal class DeviceToolWindowPanel(
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
     toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
-    toolbar.setTargetComponent(this)
+    toolbar.targetComponent = this
     makeToolbarNavigable(toolbar)
     return toolbar
   }
