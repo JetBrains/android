@@ -115,9 +115,8 @@ public class EmbeddedDistributionPaths {
 
   public String findEmbeddedInstaller() {
     final String path = "plugins/android/resources/installer";
-    if (StudioPathManager.isRunningFromSources()) {
+    if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio()) {
       // Development mode
-      assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
       return StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer");
     } else {
       File file = getOptionalIjPath(path);
