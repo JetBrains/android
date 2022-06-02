@@ -84,7 +84,6 @@ public class AndroidStudioInstallation implements AutoCloseable {
     }
 
     String vmOptions = String.format("-javaagent:%s\n", agentZip) +
-                       String.format("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:5006\n") +
                        String.format("-Didea.config.path=%s/config\n", workDir) +
                        String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
                        String.format("-Didea.system.path=%s/system\n", workDir) +
