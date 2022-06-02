@@ -237,27 +237,27 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: P
   val artifactId = dependencySpec.name
 
   if (sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)) {
-    val message = "$groupId:$artifactId version $versionString has policy issues that will block publishing."
+    val message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
     return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
   }
   val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
   if (isBlocking) {
     if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = "$groupId:$artifactId version $versionString has blocking issues with an associated message from its author"
+      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
       return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
     }
     if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author as will block publishing"
+      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
       return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
     }
   }
   else {
     if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author"
+      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
       return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING)
     }
     if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = "$groupId:$artifactId version $versionString has an associated message from its author"
+      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
       return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO)
     }
   }
