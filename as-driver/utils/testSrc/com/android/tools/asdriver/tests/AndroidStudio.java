@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 public class AndroidStudio implements AutoCloseable {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
-  private final Process process;
+  private final ProcessHandle process;
   private final AndroidStudioInstallation installation;
   private StreamedFileReader ideaReader;
 
@@ -67,7 +68,7 @@ public class AndroidStudio implements AutoCloseable {
     System.out.println("Starting Android Studio");
     pb.redirectOutput(installation.getStdout().getPath().toFile());
     pb.redirectError(installation.getStderr().getPath().toFile());
-    process = pb.start();
+    process = pb.start().toHandle();
     int port = waitForDriverServer();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
@@ -150,12 +151,12 @@ public class AndroidStudio implements AutoCloseable {
       installation.getStdout().waitForMatchingLine("as-driver server listening at: (.*)", 30, TimeUnit.SECONDS).group(1));
   }
 
-  public int waitForProcess() throws InterruptedException {
-    return process.waitFor();
+  public void waitForProcess() throws ExecutionException, InterruptedException {
+    process.onExit().get();
   }
 
-  public boolean waitForProcess(long timeout, TimeUnit unit) throws InterruptedException {
-    return process.waitFor(timeout, unit);
+  public void waitForProcess(long timeout, TimeUnit unit) throws ExecutionException, InterruptedException, TimeoutException {
+    process.onExit().get(timeout, unit);
   }
 
   public Matcher waitForLog(String regex, int timeoutMillis) throws IOException, InterruptedException {
