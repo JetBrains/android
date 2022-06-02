@@ -428,8 +428,8 @@ class EmulatorViewTest {
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
-        "touches { x: 1272 y: 741 pressure: 1 expiration: NEVER_EXPIRE }" +
-        " touches { x: 167 y: 2218 identifier: 1 pressure: 1 expiration: NEVER_EXPIRE }")
+        "touches { x: 1272 y: 741 pressure: 1024 expiration: NEVER_EXPIRE }" +
+        " touches { x: 167 y: 2218 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
 
     mousePosition.x -= 20
     mousePosition.y += 20
@@ -438,8 +438,8 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
-        "touches { x: 1056 y: 958 pressure: 1 expiration: NEVER_EXPIRE }" +
-        " touches { x: 383 y: 2001 identifier: 1 pressure: 1 expiration: NEVER_EXPIRE }")
+        "touches { x: 1056 y: 958 pressure: 1024 expiration: NEVER_EXPIRE }" +
+        " touches { x: 383 y: 2001 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
 
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)

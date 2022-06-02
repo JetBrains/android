@@ -795,7 +795,7 @@ class EmulatorView(
 
     private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, button: Int, deviceDisplayRegion: Rectangle) {
       if (multiTouchMode) {
-        val pressure = if (button == 0) 0 else 1
+        val pressure = if (button == 0) 0 else PRESSURE_RANGE_MAX
         val touchEvent = TouchEvent.newBuilder()
           .setDisplay(displayId)
           .addTouches(createTouch(displayX, displayY, 0, pressure))
@@ -1130,5 +1130,8 @@ private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
+
+// Keep the value in sync with goldfish's MTS_PRESSURE_RANGE_MAX.
+private const val PRESSURE_RANGE_MAX = 0x400;
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
