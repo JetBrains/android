@@ -15,28 +15,29 @@
  */
 package com.android.tools.idea.assistant.view
 
-
 import com.android.tools.idea.assistant.AssistActionState
 import com.intellij.ui.components.JBLabel
-import org.jetbrains.annotations.TestOnly
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BorderFactory
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.text.DefaultCaret
+import org.jetbrains.annotations.TestOnly
 
 /**
- * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
- * other elements such as an edit link and potentially support progress indication.
+ * Displays a message in lieu of a button when an action may not be completed. Note, this is not an
+ * extension of JBLabel as it will display other elements such as an edit link and potentially
+ * support progress indication.
  */
-class StatefulButtonMessage @JvmOverloads constructor(title: String, state: AssistActionState, body: String? = null) : JPanel(
-  GridBagLayout()) {
+class StatefulButtonMessage
+@JvmOverloads
+constructor(title: String, state: AssistActionState, body: String? = null) :
+  JPanel(GridBagLayout()) {
 
   private var myMessageDisplay: JBLabel? = null
 
-  @TestOnly
-  fun getMessageDisplay() = myMessageDisplay
+  @TestOnly fun getMessageDisplay() = myMessageDisplay
 
   init {
     border = BorderFactory.createEmptyBorder()
@@ -48,11 +49,12 @@ class StatefulButtonMessage @JvmOverloads constructor(title: String, state: Assi
     c.weightx = 0.01
     c.anchor = GridBagConstraints.NORTHWEST
     if (state.icon != null) {
-      myMessageDisplay = JBLabel().apply {
-        this.isOpaque = false
-        this.icon = state.icon
-        this.foreground = state.foreground
-      }
+      myMessageDisplay =
+        JBLabel().apply {
+          this.isOpaque = false
+          this.icon = state.icon
+          this.foreground = state.foreground
+        }
       add(myMessageDisplay, c)
       c.gridx++
     }

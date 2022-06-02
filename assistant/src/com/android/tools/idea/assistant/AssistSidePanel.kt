@@ -52,7 +52,7 @@ class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {
     errorPanel = JPanel(BorderLayout())
     val message = "Error loading assistant panel. Please check idea.log for detailed error message."
     val htmlText =
-        "<html><div style='text-align: center;'>${StringUtil.escapeXmlEntities(message)}</div></html>"
+      "<html><div style='text-align: center;'>${StringUtil.escapeXmlEntities(message)}</div></html>"
     errorText = JBLabel(htmlText)
     errorText.horizontalAlignment = JBLabel.CENTER
     errorPanel.add(errorText, BorderLayout.CENTER)
@@ -61,60 +61,62 @@ class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {
   }
 
   fun showBundle(
-      bundleId: String,
-      defaultTutorialId: String? = null,
-      onBundleCreated: ((TutorialBundleData) -> Unit)? = null
+    bundleId: String,
+    defaultTutorialId: String? = null,
+    onBundleCreated: ((TutorialBundleData) -> Unit)? = null
   ) {
     featuresPanel?.let { remove(it) }
     loadingPanel.startLoading()
     errorPanel.isVisible = false
 
     val bundleCreator =
-        try {
-          AssistantBundleCreator.EP_NAME.extensions.first { it.bundleId == bundleId }
-        } catch (e: NoSuchElementException) {
-          log.warn("Unable to find configuration for the selected action: $bundleId")
-          return
-        }
+      try {
+        AssistantBundleCreator.EP_NAME.extensions.first { it.bundleId == bundleId }
+      } catch (e: NoSuchElementException) {
+        log.warn("Unable to find configuration for the selected action: $bundleId")
+        return
+      }
 
     // Instantiate the bundle from a configuration file using the default bundle mapping.
     // If null, creator must provide the bundle instance themselves.
     val config =
-        try {
-          bundleCreator.config
-        } catch (e: FileNotFoundException) {
-          log.warn(e)
-          null
-        }
+      try {
+        bundleCreator.config
+      } catch (e: FileNotFoundException) {
+        log.warn(e)
+        null
+      }
 
     // Config provided, use that with the default bundle.
     if (config != null) {
       AssistantGetBundleFromConfigTask(
-              project,
-              config,
-              AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated),
-              bundleCreator.bundleId)
-          .queue()
+          project,
+          config,
+          AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated),
+          bundleCreator.bundleId
+        )
+        .queue()
     } else {
       AssistantGetBundleTask(
-              project,
-              bundleCreator,
-              AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated))
-          .queue()
+          project,
+          bundleCreator,
+          AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated)
+        )
+        .queue()
     }
   }
 
   private inner class AssistantLoadingCallback(
-      private val bundleId: String,
-      private val bundleCreator: AssistantBundleCreator,
-      private val defaultTutorialId: String?,
-      private val onBundleCreated: ((TutorialBundleData) -> Unit)?
+    private val bundleId: String,
+    private val bundleCreator: AssistantBundleCreator,
+    private val defaultTutorialId: String?,
+    private val onBundleCreated: ((TutorialBundleData) -> Unit)?
   ) : FutureCallback<TutorialBundleData> {
     private fun createFeaturesPanel(
-        bundle: TutorialBundleData?,
-        actionId: String,
-        bundleCreator: AssistantBundleCreator,
-        project: Project
+      bundle: TutorialBundleData?,
+      actionId: String,
+      bundleCreator: AssistantBundleCreator,
+      project: Project
     ) {
       if (bundle == null) {
         log.error("Unable to get Assistant configuration for action: $actionId")

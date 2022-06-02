@@ -19,15 +19,15 @@ import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import org.apache.http.concurrent.FutureCallback
 import java.net.URL
+import org.apache.http.concurrent.FutureCallback
 
 class AssistantGetBundleFromConfigTask(
   project: Project,
   private val config: URL,
   private val uiCallback: FutureCallback<TutorialBundleData>,
   private val bundleCreatorId: String
-): Task.Backgroundable(project, "Loading assistant content...") {
+) : Task.Backgroundable(project, "Loading assistant content...") {
 
   private lateinit var bundleData: TutorialBundleData
 
@@ -50,8 +50,6 @@ class AssistantGetBundleFromConfigTask(
   }
 
   private fun getBundle(config: URL): TutorialBundleData {
-    return config.openStream().use {
-      DefaultTutorialBundle.parse(it, bundleCreatorId)
-    }
+    return config.openStream().use { DefaultTutorialBundle.parse(it, bundleCreatorId) }
   }
 }

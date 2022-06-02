@@ -19,9 +19,7 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.module.Module
 import java.io.File
 
-/**
- * Container for instruction details from a `Recipe` instance.
- */
+/** Container for instruction details from a `Recipe` instance. */
 data class RecipeMetadata(
   val recipe: Recipe,
   val module: Module,

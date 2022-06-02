@@ -62,19 +62,22 @@ class FeaturesPanel(
     if (featureList.size == 1 && featureList[0].tutorials.size == 1) {
       hideChooserAndNavigationalBar = true
       log.debug(
-          "Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.")
+        "Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial."
+      )
     } else {
       addCard(
-          TutorialChooser(this, bundle, myAnalyticsProvider, project),
-          TutorialChooser.NAVIGATION_KEY)
+        TutorialChooser(this, bundle, myAnalyticsProvider, project),
+        TutorialChooser.NAVIGATION_KEY
+      )
     }
 
     // Add all tutorial cards.
     bundle.features.forEach { feature ->
       feature.tutorials.forEach { tutorialData ->
         addCard(
-            TutorialCard(this, tutorialData, feature, hideChooserAndNavigationalBar, bundle),
-            tutorialData.key)
+          TutorialCard(this, tutorialData, feature, hideChooserAndNavigationalBar, bundle),
+          tutorialData.key
+        )
       }
     }
 
@@ -108,19 +111,22 @@ class FeaturesPanel(
         // no myOpenTutorial + myTimeTutorialOpened are not set.
         if (myOpenTutorial != null) {
           myAnalyticsProvider.trackTutorialClosed(
-              myOpenTutorial!!.key, myOpenTutorial!!.readDuration, project)
+            myOpenTutorial!!.key,
+            myOpenTutorial!!.readDuration,
+            project
+          )
           myOpenTutorial = null
         }
         val key = source.key
         showCard(key)
         AssistNavListener.EP_NAME.extensions
-            .filter { listener -> key.startsWith(listener.idPrefix) }
-            .forEach { listener -> listener.onActionPerformed(key, e) }
+          .filter { listener -> key.startsWith(listener.idPrefix) }
+          .forEach { listener -> listener.onActionPerformed(key, e) }
       }
       is StatefulButton.ActionButton -> {
         val actionId = source.key
         val handler =
-            AssistActionHandler.EP_NAME.extensions.first { handler -> handler.id == actionId }
+          AssistActionHandler.EP_NAME.extensions.first { handler -> handler.id == actionId }
         requireNotNull(handler) { "Unhandled action, no handler found for key \"$actionId\"." }
         handler.handleAction(source.actionData, source.project)
         source.updateState()

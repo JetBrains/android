@@ -39,7 +39,7 @@ interface AssistantToolWindowService {
 }
 
 private class AssistantToolWindowServiceImpl(private val project: Project) :
-    AssistantToolWindowService {
+  AssistantToolWindowService {
 
   private val assistSidePanel: AssistSidePanel by lazy { AssistSidePanel(project) }
 
@@ -50,8 +50,13 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
     if (toolWindow == null) {
       // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
       toolWindow =
-          toolWindowManager.registerToolWindow(
-              TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true)
+        toolWindowManager.registerToolWindow(
+          TOOL_WINDOW_TITLE,
+          false,
+          ToolWindowAnchor.RIGHT,
+          project,
+          true
+        )
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT)
     }
     toolWindow.helpId = bundleId
@@ -63,20 +68,20 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
   }
 
   private fun createAssistantContent(
-      bundleId: String,
-      toolWindow: ToolWindow,
-      defaultTutorialCardId: String?
+    bundleId: String,
+    toolWindow: ToolWindow,
+    defaultTutorialCardId: String?
   ) {
     var content: Content? = null
     assistSidePanel.showBundle(bundleId, defaultTutorialCardId) { content?.displayName = it.name }
     val contentFactory = ContentFactory.SERVICE.getInstance()
     content =
-        contentFactory.createContent(assistSidePanel.loadingPanel, null, false).also {
-          val contentManager = toolWindow.contentManager
-          contentManager.removeAllContents(true)
-          contentManager.addContent(it)
-          contentManager.setSelectedContent(it)
-        }
+      contentFactory.createContent(assistSidePanel.loadingPanel, null, false).also {
+        val contentManager = toolWindow.contentManager
+        contentManager.removeAllContents(true)
+        contentManager.addContent(it)
+        contentManager.setSelectedContent(it)
+      }
     toolWindow.show(null)
   }
 }
