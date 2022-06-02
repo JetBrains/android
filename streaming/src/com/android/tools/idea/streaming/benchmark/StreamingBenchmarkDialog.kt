@@ -105,11 +105,11 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
       }.apply { expanded = false }
     }.enabledIf(isStopped)
     panel {
-      separator("Note")
+      separator()
       row {
         text("For accurate results, keep Android Studio visible until benchmarking is complete.").horizontalAlign(HorizontalAlign.CENTER)
       }
-      separator("Progress")
+      separator()
       row(readyProgressLabel) {
         cell(readyProgressBar)
         button("Cancel") {

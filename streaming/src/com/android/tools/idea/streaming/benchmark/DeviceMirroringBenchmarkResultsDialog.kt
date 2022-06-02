@@ -60,12 +60,12 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
     xLabelFormatStr = "%d%%")
 
   private fun createPanel() = panel {
-    separator("Histogram")
+    separator()
     row {
       resizableRow()
       cell(createHistogram().component)
     }
-    separator("Time Series")
+    separator()
     row {
       resizableRow()
       cell(createTimeSeries().component)
