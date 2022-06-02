@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.transport;
 
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.function.Supplier;
@@ -126,7 +125,7 @@ public final class DeployableFile {
                                                                     // Any attempt to access a file relative to WORKSPACE_ROOT does not work in IDEA.
     @Nullable private String myOnDeviceAbiFileNameFormat;
 
-    @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = StudioPathManager::isRunningFromSources;
+    @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = () -> false; // should not use AOSP debug paths in IDEA
     @NotNull private Supplier<String> myHomePathSupplier = () -> {
         AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
         return AndroidProfilerDownloader.getInstance().getPluginDir().getAbsolutePath();
