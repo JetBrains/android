@@ -34,6 +34,8 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -427,8 +429,28 @@ public class AndroidFileChangeListener implements Disposable {
       if (psiFile == null) {
         VirtualFile virtualFile = myFileDocumentManager.getFile(document);
         if (virtualFile != null) {
-          myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan);
+          runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
         }
+      }
+    }
+
+    private void runInWriteAction(@NotNull Runnable runnable) {
+      Application application = ApplicationManager.getApplication();
+      if (application.isWriteAccessAllowed()) {
+        runnable.run();
+      }
+      else {
+        runInEdt(() -> application.runWriteAction(runnable));
+      }
+    }
+
+    private void runInEdt(@NotNull Runnable runnable) {
+      Application application = ApplicationManager.getApplication();
+      if (application.isDispatchThread()) {
+        runnable.run();
+      }
+      else {
+        application.invokeLater(runnable);
       }
     }
   }
