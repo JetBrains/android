@@ -10,11 +10,267 @@
     </issue>
 
     <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
+            line="42"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/run/AndroidDeviceSpecUtil.kt"
+            line="51"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/run/deployment/liveedit/AndroidLiveEditJvmIrCodegenFactory.kt"
+            line="123"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/run/deployment/liveedit/AndroidLiveEditJvmIrCodegenFactory.kt"
+            line="251"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/stats/AndroidStudioStatisticsEventLoggerProvider.kt"
+            line="25"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/converters/AndroidUsesFeatureNameConverter.kt"
+            line="28"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="53"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="56"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="62"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="65"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="69"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="75"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/ImageCache.kt"
+            line="52"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/importer/ImportersProvider.kt"
+            line="21"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/layout/LayoutElementDescriptors.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="60"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerListViewModelImpl.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/ResourceImporter.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/Util.kt"
+            line="66"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/testartifacts/instrumented/testsuite/adapter/UtpTestResultAdapter.kt"
+            line="62"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/xml/XmlResourceDescriptors.kt"
+            line="55"/>
+    </issue>
+
+    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/AssetListView.kt"
-            line="33"/>
+            line="31"/>
     </issue>
 
     <issue
@@ -646,7 +902,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="830"/>
+            line="834"/>
     </issue>
 
     <issue

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.2.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="StopShip"
@@ -23,6 +23,78 @@
         <location
             file="src/com/android/tools/idea/gradle/structure/model/android/PsJarAndroidDependency.kt"
             line="70"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/android/PsJarAndroidDependency.kt"
+            line="74"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/java/PsJarJavaDependency.kt"
+            line="75"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/android/PsLibraryAndroidDependency.kt"
+            line="88"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/java/PsLibraryJavaDependency.kt"
+            line="95"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
+            line="114"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
+            line="124"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
+            line="139"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
+            line="151"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
+            line="204"/>
     </issue>
 
     <issue

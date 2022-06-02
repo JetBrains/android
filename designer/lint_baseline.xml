@@ -426,6 +426,118 @@
     </issue>
 
     <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/analytics/AnimationToolbarAnalyticsManager.kt"
+            line="41"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
+            line="286"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
+            line="287"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/scene/draw/CompositeDrawCommand.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/surface/DesignSurfaceHelper.kt"
+            line="41"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/surface/DesignSurfaceShortcut.kt"
+            line="42"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="83"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="99"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="103"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="107"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/surface/SceneViewErrorsPanel.kt"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
+            line="71"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/assistant/Template.kt"
+            line="61"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
+            line="101"/>
+    </issue>
+
+    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
@@ -574,14 +686,6 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="209"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="210"/>
     </issue>
 
@@ -606,7 +710,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="218"/>
+            line="213"/>
     </issue>
 
     <issue
@@ -638,7 +742,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="242"/>
+            line="222"/>
     </issue>
 
     <issue
@@ -654,7 +758,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="247"/>
+            line="244"/>
     </issue>
 
     <issue
@@ -662,7 +766,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="261"/>
+            line="248"/>
     </issue>
 
     <issue
@@ -678,7 +782,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="268"/>
+            line="263"/>
     </issue>
 
     <issue
@@ -687,6 +791,14 @@
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="269"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            line="270"/>
     </issue>
 
     <issue

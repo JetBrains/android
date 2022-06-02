@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.projectSystem",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # testSrc here is for related test infrastructure, not tests
     visibility = ["//visibility:public"],

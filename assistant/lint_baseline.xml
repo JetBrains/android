@@ -5,8 +5,8 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/build/attribution/ui/BuildAttributionUiManager.kt"
-            line="89"/>
+            file="src/com/android/tools/idea/assistant/AssistantToolWindowService.kt"
+            line="44"/>
     </issue>
 
 </issues>

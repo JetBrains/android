@@ -2,6 +2,22 @@
 <issues format="5" by="lint 7.4.0-dev">
 
     <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/projectsystem/gradle/GradleProjectSystemProvider.kt"
+            line="37"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/refactoring/namespaces/NamespacesRefactoringsUtil.kt"
+            line="65"/>
+    </issue>
+
+    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
@@ -38,7 +54,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="267"/>
+            line="260"/>
     </issue>
 
     <issue
@@ -46,7 +62,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="319"/>
+            line="313"/>
     </issue>
 
     <issue
@@ -54,7 +70,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="404"/>
+            line="401"/>
     </issue>
 
 </issues>

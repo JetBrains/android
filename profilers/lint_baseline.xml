@@ -178,6 +178,30 @@
     </issue>
 
     <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
+            line="66"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
+            line="70"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/profilers/cpu/analysis/AndroidFrameTimelineAnalysisModel.kt"
+            line="37"/>
+    </issue>
+
+    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
