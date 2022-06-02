@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.ide.common.resources.Locale;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.ide.common.resources.Locale
+import javax.swing.Icon
 
-public interface StringResourceTableColumnFilter {
-
-  boolean include(@NotNull Locale locale);
-  void update(@NotNull Presentation presentation);
+/** Interface for filters that filter columns in the table by [Locale]. */
+interface StringResourceTableColumnFilter {
+  /** Decides whether to show the column representing the given [locale]. */
+  fun include(locale: Locale): Boolean
+  /** Returns an [Icon] representing the filter's [Locale], if any. */
+  fun getIcon(): Icon? = null
+  /** Returns a text description of what the filter does for use in the UI. */
+  fun getDescription(): String
 }

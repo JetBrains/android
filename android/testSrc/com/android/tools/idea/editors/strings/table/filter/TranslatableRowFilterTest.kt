@@ -13,43 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import javax.swing.RowFilter.Entry
+import org.mockito.Mockito.`when` as whenever
 
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import javax.swing.RowFilter;
-import javax.swing.RowFilter.Entry;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+/** Tests the [TranslatableRowFilter] class. */
+@RunWith(JUnit4::class)
+class TranslatableRowFilterTest {
+  private val entry: Entry<out StringResourceTableModel, out Int> = mock()
+  private val translatableRowFilter = TranslatableRowFilter()
 
-public final class TranslatableRowFilterTest {
-  private RowFilter<StringResourceTableModel, Integer> myFilter;
-
-  @Before
-  public void initFilter() {
-    myFilter = new TranslatableRowFilter();
+  @Test
+  fun getDescription() {
+    assertThat(translatableRowFilter.getDescription()).isEqualTo("Show Translatable Keys")
   }
 
   @Test
-  public void untranslatableIsFalse() {
-    assertTrue(myFilter.include(mockEntry(false)));
+  fun getIcon() {
+    assertThat(translatableRowFilter.getIcon()).isNull()
   }
 
   @Test
-  public void untranslatableIsTrue() {
-    assertFalse(myFilter.include(mockEntry(true)));
+  fun include_untranslatable() {
+    whenever(entry.getValue(UNTRANSLATABLE_COLUMN)).thenReturn(false)
+    assertThat(translatableRowFilter.include(entry)).isTrue()
   }
 
-  @NotNull
-  private static Entry<StringResourceTableModel, Integer> mockEntry(boolean untranslatable) {
-    // noinspection unchecked
-    Entry<StringResourceTableModel, Integer> entry = Mockito.mock(Entry.class);
-    Mockito.when(entry.getValue(StringResourceTableModel.UNTRANSLATABLE_COLUMN)).thenReturn(untranslatable);
-
-    return entry;
+  @Test
+  fun include_translatable() {
+    whenever(entry.getValue(UNTRANSLATABLE_COLUMN)).thenReturn(true)
+    assertThat(translatableRowFilter.include(entry)).isFalse()
   }
 }

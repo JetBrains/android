@@ -13,29 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.ide.common.resources.Locale
+import com.android.tools.idea.rendering.FlagManager
+import javax.swing.Icon
 
-public class LocaleColumnFilter implements StringResourceTableColumnFilter {
+/** Filter that shows only the columns for the specified [locale]. */
+class LocaleColumnFilter(private val locale: Locale) : StringResourceTableColumnFilter {
+  override fun include(locale: Locale) = this.locale == locale
 
-  @NotNull private final Locale myLocale;
+  override fun getIcon(): Icon = FlagManager.getFlagImage(locale)
 
-  public LocaleColumnFilter(@NotNull Locale locale) {
-    myLocale = locale;
-  }
-
-  @Override
-  public boolean include(@NotNull Locale locale) {
-    return myLocale.equals(locale);
-  }
-
-  @Override
-  public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(FlagManager.getFlagImage(myLocale));
-    presentation.setText(Locale.getLocaleLabel(myLocale, false));
-  }
+  override fun getDescription(): String = Locale.getLocaleLabel(locale, /* brief= */ false)
 }

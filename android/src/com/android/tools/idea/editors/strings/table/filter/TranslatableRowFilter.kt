@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN
 
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
+/** A filter that shows only rows that contain translatable resources. */
+class TranslatableRowFilter : StringResourceTableRowFilter() {
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean =
+      !(entry.getValue(UNTRANSLATABLE_COLUMN) as Boolean)
 
-public final class TranslatableRowFilter extends StringResourceTableRowFilter {
-  @Override
-  public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(null);
-    presentation.setText("Show Translatable Keys");
-  }
-
-  @Override
-  public boolean include(@NotNull Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
-    return !(boolean)entry.getValue(UNTRANSLATABLE_COLUMN);
-  }
+  override fun getDescription(): String = "Show Translatable Keys"
 }

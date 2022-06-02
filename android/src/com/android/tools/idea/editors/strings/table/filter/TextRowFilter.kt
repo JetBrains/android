@@ -13,34 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 
-public class TextRowFilter extends StringResourceTableRowFilter {
+/** Filter that shows rows based on whether they contain text that matches the given [text]. */
+class TextRowFilter(private val text: String) : StringResourceTableRowFilter() {
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean =
+      entry.stringValues().any { it.contains(text) }
 
-  @NotNull private final String myText;
-
-  public TextRowFilter(@NotNull String text) {
-    myText = text;
-  }
-
-  @Override
-  public boolean include(Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
-    for (int i = 0; i < entry.getValueCount(); i++) {
-      String text = entry.getStringValue(i);
-      if (text.contains(myText)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(null);
-    presentation.setText("Show Keys with Values Containing \"" + myText + '"');
-  }
+  override fun getDescription(): String = """Show Keys with Values Containing "$text""""
 }

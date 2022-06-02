@@ -39,14 +39,9 @@ import javax.swing.JTextField
 class FilterKeysAction : ComboBoxAction() {
   override fun update(e: AnActionEvent) {
     val editor = e.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
-    editor.panel.table.rowFilter?.let {
-      it.update(e.presentation)
-      return
-    }
-    e.presentation.apply {
-      icon = null
-      text = "Show All Keys"
-    }
+    val filter = editor.panel.table.rowFilter
+    e.presentation.icon = filter?.getIcon()
+    e.presentation.text = filter?.getDescription() ?: "Show All Keys"
   }
 
   @Deprecated("Call the two-argument version instead.")

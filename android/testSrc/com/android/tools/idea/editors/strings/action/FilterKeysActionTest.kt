@@ -24,13 +24,13 @@ import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
-import com.android.tools.idea.editors.strings.table.NeedsTranslationForLocaleRowFilter
-import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
-import com.android.tools.idea.editors.strings.table.StringResourceTableRowFilter
-import com.android.tools.idea.editors.strings.table.TextRowFilter
-import com.android.tools.idea.editors.strings.table.TranslatableRowFilter
+import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationForLocaleRowFilter
+import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowFilter
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter
+import com.android.tools.idea.editors.strings.table.filter.TextRowFilter
+import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
 import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -63,6 +63,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.withSettings
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -154,12 +155,8 @@ class FilterKeysActionTest {
     val presentationText = "Some amazing text!"
     rowFilter = object : StringResourceTableRowFilter() {
       override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean = throw NotImplementedError("Not called")
-      override fun update(presentation: Presentation) {
-        presentation.apply {
-          icon = AllIcons.Idea_logo_welcome
-          text = presentationText
-        }
-      }
+      override fun getDescription(): String = presentationText
+      override fun getIcon(): Icon? = AllIcons.Idea_logo_welcome
     }
 
     filterKeysAction.update(event)
@@ -256,6 +253,7 @@ class FilterKeysActionTest {
   @Test
   fun actionPerformed_filterByText_textInput() {
     enableHeadlessDialogs(projectRule.project)
+    val filterText = "my great text"
     filterKeysAction.actionPerformed(event)
 
     val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
@@ -265,12 +263,12 @@ class FilterKeysActionTest {
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(AllIcons.General.Filter)
 
     createModalDialogAndInteractWithIt({ selectedAction.actionPerformed(event) }) {
-      it.text = "my great text"
+      it.text = filterText
       it.click("OK")
     }
 
     assertThat(rowFilter).isInstanceOf(TextRowFilter::class.java)
-    // TODO(b/232444069): Check rowFilter.getDescription() when that gets implemented.
+    assertThat(rowFilter!!.getDescription()).isEqualTo("""Show Keys with Values Containing "$filterText"""")
   }
 
   @Test
@@ -291,7 +289,8 @@ class FilterKeysActionTest {
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    // TODO(b/232444069): Check rowFilter.getDescription()/getIcon() when that gets implemented.
+    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(rowFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
 
     selectedAction = popup.items[5]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
@@ -300,7 +299,8 @@ class FilterKeysActionTest {
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    // TODO(b/232444069): Check rowFilter.getDescription()/getIcon() when that gets implemented.
+    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+    assertThat(rowFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
   }
 
   companion object {

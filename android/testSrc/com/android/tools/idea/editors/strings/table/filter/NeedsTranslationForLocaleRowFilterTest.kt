@@ -13,44 +13,81 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.editors.strings.StringResource;
-import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.editors.strings.model.StringResourceRepository;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import java.util.Collections;
-import javax.swing.RowFilter.Entry;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
+import com.android.ide.common.resources.Locale
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.editors.strings.StringResource
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.rendering.FlagManager
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import javax.swing.RowFilter.Entry
+import org.mockito.Mockito.`when` as whenever
 
-public final class NeedsTranslationForLocaleRowFilterTest extends AndroidTestCase {
-  public void testInclude() {
-    assertFalse(new NeedsTranslationForLocaleRowFilter(Locale.create("ar")).include(mockEntry()));
+/** Tests the [NeedsTranslationForLocaleRowFilter] class. */
+@RunWith(JUnit4::class)
+class NeedsTranslationForLocaleRowFilterTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
+  private val needsTranslationForLocaleRowFilterAr =
+      NeedsTranslationForLocaleRowFilter(ARABIC_LOCALE)
+  private val needsTranslationForLocaleRowFilterEs =
+      NeedsTranslationForLocaleRowFilter(US_SPANISH_LOCALE)
+
+  private val model: StringResourceTableModel = mock()
+  private val resource: StringResource = mock()
+  private val entry: Entry<StringResourceTableModel, Int> = mock()
+
+  @Before
+  fun setUp() {
+    whenever(entry.model).thenReturn(model)
+    whenever(entry.identifier).thenReturn(ROW_INDEX)
+    whenever(model.getStringResourceAt(ROW_INDEX)).thenReturn(resource)
   }
 
-  @NotNull
-  private Entry<StringResourceTableModel, Integer> mockEntry() {
-    StringResourceKey key = new StringResourceKey("key");
+  @Test
+  fun getDescription() {
+    assertThat(needsTranslationForLocaleRowFilterAr.getDescription())
+        .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(needsTranslationForLocaleRowFilterEs.getDescription())
+        .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+  }
 
-    StringResourceRepository repository = Mockito.mock(StringResourceRepository.class);
-    Mockito.when(repository.getItems(key)).thenReturn(Collections.emptyList());
+  @Test
+  fun getIcon() {
+    assertThat(needsTranslationForLocaleRowFilterAr.getIcon())
+        .isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
+    assertThat(needsTranslationForLocaleRowFilterEs.getIcon())
+        .isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+  }
 
-    StringResource resource = new StringResource(key, StringResourceData.create(myModule.getProject(), repository));
-    resource.setTranslatable(false);
+  @Test
+  fun include_notTranslatable() {
+    whenever(resource.isTranslatable).thenReturn(false)
 
-    StringResourceTableModel model = Mockito.mock(StringResourceTableModel.class);
-    Mockito.when(model.getStringResourceAt(0)).thenReturn(resource);
+    assertThat(needsTranslationForLocaleRowFilterEs.include(entry)).isFalse()
+    assertThat(needsTranslationForLocaleRowFilterAr.include(entry)).isFalse()
+  }
 
-    @SuppressWarnings("unchecked")
-    Entry<StringResourceTableModel, Integer> entry = (Entry<StringResourceTableModel, Integer>)Mockito.mock(Entry.class);
+  @Test
+  fun include() {
+    whenever(resource.isTranslatable).thenReturn(true)
+    whenever(resource.getTranslationAsString(ARABIC_LOCALE)).thenReturn("")
+    whenever(resource.getTranslationAsString(US_SPANISH_LOCALE)).thenReturn("Not an empty string")
 
-    Mockito.when(entry.getModel()).thenReturn(model);
-    Mockito.when(entry.getIdentifier()).thenReturn(0);
+    assertThat(needsTranslationForLocaleRowFilterAr.include(entry)).isTrue()
+    assertThat(needsTranslationForLocaleRowFilterEs.include(entry)).isFalse()
+  }
 
-    return entry;
+  companion object {
+    private const val ROW_INDEX = 42
+    private val ARABIC_LOCALE = Locale.create("ar")
+    private val US_SPANISH_LOCALE = Locale.create("es-rUS")
   }
 }

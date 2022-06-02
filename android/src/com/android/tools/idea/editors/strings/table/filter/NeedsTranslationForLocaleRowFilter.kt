@@ -13,31 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.ide.common.resources.Locale;
-import com.android.tools.idea.editors.strings.StringResource;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.ide.common.resources.Locale
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.rendering.FlagManager
+import javax.swing.Icon
 
-public final class NeedsTranslationForLocaleRowFilter extends StringResourceTableRowFilter {
-  private final Locale myLocale;
-
-  public NeedsTranslationForLocaleRowFilter(@NotNull Locale locale) {
-    myLocale = locale;
+/** Filter that shows only rows that are missing a translation for the given [locale]. */
+class NeedsTranslationForLocaleRowFilter(private val locale: Locale) :
+    StringResourceTableRowFilter() {
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean {
+    val resource = entry.model.getStringResourceAt(entry.identifier)
+    return resource.isTranslatable && resource.getTranslationAsString(locale).isEmpty()
   }
 
-  @Override
-  public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(FlagManager.getFlagImage(myLocale));
-    presentation.setText("Show Keys Needing a Translation for " + Locale.getLocaleLabel(myLocale, false));
-  }
+  override fun getDescription(): String =
+      "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
 
-  @Override
-  public boolean include(@NotNull Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
-    StringResource resource = entry.getModel().getStringResourceAt(entry.getIdentifier());
-    return resource.isTranslatable() && resource.getTranslationAsString(myLocale).isEmpty();
-  }
+  override fun getIcon(): Icon = FlagManager.getFlagImage(locale)
 }

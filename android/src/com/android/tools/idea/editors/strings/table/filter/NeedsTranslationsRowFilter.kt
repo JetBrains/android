@@ -13,32 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table.filter;
+package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN
 
-import java.util.stream.IntStream;
-
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN;
-
-public final class NeedsTranslationsRowFilter extends StringResourceTableRowFilter {
-  @Override
-  public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(null);
-    presentation.setText("Show Keys Needing Translations");
+/** Filter that shows rows missing any translations for Locales in use by the project. */
+class NeedsTranslationsRowFilter : StringResourceTableRowFilter() {
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean {
+    val untranslatable = entry.getValue(UNTRANSLATABLE_COLUMN) as Boolean
+    return !untranslatable &&
+        entry.stringValues(startIndex = DEFAULT_VALUE_COLUMN).any(String::isEmpty)
   }
 
-  @Override
-  public boolean include(@NotNull Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
-    if ((boolean)entry.getValue(UNTRANSLATABLE_COLUMN)) {
-      return false;
-    }
-
-    return IntStream.range(DEFAULT_VALUE_COLUMN, entry.getValueCount())
-      .mapToObj(entry::getStringValue)
-      .anyMatch(String::isEmpty);
-  }
+  override fun getDescription(): String = "Show Keys Needing Translations"
 }

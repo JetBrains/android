@@ -44,14 +44,14 @@ class FilterLocalesAction extends ComboBoxAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     StringResourceTableColumnFilter filter = myTable.getColumnFilter();
-
+    Presentation presentation = event.getPresentation();
     if (filter == null) {
-      Presentation presentation = event.getPresentation();
       presentation.setIcon(null);
       presentation.setText(NO_FILTER_TITLE);
     }
     else {
-      filter.update(event.getPresentation());
+      presentation.setIcon(filter.getIcon());
+      presentation.setText(filter.getDescription());
     }
   }
 
