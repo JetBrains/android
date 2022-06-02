@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",

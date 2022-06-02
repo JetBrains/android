@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.util
+package com.android.tools.idea.logcat.actions.screenrecord
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.IDevice
-import com.android.tools.idea.adb.AdbService
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
+import java.nio.file.Path
 
 /**
- * An implementation of [AdbAdapter] using [AndroidDebugBridge]
+ * Provides screen recording functionality
  */
-internal class AdbAdapterImpl(private val project: Project) : AdbAdapter {
-  override suspend fun getDevices(): List<IDevice> = AdbService.getInstance().getDebugBridge(project).await().devices.asList()
+interface RecordingProvider {
+  val fileExtension: String
+
+  suspend fun startRecording()
+
+  suspend fun stopRecording()
+
+  suspend fun doesRecordingExist(): Boolean
+
+  suspend fun pullRecording(target: Path)
 }

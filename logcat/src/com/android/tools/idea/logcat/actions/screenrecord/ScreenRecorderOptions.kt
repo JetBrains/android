@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.util
-
-import com.android.ddmlib.IDevice
-import kotlinx.coroutines.guava.await
+package com.android.tools.idea.logcat.actions.screenrecord
 
 /**
- * Provides an IDevice for a given device identifier.
+ * Contains options for recording device screen.
  *
- * The device identifier is the serial number for physical devices and the AVD name for emulators.
+ * Based on com.android.ddmlib.ScreenRecorderOptions
  */
-internal interface AdbAdapter {
-  suspend fun getDevices(): List<IDevice>
-}
+internal class ScreenRecorderOptions(
+  // video size is given by width x height, defaults to device's main display resolution or 1280x720.
+  val width: Int,
+  val height: Int,
+
+  // bit rate in Mbps. Defaults to 4Mbps
+  val bitrateMbps: Int,
+
+  // display touches
+  val showTouches: Boolean,
+)

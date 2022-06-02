@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.util
+package com.android.tools.idea.logcat.actions.screenrecord
 
-import com.android.ddmlib.IDevice
+import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.project.Project
 
 /**
- * An implementation of [AdbAdapter] for tests.S
+ * A cache of mapping of a device to a boolean indicating if it supports screen recording.
  */
-internal class FakeAdbAdapter : AdbAdapter {
-  val mutableDevices = mutableListOf<IDevice>()
+interface ScreenRecordingSupportedCache {
+  @UiThread
+  fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean
 
-  override suspend fun getDevices(): List<IDevice> = mutableDevices
+  companion object {
+    fun getInstance(project: Project): ScreenRecordingSupportedCache = project.getService(ScreenRecordingSupportedCache::class.java)
+  }
 }
