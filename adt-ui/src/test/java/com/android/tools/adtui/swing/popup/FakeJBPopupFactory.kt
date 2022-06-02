@@ -181,7 +181,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
 
   override fun createListPopup(project: Project,
                                step: ListPopupStep<*>,
-                               cellRendererProducer: Function<ListCellRenderer<Any>, ListCellRenderer<Any>>): ListPopup {
+                               cellRendererProducer: Function<in ListCellRenderer<Any>, out ListCellRenderer<Any>>): ListPopup {
     TODO("Not yet implemented")
   }
 
