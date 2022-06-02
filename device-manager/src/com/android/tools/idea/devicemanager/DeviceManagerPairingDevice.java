@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.sdklib.AndroidVersion;
+import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +99,9 @@ final class DeviceManagerPairingDevice extends Device {
     hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myAndroidVersion.hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(myResolution);
+    hashCode = 31 * hashCode + myDensity;
+    hashCode = 31 * hashCode + myAbis.hashCode();
 
     return hashCode;
   }
@@ -116,6 +120,9 @@ final class DeviceManagerPairingDevice extends Device {
            myName.equals(device.myName) &&
            myOnline == device.myOnline &&
            myTarget.equals(device.myTarget) &&
-           myAndroidVersion.equals(device.myAndroidVersion);
+           myAndroidVersion.equals(device.myAndroidVersion) &&
+           Objects.equals(myResolution, device.myResolution) &&
+           myDensity == device.myDensity &&
+           myAbis.equals(device.myAbis);
   }
 }

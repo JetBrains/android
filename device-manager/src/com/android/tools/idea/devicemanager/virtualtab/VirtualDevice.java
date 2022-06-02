@@ -189,6 +189,7 @@ public final class VirtualDevice extends Device {
     hashCode = 31 * hashCode + Long.hashCode(mySizeOnDisk);
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
+    hashCode = 31 * hashCode + myAbis.hashCode();
     hashCode = 31 * hashCode + myAvdInfo.hashCode();
 
     return hashCode;
@@ -212,6 +213,7 @@ public final class VirtualDevice extends Device {
            mySizeOnDisk == device.mySizeOnDisk &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
+           myAbis.equals(device.myAbis) &&
            myAvdInfo.equals(device.myAvdInfo);
   }
 }

@@ -22,9 +22,7 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -36,14 +34,12 @@ public final class PhysicalDevice extends Device {
   private final @NotNull String myNameOverride;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
-  private final @NotNull ImmutableCollection<@NotNull String> myAbis;
   private final @Nullable StorageDevice myStorageDevice;
 
   public static final class Builder extends Device.Builder {
     private @NotNull String myNameOverride = "";
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
-    private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
     private @Nullable StorageDevice myStorageDevice;
 
     public @NotNull Builder setKey(@NotNull Key key) {
@@ -123,7 +119,6 @@ public final class PhysicalDevice extends Device {
     myNameOverride = builder.myNameOverride;
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPower = builder.myPower;
-    myAbis = ImmutableList.copyOf(builder.myAbis);
     myStorageDevice = builder.myStorageDevice;
   }
 
@@ -147,10 +142,6 @@ public final class PhysicalDevice extends Device {
 
   @Nullable Battery getPower() {
     return myPower;
-  }
-
-  @NotNull Collection<@NotNull String> getAbis() {
-    return myAbis;
   }
 
   @Nullable StorageDevice getStorageDevice() {

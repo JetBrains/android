@@ -17,6 +17,10 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +33,7 @@ public abstract class Device {
   protected final @NotNull AndroidVersion myAndroidVersion;
   protected final @Nullable Resolution myResolution;
   protected final int myDensity;
+  protected final @NotNull ImmutableCollection<@NotNull String> myAbis;
 
   protected static abstract class Builder {
     protected @Nullable Key myKey;
@@ -38,6 +43,7 @@ public abstract class Device {
     protected @NotNull AndroidVersion myAndroidVersion = AndroidVersion.DEFAULT;
     protected @Nullable Resolution myResolution;
     protected int myDensity = -1;
+    protected final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
 
     protected abstract @NotNull Device build();
   }
@@ -57,6 +63,7 @@ public abstract class Device {
     myAndroidVersion = builder.myAndroidVersion;
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
+    myAbis = ImmutableList.copyOf(builder.myAbis);
   }
 
   public final @NotNull Key getKey() {
@@ -104,6 +111,10 @@ public abstract class Device {
     int height = (int)Math.ceil((double)Density.DEFAULT_DENSITY * myResolution.getHeight() / myDensity);
 
     return new Resolution(width, height);
+  }
+
+  public final @NotNull Iterable<@NotNull String> getAbis() {
+    return myAbis;
   }
 
   @Override
