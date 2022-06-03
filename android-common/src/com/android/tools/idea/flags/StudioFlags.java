@@ -1360,6 +1360,22 @@ public final class StudioFlags {
       "Enable new Crashlytics API",
       "If enabled, new Crashlytics API is adopted.",
       false);
+
+  public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.grpc.server",
+      "Set Crashlytics gRpc server address",
+      "Set Crashlytics gRpc server address, mainly used for testing purposes.",
+      "firebasecrashlytics.googleapis.com");
+
+  public static final Flag<Boolean> CRASHLYTICS_GRPC_USE_TRANSPORT_SECURITY =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.grpc.use.transport.security",
+      "Use transport security",
+      "Set Crashlytics gRpc channel to use transport security",
+      true);
   // endregion App Insights
 
   // region App Links Assistant

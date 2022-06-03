@@ -1,0 +1,17 @@
+buildscript {
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
+     }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    compileSdk 32
+    defaultConfig {
+        applicationId "com.example.minapp"
+        minSdk 26
+    }
+}
