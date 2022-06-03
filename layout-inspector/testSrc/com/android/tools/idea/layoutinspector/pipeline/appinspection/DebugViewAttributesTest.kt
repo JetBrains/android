@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -43,8 +42,7 @@ class DebugViewAttributesTest {
   fun before() {
     val process = MODERN_DEVICE.createProcess()
     val device = process.device
-    adbRule.attachDevice(
-      device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(), DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
 
     debugViewAttributes = DebugViewAttributes(projectRule.project, process)
     processName = process.name

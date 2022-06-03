@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -133,8 +132,7 @@ class TransportRule(
    * Add the given process and stream to the transport service.
    */
   fun addProcess(device: Common.Device, process: Common.Process) {
-    adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString())
     if (device.featureLevel >= 29) {
       transportService.addDevice(device)
       transportService.addProcess(device, process)

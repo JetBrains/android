@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -59,8 +58,7 @@ class InspectorClientLauncherTest {
   @Before
   fun before() {
     for (device in setOf(MODERN_DEVICE, LEGACY_DEVICE)) {
-      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                           DeviceState.HostConnectionType.USB)
+      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
     }
   }
 
@@ -405,8 +403,7 @@ class InspectorClientLauncherMetricsTest {
   @Before
   fun before() {
     val device = MODERN_DEVICE
-    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
   }
 
   @Test

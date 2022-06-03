@@ -383,7 +383,7 @@ class ComposePreviewTest {
   fun testDeployPreview() {
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
 
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)

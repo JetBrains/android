@@ -26,27 +26,30 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import com.intellij.ui.content.ContentManager
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
@@ -59,44 +62,41 @@ import javax.swing.UIManager
  */
 @RunsInEdt
 class EmulatorToolWindowManagerTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val agentRule = FakeScreenSharingAgentRule()
   private val emulatorRule = FakeEmulatorRule()
-  private var nullableToolWindow: ToolWindow? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain = RuleChain(agentRule, emulatorRule, SetPortableUiFontRule(), EdtRule())
 
-  @get:Rule
-  val portableUiFontRule = SetPortableUiFontRule()
+  private val windowFactory: EmulatorToolWindowFactory by lazy { EmulatorToolWindowFactory() }
+  private val toolWindow: ToolWindow by lazy { createToolWindow() }
+  private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
-  private val project
-    get() = projectRule.project
+  private var savedMirroringEnabledState = false
 
-  private var toolWindow: ToolWindow
-    get() = nullableToolWindow ?: throw IllegalStateException()
-    set(value) { nullableToolWindow = value }
+  private val project get() = agentRule.project
+  private val testRootDisposable get() = agentRule.testRootDisposable
 
   @Before
   fun setUp() {
     val mockLafManager = mock<LafManager>()
     `when`(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
-    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
-    val windowManager = TestToolWindowManager(project)
-    project.replaceService(ToolWindowManager::class.java, windowManager, projectRule.testRootDisposable)
-    toolWindow = windowManager.toolWindow
+    savedMirroringEnabledState = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
+    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = true
   }
 
   @After
   fun tearDown() {
-    toolWindow.hide();
+    toolWindow.hide()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
+    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = savedMirroringEnabledState
   }
 
   @Test
   fun testTabManagement() {
-    val factory = EmulatorToolWindowFactory()
-    assertThat(factory.shouldBeAvailable(project)).isTrue()
-    factory.createToolWindowContent(project, toolWindow)
-    val contentManager = toolWindow.contentManager
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
@@ -112,8 +112,7 @@ class EmulatorToolWindowManagerTest {
     emulator2.start()
 
     // Send notification that the emulator has been launched.
-    val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"),
-                          emulator1.avdFolder, mock(), null)
+    val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null)
     val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId, "-qt-hide-window")
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, project)
     dispatchAllInvocationEvents()
@@ -171,10 +170,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testEmulatorCrash() {
-    val factory = EmulatorToolWindowFactory()
-    assertThat(factory.shouldBeAvailable(project)).isTrue()
-    factory.createToolWindowContent(project, toolWindow)
-    val contentManager = toolWindow.contentManager
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
@@ -199,10 +196,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-    val factory = EmulatorToolWindowFactory()
-    assertThat(factory.shouldBeAvailable(project)).isTrue()
-    factory.createToolWindowContent(project, toolWindow)
-    val contentManager = toolWindow.contentManager
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
@@ -243,10 +238,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testZoomStatePreservation() {
-    val factory = EmulatorToolWindowFactory()
-    assertThat(factory.shouldBeAvailable(project)).isTrue()
-    factory.createToolWindowContent(project, toolWindow)
-    val contentManager = toolWindow.contentManager
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
@@ -292,8 +285,36 @@ class EmulatorToolWindowManagerTest {
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
   }
 
+  @Test
+  fun testPhysicalDevice() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    toolWindow.show()
+
+    waitForCondition(10, TimeUnit.SECONDS) { device.agent.running }
+    assertThat(toolWindow.isVisible).isTrue()
+    assertThat(contentManager.contents.size).isEqualTo(1)
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
+
+    agentRule.disconnectDevice(device)
+    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.running }
+  }
+
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
+
+  private fun createToolWindow(): ToolWindow {
+    val windowManager = TestToolWindowManager(project)
+    project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
+    return windowManager.toolWindow
+  }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow = TestToolWindow(project, this)

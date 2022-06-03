@@ -19,7 +19,6 @@ import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.testingutils.FakeAdbServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assert_
@@ -45,7 +44,7 @@ class ShellTest {
   @Test
   fun executeShellCommandShouldWork() {
     // Prepare
-    fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", "arm64-v8a")
     val device: IDevice = fakeAdbRule.bridge.devices.single()
     val receiver = ListReceiver()
 
@@ -56,6 +55,7 @@ class ShellTest {
     val expected = """# This is some build info
 # This is more build info
 
+[ro.product.cpu.abi]: [arm64-v8a]
 [ro.product.manufacturer]: [Google]
 [ro.product.model]: [Pix3l]
 [ro.build.version.release]: [versionX]
@@ -69,7 +69,7 @@ class ShellTest {
   @Throws(Exception::class)
   fun executeShellCommandShouldThrowIfInvalidCommand() {
     // Prepare
-    fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
     val device: IDevice = fakeAdbRule.bridge.devices.single()
     val receiver = ListReceiver()
 

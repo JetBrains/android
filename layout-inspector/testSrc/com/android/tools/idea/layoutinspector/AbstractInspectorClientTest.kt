@@ -70,7 +70,7 @@ class AbstractInspectorClientTest {
   @Before
   fun before() {
     adbRule.attachDevice(MODERN_DEVICE.serial, MODERN_DEVICE.manufacturer, MODERN_DEVICE.model, MODERN_DEVICE.version,
-                         MODERN_DEVICE.apiLevel.toString(), DeviceState.HostConnectionType.USB)
+                         MODERN_DEVICE.apiLevel.toString())
   }
 
   @Test

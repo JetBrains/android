@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -225,8 +224,7 @@ class LayoutInspectorRule(
    */
   fun attachDevice(device: DeviceDescriptor) {
     if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                           DeviceState.HostConnectionType.USB)
+      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
     }
   }
 

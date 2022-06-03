@@ -124,14 +124,14 @@ internal class FakeScreenSharingAgentRule : TestRule {
                     manufacturer: String = "Google",
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
-    val deviceState =
-        fakeAdbRule.attachDevice(serialNumber, manufacturer, model, "Some Android Version", apiLevel.toString(), hostConnectionType)
-    val device = FakeDevice(serialNumber, displaySize, abi, deviceState)
+    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, "11", apiLevel.toString(), abi, hostConnectionType)
+    val device = FakeDevice(serialNumber, displaySize, deviceState)
     devices.add(device)
     return device
   }
 
   fun disconnectDevice(device: FakeDevice) {
+    fakeAdbRule.disconnectDevice(device.serialNumber)
     Disposer.dispose(device.agent)
     devices.remove(device)
   }
@@ -145,7 +145,7 @@ internal class FakeScreenSharingAgentRule : TestRule {
     }
   }
 
-  class FakeDevice(val serialNumber: String, val displaySize: Dimension, val abi: String, val deviceState: DeviceState) {
+  class FakeDevice(val serialNumber: String, val displaySize: Dimension, val deviceState: DeviceState) {
     val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState)
     var hostPort: Int? = null
   }

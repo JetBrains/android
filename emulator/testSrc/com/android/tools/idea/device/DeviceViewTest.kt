@@ -357,7 +357,7 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    view = DeviceView(testRootDisposable, device.serialNumber, device.abi, null, agentRule.project)
+    view = DeviceView(testRootDisposable, device.serialNumber, device.deviceState.cpuAbi, null, agentRule.project)
     ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
     waitForCondition(15, TimeUnit.SECONDS) { agent.running }
   }

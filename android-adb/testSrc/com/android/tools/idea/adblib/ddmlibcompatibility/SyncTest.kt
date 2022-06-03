@@ -144,7 +144,7 @@ class SyncTest {
   }
 
   private fun prepareSingleDevice(): Pair<IDevice, DeviceState> {
-    val deviceState = fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    val deviceState = fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
     val device: IDevice = fakeAdbRule.bridge.devices.single()
     return Pair(device, deviceState)
   }

@@ -198,7 +198,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val panel = DeviceToolWindowPanel(agentRule.project, device.serialNumber, device.abi, "null")
+    val panel = DeviceToolWindowPanel(agentRule.project, device.serialNumber, device.deviceState.cpuAbi, "null")
     Disposer.register(testRootDisposable) {
       if (panel.deviceView != null) {
         panel.destroyContent()

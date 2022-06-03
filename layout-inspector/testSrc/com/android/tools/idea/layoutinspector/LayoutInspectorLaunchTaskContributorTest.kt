@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -185,8 +184,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     debugAttributes: Boolean
   ): Pair<IDevice, LaunchTask> {
     val processName = "com.example.p1"
-    adbRule.attachDevice(
-      device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(), DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
 
     val project = projectRule.project
     val ex = DefaultDebugExecutor.getDebugExecutorInstance()
