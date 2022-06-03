@@ -28,14 +28,14 @@ import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.AdditionalLibraryRootsProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.indexing.IndexableSetContributor;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor;
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -46,7 +46,7 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
     super.setUp();
     // Disable the extension to prevent it from adding a lot of content to indexes in order to provide code completion
     // in .kts files.
-    IndexableSetContributor.EP_NAME.getPoint().unregisterExtension(KotlinScriptDependenciesIndexableSetContributor.class);
+    AdditionalLibraryRootsProvider.EP_NAME.getPoint().unregisterExtension(KotlinScriptDependenciesLibraryRootProvider.class);
   }
 
   public void testGetGradleBuildFileFromAppModule() throws Exception {

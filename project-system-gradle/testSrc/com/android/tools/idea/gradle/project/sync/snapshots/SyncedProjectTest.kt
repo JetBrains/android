@@ -35,13 +35,13 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
 import com.intellij.util.PathUtil
-import com.intellij.util.indexing.IndexableSetContributor
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
@@ -270,10 +270,10 @@ abstract class SyncedProjectTest(
     // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
     //       re-register it by its class name. It means that this test might affect tests running after this one.
 
-    // [KotlinScriptDependenciesIndexableSetContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
+    // [KotlinScriptDependenciesLibraryRootProvider] contributes a lot of classes/sources to index in order to provide Ctrl+Space
     // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
     // run faster.
-    IndexableSetContributor.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesIndexableSetContributor::class.java)
+    AdditionalLibraryRootsProvider.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesLibraryRootProvider::class.java)
   }
 
   init {
