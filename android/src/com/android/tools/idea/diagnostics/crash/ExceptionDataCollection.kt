@@ -78,6 +78,7 @@ class ExceptionDataCollection {
   val registeredAppenders: List<TrackingAppender>
 
   class CustomLog4JLayout: Layout() {
+/* b/234884922
     private val creationTimestamp = System.currentTimeMillis()
     override fun activateOptions() = Unit
     override fun format(event: LoggingEvent?): String {
@@ -99,6 +100,7 @@ class ExceptionDataCollection {
     }
 
     override fun ignoresThrowable() = true
+b/234884922 */
   }
 
   init {
@@ -168,8 +170,10 @@ class ExceptionDataCollection {
         logger.level = desiredLevel
       }
       val trackingAppender = TrackingAppender(logger, layout, logBuffer)
+/* b/234884922
       trackingAppender.threshold = desiredLevel
       logger.addAppender(trackingAppender)
+b/234884922 */
       result.add(trackingAppender)
     }
     return result
@@ -183,6 +187,7 @@ class ExceptionDataCollection {
       activateOptions()
     }
 
+/* b/234884922
     override fun close() = Unit
     override fun requiresLayout(): Boolean = true
     override fun append(event: LoggingEvent) {
@@ -191,6 +196,7 @@ class ExceptionDataCollection {
         logBuffer.addEntry(layout.format(event))
       }
     }
+b/234884922 */
   }
 
   private fun severityToLevel(severity: ExceptionSeverity) =
@@ -214,6 +220,7 @@ class ExceptionDataCollection {
     val allAppenders = rootLogger.allAppenders.toList()
     // If console or dialog appender level is set to lower than root logger then we cannot register our exception collection appender.
     // Any debug log enabled for exception collection would be added
+/* b/234884922
     val onlyAllowableAppenders = allAppenders.all { appender ->
       (appender is ConsoleAppender && (appender.threshold == null || appender.threshold.isGreaterOrEqual(rootLoggerLevel))) ||
       (appender is RollingFileAppender) ||
@@ -228,6 +235,7 @@ class ExceptionDataCollection {
         it.threshold = rootLoggerLevel
       }
     }
+b/234884922 */
     return true
   }
 
@@ -472,7 +480,9 @@ class ExceptionDataCollection {
   fun unregisterLogAppenders() {
       registeredAppenders.forEach { trackingAppender ->
         val logger = trackingAppender.logger
+/* b/234884922
         logger.removeAppender(trackingAppender)
+b/234884922 */
       }
   }
 }

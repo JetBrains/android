@@ -144,6 +144,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
       }
     }
     val exceptionUploadFields = service.getExceptionUploadFields(ex3, forceExceptionMessage = false, includeLogs = true)
+/* b/234884922
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
@@ -154,6 +155,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
 [<time>] E [sh.ExceptionDataCollectionTest] error message #5
     """.trimIndent()))
+b/234884922 */
   }
 
   fun testCalculateSignature() {
