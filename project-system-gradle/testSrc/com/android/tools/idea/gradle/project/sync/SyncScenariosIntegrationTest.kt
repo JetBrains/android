@@ -23,10 +23,12 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
@@ -244,6 +246,61 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       assertThat(roots.map { it.url }).doesNotContain(
         basePath.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
     }
+  }
+
+  @Test
+  fun testPsdDependencyAndroidToJavaModuleAndBack() {
+    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
+    openPreparedProject("project") { project ->
+      AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+      val beforeAndroidToJava = project.saveAndDump()
+      val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
+        val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
+        val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
+        val moduleCContent = moduleCFile.contentsToByteArray()
+        val jModuleMContent = jModuleMFile.contentsToByteArray()
+        moduleCFile.setBinaryContent(jModuleMContent)
+        moduleCContent
+      }
+      ApplicationManager.getApplication().saveAll()
+      project.requestSyncAndWait()
+      WriteAction.run<Throwable> {
+        val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
+        moduleCFile.setBinaryContent(oldModuleCContent)
+      }
+      ApplicationManager.getApplication().saveAll()
+      val textAfterSecondChange = project.syncAndDumpProject()
+      assertThat(textAfterSecondChange).isEqualTo(
+        beforeAndroidToJava
+          .split("\n")
+          .filter {
+            // TODO(b/234815353): These snapshots are supposed to match without patching.
+            !it.contains("WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/test/java [-]") &&
+              !it.contains("WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/test/resources [-]")
+          }
+          .joinToString("\n")
+      )
+    }
+  }
+
+  @Test
+  fun testPsdDependencyDeleteModule() {
+    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
+    openPreparedProject("project") { project ->
+      val moduleName = project.gradleModule(":moduleB")!!.name
+      assertThat(ModuleManager.getInstance(project).findModuleByName(moduleName)).isNotNull()
+      PsProjectImpl(project).let { projectModel ->
+        projectModel.removeModule(":moduleB")
+        projectModel.applyChanges()
+      }
+      project.requestSyncAndWait()
+      assertThat(ModuleManager.getInstance(project).findModuleByName(moduleName)).isNull()
+    }
+  }
+
+  private fun Project.syncAndDumpProject(): String {
+    requestSyncAndWait()
+    return this.saveAndDump()
   }
 
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath

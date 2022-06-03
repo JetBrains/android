@@ -1965,6 +1965,13 @@ private fun Project.verifyModelsAttached() {
 
 fun Project.requestSyncAndWait() {
   AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
+  if (ApplicationManager.getApplication().isDispatchThread) {
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
+  } else {
+    runInEdtAndWait {
+      AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
+    }
+  }
 }
 
 /**

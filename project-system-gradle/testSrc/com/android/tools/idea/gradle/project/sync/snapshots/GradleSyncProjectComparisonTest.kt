@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -46,7 +45,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
@@ -56,7 +54,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_ONLY_MODUL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.WITH_GRADLE_METADATA
-import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
 import com.android.tools.idea.testing.onEdt
@@ -67,10 +64,7 @@ import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.WriteAction.run
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
@@ -246,54 +240,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     fun testSyncKotlinProject() {
       val text = importSyncAndDumpProject(NEW_SYNC_KOTLIN_TEST)
       assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testPsdDependencyDeleteModule() {
-      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
-        val beforeDelete = project.saveAndDump()
-        PsProjectImpl(project).let { projectModel ->
-          projectModel.removeModule(":moduleB")
-          projectModel.applyChanges()
-        }
-        val textAfterDelete = project.syncAndDumpProject()
-        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-        assertAreEqualToSnapshots(
-          beforeDelete to ".before_delete",
-          textAfterDelete to ".after_moduleb_deleted"
-        )
-      }
-    }
-
-    @Test
-    fun testPsdDependencyAndroidToJavaModuleAndBack() {
-      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
-        val beforeAndroidToJava = project.saveAndDump()
-        val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
-          val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
-          val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
-          val moduleCContent = moduleCFile.contentsToByteArray()
-          val jModuleMContent = jModuleMFile.contentsToByteArray()
-          moduleCFile.setBinaryContent(jModuleMContent)
-          moduleCContent
-        }
-        ApplicationManager.getApplication().saveAll()
-        val afterAndroidToJava = project.syncAndDumpProject()
-        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-
-        run<Throwable> {
-          val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
-          moduleCFile.setBinaryContent(oldModuleCContent)
-        }
-        ApplicationManager.getApplication().saveAll()
-        val textAfterSecondChange = project.syncAndDumpProject()
-        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-        assertAreEqualToSnapshots(
-          beforeAndroidToJava to ".before_android_to_java",
-          afterAndroidToJava to ".after_android_to_java",
-          textAfterSecondChange to ".after_java_to_android"
-        )
-      }
     }
 
     @Test
