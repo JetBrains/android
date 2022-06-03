@@ -80,7 +80,11 @@ public class StreamedFileReader implements AutoCloseable {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() throws IOException {
+    reset();
+  }
+
+  public void reset() throws IOException {
     if (reader != null) {
       reader.close();
       reader = null;

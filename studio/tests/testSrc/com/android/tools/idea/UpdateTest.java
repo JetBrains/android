@@ -78,6 +78,7 @@ public class UpdateTest {
   @Test
   @Ignore("b/234170016")
   public void updateTest() throws Exception {
+    Path tempDir = tempFolder.newFolder("update-test").toPath();
     // TODO(b/234069200): change how we detect whether Studio is running and whether it's restarted
     //  to instead reuse the agent we inject.
     if (AndroidStudio.isAnyInstanceOfStudioRunning()) {
@@ -87,14 +88,13 @@ public class UpdateTest {
     }
 
     try (Display display = new XvfbServer()) {
-      Path e2eTempDir = tempFolder.newFolder("e2e-framework").toPath();
-      AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempFolder);
+      AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
       install.createFirstRunXml();
       install.copySdk(TestUtils.getLatestAndroidPlatform());
       install.setBuildNumber(PatchMachinery.PRODUCT_PREFIX + PatchMachinery.FAKE_CURRENT_BUILD_NUMBER);
 
-      PatchMachinery patchMachinery = new PatchMachinery(e2eTempDir, install);
-      patchMachinery.setupPatch();
+      PatchMachinery patchMachinery = new PatchMachinery(tempDir, install);
+      patchMachinery.setupPatch(tempDir);
       patchMachinery.createFakePluginAndUpdateFiles();
 
       setPluginHost(install, patchMachinery.getFileServerOrigin());
@@ -102,6 +102,9 @@ public class UpdateTest {
 
       try (AndroidStudio studio = install.run(display, env)) {
         display.debugTakeScreenshot("before");
+
+        String version = studio.version();
+        assertTrue(version.endsWith(PatchMachinery.FAKE_CURRENT_BUILD_NUMBER));
 
         System.out.println("Updating Android Studio");
         boolean success = studio.updateStudio();
@@ -113,7 +116,6 @@ public class UpdateTest {
         // Ensure it restarted on its own.
         System.out.println("Waiting for Android Studio to restart automatically");
         AndroidStudio.waitForRestart(30000);
-        patchMachinery.ensureIdeaPropertiesWereModified();
 
         // Terminate the restarted instance since we're not attached to it.
         AndroidStudio.terminateAllStudioInstances();
@@ -125,6 +127,9 @@ public class UpdateTest {
 
       System.out.println("Trying to start the updated Android Studio");
       try (AndroidStudio studio = install.run(display)) {
+
+        String version = studio.version();
+        assertTrue(version.endsWith(PatchMachinery.FAKE_UPDATED_BUILD_NUMBER));
         System.out.println("The new instance of Android Studio successfully started");
       } catch (Throwable t) {
         throw t;

@@ -85,10 +85,6 @@ public class XvfbServer implements Display {
       throw new RuntimeException("Can't take a screenshot on Linux without \"import\"");
     }
 
-    if (process == null || !process.isAlive()) {
-      throw new IllegalStateException("Xvfb process is not alive to be able to take a screenshot");
-    }
-
     if (fileName == null) {
       fileName = "screenshot";
     }

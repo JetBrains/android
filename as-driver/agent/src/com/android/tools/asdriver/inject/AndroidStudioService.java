@@ -57,7 +57,8 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   @Override
   public void getVersion(ASDriver.GetVersionRequest request, StreamObserver<ASDriver.GetVersionResponse> responseObserver) {
     ApplicationInfo info = ApplicationInfo.getInstance();
-    responseObserver.onNext(ASDriver.GetVersionResponse.newBuilder().setVersion(info.getFullApplicationName()).build());
+    String version = info.getFullApplicationName() + " @ " + info.getBuild();
+    responseObserver.onNext(ASDriver.GetVersionResponse.newBuilder().setVersion(version).build());
     responseObserver.onCompleted();
   }
 

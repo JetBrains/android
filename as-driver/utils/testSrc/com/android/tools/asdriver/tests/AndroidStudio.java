@@ -66,6 +66,8 @@ public class AndroidStudio implements AutoCloseable {
     }
 
     System.out.println("Starting Android Studio");
+    installation.getStdout().reset();
+    installation.getStderr().reset();
     pb.redirectOutput(installation.getStdout().getPath().toFile());
     pb.redirectError(installation.getStderr().getPath().toFile());
     process = pb.start().toHandle();

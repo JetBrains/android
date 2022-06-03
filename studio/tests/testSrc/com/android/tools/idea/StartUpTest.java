@@ -21,6 +21,8 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.XvfbServer;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import org.junit.Rule;
@@ -34,7 +36,8 @@ public class StartUpTest {
 
   @Test
   public void startUpTest() throws Exception {
-    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempFolder);
+    Path tempDir = tempFolder.newFolder("startup-test").toPath();
+    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
     try (Display display = new XvfbServer();
          AndroidStudio studio = install.run(display)) {
       // Wait for plugin manager to load all plugins

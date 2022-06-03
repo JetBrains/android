@@ -19,14 +19,10 @@ import static com.android.tools.asdriver.tests.AndroidStudioInstallation.getBinP
 import static org.apache.commons.io.file.PathUtils.copyDirectory;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tracks everything to do with producing, serving, and verifying patches.
@@ -34,45 +30,28 @@ import java.util.regex.Pattern;
  * TODO(b/234144947): refactor this class into multiple classes.
  */
 public class PatchMachinery implements AutoCloseable {
-  /**
-   * The path to {@code idea.properties}, which we only use because it's plaintext and easy to
-   * modify and verify. Modifying something like code may involve rebuilding or re-signing.
-   */
-  private static final String IDEA_PROPERTIES_PATH = "android-studio/bin/idea.properties";
-
-  /**
-   * An easily identifiable value that we'll use to modify {@code idea.properties}.
-   */
-  private static final int FILESIZE_PROPERTY_REPLACEMENT_VALUE = 21212;
-
   public static final String PRODUCT_CODE = "AI";
   public static final String PRODUCT_PREFIX = PRODUCT_CODE + "-";
 
   // TODO: form all of these dynamically.
   private static final String FAKE_API_VERSION = "213.7172.25";
   public static final String FAKE_CURRENT_BUILD_NUMBER = "213.7172.25.2113.31337";
-  private static final String FAKE_UPDATED_BUILD_NUMBER = "213.7172.25.2113.8473230";
+  public static final String FAKE_UPDATED_BUILD_NUMBER = "213.7172.25.2113.8473230";
 
-  /**
-   * Mirrored from {@code AndroidStudioInstallation}.
-   */
-  Path workDir;
+  AndroidStudioInstallation install;
 
-  /**
-   * Mirrored from {@code AndroidStudioInstallation}.
-   */
-  Path e2eTempDir;
+  Path tempDir;
 
   /**
    * A temporary working directory specifically for {@code PatchMachinery} inside {@code e2eTempDir}.
    */
-  Path modifiedWorkDir;
+  Path modifiedStudioDir;
   private FileServer fileServer;
 
-  public PatchMachinery(Path e2eTempDir, AndroidStudioInstallation install) throws IOException {
-    workDir = install.getWorkDir();
-    this.e2eTempDir = e2eTempDir;
-    modifiedWorkDir = this.e2eTempDir.resolve("patch_machinery");
+  public PatchMachinery(Path tempDir, AndroidStudioInstallation install) throws IOException {
+    this.install = install;
+    this.tempDir = tempDir;
+    modifiedStudioDir = this.tempDir.resolve("patch_machinery");
 
     startFileServer();
   }
@@ -90,15 +69,16 @@ public class PatchMachinery implements AutoCloseable {
    * Copies the entire Android Studio installation, modifies a file, creates a patch out of the
    * modification, then registers the patch with the {@code FileServer}.
    */
-  public void setupPatch() throws IOException {
-    System.out.println("Creating patch machinery in " + modifiedWorkDir);
-    Files.createDirectories(modifiedWorkDir);
+  public void setupPatch(Path tempDir) throws IOException {
+    System.out.println("Creating patch machinery in " + modifiedStudioDir);
+    Files.createDirectories(modifiedStudioDir);
 
     long startTime = System.currentTimeMillis();
-    copyDirectory(workDir, modifiedWorkDir);
+    copyDirectory(install.getStudioDir(), modifiedStudioDir);
     long elapsedTime = System.currentTimeMillis() - startTime;
     System.out.println("Copying took " + elapsedTime + "ms");
-    modifyIdeaProperties();
+    AndroidStudioInstallation installation = AndroidStudioInstallation.fromDir(tempDir, modifiedStudioDir);
+    installation.setBuildNumber(FAKE_UPDATED_BUILD_NUMBER);
 
     runPatcher();
 
@@ -108,50 +88,22 @@ public class PatchMachinery implements AutoCloseable {
   }
 
   /**
-   * Makes a simple modification to {@code idea.properties}.
-   */
-  private void modifyIdeaProperties() throws IOException {
-    Path propertiesFile = modifiedWorkDir.resolve(IDEA_PROPERTIES_PATH);
-    Charset charset = StandardCharsets.UTF_8;
-    String propertiesContents = Files.readString(propertiesFile, charset);
-
-    propertiesContents = propertiesContents.replaceFirst("(.*idea\\.max\\.content\\.load\\.filesize=.*?)(\\d+)(.*)", String.format("$1%d$3", FILESIZE_PROPERTY_REPLACEMENT_VALUE));
-    Files.write(propertiesFile, propertiesContents.getBytes(charset));
-  }
-
-  /**
-   * Ensures our simple modification from {@link PatchMachinery#modifyIdeaProperties} worked.
-   */
-  public void ensureIdeaPropertiesWereModified() throws IOException {
-    Path propertiesFile = workDir.resolve(IDEA_PROPERTIES_PATH);
-    Charset charset = StandardCharsets.UTF_8;
-    String propertiesContents = Files.readString(propertiesFile, charset);
-
-    Pattern pattern = Pattern.compile(".*idea\\.max\\.content\\.load\\.filesize=" + FILESIZE_PROPERTY_REPLACEMENT_VALUE);
-    Matcher matcher = pattern.matcher(propertiesContents);
-    if (!matcher.find()) {
-      throw new NoSuchElementException(String.format("\"%s\" did not contain the expected line", propertiesFile.toString()));
-    }
-  }
-
-  /**
    * Runs the patcher to produce a patch file from two input directories.
    */
   private void runPatcher() {
     try {
       Path updaterBin = getBinPath("tools/adt/idea/studio/updater");
-      Path tempDir = e2eTempDir.resolve("patch");
-      Files.createDirectories(tempDir);
-      System.out.println("Creating the patch in " + tempDir);
+      Path patchDir = this.tempDir.resolve("patch");
+      Files.createDirectories(patchDir);
+      System.out.println("Creating the patch in " + patchDir);
 
-      // TODO: these directories will have to change based on the platform.
-      //       Also, on macOS, "--root=Contents" should be passed in.
-      Path oldDir = workDir.resolve("android-studio");
-      Path newDir = modifiedWorkDir.resolve("android-studio");
+      // TODO: On macOS, "--root=Contents" should be passed in.
+      Path oldDir = install.getStudioDir();
+      Path newDir = modifiedStudioDir;
 
       // TODO: on macOS, the platform would either be "mac" or "mac_arm". On Windows, it's "win".
       String patchName = String.format("AI-%s-%s-patch-%s.jar", FAKE_CURRENT_BUILD_NUMBER, FAKE_UPDATED_BUILD_NUMBER, "unix");
-      Path patchFile = tempDir.resolve(patchName);
+      Path patchFile = patchDir.resolve(patchName);
       ProcessBuilder pb = new ProcessBuilder(
         updaterBin.toString(),
         "create",
@@ -188,7 +140,7 @@ public class PatchMachinery implements AutoCloseable {
    * if it can be updated.
    */
   private Path createUpdatesXml() throws IOException {
-    Path updatesXml = workDir.resolve("updates.xml");
+    Path updatesXml = tempDir.resolve("updates.xml");
     StringBuilder sb = new StringBuilder();
     String apiVersion = PRODUCT_PREFIX + FAKE_API_VERSION;
     String fakeUpdatedBuild = PRODUCT_PREFIX + FAKE_UPDATED_BUILD_NUMBER;
@@ -240,7 +192,7 @@ public class PatchMachinery implements AutoCloseable {
    * up by the test that requires them.
    */
   public void createFakePluginAndUpdateFiles() throws IOException {
-    Path updateArtifacts = e2eTempDir.resolve("update_artifacts");
+    Path updateArtifacts = tempDir.resolve("update_artifacts");
     Files.createDirectories(updateArtifacts);
 
     // Creates addons_list-1.xml through addons_list-5.xml

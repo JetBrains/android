@@ -32,7 +32,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.rules.TemporaryFolder;
 
 public class AndroidStudioInstallation {
 
@@ -43,16 +42,16 @@ public class AndroidStudioInstallation {
   private final Path ideaLog;
   private final Path vmOptionsPath;
 
-  public static AndroidStudioInstallation fromZip(TemporaryFolder temp) throws IOException {
-    Path workDir = temp.newFolder("android-studio").toPath();
+  public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
+    Path workDir = Files.createTempDirectory(tempDir, "android-studio");
     System.out.println("workDir: " + workDir);
     Path studioZip = getBinPath("tools/adt/idea/studio/android-studio.linux.zip");
     unzip(studioZip, workDir);
     return new AndroidStudioInstallation(workDir, workDir.resolve("android-studio"));
   }
 
-  static public AndroidStudioInstallation fromDir(TemporaryFolder temp, Path studioDir) throws IOException {
-    Path workDir = temp.newFolder("android-studio").toPath();
+  static public AndroidStudioInstallation fromDir(Path tempDir, Path studioDir) throws IOException {
+    Path workDir = Files.createTempDirectory(tempDir, "android-studio");
     return new AndroidStudioInstallation(workDir, studioDir);
   }
 
@@ -161,7 +160,7 @@ public class AndroidStudioInstallation {
    * @throws IOException
    */
   public void setBuildNumber(String buildNumber) throws IOException {
-    Path resourcesJar = workDir.resolve("android-studio/lib/resources.jar");
+    Path resourcesJar = studioDir.resolve("lib/resources.jar");
     Path tempDir = Files.createTempDirectory("modify_resources_jar");
     Path unzippedDir = tempDir.resolve("unzipped");
     Files.createDirectories(unzippedDir);
@@ -180,7 +179,7 @@ public class AndroidStudioInstallation {
     Files.delete(resourcesJar);
     Files.copy(newJarPath, resourcesJar);
 
-    Files.write(workDir.resolve("android-studio/build.txt"), buildNumber.getBytes(charset));
+    Files.write(studioDir.resolve("build.txt"), buildNumber.getBytes(charset));
   }
 
   /**
@@ -203,6 +202,10 @@ public class AndroidStudioInstallation {
 
   public Path getWorkDir() {
     return workDir;
+  }
+
+  public Path getStudioDir() {
+    return studioDir;
   }
 
   public StreamedFileReader getStdout() {
