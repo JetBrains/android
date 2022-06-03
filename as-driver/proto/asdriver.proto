@@ -12,8 +12,8 @@ service AndroidStudio {
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
   rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
-
-  rpc UpdateStudio(UpdateStudioRequest) returns (UpdateStudioResponse) {}
+  
+  rpc InvokeComponent(InvokeComponentRequest) returns (InvokeComponentResponse) {}
 }
 
 message GetVersionRequest {}
@@ -53,12 +53,35 @@ message ShowToolWindowResponse {
   ShowToolWindowResponse.Result result = 1;
 }
 
-message UpdateStudioRequest {}
+message InvokeComponentRequest {
+  // The invoked component must match all of the matchers in order.
+  repeated ComponentMatcher matchers = 1;
+}
 
-message UpdateStudioResponse {
+message ComponentMatcher {
+  oneof matcher {
+    SwingClassRegexMatch swing_class_regex_match = 1;
+    ComponentTextMatch component_text_match = 2;
+    SvgIconMatch svg_icon_match = 3;
+  }
+}
+
+message SwingClassRegexMatch {
+  string regex = 1;
+}
+
+message ComponentTextMatch {
+  string text = 1;
+}
+
+message SvgIconMatch {
+  repeated string icon = 1;
+}
+
+message InvokeComponentResponse {
   enum Result {
     OK = 0;
     ERROR = 1;
   }
-  UpdateStudioResponse.Result result = 1;
+  InvokeComponentResponse.Result result = 1;
 }

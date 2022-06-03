@@ -15,20 +15,17 @@
  */
 package com.android.tools.asdriver.inject;
 
-import com.intellij.icons.AllIcons;
+import com.android.tools.asdriver.proto.ASDriver;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.IdeBundle;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.ui.DialogWrapperDialog;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.components.labels.ActionLink;
 import com.intellij.ui.components.labels.LinkLabel;
@@ -42,12 +39,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -66,220 +64,201 @@ import javax.swing.event.HyperlinkEvent;
  */
 public class StudioInteractionService {
 
-  enum TaskInvocationContext {
-    /**
-     * Invoke using {@code SwingUtilities.invokeAndWait}.
-     *
-     * Swing's {@code invokeAndWait} is used over the one in {@code ApplicationManager} in very
-     * specific cases, e.g. when needing to interact with old components like {@link LinkLabel}. If
-     * uncertain about which to use and {@code APPLICATION_INVOKE_AND_WAIT} works instead, opt for
-     * {@code APPLICATION_INVOKE_AND_WAIT}.
-     */
-    SWING_INVOKE_AND_WAIT,
-    /**
-     * Invoke using {@code ApplicationManager.getApplication().invokeAndWait}.
-     */
-    APPLICATION_INVOKE_AND_WAIT,
-    /**
-     * Invoke outside the UI thread.
-     */
-    NON_UI_THREAD
-  }
+  /**
+   * A prefix for logs so that we can identify them in idea.log if we have to.
+   */
+  private static final String LOG_PREFIX = "[StudioInteractionService]";
 
   public StudioInteractionService() { }
 
-  /**
-   * Runs the entire update flow, i.e. checking for the update, downloading and installing, then
-   * restarting.
-   */
-  public void runUpdateFlow() throws InterruptedException, InvocationTargetException, TimeoutException {
-    final Window welcomeWindow = findWelcomeWindow(30000);
+  public void invokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
+    Component component = waitForComponent(matchers);
 
-    // This does not need to be in a retry loop since it's directly calling an API.
-    ApplicationManager.getApplication().invokeAndWait(() -> checkForUpdates(welcomeWindow));
-
-    keepTryingTask(() -> invokeWelcomeScreenUpdateButton(welcomeWindow), 10000, TaskInvocationContext.APPLICATION_INVOKE_AND_WAIT);
-
-    // Wait for the update link to exist, that way the call to SwingUtilities.invokeLater can
-    // succeed.
-    keepTryingTask(() -> ensureUpdateLinkExists(welcomeWindow), 10000, TaskInvocationContext.APPLICATION_INVOKE_AND_WAIT);
-
-    // This must be invoked via SwingUtilities given how LinkLabel#doClick blocks future
-    // invocations.
-    SwingUtilities.invokeLater(() -> clickUpdateLink(welcomeWindow));
-
-    // Waiting for the new dialog has to be done off of the UI thread.
-    keepTryingTask(this::getDialogWrapperDialog, 10000, TaskInvocationContext.NON_UI_THREAD);
-    keepTryingTask(() -> clickUpdateAndRestartButton(welcomeWindow), 10000, TaskInvocationContext.SWING_INVOKE_AND_WAIT);
-    keepTryingTask(() -> invokeWelcomeScreenUpdateButton(welcomeWindow), 10000, TaskInvocationContext.APPLICATION_INVOKE_AND_WAIT);
-    keepTryingTask(this::activateRestartHyperlink, 20000, TaskInvocationContext.APPLICATION_INVOKE_AND_WAIT);
+    SwingUtilities.invokeAndWait(() -> invokeComponentInternal(component));
   }
 
   /**
-   * Clicks the button labeled "Update and Restart" in the dialog spawned from
-   * the "Welcome" window.
+   * Waits for a component to exist, then returns it. The return value will never be null; instead,
+   * a {@code TimeoutException} is thrown.
    */
-  private void clickUpdateAndRestartButton(Window welcomeWindow) {
-    Window dialogWindow = getDialogWrapperDialog();
-
-    String buttonText = IdeBundle.message("updates.download.and.restart.button");
-    JButton updateButton = (JButton)findComponentByText(dialogWindow, buttonText);
-    invokeButton(updateButton);
-
-    System.out.printf("Clicked the button labeled \"%s\"%n", buttonText);
-  }
-
-  /**
-   * @throws NoSuchElementException Thrown when the window doesn't exist.
-   */
-  private Window getDialogWrapperDialog() {
-    Window[] windows = Frame.getWindows();
-    for (Window window : windows) {
-      if (window instanceof DialogWrapperDialog) {
-        return window;
-      }
-    }
-
-    throw new NoSuchElementException("Dialog window not found");
-  }
-
-  /**
-   * Throws an exception if the "Update" link doesn't exist, that way a caller can loop on this
-   * function to wait for it to appear.
-   */
-  private void ensureUpdateLinkExists(Window welcomeWindow) {
-    LinkLabel updateLink = getUpdateLink(welcomeWindow);
-    if (updateLink == null) {
-      throw new NoSuchElementException("No update link found");
-    }
-  }
-
-  private LinkLabel getUpdateLink(Window welcomeWindow) {
-    Component updateLink = findComponentByText(welcomeWindow, IdeBundle.message("updates.notification.update.action"));
-    return (LinkLabel)updateLink;
-  }
-
-  private void clickUpdateLink(Window welcomeWindow) {
-    LinkLabel updateLinkLabel = getUpdateLink(welcomeWindow);
-    updateLinkLabel.doClick();
-  }
-
-  /**
-   * Directly invokes the "check for updates" functionality of the platform (as opposed to going
-   * through the UI).
-   */
-  private void checkForUpdates(Window welcomeWindow) {
-    ActionManager am = ApplicationManager.getApplication().getService(ActionManager.class);
-    AnAction checkForUpdate = am.getAction("CheckForUpdate");
-    DataContext context = DataManager.getInstance().getDataContext(welcomeWindow);
-    AnActionEvent event = AnActionEvent.createFromAnAction(checkForUpdate, null, ActionPlaces.UNKNOWN, context);
-    checkForUpdate.actionPerformed(event);
-  }
-
-  /**
-   * Finds the "Welcome" window (NOT the "Welcome" wizard) that shows every time you start Android
-   * Studio normally.
-   *
-   * @throws NoSuchElementException Thrown when the window cannot be located after the timeout.
-   */
-  private Window findWelcomeWindow(long timeoutMillis) {
-    long startTime = System.currentTimeMillis();
-    while (System.currentTimeMillis() - startTime < timeoutMillis) {
-      Frame[] frames = Frame.getFrames();
-      for (Frame frame : frames) {
-        if (frame instanceof FlatWelcomeFrame) {
-          System.out.println("Found the welcome window after " + (System.currentTimeMillis() - startTime) + "ms");
-          return frame;
-        }
-      }
-    }
-
-    throw new NoSuchElementException("Could not find a FlatWelcomeFrame");
-  }
-
-  /**
-   * Activates the "Restart" link in Android Studio, which will trigger the patching process before
-   * restarting Android Studio.
-   *
-   * @throws NullPointerException Thrown if the link cannot be found or activated.
-   */
-  private void activateRestartHyperlink() {
-    // There may be multiple notifications (even multiple with the "IDE and Plugin Updates" group
-    // ID), so we filter by the display ID since there's only ever one "Restart" link.
-    Notification[] allNotifications =
-      ApplicationManager.getApplication().getService(NotificationsManager.class).getNotificationsOfType(Notification.class, null);
-    Notification notification = Arrays.stream(allNotifications)
-      .filter((n) -> Objects.equals(n.getDisplayId(), "ide.update.suggest.restart")).findFirst().get();
-    try {
-      // This string can seemingly be anything, so it's not like "Restart link" is a special value
-      String source = "Restart link";
-      HyperlinkEvent e = new HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, new URL("http://localhost/madeup"));
-      notification.getListener().hyperlinkUpdate(notification, e);
-    }
-    catch (MalformedURLException ex) {
-      ex.printStackTrace();
-    }
-  }
-
-  /**
-   * Invokes the "Update" button which shows at the bottom right of the "Welcome" window. This
-   * button can either be a yellow arrow or a green or yellow "teardrop" with a number in it.
-   */
-  private void invokeWelcomeScreenUpdateButton(Window welcomeWindow) {
-    // The button we're looking for is an ActionLink inside an ActionLinkPanel.
-    List<String> ancestorClassRegexes = Arrays.asList(".*\\bFlatWelcomeFrame$", ".*\\bJActionLinkPanel$", ".*\\bActionLink$");
-    Set<Component> actionLinks = findComponentsByAncestryClassNames(welcomeWindow, ancestorClassRegexes);
-
-    // The link we want has no text, and its icon can differ depending on how many notifications
-    // there are.
-    List<Icon> iconsToMatchAgainst =
-      Arrays.asList(AllIcons.Ide.Notification.IdeUpdate, AllIcons.Ide.Notification.InfoEvents, AllIcons.Ide.Notification.WarningEvents);
-    ActionLink updateLink = findLinkByIcon(new ArrayList<>(actionLinks), iconsToMatchAgainst);
-
-    if (updateLink == null) {
-      throw new NoSuchElementException("No update link found.");
-    }
-
-    performAction(updateLink.getAction(), updateLink);
-  }
-
-  /**
-   * Retries the given {@code Runnable} in a loop until it either succeeds or times out. This is
-   * done to prevent having to litter test code with calls to {@code Thread.sleep}.
-   */
-  private void keepTryingTask(Runnable task, long timeoutMillis, TaskInvocationContext context)
-    throws TimeoutException, InterruptedException {
+  private Component waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws TimeoutException, InterruptedException {
+    // TODO(b/234067246): consider this timeout when addressing b/234067246.
+    int timeoutMillis = 60000;
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
-    Exception lastException = null;
-    while (true) {
-      try {
-        switch (context) {
-          case SWING_INVOKE_AND_WAIT:
-            SwingUtilities.invokeAndWait(task);
-            break;
-          case APPLICATION_INVOKE_AND_WAIT:
-            ApplicationManager.getApplication().invokeAndWait(task);
-            break;
-          case NON_UI_THREAD:
-            task.run();
-            break;
-          default:
-            throw new IllegalArgumentException("Unrecognized invocation context: " + context.name());
-        }
-        break;
-      }
-      catch (Exception e) {
-        lastException = e;
+    long elapsedTime = 0;
+    long activeTimeSpentFindingComponent = 0;
+    int numTries = 0;
+
+    while (elapsedTime < timeoutMillis) {
+      numTries++;
+      long findComponentStartTime = System.currentTimeMillis();
+      Optional<Component> component = findComponentFromMatchers(matchers);
+      activeTimeSpentFindingComponent += System.currentTimeMillis() - findComponentStartTime;
+      elapsedTime = System.currentTimeMillis() - startTime;
+      if (component.isPresent()) {
+        Component c = component.get();
+        long idleTime = elapsedTime - activeTimeSpentFindingComponent;
+        log(String.format("Component found in %dms over %d search(es) (%dms searching, %dms waiting): %s",
+                          elapsedTime, numTries, activeTimeSpentFindingComponent, idleTime, c));
+        return c;
       }
 
-      long elapsedTime = System.currentTimeMillis() - startTime;
-      if (elapsedTime >= timeoutMillis) {
-        throw new TimeoutException("Timed out after " + elapsedTime + "ms. Last exception caught: " + lastException + " " +
-                                   Arrays.toString(lastException.getStackTrace()));
-      }
       Thread.sleep(msBetweenRetries);
     }
+    throw new TimeoutException("Timed out after " + elapsedTime + "ms.");
+  }
+
+  private void log(String text) {
+    System.out.printf("%s %s%n", LOG_PREFIX, text);
+  }
+
+  private void invokeComponentInternal(Component component) {
+    if (component instanceof ActionLink) {
+      ActionLink componentAsLink = (ActionLink)component;
+      log("Invoking ActionLink: " + componentAsLink);
+      performAction(componentAsLink.getAction(), componentAsLink);
+    } else if (component instanceof LinkLabel) {
+      LinkLabel componentAsLink = (LinkLabel)component;
+      log("Invoking LinkLabel: " + componentAsLink);
+      // LinkLabel instances in particular block execution when invoked, so they must be "clicked"
+      // via invokeLater so that test code can still interact with any resulting dialogs.
+      SwingUtilities.invokeLater(componentAsLink::doClick);
+    } else if (component instanceof NotificationComponent) {
+      log("Invoking hyperlink in Notification: " + component);
+      ((NotificationComponent)component).hyperlinkUpdate();
+    } else if (component instanceof JButton) {
+      log("Invoking JButton: " + component);
+      invokeButton((JButton)component);
+    } else {
+      throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
+    }
+  }
+
+  /**
+   * Finds a component (if exactly one exists) based on a list of matchers.
+   *
+   * This method abstracts the complexity of the platform so that callers have an easy-to-use API.
+   */
+  private Optional<Component> findComponentFromMatchers(List<ASDriver.ComponentMatcher> matchers) {
+    Set<Component> componentsFound = getEntireSwingHierarchy();
+
+    for (ASDriver.ComponentMatcher matcher : matchers) {
+      if (matcher.hasComponentTextMatch()) {
+        ASDriver.ComponentTextMatch match = matcher.getComponentTextMatch();
+        String text = match.getText();
+        componentsFound = findComponentsMatchingText(componentsFound, text);
+      } else if (matcher.hasSvgIconMatch()) {
+        ASDriver.SvgIconMatch match = matcher.getSvgIconMatch();
+        componentsFound = findLinksByIconNames(componentsFound, match.getIconList());
+      } else if (matcher.hasSwingClassRegexMatch()) {
+        ASDriver.SwingClassRegexMatch match = matcher.getSwingClassRegexMatch();
+        String regex = match.getRegex();
+        componentsFound = findComponentsMatchingRegex(componentsFound, regex);
+      } else {
+        throw new IllegalArgumentException("ComponentMatcher doesn't have a recognized matcher");
+      }
+    }
+
+    int numComponentsFound = componentsFound.size();
+    if (numComponentsFound > 1) {
+      throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one. Please construct more specific match criteria.",
+                                                    numComponentsFound));
+    }
+
+    return componentsFound.stream().findFirst();
+  }
+
+  /**
+   * Finds all components whose class names match the given regex and returns their entire Swing
+   * subtrees (including the matching components themselves).
+   */
+  private Set<Component> findComponentsMatchingRegex(Set<Component> componentsToLookUnder, String regex) {
+    Predicate<? super Component> classMatchesRegex = (c) -> c.getClass().toString().matches(regex);
+    Set<Component> componentsFound = componentsToLookUnder.stream().filter(classMatchesRegex).collect(Collectors.toSet());
+
+    List<Component> componentsUnderFoundComponents = new ArrayList<>();
+    for (Component component : componentsFound) {
+      componentsUnderFoundComponents.addAll(getAllComponentsUnder(component));
+    }
+    componentsFound.addAll(componentsUnderFoundComponents);
+
+    return componentsFound;
+  }
+
+  private Set<Component> findComponentsMatchingText(Set<Component> componentsToLookUnder, String text) {
+    Predicate<? super Component> filterByText = (c) -> {
+      String componentText = getTextFromComponent(c);
+
+      // Remove any escape characters introduced by mnemonics from the component's text.
+      String textWithoutEscapeCharacter = componentText == null ? null : componentText.replaceAll("[\\x1B]", "");
+      return Objects.equals(componentText, text) || Objects.equals(textWithoutEscapeCharacter, text);
+    };
+    Set<Component> componentsFound = componentsToLookUnder.stream().filter(filterByText).collect(Collectors.toSet());
+
+    // Notifications are searched separately because the text is embedded in an inaccessible way.
+    componentsFound.addAll(findNotificationByDisplayId(text));
+
+    return componentsFound;
+  }
+
+  private Collection<? extends Component> findNotificationByDisplayId(String displayId) {
+    Notification[] allNotifications = NotificationsManager.getNotificationsManager().getNotificationsOfType(Notification.class, null);
+
+    return Arrays.stream(allNotifications)
+      .filter((n) -> Objects.equals(n.getDisplayId(), displayId))
+      .map(NotificationComponent::new)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Gets an icon's underlying icon name(s) ({@link LayeredIcon} instances can have multiple).
+   */
+  private List<String> getIconNamesFromIcon(Icon icon) {
+    List<String> paths = new ArrayList<>();
+    if (icon instanceof IconLoader.CachedImageIcon) {
+      String path = ((IconLoader.CachedImageIcon)icon).getOriginalPath();
+      paths.add(path);
+    }
+    else if (icon instanceof LayeredIcon) {
+      LayeredIcon layeredIcon = (LayeredIcon)icon;
+      for (int i = 0; i < layeredIcon.getIconCount(); i++) {
+        Icon subIcon = layeredIcon.getIcon(i);
+        List<String> subPaths = getIconNamesFromIcon(subIcon);
+        paths.addAll(subPaths);
+      }
+    }
+
+    return paths;
+  }
+
+  private Set<Component> findLinksByIconNames(Collection<Component> components, List<String> iconsToMatchAgainst) {
+    Set<Component> matchingLinks = new HashSet<>();
+    for (Component c : components) {
+      if (!(c instanceof ActionLink)) {
+        continue;
+      }
+      ActionLink link = (ActionLink)c;
+      List<String> iconNames = getIconNamesFromIcon(link.getIcon());
+      for (String iconName : iconNames) {
+        if (iconsToMatchAgainst.contains(iconName)) {
+          matchingLinks.add(c);
+        }
+      }
+    }
+
+    return matchingLinks.stream().collect(Collectors.toSet());
+  }
+
+  private Set<Component> getEntireSwingHierarchy() {
+    Set<Component> allComponents = new HashSet<>();
+    for (Window window : Frame.getWindows()) {
+      List<Component> componentsInWindow = getAllComponentsUnder(window);
+      allComponents.addAll(componentsInWindow);
+      allComponents.add(window);
+    }
+
+    return allComponents;
   }
 
   private void invokeButton(JButton button) {
@@ -321,122 +300,6 @@ public class StudioInteractionService {
   }
 
   /**
-   * Thinly wraps an overload of this function such that callers can search within a window.
-   *
-   * @param window The window to search within.
-   */
-  private Component findComponentByText(Window window, String text) throws NoSuchElementException {
-    List<Component> allComponents = getAllComponentsUnder(window);
-    return findComponentByText(allComponents, text);
-  }
-
-  /**
-   * Locates the first component matching the specified text. Not all components have text.
-   *
-   * @param components The components to search within.
-   */
-  private Component findComponentByText(List<Component> components, String text) throws NoSuchElementException {
-    for (Component c : components) {
-      String componentText = getTextFromComponent(c);
-
-      if (componentText != null && componentText.equals(text)) {
-        return c;
-      }
-    }
-
-    // If no component is found and the string passed in has an escape character (from a mnemonic),
-    // then try again without it.
-    String textWithoutEscapeCharacter = text.replaceAll("[\\x1B]", "");
-    if (!text.equals(textWithoutEscapeCharacter)) {
-      return findComponentByText(components, textWithoutEscapeCharacter);
-    }
-
-    throw new NoSuchElementException(String.format("No component found with text==\"%s\"", text));
-  }
-
-  /**
-   * Gets an icon's "sub icons" ({@link LayeredIcon} instances can have multiple).
-   */
-  private List<Icon> getAllIconsFromIcon(Icon icon) {
-    List<Icon> icons = new ArrayList<>();
-    if (icon instanceof LayeredIcon) {
-      LayeredIcon layeredIcon = (LayeredIcon)icon;
-      for (int i = 0; i < layeredIcon.getIconCount(); i++) {
-        Icon subIcon = layeredIcon.getIcon(i);
-        List<Icon> subIcons = getAllIconsFromIcon(subIcon);
-        icons.addAll(subIcons);
-      }
-    } else {
-      icons.add(icon);
-    }
-
-    return icons;
-  }
-
-  /**
-   * Finds an {@link ActionLink} by its icon.
-   *
-   * @param components The components to search through.
-   * @param iconsToMatchAgainst If an ActionLink matches any of these icons, it is returned.
-   */
-  private ActionLink findLinkByIcon(List<Component> components, List<Icon> iconsToMatchAgainst) {
-    Set<Component> matchingLinks = new HashSet<>();
-    for (Component c : components) {
-      if (!(c instanceof ActionLink)) {
-        continue;
-      }
-      ActionLink link = (ActionLink)c;
-      List<Icon> icons = getAllIconsFromIcon(link.getIcon());
-      for (Icon icon : icons) {
-        if (iconsToMatchAgainst.contains(icon)) {
-          matchingLinks.add(c);
-        }
-      }
-    }
-
-    if (matchingLinks.isEmpty()) {
-      return null;
-    }
-    if (matchingLinks.size() > 1) {
-      System.err.println(String.format("Multiple links found matching the icons passed in, using one of them."));
-    }
-
-    return (ActionLink)matchingLinks.stream().findFirst().get();
-  }
-
-  /**
-   * Finds components in a simplified, XPath-like manner. This works by:
-   *
-   * 1. Finding all components under and including the {@code root}.
-   * 2. Filtering those components by the next regex from {@code classNameRegexes}.
-   * 3. Recursing until there are no more regexes to search for.
-   *
-   * @param root             The component to start searching from. The root and all of its descendants are
-   *                         considered.
-   * @param classNameRegexes Regexes in order of increasing specificity.
-   */
-  private Set<Component> findComponentsByAncestryClassNames(Component root, List<String> classNameRegexes) {
-    Set<Component> componentsToLookUnder = new HashSet<>();
-    componentsToLookUnder.add(root);
-
-    for (String classNameRegex : classNameRegexes) {
-      // Get all children of all components to search
-      Set<Component> allComponents = new HashSet<>();
-      for (Component c : componentsToLookUnder) {
-        allComponents.addAll(getAllComponentsUnder(c));
-
-        // Add the root as well in case getAllComponentsUnder stops returning it.
-        allComponents.add(c);
-      }
-
-      Predicate<? super Component> classMatchesRegex = (c) -> c.getClass().toString().matches(classNameRegex);
-      componentsToLookUnder = allComponents.stream().filter(classMatchesRegex).collect(Collectors.toSet());
-    }
-
-    return componentsToLookUnder;
-  }
-
-  /**
    * Fetches all components under and including the {@code root} recursively.
    */
   private List<Component> getAllComponentsUnder(Component root) {
@@ -452,5 +315,28 @@ public class StudioInteractionService {
       componentsFound.add(c);
     }
     return componentsFound;
+  }
+
+  /**
+   * Wraps {@link Notification} in a {@link Component} so that it can be treated like other
+   * {@link Component} instances for the sake of invoking them.
+   */
+  private static class NotificationComponent extends Component {
+    private final Notification notification;
+
+    public NotificationComponent(Notification notification) {
+      this.notification = notification;
+    }
+
+    public void hyperlinkUpdate() {
+      try {
+        String source = "Link inside notification";
+        HyperlinkEvent e = new HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, new URL("http://localhost/madeup"));
+        notification.getListener().hyperlinkUpdate(notification, e);
+      }
+      catch (MalformedURLException ex) {
+        ex.printStackTrace();
+      }
+    }
   }
 }

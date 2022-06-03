@@ -21,10 +21,13 @@ import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
+import com.android.tools.asdriver.tests.InvokeComponentRequestBuilder;
 import com.android.tools.asdriver.tests.PatchMachinery;
 import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +78,36 @@ public class UpdateTest {
     return env;
   }
 
+  /**
+   * The "update button" that this method refers to is the icon in the bottom right of the
+   * "Welcome" window. It may have different icons depending on the state of the platform.
+   */
+  private void invokeUpdateButton(AndroidStudio studio) {
+    InvokeComponentRequestBuilder updateButtonBuilder = new InvokeComponentRequestBuilder();
+    updateButtonBuilder.addSvgIconMatch(new ArrayList<>(
+      Arrays.asList("ide/notification/ideUpdate.svg", "ide/notification/infoEvents.svg", "ide/notification/warningEvents.svg")));
+    studio.invokeComponent(updateButtonBuilder);
+  }
+
+  private void invokeUpdateFlow(AndroidStudio studio) {
+    studio.executeAction("CheckForUpdate");
+    invokeUpdateButton(studio);
+
+    // This will activate the update link inside the NotificationActionPanel in the "Welcome"
+    // window. The Unicode character in this string is an ellipsis. The string corresponds to
+    // IdeBundle.message("updates.notification.update.action").
+    studio.invokeComponent("Update\u2026");
+
+    // This button is in a DialogWindowWrapper. The string corresponds to
+    // IdeBundle.message("updates.download.and.restart.button").
+    studio.invokeComponent("Update and Restart");
+    invokeUpdateButton(studio);
+
+    // This link is an HTML hyperlink inside a Notification.
+    String notificationDisplayId = "ide.update.suggest.restart";
+    studio.invokeComponent(notificationDisplayId);
+  }
+
   @Test
   @Ignore("b/234170016")
   public void updateTest() throws Exception {
@@ -100,8 +133,8 @@ public class UpdateTest {
         assertTrue(version.endsWith(PatchMachinery.FAKE_CURRENT_BUILD_NUMBER));
 
         System.out.println("Updating Android Studio");
-        boolean success = studio.updateStudio();
-        assertTrue("updateStudio failed", success);
+        invokeUpdateFlow(studio);
+
         // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
         studio.waitForProcess();
       } finally {

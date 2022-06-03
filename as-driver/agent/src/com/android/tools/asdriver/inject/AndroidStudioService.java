@@ -77,7 +77,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       if (action != null) {
         DataContext dataContext = DataManager.getInstance().getDataContext();
         AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
-        ActionUtil.performActionDumbAwareWithCallbacks(action, event, dataContext);
+        ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
       } else {
         builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
@@ -111,20 +111,17 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onCompleted();
   }
 
-  /**
-   * TODO(b/234066941): remove this temporary code in favor of more granular framework methods.
-   */
   @Override
-  public void updateStudio(ASDriver.UpdateStudioRequest request, StreamObserver<ASDriver.UpdateStudioResponse> responseObserver) {
-    ASDriver.UpdateStudioResponse.Builder builder = ASDriver.UpdateStudioResponse.newBuilder();
+  public void invokeComponent(ASDriver.InvokeComponentRequest request, StreamObserver<ASDriver.InvokeComponentResponse> responseObserver) {
+    ASDriver.InvokeComponentResponse.Builder builder = ASDriver.InvokeComponentResponse.newBuilder();
     try {
       StudioInteractionService studioInteractionService = new StudioInteractionService();
-      studioInteractionService.runUpdateFlow();
-      builder.setResult(ASDriver.UpdateStudioResponse.Result.OK);
+      studioInteractionService.invokeComponent(request.getMatchersList());
+      builder.setResult(ASDriver.InvokeComponentResponse.Result.OK);
     }
-    catch (InterruptedException | InvocationTargetException | TimeoutException e) {
+    catch (InterruptedException | TimeoutException | InvocationTargetException e) {
       e.printStackTrace();
-      builder.setResult(ASDriver.UpdateStudioResponse.Result.ERROR);
+      builder.setResult(ASDriver.InvokeComponentResponse.Result.ERROR);
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();

@@ -23,6 +23,7 @@ import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -120,15 +121,35 @@ public class AndroidStudio implements AutoCloseable {
     return response.getResult() == ASDriver.ShowToolWindowResponse.Result.OK;
   }
 
-  public boolean executeAction(String action) {
+  public void executeAction(String action) {
     ASDriver.ExecuteActionRequest rq = ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).build();
     ASDriver.ExecuteActionResponse response = androidStudio.executeAction(rq);
-    return response.getResult() == ASDriver.ExecuteActionResponse.Result.OK;
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ACTION_NOT_FOUND:
+        throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
   }
 
-  public boolean updateStudio() {
-    ASDriver.UpdateStudioRequest request = ASDriver.UpdateStudioRequest.newBuilder().build();
-    ASDriver.UpdateStudioResponse response = androidStudio.updateStudio(request);
-    return response.getResult() == ASDriver.UpdateStudioResponse.Result.OK;
+  public void invokeComponent(String componentText) {
+    InvokeComponentRequestBuilder builder = new InvokeComponentRequestBuilder();
+    builder.addComponentTextMatch(componentText);
+    invokeComponent(builder);
+  }
+
+  public void invokeComponent(InvokeComponentRequestBuilder requestBuilder) {
+    ASDriver.InvokeComponentResponse response = androidStudio.invokeComponent(requestBuilder.build());
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. Check the Android Studio " +
+                                                       "stderr log for the cause.", requestBuilder));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
   }
 }
