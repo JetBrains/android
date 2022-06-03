@@ -21,9 +21,9 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.XvfbServer;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class StartUpTest {
     try (Display display = new XvfbServer();
          AndroidStudio studio = install.run(display)) {
       // Wait for plugin manager to load all plugins
-      Matcher matcher = studio.waitForLog(".*PluginManager - Loaded bundled plugins:(.*)", 10000);
+      Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);
       String[] plugins = matcher.group(1).split(",");
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();

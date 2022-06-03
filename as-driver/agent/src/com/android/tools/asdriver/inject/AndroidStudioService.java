@@ -46,6 +46,8 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     new Thread(() -> {
       try {
         server.start();
+        long pid = ProcessHandle.current().pid();
+        System.out.println("as-driver started on pid: " + pid);
         System.out.println("as-driver server listening at: " + server.getPort());
       }
       catch (Throwable t) {

@@ -79,13 +79,6 @@ public class UpdateTest {
   @Ignore("b/234170016")
   public void updateTest() throws Exception {
     Path tempDir = tempFolder.newFolder("update-test").toPath();
-    // TODO(b/234069200): change how we detect whether Studio is running and whether it's restarted
-    //  to instead reuse the agent we inject.
-    if (AndroidStudio.isAnyInstanceOfStudioRunning()) {
-      System.out.println("The update test requires that no instances of Android Studio are running since it tests the restart flow in " +
-                         "addition to the update flow.");
-      AndroidStudio.terminateAllStudioInstances();
-    }
 
     try (Display display = new XvfbServer()) {
       AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
@@ -110,29 +103,15 @@ public class UpdateTest {
         boolean success = studio.updateStudio();
         assertTrue("updateStudio failed", success);
         // The first Studio process should no longer be running.
-        System.out.println("Waiting for the original instance of Android Studio to have closed");
-        studio.waitForProcess(20, TimeUnit.SECONDS);
-
-        // Ensure it restarted on its own.
-        System.out.println("Waiting for Android Studio to restart automatically");
-        AndroidStudio.waitForRestart(30000);
-
-        // Terminate the restarted instance since we're not attached to it.
-        AndroidStudio.terminateAllStudioInstances();
-      } catch (Throwable t) {
-        throw t;
       } finally {
         install.emitLogs();
       }
 
-      System.out.println("Trying to start the updated Android Studio");
-      try (AndroidStudio studio = install.run(display)) {
-
+      install.getIdeaLog().waitForMatchingLine(".*---- IDE SHUTDOWN ----.*", 20, TimeUnit.SECONDS);
+      try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(PatchMachinery.FAKE_UPDATED_BUILD_NUMBER));
-        System.out.println("The new instance of Android Studio successfully started");
-      } catch (Throwable t) {
-        throw t;
+        studio.kill(0);
       } finally {
         install.emitLogs();
       }

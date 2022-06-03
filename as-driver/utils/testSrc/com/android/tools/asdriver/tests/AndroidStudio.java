@@ -17,37 +17,25 @@ package com.android.tools.asdriver.tests;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 public class AndroidStudio implements AutoCloseable {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
-  private final AndroidStudioInstallation installation;
-  private StreamedFileReader ideaReader;
 
-  public AndroidStudio(AndroidStudioInstallation installation,
+  static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
                        Map<String, String> env) throws IOException, InterruptedException {
-    this.installation = installation;
     Path workDir = installation.getWorkDir();
 
 
@@ -57,7 +45,6 @@ public class AndroidStudio implements AutoCloseable {
     for (Map.Entry<String, String> entry : env.entrySet()) {
       pb.environment().put(entry.getKey(), entry.getValue());
     }
-
     pb.environment().put("DISPLAY", display.getDisplay());
     pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
     String shell = System.getenv("SHELL");
@@ -70,115 +57,43 @@ public class AndroidStudio implements AutoCloseable {
     installation.getStderr().reset();
     pb.redirectOutput(installation.getStdout().getPath().toFile());
     pb.redirectError(installation.getStderr().getPath().toFile());
-    process = pb.start().toHandle();
-    int port = waitForDriverServer();
+    ProcessHandle process = pb.start().toHandle();
+    int port = waitForDriverServer(installation.getIdeaLog());
+    return new AndroidStudio(process, port);
+  }
+
+  static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
+    int pid = waitForDriverPid(installation.getIdeaLog());
+    ProcessHandle process = ProcessHandle.of(pid).get();
+    int port = waitForDriverServer(installation.getIdeaLog());
+    return new AndroidStudio(process, port);
+  }
+
+  private AndroidStudio(ProcessHandle process, int port) {
+    this.process = process;
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
 
-  /**
-   * Waits for Android Studio to <i>restart</i>. Restarting is done from within Android Studio
-   * itself, meaning a new process is spawned whose handle we would have to find if needed.
-   */
-  public static void waitForRestart(int timeoutMillis) throws InterruptedException, TimeoutException {
-    long startTime = System.currentTimeMillis();
-    while (true) {
-      if (isAnyInstanceOfStudioRunning()) {
-        return;
-      }
-      Thread.sleep(500);
-      long elapsedTime = System.currentTimeMillis() - startTime;
-      if (elapsedTime >= timeoutMillis) {
-        throw new TimeoutException(String.format("Timed out after %dms waiting for Android Studio to restart", elapsedTime));
-      }
-    }
+  static private int waitForDriverPid(StreamedFileReader reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", 30, TimeUnit.SECONDS);
+    return Integer.parseInt(matcher.group(1));
   }
 
-  /**
-   * Terminates all running instances of Android Studio.
-   */
-  public static void terminateAllStudioInstances() {
-    System.out.println("Terminating all instances of Android Studio");
-    int numTerminated = 0;
-    for (VirtualMachineDescriptor vmd : getRunningStudioInstances()) {
-      if (vmd.displayName().equals("com.intellij.idea.Main")) {
-        long pid = Long.parseLong(vmd.id());
-        Optional<ProcessHandle> of = ProcessHandle.of(pid);
-        of.ifPresent(ProcessHandle::destroy);
-        numTerminated++;
-      }
-    }
-    System.out.printf("Terminated %d Android Studio instance(s)%n", numTerminated);
-  }
-
-  /**
-   * Gets all instances of Android Studio that are running, not just ones that the test may have
-   * started.
-   */
-  private static List<VirtualMachineDescriptor> getRunningStudioInstances() {
-    Predicate<? super VirtualMachineDescriptor> filterAndroidStudioInstances = (vmd) -> {
-      if (vmd.displayName().equals("com.intellij.idea.Main")) {
-        try {
-          VirtualMachine vm = VirtualMachine.attach(vmd.id());
-          Properties properties = vm.getSystemProperties();
-          if (Objects.equals(properties.getProperty("idea.platform.prefix"), "AndroidStudio")) {
-            return true;
-          }
-        }
-        catch (AttachNotSupportedException | IOException e) {
-          // Ignore any VMs we can't attach to
-        }
-      }
-      return false;
-    };
-
-    return VirtualMachine.list().stream().filter(filterAndroidStudioInstances).collect(Collectors.toList());
-  }
-
-  /**
-   * Checks whether <i>any</i> instance of Android Studio is running, not just one that the test
-   * might have started.
-   */
-  public static boolean isAnyInstanceOfStudioRunning() {
-    return !getRunningStudioInstances().isEmpty();
-  }
-
-  /**
-   * Waits for the server to be started by monitoring the standard out.
-   *
-   * @return the port at which the server was started.
-   */
-  private int waitForDriverServer() throws IOException, InterruptedException {
-    return Integer.parseInt(
-      installation.getStdout().waitForMatchingLine("as-driver server listening at: (.*)", 30, TimeUnit.SECONDS).group(1));
+  static private int waitForDriverServer(StreamedFileReader reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", 30, TimeUnit.SECONDS);
+    // TODO: this is needed for StartUp test as it waits for things that happen before this. We need to find a better way.
+    reader.reset();
+    return Integer.parseInt(matcher.group(1));
   }
 
   public void waitForProcess() throws ExecutionException, InterruptedException {
     process.onExit().get();
   }
 
-  public void waitForProcess(long timeout, TimeUnit unit) throws ExecutionException, InterruptedException, TimeoutException {
-    process.onExit().get(timeout, unit);
-  }
-
-  public Matcher waitForLog(String regex, int timeoutMillis) throws IOException, InterruptedException {
-    if (ideaReader == null) {
-      ideaReader = new StreamedFileReader(installation.getIdeaLog());
-    }
-    return ideaReader.waitForMatchingLine(regex, timeoutMillis, TimeUnit.MILLISECONDS);
-  }
-
   @Override
   public void close() throws Exception {
-    try {
-      kill(1);
-      waitForProcess();
-    }
-    finally {
-      if (ideaReader != null) {
-        ideaReader.close();
-      }
-    }
+    waitForProcess();
   }
 
   public String version() {

@@ -38,8 +38,8 @@ public class AndroidStudioInstallation {
   private final Path workDir;
   private final StreamedFileReader stdout;
   private final StreamedFileReader stderr;
+  private final StreamedFileReader ideaLog;
   private final Path studioDir;
-  private final Path ideaLog;
   private final Path vmOptionsPath;
 
   public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
@@ -61,8 +61,11 @@ public class AndroidStudioInstallation {
 
     stdout = new StreamedFileReader(workDir.resolve("stdout.txt"));
     stderr = new StreamedFileReader(workDir.resolve("stderr.txt"));
+    Path logDir = workDir.resolve("system/log");
+    Files.createDirectories(logDir);
+    ideaLog = new StreamedFileReader(logDir.resolve("idea.log"));
+    Files.createFile(ideaLog.getPath());
 
-    ideaLog = workDir.resolve("system/log/idea.log");
     vmOptionsPath = workDir.resolve("studio.vmoptions");
     Path configDir = workDir.resolve("config");
     Files.createDirectories(configDir);
@@ -216,7 +219,7 @@ public class AndroidStudioInstallation {
     return stderr;
   }
 
-  public Path getIdeaLog() {
+  public StreamedFileReader getIdeaLog() {
     return ideaLog;
   }
 
@@ -239,6 +242,10 @@ public class AndroidStudioInstallation {
     addVmOption("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + s + ",address=localhost:5006\n");
   }
 
+  public AndroidStudio attach() throws IOException, InterruptedException {
+    return AndroidStudio.attach(this);
+  }
+
   static public Path getBinPath(String bin) {
     Path path = TestUtils.resolveWorkspacePathUnchecked(bin);
     if (!Files.exists(path)) {
@@ -255,6 +262,6 @@ public class AndroidStudioInstallation {
   public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
-    return new AndroidStudio(this, display, newEnv);
+    return AndroidStudio.run(this, display, newEnv);
   }
 }
