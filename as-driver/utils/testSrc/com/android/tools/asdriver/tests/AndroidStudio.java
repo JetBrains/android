@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 
 public class AndroidStudio implements AutoCloseable {
@@ -75,15 +74,13 @@ public class AndroidStudio implements AutoCloseable {
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
 
-  static private int waitForDriverPid(StreamedFileReader reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", 30, TimeUnit.SECONDS);
+  static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
-  static private int waitForDriverServer(StreamedFileReader reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", 30, TimeUnit.SECONDS);
-    // TODO: this is needed for StartUp test as it waits for things that happen before this. We need to find a better way.
-    reader.reset();
+  static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 

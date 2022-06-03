@@ -18,46 +18,62 @@ package com.android.tools.asdriver.tests;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StreamedFileReader implements AutoCloseable {
+public class LogFile {
   private final Path path;
 
-  private BufferedReader reader;
+  /** The current position on the log file, see {@code waitForMatchingLine} */
+  private long position;
 
-  public StreamedFileReader(Path filePath) {
+  public LogFile(Path filePath) {
     path = filePath;
   }
 
   public Matcher waitForMatchingLine(String regex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    if (reader == null) {
-      reader = new BufferedReader(new FileReader(path.toFile()));
-    }
+    return waitForMatchingLine(regex, false, timeout, unit);
+  }
 
-    long timeoutMillis = unit.toMillis(timeout);
-    Pattern pattern = Pattern.compile(regex);
-    Matcher matcher = null;
-    long elapsed = 0;
-    long start = System.currentTimeMillis();
-    while (elapsed < timeoutMillis) {
-      String line = reader.readLine();
-      matcher = line == null ? null : pattern.matcher(line);
-      if (matcher != null && matcher.matches()) {
-        break;
+  /**
+   *  Waits until the given regex matches a line in the log. The log is scanned from the last read position.
+   *  If {@code lookAhead} is true, the current position of the log remains unchanged.
+   */
+  public Matcher waitForMatchingLine(String regex, boolean lookAhead, long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r")) {
+
+      FileChannel channel = raf.getChannel();
+      channel.position(position);
+
+      long timeoutMillis = unit.toMillis(timeout);
+      Pattern pattern = Pattern.compile(regex);
+      Matcher matcher = null;
+      long elapsed = 0;
+      long start = System.currentTimeMillis();
+      while (elapsed < timeoutMillis) {
+        String line = raf.readLine();
+        matcher = line == null ? null : pattern.matcher(line);
+        if (matcher != null && matcher.matches()) {
+          break;
+        }
+        matcher = null;
+        if (line == null) {
+          Thread.sleep(Math.min(1000, timeoutMillis - elapsed));
+        }
+        elapsed = System.currentTimeMillis() - start;
       }
-      matcher = null;
-      if (line == null) {
-        Thread.sleep(Math.min(1000, timeoutMillis - elapsed));
+      if (matcher == null) {
+        throw new InterruptedException("Time out while waiting for line matching '" + regex + "'");
       }
-      elapsed = System.currentTimeMillis() - start;
+      if (!lookAhead) {
+        position = channel.position();
+      }
+      return matcher;
     }
-    if (matcher == null) {
-      throw new InterruptedException("Time out while waiting for line matching '" + regex + "'");
-    }
-    return matcher;
   }
 
   public void printContents() throws IOException {
@@ -79,15 +95,7 @@ public class StreamedFileReader implements AutoCloseable {
     return path;
   }
 
-  @Override
-  public void close() throws IOException {
-    reset();
-  }
-
-  public void reset() throws IOException {
-    if (reader != null) {
-      reader.close();
-      reader = null;
-    }
+  public void reset() {
+    position = 0;
   }
 }

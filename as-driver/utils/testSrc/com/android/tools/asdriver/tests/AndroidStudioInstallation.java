@@ -36,9 +36,9 @@ import java.util.Map;
 public class AndroidStudioInstallation {
 
   private final Path workDir;
-  private final StreamedFileReader stdout;
-  private final StreamedFileReader stderr;
-  private final StreamedFileReader ideaLog;
+  private final LogFile stdout;
+  private final LogFile stderr;
+  private final LogFile ideaLog;
   private final Path studioDir;
   private final Path vmOptionsPath;
 
@@ -59,11 +59,11 @@ public class AndroidStudioInstallation {
     this.workDir = workDir;
     this.studioDir = studioDir;
 
-    stdout = new StreamedFileReader(workDir.resolve("stdout.txt"));
-    stderr = new StreamedFileReader(workDir.resolve("stderr.txt"));
+    stdout = new LogFile(workDir.resolve("stdout.txt"));
+    stderr = new LogFile(workDir.resolve("stderr.txt"));
     Path logDir = workDir.resolve("system/log");
     Files.createDirectories(logDir);
-    ideaLog = new StreamedFileReader(logDir.resolve("idea.log"));
+    ideaLog = new LogFile(logDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
 
     vmOptionsPath = workDir.resolve("studio.vmoptions");
@@ -211,15 +211,15 @@ public class AndroidStudioInstallation {
     return studioDir;
   }
 
-  public StreamedFileReader getStdout() {
+  public LogFile getStdout() {
     return stdout;
   }
 
-  public StreamedFileReader getStderr() {
+  public LogFile getStderr() {
     return stderr;
   }
 
-  public StreamedFileReader getIdeaLog() {
+  public LogFile getIdeaLog() {
     return ideaLog;
   }
 
