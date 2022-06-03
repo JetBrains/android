@@ -102,7 +102,8 @@ public class UpdateTest {
         System.out.println("Updating Android Studio");
         boolean success = studio.updateStudio();
         assertTrue("updateStudio failed", success);
-        // The first Studio process should no longer be running.
+        // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
+        studio.waitForProcess();
       } finally {
         install.emitLogs();
       }
@@ -111,7 +112,6 @@ public class UpdateTest {
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(PatchMachinery.FAKE_UPDATED_BUILD_NUMBER));
-        studio.kill(0);
       } finally {
         install.emitLogs();
       }

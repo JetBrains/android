@@ -110,7 +110,6 @@ public class StartUpTest {
         "WebP Support",
         "YAML",
       }, plugins);
-      studio.kill(0);
     }
   }
 }

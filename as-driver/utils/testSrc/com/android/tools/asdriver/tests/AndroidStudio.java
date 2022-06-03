@@ -90,6 +90,11 @@ public class AndroidStudio implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
+    // We must terminate the process on close. If we don't and expect the test to gracefully terminate it always, it means
+    // that if the test has an assertEquals, when the assertion exception is thrown the try-catch will attempt to close
+    // this object that has not been asked to terminate, blocking forever until the test times out, swallowing the
+    // assertion information.
+    process.destroyForcibly();
     waitForProcess();
   }
 
