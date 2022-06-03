@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
@@ -52,9 +53,9 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -209,11 +210,9 @@ fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit:
   if (EdtInvocationManager.getInstance().isEventDispatchThread) {
     UIUtil.dispatchAllInvocationEvents()
   }
-  val latch = CountDownLatch(1)
-  repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { latch.countDown() }
-  if (!latch.await(timeout, unit)) {
-    throw TimeoutException()
-  }
+  val done = AtomicBoolean()
+  repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { done.set(true) }
+  waitForCondition(timeout, unit) { done.get() }
 }
 
 /**
