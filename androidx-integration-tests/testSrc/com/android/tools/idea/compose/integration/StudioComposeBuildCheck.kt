@@ -46,5 +46,4 @@ class StudioComposeBuildCheck : GradleIntegrationTest {
   override fun getAdditionalRepos(): Collection<File> = listOf(
     resolveWorkspacePath(ANDROIDX_SNAPSHOT_REPO_PATH).toFile()
   )
-
 }

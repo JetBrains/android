@@ -20,7 +20,6 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPrepar
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
