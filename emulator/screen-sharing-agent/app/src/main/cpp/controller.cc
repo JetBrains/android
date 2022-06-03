@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 
+#include <cstdio>
 #include <thread>
 
 #include "accessors/input_manager.h"
@@ -35,6 +36,11 @@ namespace screensharing {
 
 using namespace std;
 using namespace std::chrono;
+
+// Names an location of the screen sharing agent's files.
+#define SCREEN_SHARING_AGENT_JAR_NAME "screen-sharing-agent.jar"
+#define SCREEN_SHARING_AGENT_SO_NAME "libscreen-sharing-agent.so"
+#define DEVICE_PATH_BASE "/data/local/tmp/.studio/mirroring"
 
 namespace {
 
@@ -78,6 +84,17 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
     default:
       return { x, y };
   }
+}
+
+// Removes files of the screen sharing agent from disk.
+void RemoveAgentFiles() {
+  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
+  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
+  remove(DEVICE_PATH_BASE);
+  // TODO: Remove the following three lines after July 1, 2022.
+  // Remove files at the old locations to clean devices of early device mirroring adopters.
+  remove(DEVICE_PATH_BASE "/../../" SCREEN_SHARING_AGENT_JAR_NAME);
+  remove(DEVICE_PATH_BASE "/../../" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
 }  // namespace
@@ -149,6 +166,8 @@ void Controller::Initialize() {
   stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
   // Turn off "Auto-rotate screen".
   accelerometer_rotation_.Set("0");
+
+  RemoveAgentFiles();
 }
 
 void Controller::Run() {
