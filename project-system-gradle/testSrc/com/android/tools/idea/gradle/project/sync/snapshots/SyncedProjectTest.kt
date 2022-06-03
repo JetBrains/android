@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
@@ -28,6 +34,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.junit.Assume
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -37,8 +44,6 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.hasAnnotation
 
-class CurrentAgp: SyncedProjectTest(selfTest = false)
-
 /**
  * An entry point to all tests asserting certain properties of synced projects.  See: [SyncedProjectTest.Companion.getTests] for the exact
  * list of assertions applied.
@@ -47,15 +52,19 @@ class CurrentAgp: SyncedProjectTest(selfTest = false)
  * representing an AGP version and/or other aspects of the environment.
  */
 @RunsInEdt
-sealed class SyncedProjectTest(val selfTest: Boolean = false) : GradleIntegrationTest {
+abstract class SyncedProjectTest(
+  val selfTest: Boolean = false,
+  val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+) : GradleIntegrationTest {
 
   interface TestDef : AgpIntegrationTestDefinition {
     val testProject: TestProject
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef
     fun runTest(root: File, project: Project)
   }
 
   companion object {
-    val tests = IdeModelV2TestDef.tests().groupBy { it.testProject }
+    val tests = IdeModelSnapshotComparisonTestDefinition.tests().groupBy { it.testProject }
   }
 
   @get:Rule
@@ -125,31 +134,65 @@ sealed class SyncedProjectTest(val selfTest: Boolean = false) : GradleIntegratio
 
   private fun testProject(testProject: TestProject) {
     if (selfTest) throw ReportUsedProjectException(testProject)
+
+    val testDefinitions =
+      tests[testProject].orEmpty()
+        .map(::transformTest)
+        .filter { it.isCompatible() }
+        .groupBy { it.agpVersion }
+    if (testDefinitions.keys.size > 1) error("Only one software environment is supposed to be tested at a time")
+    val agpVersion = testDefinitions.keys.singleOrNull()
+      ?: skipTest("No tests to run!")
+    if (!testProject.isCompatibleWith(agpVersion)) skipTest("Project ${testProject.name} is incompatible with $agpVersion")
+    val tests = testDefinitions.entries.singleOrNull()?.value.orEmpty()
+
     val root = prepareGradleProject(
       testProject.template,
-      "project"
+      "project",
+      agpVersion,
+      ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
     )
-    testProject.patch(root)
+    testProject.patch(agpVersion, root)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    openPreparedProject("project${testProject.pathToOpen}") { project ->
-      val exceptions = tests[testProject]?.mapNotNull {
-        println("${it::class.java.simpleName}(${it.testProject.projectName})\n    $root")
-        kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
-      }.orEmpty()
-      when {
-        exceptions.isEmpty() -> Unit
-        exceptions.size == 1 -> throw exceptions.single()
-        else -> throw MultipleFailureException(exceptions)
+    if (agpVersion.modelVersion == ModelVersion.V1) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
+    }
+    try {
+      openPreparedProject("project${testProject.pathToOpen}") { project ->
+        val exceptions = tests.mapNotNull {
+          println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
+          kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
+        }
+        when {
+          exceptions.isEmpty() -> Unit
+          exceptions.size == 1 -> throw exceptions.single()
+          else -> throw MultipleFailureException(exceptions)
+        }
       }
+    } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
   }
+
+  private fun transformTest(testProject: TestDef): TestDef {
+    return testProject.withAgpVersion(agpVersion)
+  }
+
 }
 
-private class ReportUsedProjectException(val testProject: TestProject) : Throwable()
+private fun skipTest(message: String): Nothing {
+  Assume.assumeTrue(message, false)
+  error(message)
+}
+
+class CurrentAgpV1 : SyncedProjectTest(agpVersion = AGP_CURRENT_V1)
+class CurrentAgpV2 : SyncedProjectTest(agpVersion = AGP_CURRENT)
 
 @Ignore
 @Suppress("UnconstructableJUnitTestCase")
-private class AllTestsForSelfChecks: SyncedProjectTest(selfTest = true)
+private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
+
+private class ReportUsedProjectException(val testProject: TestProject) : Throwable()
 
 /**
  * A test case that ensures all test projects defined in [TestProject] are added to [SyncedProjectTest] test methods.

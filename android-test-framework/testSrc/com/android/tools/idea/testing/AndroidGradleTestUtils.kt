@@ -1754,6 +1754,26 @@ interface GradleIntegrationTest {
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+  ndkVersion: String? = null
+): File {
+  return prepareGradleProject(
+    testProjectPath = testProjectPath,
+    name = name,
+    gradleVersion = agpVersion.gradleVersion,
+    gradlePluginVersion = agpVersion.agpVersion,
+    kotlinVersion = agpVersion.kotlinVersion,
+    ndkVersion = ndkVersion
+  )
+}
+
+/**
+ * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
+ */
+@JvmOverloads
+fun GradleIntegrationTest.prepareGradleProject(
+  testProjectPath: String,
+  name: String,
   gradleVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().gradleVersion,
   gradlePluginVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().agpVersion,
   kotlinVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().kotlinVersion,

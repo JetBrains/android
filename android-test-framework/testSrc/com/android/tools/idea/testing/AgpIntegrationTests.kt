@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.junit4.OldAgpSuite
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 
 /**
@@ -36,19 +37,36 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version. `null` means the default version used by
    * Android Studio.
    */
-  val kotlinVersion: String? = null
+  val kotlinVersion: String? = null,
+
+  /**
+   * Builder model version to query.
+   */
+  val modelVersion: ModelVersion = ModelVersion.V2
 ) {
-  AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32"),
-  AGP_40("4.0.0", gradleVersion = "6.5"),
-  AGP_41("4.1.0", gradleVersion = "6.5"),
-  AGP_42("4.2.0", gradleVersion = "6.7.1"),
-  AGP_70("7.0.0", gradleVersion = "7.0.2"),
-  AGP_71("7.1.0", gradleVersion = "7.2"),
-  AGP_72("7.2.0", gradleVersion = "7.3.3"),
-  AGP_CURRENT(null, gradleVersion = null); // Must be last to represent the newest version.
+  AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
+  AGP_40("4.0.0", gradleVersion = "6.5", modelVersion = ModelVersion.V1),
+  AGP_41("4.1.0", gradleVersion = "6.5", modelVersion = ModelVersion.V1),
+  AGP_42("4.2.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
+  AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1),
+  AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1),
+  AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1),
+  AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2),
+  // Must be last to represent the newest version.
+  AGP_CURRENT_V1(null, gradleVersion = null, modelVersion = ModelVersion.V1),
+  AGP_CURRENT(null, gradleVersion = null, modelVersion = ModelVersion.V2);
 
   override fun toString(): String {
-    return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion)"
+    return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion, m=$modelVersion)"
+  }
+}
+
+enum class ModelVersion {
+  V1,
+  V2;
+
+  companion object {
+    val selected: ModelVersion get() = if (StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get()) V2 else V1
   }
 }
 
@@ -64,16 +82,18 @@ interface AgpIntegrationTestDefinition {
  * Applies AGP versions selected for testing in the current test target to the list of test definitions.
  */
 fun List<AgpIntegrationTestDefinition>.applySelectedAgpVersions(): List<AgpIntegrationTestDefinition> =
-  AgpVersionSoftwareEnvironmentDescriptor.values()
-    .filter {
-      val pass = (OldAgpSuite.AGP_VERSION == null || (it.agpVersion ?: "LATEST") == OldAgpSuite.AGP_VERSION) &&
-                 (OldAgpSuite.GRADLE_VERSION == null || (it.gradleVersion ?: "LATEST") == OldAgpSuite.GRADLE_VERSION)
-      println("${it.name}($it) : $pass")
-      pass
-    }
+  applicableAgpVersions()
     .flatMap { version -> map { it.withAgpVersion(version) } }
     .filter { it.isCompatible() }
     .sortedWith(compareBy({ it.agpVersion.gradleVersion }, { it.agpVersion.agpVersion }))
+
+fun applicableAgpVersions() = AgpVersionSoftwareEnvironmentDescriptor.values()
+  .filter {
+    val pass = (OldAgpSuite.AGP_VERSION == null || (it.agpVersion ?: "LATEST") == OldAgpSuite.AGP_VERSION) &&
+      (OldAgpSuite.GRADLE_VERSION == null || (it.gradleVersion ?: "LATEST") == OldAgpSuite.GRADLE_VERSION)
+    println("${it.name}($it) : $pass")
+    pass
+  }
 
 /**
  * Prints a message describing the currently running test to the standard output.

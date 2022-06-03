@@ -17,6 +17,8 @@ package com.android.tools.idea.run
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.applySelectedAgpVersions
 import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
@@ -31,7 +33,9 @@ class ProviderOldAgpIntegrationTest : ProviderIntegrationTestCase() {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> {
-      return CurrentAgp.tests().applySelectedAgpVersions()
+      return CurrentAgp.tests()
+        .applySelectedAgpVersions()
+        .filter { it.agpVersion != AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 }
         .map { listOf(it).toTypedArray() }
     }
   }

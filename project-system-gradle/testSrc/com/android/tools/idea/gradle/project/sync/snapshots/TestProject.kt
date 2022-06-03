@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth
 import java.io.File
 
 /**
@@ -28,7 +30,8 @@ enum class TestProject(
   val template: String,
   val pathToOpen: String = "",
   val testName: String? = null,
-  val patch: (projectRoot: File) -> Unit = {}
+  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {}
 ) {
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS(
@@ -45,17 +48,34 @@ enum class TestProject(
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-  COMPOSITE_BUILD(TestProjectToSnapshotPaths.COMPOSITE_BUILD, patch = { projectRoot ->
-    truncateForV2(projectRoot.resolve("settings.gradle"))
-  }),
+  COMPOSITE_BUILD(
+    TestProjectToSnapshotPaths.COMPOSITE_BUILD,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+    patch = { projectRoot ->
+      if (modelVersion == ModelVersion.V2) {
+        truncateForV2(projectRoot.resolve("settings.gradle"))
+      }
+    }),
   NON_STANDARD_SOURCE_SETS(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
-  NON_STANDARD_SOURCE_SET_DEPENDENCIES(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
+  NON_STANDARD_SOURCE_SET_DEPENDENCIES(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+    isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
+  ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
   KOTLIN_KAPT(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-  LINT_CUSTOM_CHECKS(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS),
-  TEST_FIXTURES(TestProjectToSnapshotPaths.TEST_FIXTURES),
+  LINT_CUSTOM_CHECKS(
+    TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_71 }
+  ),
+  TEST_FIXTURES(
+    TestProjectToSnapshotPaths.TEST_FIXTURES,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_72 }
+  ),
   TEST_ONLY_MODULE(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
-  KOTLIN_MULTIPLATFORM(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM),
+  KOTLIN_MULTIPLATFORM(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
+  ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   NAMESPACES(TestProjectToSnapshotPaths.NAMESPACES),
   INCLUDE_FROM_LIB(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
@@ -67,6 +87,6 @@ enum class TestProject(
 
 private fun truncateForV2(settingsFile: File) {
   val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
-  assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
+  Truth.assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
   settingsFile.writeText(patchedText)
 }
