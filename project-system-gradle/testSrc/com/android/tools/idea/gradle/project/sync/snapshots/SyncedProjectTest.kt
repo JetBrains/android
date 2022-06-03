@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
+import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
@@ -68,7 +69,7 @@ abstract class SyncedProjectTest(
   }
 
   companion object {
-    val tests = IdeModelSnapshotComparisonTestDefinition.tests().groupBy { it.testProject }
+    val tests = (IdeModelSnapshotComparisonTestDefinition.tests() + SourceProvidersTestDef.tests).groupBy { it.testProject }
   }
 
   @get:Rule
@@ -81,6 +82,18 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
+
+  @Test
+  fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
+
+  @Test
+  fun testAppWithBuildSrc() = testProject(TestProject.APP_WITH_BUILDSRC)
+
+  @Test
+  fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
+
+  @Test
+  fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
 
   @Test
   fun testSimpleApplicationWithAdditionalGradleSourceSets() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS)

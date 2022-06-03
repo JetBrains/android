@@ -1,4 +1,4 @@
-MODULE: testWithBuildSrc.app
+MODULE: project.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -35,6 +35,10 @@ MODULE: testWithBuildSrc.app
                 file://./app/src/main/resources
             ShadersDirectoryUrls:
                 file://./app/src/main/shaders
+            MlModelsDirectoryUrls:
+                file://./app/src/main/ml
+            MlModelsDirectories:
+                file://./app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -58,6 +62,8 @@ MODULE: testWithBuildSrc.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
+            MlModelsDirectories:
+                ./app/src/main/ml
         Active:
             main
                 Manifest:
@@ -81,6 +87,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                MlModelsDirectories:
+                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -103,6 +111,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                MlModelsDirectories:
+                    ./app/src/debug/ml
         All:
             main
                 Manifest:
@@ -126,6 +136,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                MlModelsDirectories:
+                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -148,6 +160,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                MlModelsDirectories:
+                    ./app/src/debug/ml
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -170,6 +184,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
+                MlModelsDirectories:
+                    ./app/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -193,6 +209,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
+                MlModelsDirectories:
+                    ./app/src/test/ml
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -215,6 +233,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+                MlModelsDirectories:
+                    ./app/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -238,6 +258,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
+                MlModelsDirectories:
+                    ./app/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -260,6 +282,8 @@ MODULE: testWithBuildSrc.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+                MlModelsDirectories:
+                    ./app/src/androidTestDebug/ml
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -312,6 +336,11 @@ MODULE: testWithBuildSrc.app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/main/ml
+                    file://./app/src/debug/ml
+                MlModelsDirectories:
+                    file://./app/src/main/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -356,6 +385,9 @@ MODULE: testWithBuildSrc.app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/test/ml
+                    file://./app/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -400,6 +432,9 @@ MODULE: testWithBuildSrc.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/androidTest/ml
+                    file://./app/src/androidTestDebug/ml
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -469,6 +504,10 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/main/ml
+                MlModelsDirectories:
+                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -494,6 +533,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -519,6 +560,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -555,6 +598,10 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/main/ml
+                MlModelsDirectories:
+                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -580,6 +627,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -612,6 +661,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -637,6 +688,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -669,6 +722,8 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -694,4 +749,6 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
+                MlModelsDirectoryUrls:
+                    file://./app/src/androidTestDebug/ml
         CurrentTestFixturesSourceProviders:

@@ -1,4 +1,4 @@
-MODULE: testSimpleApplication.app
+MODULE: project.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN

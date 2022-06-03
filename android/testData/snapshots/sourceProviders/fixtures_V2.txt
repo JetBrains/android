@@ -1,4 +1,4 @@
-MODULE: testTestFixtures.app
+MODULE: project.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -695,7 +695,7 @@ MODULE: testTestFixtures.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testTestFixtures.lib
+MODULE: project.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN

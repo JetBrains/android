@@ -1,4 +1,4 @@
-MODULE: testNestedProjects.app
+MODULE: project.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -1718,7 +1718,7 @@ MODULE: testNestedProjects.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.dyn_feature
+MODULE: project.dyn_feature
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -2367,7 +2367,7 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.lib
+MODULE: project.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -3040,7 +3040,7 @@ MODULE: testNestedProjects.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested1
+MODULE: project.nested1
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -3689,7 +3689,7 @@ MODULE: testNestedProjects.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested1.deep
+MODULE: project.nested1.deep
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -4338,7 +4338,7 @@ MODULE: testNestedProjects.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested2
+MODULE: project.nested2
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -5482,7 +5482,7 @@ MODULE: testNestedProjects.nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested2.deep
+MODULE: project.nested2.deep
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -6131,7 +6131,7 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested2.trans.deep2
+MODULE: project.nested2.trans.deep2
     by Facet:
         main (IDEA)
             ScopeType: MAIN

@@ -2786,7 +2786,7 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testCompositeBuild.app
+MODULE: project.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -3483,7 +3483,7 @@ MODULE: testCompositeBuild.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testCompositeBuild.lib
+MODULE: project.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN

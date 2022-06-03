@@ -210,4 +210,3 @@ private val VALUES_TO_SUPPRESS = mapOf(
 )
 
 private const val IDE_MODEL_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/ideModels"
-
