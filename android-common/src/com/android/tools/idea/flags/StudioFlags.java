@@ -684,6 +684,14 @@ public final class StudioFlags {
     "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_HISTORY_COMPLETIONS = Flag.create(
+    LOGCAT,
+    "logcat.history.completions",
+    "Enable adding history filters to completion",
+    "Enable adding history filters to completion",
+    false
+  );
   //endregion
 
   //region Gradle Project System

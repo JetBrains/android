@@ -197,8 +197,10 @@ private fun List<String>.lookupsWithHistory(): List<LookupElementBuilder> {
   val history = AndroidLogcatFilterHistory.getInstance()
   val lookups = mutableSetOf<String>()
   lookups.addAll(this)
-  lookups.addAll(history.favorites)
-  lookups.addAll(history.nonFavorites)
+  if (StudioFlags.LOGCAT_HISTORY_COMPLETIONS.get()) {
+    lookups.addAll(history.favorites)
+    lookups.addAll(history.nonFavorites)
+  }
 
   return lookups.map(String::toLookupElement)
 }

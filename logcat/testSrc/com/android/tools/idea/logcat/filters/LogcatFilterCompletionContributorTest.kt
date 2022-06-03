@@ -56,7 +56,12 @@ class LogcatFilterCompletionContributorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val chain: RuleChain = RuleChain(projectRule, EdtRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
+  val chain: RuleChain = RuleChain(
+    projectRule,
+    EdtRule(),
+    RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER),
+    RestoreFlagRule(StudioFlags.LOGCAT_HISTORY_COMPLETIONS),
+  )
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
 
@@ -65,6 +70,7 @@ class LogcatFilterCompletionContributorTest {
   @Before
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
+    StudioFlags.LOGCAT_HISTORY_COMPLETIONS.override(true)
     ApplicationManager.getApplication().replaceService(
       AndroidLogcatFilterHistory::class.java,
       history,
