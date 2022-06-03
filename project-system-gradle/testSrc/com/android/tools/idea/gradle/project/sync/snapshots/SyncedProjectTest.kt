@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
+import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ModelVersion
@@ -33,8 +34,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
+import com.intellij.util.indexing.IndexableSetContributor
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
 import org.junit.Assume
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -159,6 +163,7 @@ abstract class SyncedProjectTest(
     }
     try {
       openPreparedProject("project${testProject.pathToOpen}") { project ->
+        waitForSourceFolderManagerToProcessUpdates(project)
         val exceptions = tests.mapNotNull {
           println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
           kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
@@ -178,6 +183,16 @@ abstract class SyncedProjectTest(
     return testProject.withAgpVersion(agpVersion)
   }
 
+  @Before
+  fun before() {
+    // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
+    //       re-register it by its class name. It means that this test might affect tests running after this one.
+
+    // [KotlinScriptDependenciesIndexableSetContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
+    // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
+    // run faster.
+    IndexableSetContributor.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesIndexableSetContributor::class.java)
+  }
 }
 
 private fun skipTest(message: String): Nothing {

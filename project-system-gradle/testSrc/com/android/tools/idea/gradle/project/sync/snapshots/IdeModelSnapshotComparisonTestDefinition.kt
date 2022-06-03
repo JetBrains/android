@@ -30,7 +30,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
 import com.android.tools.idea.testing.ModelVersion
-import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
 import com.android.tools.idea.testing.nameProperties
@@ -112,7 +111,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
   }
 
   override fun runTest(root: File, project: Project) {
-    val v2snapshots = SnapshotContext(testProject.projectName, agpVersion)
+    val v2snapshots = SnapshotContext(testProject.projectName, agpVersion, IDE_MODEL_SNAPSHOT_DIR)
     val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
       projectDumper.dumpAndroidIdeModel(
         project,
@@ -161,10 +160,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         .map { it.first + " <> " + it.second }
         .joinToString(separator = "\n")
 
-    val v1snapshots = SnapshotContext(testProject.projectName, v1Version)
+    val v1snapshots = SnapshotContext(testProject.projectName, v1Version, IDE_MODEL_SNAPSHOT_DIR)
     val (_, expectedTextV1) = v1snapshots.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
 
-    val v2snapshots = SnapshotContext(testProject.projectName, v2Version)
+    val v2snapshots = SnapshotContext(testProject.projectName, v2Version, IDE_MODEL_SNAPSHOT_DIR)
     val (_, expectedTextV2) = v2snapshots.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
 
 
@@ -173,40 +172,6 @@ data class IdeModelSnapshotComparisonTestDefinition(
 
     Truth.assertThat(expectedTextV2Filtered).isEqualTo(expectedTextV1Filtered)
   }
-}
-
-private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AGP_CURRENT -> "_"
-  AGP_CURRENT_V1 -> "_NewAgp_"
-  AGP_35 -> "_Agp_3.5_"
-  AGP_40 -> "_Agp_4.0_"
-  AGP_41 -> "_Agp_4.1_"
-  AGP_42 -> "_Agp_4.2_"
-  AGP_70 -> "_Agp_7.0_"
-  AGP_71 -> "_Agp_7.1_"
-  AGP_72_V1 -> "_Agp_7.2_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
-}
-
-private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
-  return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
-}
-
-private class SnapshotContext(
-  projectName: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-) : SnapshotComparisonTest {
-
-  private val workspace: String = when (agpVersion.modelVersion) {
-    ModelVersion.V1 -> "tools/adt/idea/android/testData/snapshots/ideModels"
-    ModelVersion.V2 -> "tools/adt/idea/android/testData/snapshots/v2IdeModels"
-  }
-
-  private val name: String =
-    "ideModels_$projectName${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}"
-
-  override val snapshotDirectoryWorkspaceRelativePath: String = workspace
-  override fun getName(): String = name
 }
 
 private fun Sequence<String>.nameProperties() = nameProperties(this)
@@ -243,3 +208,6 @@ private val VALUES_TO_SUPPRESS = mapOf(
   "/Dependencies/compileClasspath/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
   "/Dependencies/compileClasspath/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
+
+private const val IDE_MODEL_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/ideModels"
+
