@@ -274,7 +274,9 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
+/* b/235275213
     assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Default_32.png"));
+b/235275213 */
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
@@ -285,7 +287,9 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
+/* b/235275213
     assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.contains("Default_32.png"));
+b/235275213 */
 
     optionsModel = new AvdOptionsModel(myExtensionsAvdInfo);
 
