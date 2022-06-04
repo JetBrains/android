@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
+import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -34,6 +35,8 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.CoreIconManager
+import com.intellij.ui.IconManager
 import com.intellij.util.PathUtil
 import com.intellij.util.indexing.IndexableSetContributor
 import org.jetbrains.android.AndroidTestBase
@@ -72,7 +75,8 @@ abstract class SyncedProjectTest(
     val tests = (
       IdeModelSnapshotComparisonTestDefinition.tests() +
         SourceProvidersTestDef.tests +
-        ProjectStructureSnapshotTestDef.tests
+        ProjectStructureSnapshotTestDef.tests +
+        AndroidProjectViewSnapshotComparisonTestDef.tests
       ).groupBy { it.testProject }
   }
 
@@ -178,6 +182,18 @@ abstract class SyncedProjectTest(
   fun testApiDependency() = testProject(TestProject.API_DEPENDENCY)
 
   @Test
+  fun testNavigatorPackageViewCommonRoots() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS)
+
+  @Test
+  fun testNavigatorPackageViewSimple() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE)
+
+  @Test
+  fun testSimpleApplicationVersionCatalog() = testProject(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
+
+  @Test
+  fun testCustomSourceType() = testProject(TestProject.CUSTOM_SOURCE_TYPE)
+
+  @Test
   fun testLightSyncReference() = testProject(TestProject.LIGHT_SYNC_REFERENCE)
 
   @Test
@@ -239,6 +255,15 @@ abstract class SyncedProjectTest(
     // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
     // run faster.
     IndexableSetContributor.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesIndexableSetContributor::class.java)
+  }
+
+  init {
+    // Avoid depending on the execution order and initializing icons with dummies.
+    try {
+      IconManager.activate(CoreIconManager())
+    } catch (e: Throwable) {
+      e.printStackTrace()
+    }
   }
 }
 
