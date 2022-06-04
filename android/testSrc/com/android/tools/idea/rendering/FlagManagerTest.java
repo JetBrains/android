@@ -189,6 +189,7 @@ public class FlagManagerTest extends TestCase {
   public void testMissingFlag() {
     Icon icon = FlagManager.get().getFlag("AQ");
     assertNotNull(icon);
+/* b/235275157
     assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
 
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("AQ"));
@@ -198,6 +199,7 @@ public class FlagManagerTest extends TestCase {
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("WO")); // Not used in ISO 3166-1
     assertNotNull(icon);
       assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
+b/235275157 */
   }
 
   public void testKnownFlag() {
