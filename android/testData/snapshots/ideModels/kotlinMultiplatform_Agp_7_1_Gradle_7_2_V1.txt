@@ -558,6 +558,16 @@ MODULE                        : kotlinMultiPlatform.app
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -2166,6 +2176,16 @@ MODULE                        : kotlinMultiPlatform.module2
         - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

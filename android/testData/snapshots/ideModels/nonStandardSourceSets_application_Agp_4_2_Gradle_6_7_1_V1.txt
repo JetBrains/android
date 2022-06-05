@@ -157,6 +157,16 @@ MODULE                        : application.app
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        runtimeMinSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>

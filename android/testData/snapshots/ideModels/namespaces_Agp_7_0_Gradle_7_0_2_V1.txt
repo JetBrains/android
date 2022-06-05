@@ -320,6 +320,16 @@ MODULE                        : project.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        runtimeMinSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -706,6 +716,16 @@ MODULE                        : project.lib
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        runtimeMinSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -1051,6 +1071,16 @@ MODULE                        : project.otherlib
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        runtimeMinSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

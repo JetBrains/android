@@ -475,6 +475,16 @@ MODULE                        : TestCompositeLib1.app
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
         - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -2036,6 +2046,16 @@ MODULE                        : TestCompositeLib1.lib
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
         - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -3398,6 +3418,16 @@ MODULE                        : TestCompositeLib3.app
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
         - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -4439,6 +4469,16 @@ MODULE                        : TestCompositeLib3.lib
         - gradlePlugins               : org.gradle.api.publish.plugins.PublishingPlugin
         - gradlePlugins               : org.gradle.api.publish.maven.plugins.MavenPublishPlugin
         - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5959,6 +5999,16 @@ MODULE                        : project.app
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -7038,6 +7088,16 @@ MODULE                        : project.lib
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

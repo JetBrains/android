@@ -126,6 +126,16 @@ MODULE                        : withGradleMetadata.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>

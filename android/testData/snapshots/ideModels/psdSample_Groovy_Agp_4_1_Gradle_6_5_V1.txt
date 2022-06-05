@@ -1934,6 +1934,16 @@ MODULE                        : project.app
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -3753,6 +3763,16 @@ MODULE                        : project.dyn_feature
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.DynamicFeaturePlugin
         - gradlePlugins               : com.android.build.gradle.DynamicFeaturePlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-<SDK_VERSION>
@@ -4080,6 +4100,16 @@ MODULE                        : project.lib
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -4770,6 +4800,16 @@ MODULE                        : project.nested1
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5075,6 +5115,16 @@ MODULE                        : project.nested1.deep
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5390,6 +5440,16 @@ MODULE                        : project.nested2
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5826,6 +5886,16 @@ MODULE                        : project.nested2.deep
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -6145,6 +6215,16 @@ MODULE                        : project.nested2.trans.deep2
         - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

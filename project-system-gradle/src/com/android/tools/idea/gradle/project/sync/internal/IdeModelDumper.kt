@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -44,6 +45,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -86,6 +88,12 @@ fun ProjectDumper.dumpAndroidIdeModel(
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!module.isHolderModule()) return@let
+            head("CurrentVariantReportedVersions")
+            nest {
+              AndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
+              AndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
+              AndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
+            }
             dump(it.androidProject)
             // Dump all the fetched Ide variants.
             head("IdeVariants")
@@ -631,6 +639,15 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     private fun IdeApiVersion.dump(name: String) {
+      head(name)
+      nest {
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("CodeName") { codename }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+      }
+    }
+
+    fun AndroidVersion.dump(name: String) {
       head(name)
       nest {
         prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
