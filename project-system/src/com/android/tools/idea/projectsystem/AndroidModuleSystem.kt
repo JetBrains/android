@@ -332,8 +332,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /**
    * Returns a list of dynamic feature modules for this module
    */
-  @JvmDefault
   fun getDynamicFeatureModules(): List<Module> = emptyList()
+
+  /**
+   * Returns the base feature module for this module, if it is a dynamic feature module.
+   */
+  fun getBaseFeatureModule(): Module? = null
 
   /** Whether the ML model binding feature is enabled for this module. */
   @JvmDefault

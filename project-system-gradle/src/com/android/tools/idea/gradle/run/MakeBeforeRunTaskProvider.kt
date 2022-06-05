@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleBuilds
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
@@ -372,7 +372,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     ): String {
       val disabledFeatures = configuration.disabledDynamicFeatureModuleNames
       return modules.asSequence()
-        .flatMap { GradleProjectSystemUtil.getDependentFeatureModulesForBase(it).asSequence() }
+        .flatMap { it.getModuleSystem().getDynamicFeatureModules() }
         .map { it.name }
         .filter { name: String -> !disabledFeatures.contains(name) }
         .map { moduleName: String ->

@@ -30,29 +30,21 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -205,59 +197,8 @@ public class GradleProjectSystemUtil {
   @NotNull
   public static List<Module> getModulesToBuild(@NotNull Module module) {
     return Stream
-      .concat(Stream.of(module), getDependentFeatureModulesForBase(module).stream())
+      .concat(Stream.of(module), getModuleSystem(module).getDynamicFeatureModules().stream())
       .collect(Collectors.toList());
-  }
-
-  /**
-   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
-   */
-  @NotNull
-  public static List<Module> getDependentFeatureModulesForBase(@NotNull Module module) {
-    GradleAndroidModel androidModule = GradleAndroidModel.get(module);
-    if (androidModule == null) {
-      return ImmutableList.of();
-    }
-    return getDependentFeatureModulesForBase(module.getProject(), androidModule.getAndroidProject());
-  }
-
-  /**
-   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
-   */
-  @NotNull
-  public static List<Module> getDependentFeatureModulesForBase(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
-    Map<String, Module> featureMap = getDynamicFeaturesMap(project);
-    return androidProject.getDynamicFeatures().stream()
-      .map(featurePath -> featureMap.get(featurePath))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-  }
-
-  @NotNull
-  static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
-    return ProjectSystemUtil.getAndroidFacets(project).stream()
-      .map(facet -> {
-        AndroidModuleSystem moduleSystem = getModuleSystem(facet);
-        AndroidModuleSystem.Type type = moduleSystem.getType();
-        // Check the module is a "dynamic feature"
-        if (type != AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE) {
-          return null;
-        }
-        // TODO(b/149203281): Fix support for composite builds.
-        GradleProjectPath gradlePath = GradleProjectPathKt.getGradleProjectPath(facet.getHolderModule());
-        if (gradlePath == null) {
-          return null;
-        }
-        return Pair.create(gradlePath.getPath(), facet.getHolderModule());
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toMap(p -> p.first, p -> p.second, GradleProjectSystemUtil::handleModuleAmbiguity));
-  }
-
-  @NotNull
-  private static Module handleModuleAmbiguity(@NotNull Module m1, @NotNull Module m2) {
-    getLogger().warn(String.format("Unexpected ambiguity processing modules: %s - %s", m1.getName(), m2.getName()));
-    return m1;
   }
 
   @NotNull

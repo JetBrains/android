@@ -428,8 +428,22 @@ class GradleModuleSystem(
 
   override fun getDynamicFeatureModules(): List<Module> {
     val project = GradleAndroidModel.get(module)?.androidProject ?: return emptyList()
-    return GradleProjectSystemUtil.getDependentFeatureModulesForBase(module.project, project)
+    val ourGradleProjectPath = gradleProjectPath.toHolder()
+    return project.dynamicFeatures.map { dynamicFeature ->
+      val dynamicFeatureGradleProjectPath = ourGradleProjectPath.copy(path = dynamicFeature)
+      dynamicFeatureGradleProjectPath.resolveIn(module.project) ?: error("Missing dynamic feature module: $dynamicFeatureGradleProjectPath")
+    }
   }
+
+  override fun getBaseFeatureModule(): Module? {
+    val ideAndroidProject = GradleAndroidModel.get(module)?.androidProject ?: return null
+    return ideAndroidProject
+      .baseFeature
+      ?.let { baseFeature -> gradleProjectPath.toHolder().copy(path = baseFeature) }
+      ?.resolveIn(module.project)
+  }
+
+  private val gradleProjectPath: GradleProjectPath get() = module.getGradleProjectPath() ?: error("getGradleProjectPath($module) == null")
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
 

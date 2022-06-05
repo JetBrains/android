@@ -23,18 +23,15 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,11 +46,7 @@ public class DynamicAppUtils {
    */
   @Nullable
   public static Module getBaseFeature(@NotNull Module module) {
-    return ProjectSystemUtil.getAndroidFacets(module.getProject()).stream()
-      .filter(facet -> getModuleSystem(facet).getDynamicFeatureModules().contains(getHolderModule(module)))
-      .findFirst()
-      .map(AndroidFacet::getHolderModule)
-      .orElse(null);
+    return getModuleSystem(module).getBaseFeatureModule();
   }
 
   /**

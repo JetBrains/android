@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.resolveIn;
 import static java.util.Collections.emptyList;
@@ -253,8 +254,7 @@ public final class GradleApkProvider implements ApkProvider {
   private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull GradleAndroidModel androidModel,
                                                          @NotNull List<String> deviceAbis,
                                                          @NotNull AndroidVersion deviceVersion) {
-    IdeAndroidProject project = androidModel.getAndroidProject();
-    return GradleProjectSystemUtil.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
+    return getModuleSystem(myFacet).getDynamicFeatureModules()
       .stream()
       .map(module -> {
         // Find the output APK of the module
