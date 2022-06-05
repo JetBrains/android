@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem
 import com.android.SdkConstants
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
@@ -137,7 +136,6 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     fun Project.libModule() = this.gradleModule(":lib")!!
     fun Project.appModuleSystem() = this.appModule().getModuleSystem()
     fun Project.libModuleSystem() = this.libModule().getModuleSystem()
-    fun AssembleInvocationResult.errors() = this.invocationResult.invocations.mapNotNull { it.buildError }
 
     runTestOn(TestProjectPaths.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
@@ -145,21 +143,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
-      val debugBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.ANDROID_TESTS) }
-      expect.that(debugBuildResult.errors()).isEmpty()
-      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
-      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
-      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
-
       switchVariant(project, ":app", "release")
-      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      expect.that(project.appModuleSystem().getTestPackageName()).isNull()
-      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
-      expect.that(project.libModuleSystem().getTestPackageName()).isNull()
-
-      val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.ANDROID_TESTS) }
-      expect.that(releaseBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       expect.that(project.appModuleSystem().getTestPackageName()).isNull()
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
