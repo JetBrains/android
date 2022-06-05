@@ -15,7 +15,6 @@
 */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.repository.GradleVersion
 import com.android.projectmodel.DynamicResourceValue
 import com.android.sdklib.AndroidVersion
@@ -24,7 +23,6 @@ import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
@@ -34,12 +32,6 @@ import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
-import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp
-import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp.Companion.mostRecentNotNull
-import com.android.tools.idea.gradle.util.LastBuildOrSyncService
-import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputListingFile
-import com.android.tools.idea.gradle.util.loadBuildOutputListingFile
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
@@ -255,45 +247,6 @@ class GradleAndroidModel constructor(
   override fun getResourcePrefix(): String? = androidProject.resourcePrefix
   override fun isBaseSplit(): Boolean = androidProject.isBaseSplit
   override fun isInstantAppCompatible(): Boolean = selectedVariant.instantAppCompatible
-
-  fun getApplicationIdUsingCache(variantOutputInformation: IdeBuildTasksAndOutputInformation): String {
-    val (genericBuiltArtifacts) = mostRecentNotNull(
-      getGenericBuiltArtifactsWithTimestamp(variantOutputInformation, OutputType.Apk),
-      getGenericBuiltArtifactsWithTimestamp(variantOutputInformation, OutputType.ApkFromBundle)
-    ) ?: return AndroidModel.UNINITIALIZED_APPLICATION_ID
-    val (_, _, applicationId) = genericBuiltArtifacts
-      ?: return AndroidModel.UNINITIALIZED_APPLICATION_ID
-    return applicationId
-  }
-
-  private fun getGenericBuiltArtifactsWithTimestamp(
-    variantOutputInformation: IdeBuildTasksAndOutputInformation,
-    outputType: OutputType
-  ): GenericBuiltArtifactsWithTimestamp? {
-    val buildOutputListingFile = variantOutputInformation.getOutputListingFile(outputType) ?: return null
-    val artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(buildOutputListingFile)
-    return if (artifactsWithTimestamp.genericBuiltArtifacts == null) {
-      null
-    } else artifactsWithTimestamp
-  }
-
-  @GuardedBy("myGenericBuiltArtifactsMap")
-  private val myGenericBuiltArtifactsMap: MutableMap<String, GenericBuiltArtifactsWithTimestamp> = HashMap()
-
-  private fun getGenericBuiltArtifactsUsingCache(buildOutputListingFile: String): GenericBuiltArtifactsWithTimestamp {
-    return synchronized(myGenericBuiltArtifactsMap) {
-      val artifactsWithTimestamp = myGenericBuiltArtifactsMap[buildOutputListingFile]
-      val lastSyncOrBuild: Long = project.getService(LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp
-      if (artifactsWithTimestamp == null || lastSyncOrBuild >= artifactsWithTimestamp.timeStamp) {
-        GenericBuiltArtifactsWithTimestamp(loadBuildOutputListingFile(buildOutputListingFile), System.currentTimeMillis())
-          .also {
-            myGenericBuiltArtifactsMap[buildOutputListingFile] = it
-          }
-      } else {
-        artifactsWithTimestamp
-      }
-    }
-  }
 
   private fun unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
 

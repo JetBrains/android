@@ -27,9 +27,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.instantapp.InstantApps
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
@@ -86,29 +84,9 @@ class GradleApplicationIdProvider(
   override fun getTestPackageName(): String? {
     if (!forTests) return null
 
-    if (androidModel.features.isBuildOutputFileSupported) {
-      val artifactForAndroidTest = getArtifactForAndroidTest() ?: return null
-      androidModel.getApplicationIdUsingCache(artifactForAndroidTest.buildInformation)
-        .takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
-        ?.let { return it }
-    }
-
-    val projectType = androidModel.androidProject.projectType
-    if (projectType === PROJECT_TYPE_TEST) {
-      return variant.mainArtifact.applicationId.nullize()
-             ?: androidFacet.getModuleSystem().getPackageName().nullize()
-             ?: throw ApkProvisionException("[" + androidFacet.module.name + "] Unable to obtain test package.")
-    }
-
-    // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
-    // In the case of Gradle projects, either the merged flavor provides a test package name,
-    // or we just append ".test" to the source package name.
-    variant.androidTestArtifact?.applicationId?.let { return it }
-
-    return when (projectType) {
-      PROJECT_TYPE_DYNAMIC_FEATURE, PROJECT_TYPE_LIBRARY -> getApplicationIdFromModelOrManifest(androidFacet) + DEFAULT_TEST_PACKAGE_SUFFIX
-      else -> packageName + DEFAULT_TEST_PACKAGE_SUFFIX
-    }
+    return getArtifactForAndroidTest()?.applicationId?.nullize()
+      ?: throw ApkProvisionException("[${androidFacet.module.name}] Unable to obtain test package.")
+        .also { logger.error(it) }
   }
 
   // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.

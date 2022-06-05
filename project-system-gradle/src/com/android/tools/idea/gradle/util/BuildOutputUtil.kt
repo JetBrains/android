@@ -17,10 +17,8 @@
 
 package com.android.tools.idea.gradle.util
 
-import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
-import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.log.LogWrapper
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
@@ -62,10 +60,6 @@ fun getOutputFilesFromListingFile(listingFile: String): List<File> {
   return emptyList()
 }
 
-fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
-  return firstOrNull { it.variantName == variantName }?.buildInformation
-}
-
 fun IdeBuildTasksAndOutputInformation.getOutputListingFileOrLogError(outputType: OutputType): String? {
   return getOutputListingFile(outputType)
     .also {
@@ -81,21 +75,3 @@ fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputTyp
     OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
     else -> bundleTaskOutputListingFile
   }
-
-fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
-  val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
-  if (builtArtifacts != null) {
-    return builtArtifacts
-  }
-
-  // Couldn't read from build output listings file, this could be because a build hasn't yet been completed
-  return null
-}
-
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long) {
-  companion object {
-    @JvmStatic
-    fun mostRecentNotNull(vararg items: GenericBuiltArtifactsWithTimestamp?): GenericBuiltArtifactsWithTimestamp? =
-      items.filterNotNull().maxByOrNull { it.timeStamp }
-  }
-}
