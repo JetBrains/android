@@ -159,7 +159,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import com.intellij.testFramework.replaceService
@@ -1019,6 +1018,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val defaultVariant = debugBuildType ?: releaseBuildType
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
   val buildTypes = listOfNotNull(debugBuildType, releaseBuildType)
+  val projectType = projectType
   return IdeAndroidProjectImpl(
     agpVersion = agpVersion,
     name = projectName,
@@ -1044,6 +1044,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     buildToolsVersion = "buildToolsVersion",
     isBaseSplit = true,
     dynamicFeatures = dynamicFeatures,
+    baseFeature = null,
     viewBindingOptions = viewBindingOptions,
     dependenciesInfo = dependenciesInfo,
     groupId = null,
@@ -1277,6 +1278,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val androidModels = mutableListOf<GradleAndroidModelData>()
   val internedModels = InternedModels(null)
   val libraryResolver = IdeLibraryModelResolverImpl { sequenceOf(internedModels.resolve(it)) }
+  val featureToBase = mutableMapOf<String, String>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
     val moduleRelativeBasePath = gradlePath.substring(1).replace(':', File.separatorChar)
@@ -1297,6 +1299,13 @@ private fun setupTestProjectFromAndroidModelCore(
           moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get(),
           internedModels
         )
+        featureToBase.putAll(androidProject.dynamicFeatures.map {it to gradlePath})
+
+        fun IdeAndroidProjectImpl.populateBaseFeature(): IdeAndroidProjectImpl {
+          return if (projectType != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) this
+          else copy(baseFeature = featureToBase[gradlePath] ?: error("Base feature must appear fist in a test project. ($gradlePath)"))
+        }
+
         createAndroidModuleDataNode(
           qualifiedModuleName = qualifiedModuleName,
           gradlePath = gradlePath,
@@ -1307,7 +1316,7 @@ private fun setupTestProjectFromAndroidModelCore(
           gradleVersion = moduleBuilder.gradleVersion,
           agpVersion = moduleBuilder.agpVersion,
           gradlePlugins = gradlePlugins,
-          androidProject = androidProject,
+          androidProject = androidProject.populateBaseFeature(),
           variants = variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
           libraryResolver = libraryResolver,
           ndkModel = ndkModel,

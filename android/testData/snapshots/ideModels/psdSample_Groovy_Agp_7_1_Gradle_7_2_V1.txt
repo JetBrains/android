@@ -3517,6 +3517,7 @@ MODULE                        : project.dyn_feature
     VariantNames                  : debug
     VariantNames                  : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BaseFeature                   : :app
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

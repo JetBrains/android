@@ -40,6 +40,7 @@ data class IdeAndroidProjectImpl(
   override val buildToolsVersion: String?,
   override val isBaseSplit: Boolean,
   override val dynamicFeatures: Collection<String>,
+  override val baseFeature: String?,
   override val viewBindingOptions: IdeViewBindingOptionsImpl?,
   override val dependenciesInfo: IdeDependenciesInfoImpl?,
   override val groupId: String?,

@@ -192,6 +192,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidModel.flavorDimensions.forEach { prop("FlavorDimensions") { it } }
       ideAndroidModel.bootClasspath.forEach { prop("BootClassPath") { it.toPrintablePath().replaceCurrentSdkVersion() } }
       ideAndroidModel.dynamicFeatures.forEach { prop("DynamicFeatures") { it } }
+      prop("BaseFeature") { ideAndroidModel.baseFeature }
       ideAndroidModel.viewBindingOptions?.let { dump(it) }
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
       ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }

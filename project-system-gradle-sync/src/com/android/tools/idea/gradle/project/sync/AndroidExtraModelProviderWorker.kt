@@ -187,7 +187,23 @@ internal class AndroidExtraModelProviderWorker(
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
       populateProjectSyncIssues(androidModules, canFetchV2Models)
       modelCache.prepare()
-      return modules.map { it.prepare() } + GradleProject(buildModel, modelCache.createLibraryTable())
+      val indexedModels = indexModels(modules)
+      return modules.map { it.prepare(indexedModels) } + GradleProject(buildModel, modelCache.createLibraryTable())
+    }
+
+    private fun indexModels(modules: List<GradleModule>): IndexedModels {
+      return IndexedModels(
+        dynamicFeatureToBaseFeatureMap =
+        modules.filterIsInstance<AndroidModule>()
+          .flatMap { androidModule ->
+            val projectIdentifier = androidModule.gradleProject.projectIdentifier
+            val rootDir = projectIdentifier.buildIdentifier.rootDir
+            androidModule.androidProject.dynamicFeatures
+              .map { ModuleId(it, rootDir.path) }
+              .map { it to androidModule.moduleId }
+          }
+          .toMap()
+      )
     }
 
     private fun fetchGradleModulesAction(
@@ -523,7 +539,7 @@ internal class AndroidExtraModelProviderWorker(
 
       populateProjectSyncIssues(nativeModules)
 
-      return nativeModules.map { it.prepare() }
+      return nativeModules.map { it.prepare(IndexedModels(dynamicFeatureToBaseFeatureMap = emptyMap())) }
     }
   }
 
@@ -1024,10 +1040,10 @@ fun v1VariantFetcher(modelCache: ModelCache.V1, legacyApplicationIdModel: Legacy
     module: AndroidModule,
     configuration: ModuleConfiguration
   ): IdeVariantWithPostProcessor? {
-    val androidModuleId = ModuleId(module.gradleProject.path, module.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
+    val androidModuleId = module.gradleProject.toModuleId()
     val adjustedVariantName = module.adjustForTestFixturesSuffix(configuration.variant)
     val variant = controller.findVariantModel(module, adjustedVariantName) ?: return null
-    return modelCache.variantFrom(module.androidProject, variant, legacyApplicationIdModel, module.agpVersion, androidModuleId, )
+    return modelCache.variantFrom(module.androidProject, variant, legacyApplicationIdModel, module.agpVersion, androidModuleId)
   }
 }
 

@@ -79,7 +79,7 @@ class GradleProject(
 sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
-
+  val moduleId: ModuleId = gradleProject.toModuleId()
   var projectSyncIssues: List<IdeSyncIssue> = emptyList(); private set
   fun setSyncIssues(issues: List<IdeSyncIssue>) {
     projectSyncIssues = issues
@@ -88,7 +88,7 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
   /**
    * Prepares the final collection of models for delivery to the IDE.
    */
-  abstract fun prepare(): DeliverableGradleModule
+  abstract fun prepare(indexedModels: IndexedModels): DeliverableGradleModule
 }
 
 /**
@@ -132,7 +132,7 @@ class JavaModule(
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
 ) : GradleModule(gradleProject) {
-  override fun prepare(): DeliverableGradleModule {
+  override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
   }
 }
@@ -267,7 +267,12 @@ sealed class AndroidModule constructor(
     legacyApplicationIdModel = legacyApplicationIdModel,
   )
 
-  override fun prepare(): DeliverableGradleModule {
+  override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
+    fun IdeAndroidProjectImpl.populateBaseFeature(): IdeAndroidProjectImpl {
+      return if (this.projectType != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) this
+      else copy(baseFeature = indexedModels.dynamicFeatureToBaseFeatureMap[moduleId]?.gradlePath)
+    }
+
     // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
     // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
@@ -281,7 +286,7 @@ sealed class AndroidModule constructor(
       projectSyncIssues = projectSyncIssues,
       selectedVariantName = selectedVariantName,
       selectedAbiName = syncedNativeVariantAbiName,
-      androidProject = androidProject.patchForKapt(kaptGradleModel),
+      androidProject = androidProject.patchForKapt(kaptGradleModel).populateBaseFeature(),
       fetchedVariants = (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).map { it.postProcess() }.patchForKapt(kaptGradleModel),
       nativeModule = nativeModule,
       nativeAndroidProject = nativeAndroidProject,
@@ -369,7 +374,7 @@ class NativeVariantsAndroidModule private constructor(
       NativeVariantsAndroidModule(gradleProject, nativeVariants)
   }
 
-  override fun prepare(): DeliverableGradleModule {
+  override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, nativeVariants)
   }
 }

@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_JAR
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSortedSet
 import com.intellij.openapi.util.io.FileUtil
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
@@ -144,6 +145,7 @@ interface ModelCache {
 
 data class ModuleId(val gradlePath: String, val buildId: String)
 
+fun BasicGradleProject.toModuleId() = ModuleId(path, projectIdentifier.buildIdentifier.rootDir.path)
 /**
  * A [model] wrapper that knows how to post-process it once all models are fetched. [postProcess] method is expected to be invoked when the
  * cache is populated with all models and the returned value is supposed to be used instead the original [model].

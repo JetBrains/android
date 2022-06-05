@@ -1195,6 +1195,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       aaptOptions = aaptOptionsCopy,
       buildFolder = basicProject.buildFolder,
       dynamicFeatures = dynamicFeaturesCopy,
+      baseFeature = null,
       variantsBuildInformation = variantBuildInformation,
       viewBindingOptions = viewBindingOptionsCopy,
       dependenciesInfo = dependenciesInfoCopy,

@@ -1233,6 +1233,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       aaptOptions = aaptOptionsCopy,
       buildFolder = project.buildFolder,
       dynamicFeatures = dynamicFeaturesCopy,
+      baseFeature = null,
       variantsBuildInformation = variantBuildInformation,
       viewBindingOptions = viewBindingOptionsCopy,
       dependenciesInfo = dependenciesInfoCopy,

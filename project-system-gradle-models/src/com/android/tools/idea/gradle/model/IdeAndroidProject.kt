@@ -129,21 +129,20 @@ interface IdeAndroidProject : Serializable {
 
   /**
    * Returns true if this is the base feature split.
-   *
-   * @return true if this is the base feature split
-   * @since 2.4
    */
   val isBaseSplit: Boolean
 
   /**
    * Returns the list of dynamic features.
    *
-   *
-   * The values are Gradle path. Only valid for base splits.
-   *
-   * @return
    */
   val dynamicFeatures: Collection<String>
+
+  /**
+   * The Gradle path of the base feature (if a dynamic feature).
+   */
+  val baseFeature: String?
+
   val viewBindingOptions: IdeViewBindingOptions?
   val dependenciesInfo: IdeDependenciesInfo?
 
