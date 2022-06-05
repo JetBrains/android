@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.util.LastBuildOrSyncService
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.gradle.util.loadBuildOutputListingFile
-import com.android.tools.idea.gradle.util.variantOutputInformation
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
@@ -125,8 +124,6 @@ class GradleAndroidModel constructor(
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
-  fun getArtifactForTestFixtures(): IdeAndroidArtifact? = selectedVariant.testFixturesArtifact
-  fun getTestExecutionStrategy(): IdeTestOptions.Execution? = getArtifactForAndroidTest()?.testOptions?.execution
   fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
 
   override fun getAgpVersion(): GradleVersion = agpVersion
@@ -258,12 +255,6 @@ class GradleAndroidModel constructor(
   override fun getResourcePrefix(): String? = androidProject.resourcePrefix
   override fun isBaseSplit(): Boolean = androidProject.isBaseSplit
   override fun isInstantAppCompatible(): Boolean = selectedVariant.instantAppCompatible
-
-  private fun getApplicationIdUsingCache(variantName: String): String {
-    val variantOutputInformation = androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-      ?: return AndroidModel.UNINITIALIZED_APPLICATION_ID
-    return getApplicationIdUsingCache(variantOutputInformation)
-  }
 
   fun getApplicationIdUsingCache(variantOutputInformation: IdeBuildTasksAndOutputInformation): String {
     val (genericBuiltArtifacts) = mostRecentNotNull(
