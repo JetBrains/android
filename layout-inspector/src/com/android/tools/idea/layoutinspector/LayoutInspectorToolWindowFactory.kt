@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectio
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -125,39 +126,35 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
+        createForegroundProcessDetection(project, processesModel, workbench, toolWindow)
+
         project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
                                                         LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
                                                                                                  launcher))
-
-        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
-          fun getProcessDescriptor(foregroundProcess: ForegroundProcess): ProcessDescriptor? {
-            return processesModel.processes.firstOrNull { it.pid == foregroundProcess.pid }
-          }
-
-          // The following line has the side effect of starting the transport service if it has not been already.
-          // The consequence of not doing this is gRPC calls are never responded to.
-          TransportService.getInstance()
-
-          val transportClient = TransportClient(TransportService.channelName)
-          val foregroundProcessListener = object : ForegroundProcessListener {
-            override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
-              processesModel.selectedProcess = getProcessDescriptor(foregroundProcess)
-            }
-          }
-          val deviceModel = DeviceModel(processesModel)
-          val foregroundProcessDetection = ForegroundProcessDetection(
-            deviceModel,
-            transportClient,
-            foregroundProcessListener,
-            project.coroutineScope
-          )
-
-          project.messageBus.connect(workbench).subscribe(
-            ToolWindowManagerListener.TOPIC,
-            ForegroundProcessDetectionWindowManagerListener(foregroundProcessDetection, toolWindow.isVisible)
-          )
-        }
       }
+    }
+  }
+
+  private fun createForegroundProcessDetection(
+    project: Project,
+    processesModel: ProcessesModel,
+    workBench: WorkBench<LayoutInspector>,
+    toolWindow: ToolWindow
+  ): ForegroundProcessDetection? {
+    return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
+      ForegroundProcessDetectionInitializer.initialize(
+        processModel = processesModel,
+        deviceModel = DeviceModel(processesModel),
+        coroutineScope = project.coroutineScope
+      ).also {
+        project.messageBus.connect(workBench).subscribe(
+          ToolWindowManagerListener.TOPIC,
+          ForegroundProcessDetectionWindowManagerListener(it, toolWindow.isVisible)
+        )
+      }
+    }
+    else {
+      null
     }
   }
 
