@@ -95,6 +95,9 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILDSRC),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_FIXTURES),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SETS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.CUSTOM_SOURCE_TYPE),
       AndroidProjectViewSnapshotComparisonTestDef(
         TestProject.MULTI_FLAVOR,

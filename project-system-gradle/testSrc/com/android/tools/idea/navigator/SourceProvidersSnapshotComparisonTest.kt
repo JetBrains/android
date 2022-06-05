@@ -80,6 +80,8 @@ data class SourceProvidersTestDef(
       SourceProvidersTestDef(TestProject.TEST_FIXTURES),
       SourceProvidersTestDef(TestProject.KOTLIN_KAPT),
       SourceProvidersTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
+      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE),
     )
   }
 }
