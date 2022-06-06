@@ -711,6 +711,8 @@ MODULE: kotlinMultiPlatform.module2
                 file://./module2/src/androidMain/kotlin
                 file://./module2/src/main/kotlin
                 file://./module2/src/main/java
+            KotlinDirectories:
+                file://./module2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./module2/src/main/jniLibs
                 file://./module2/src/androidMain/jniLibs
@@ -1066,6 +1068,8 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidDebug/kotlin
                     file://./module2/src/debug/kotlin
                     file://./module2/src/debug/java
+                KotlinDirectories:
+                    file://./module2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./module2/src/main/jniLibs
                     file://./module2/src/androidMain/jniLibs
@@ -1259,6 +1263,8 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidMain/kotlin
                     file://./module2/src/main/kotlin
                     file://./module2/src/main/java
+                KotlinDirectories:
+                    file://./module2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./module2/src/main/jniLibs
                     file://./module2/src/androidMain/jniLibs
@@ -1363,6 +1369,8 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidMain/kotlin
                     file://./module2/src/main/kotlin
                     file://./module2/src/main/java
+                KotlinDirectories:
+                    file://./module2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./module2/src/main/jniLibs
                     file://./module2/src/androidMain/jniLibs

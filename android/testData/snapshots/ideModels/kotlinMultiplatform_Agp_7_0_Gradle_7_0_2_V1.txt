@@ -2161,7 +2161,7 @@ MODULE                        : kotlinMultiPlatform.module2
             Manifest                      : <ROOT>/module2/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/module2/src/main/java [-]
             KotlinDirectories             : <ROOT>/module2/src/androidMain/kotlin [-]
-            KotlinDirectories             : <ROOT>/module2/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/module2/src/main/kotlin
             KotlinDirectories             : <ROOT>/module2/src/main/java [-]
             ResourcesDirectories          : <ROOT>/module2/src/main/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidMain/resources [-]

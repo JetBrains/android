@@ -1192,6 +1192,7 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/main
+            JavaSource                    : file://<PROJECT>/module2/src/main/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
@@ -1229,7 +1230,6 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/rs [-]
@@ -1245,6 +1245,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:generateDebugSources, :module2:createMockableJar, :module2:generateDebugAndroidTestSources
