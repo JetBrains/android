@@ -19,10 +19,10 @@ import com.android.tools.idea.compose.annotator.check.common.ExpectedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
-import kotlin.math.roundToInt
 
 /**
  * [ParameterRule] to check Dimension parameters in the DeviceSpec.
@@ -119,13 +119,8 @@ internal class DimensionParameterRule(
       return defaultNumber
     }
 
-    // If the decimal part is not significant (< .05 or >= .95) return the rounded integer, otherwise round to 1 decimal
-    val roundedNumber = floatNumber.roundToInt()
-    val decimalDiff = (floatNumber - roundedNumber).times(100).roundToInt()
-    if (decimalDiff >= -5 && decimalDiff < 5) { // Better to compare the decimals as integers
-      return roundedNumber
-    }
-    return floatNumber.times(10).roundToInt().div(10f)
+    // round to the expected DeviceSpec format
+    return convertToDeviceSpecDimension(floatNumber)
   }
 
   private fun isBadNumber(numberString: String): Boolean {

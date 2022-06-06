@@ -119,7 +119,7 @@ internal class DeviceEnumValueBuilder {
       round(dpiCalc * 100) / 100.0
     }
     val density = AvdScreenData.getScreenDensity(null, true, dpi, heightPx)
-    val deviceSpec = DeviceConfig(width = widthPx, height = heightPx, dimUnit = DimUnit.px, dpi = density.dpiValue).deviceSpec()
+    val deviceSpec = DeviceConfig(width = widthPx.toFloat(), height = heightPx.toFloat(), dimUnit = DimUnit.px, dpi = density.dpiValue).deviceSpec()
     val display = overrideDisplayName ?: "${round(diagonalIn * 100) / 100}\" ${type.name} ${heightPx}p"
     val enumValue = PsiEnumValue.indented(deviceSpec, display, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[type]?.add(enumValue)
@@ -133,12 +133,12 @@ internal class DeviceEnumValueBuilder {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
     val shape = if (isRound) Shape.Round else Shape.Normal
     val deviceSpec = DeviceConfig(
-      width = 300,
-      height = 300,
+      width = 300f,
+      height = 300f,
       dimUnit = DimUnit.px,
       dpi = density.dpiValue,
       shape = shape,
-      chinSize = chinSizePx
+      chinSize = chinSizePx.toFloat()
     ).deviceSpec()
     val enumValue = PsiEnumValue.indented(deviceSpec, displayName, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
@@ -226,8 +226,8 @@ internal class DeviceEnumValueBuilder {
 
 private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
   DeviceConfig(
-    width = widthDp.roundToInt(),
-    height = heightDp.roundToInt(),
+    width = widthDp.toFloat(),
+    height = heightDp.toFloat(),
     dimUnit = DimUnit.dp,
     dpi = density.dpiValue,
     shape = Shape.Normal

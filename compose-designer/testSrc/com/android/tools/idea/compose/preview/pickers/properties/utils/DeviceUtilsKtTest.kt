@@ -43,8 +43,8 @@ internal class DeviceUtilsKtTest {
     val modifiedConfig = device.toDeviceConfig()
     assertEquals(DimUnit.px, modifiedConfig.dimUnit)
     assertEquals(Orientation.portrait, modifiedConfig.orientation)
-    assertEquals(1080, modifiedConfig.width)
-    assertEquals(2280, modifiedConfig.height)
+    assertEquals(1080f, modifiedConfig.width)
+    assertEquals(2280f, modifiedConfig.height)
     assertEquals(240, modifiedConfig.dpi)
     assertEquals(Shape.Normal, modifiedConfig.shape)
 
@@ -60,7 +60,7 @@ internal class DeviceUtilsKtTest {
     var roundChinConfig = device.toDeviceConfig()
     assertTrue(roundChinConfig.isRound)
     assertEquals(Shape.Chin, roundChinConfig.shape)
-    assertEquals(0, roundChinConfig.chinSize)
+    assertEquals(0f, roundChinConfig.chinSize)
 
     // When using DeviceSpec Language
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
@@ -68,7 +68,7 @@ internal class DeviceUtilsKtTest {
     roundChinConfig = device.toDeviceConfig()
     assertTrue(roundChinConfig.isRound)
     assertEquals(Shape.Round, roundChinConfig.shape) // Not using Shape.Chin anymore
-    assertEquals(10, roundChinConfig.chinSize) // ChinSize is reflected properly
+    assertEquals(10f, roundChinConfig.chinSize) // ChinSize is reflected properly
 
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
@@ -77,21 +77,21 @@ internal class DeviceUtilsKtTest {
   fun createDeviceInstanceWithDeviceSpecLanguage() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     var screen = DeviceConfig(
-      width = 100,
-      height = 100,
+      width = 100f,
+      height = 100f,
       dimUnit = DimUnit.px,
       shape = Shape.Round,
-      chinSize = 20
+      chinSize = 20f
     ).createDeviceInstance().defaultHardware.screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(20, screen.chin)
 
     screen = DeviceConfig(
-      width = 100,
-      height = 100,
+      width = 100f,
+      height = 100f,
       dimUnit = DimUnit.dp,
       shape = Shape.Round,
-      chinSize = 20
+      chinSize = 20f
     ).createDeviceInstance().defaultHardware.screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(60, screen.chin) // Screen.chin is pixels, so it's a different value when originally declared on 'dp
@@ -144,10 +144,10 @@ private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
   return listOf(
-    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
-    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
-    DeviceConfig(width = 1080, height = 2280, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
-    DeviceConfig(width = 600, height = 600, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
+    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
+    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+    DeviceConfig(width = 1080f, height = 2280f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+    DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
   ).map {
     Device.Builder(it.createDeviceInstance()).also { builder ->
       if (nameOrIdCount % 2 == 0) {

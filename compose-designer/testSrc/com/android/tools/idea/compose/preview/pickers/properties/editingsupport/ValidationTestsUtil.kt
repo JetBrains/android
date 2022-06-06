@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 
-import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.adtui.model.stdui.EditingValidation
-import com.android.tools.idea.compose.preview.message
 
-/**
- * [EditingValidation] instance that validates for positive (>0) float numbers.
- */
-object FloatValidator : EditingValidation {
-  override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
-    if (editedValue == null || editedValue.isBlank()) return EDITOR_NO_ERROR
-    return validateFloat(editedValue = editedValue, validateSuffix = true, canBeZero = false)
-  }
-}
+internal val ERROR_GREATER_THAN_ZERO = Pair(EditingErrorCategory.ERROR, "Should be at least 1")
+
+internal val ERROR_NOT_INTEGER = Pair(EditingErrorCategory.ERROR, "Not an Integer")
+internal val ERROR_NOT_FLOAT = Pair(EditingErrorCategory.ERROR, "Not a Float")
+internal val ERROR_NOT_BOOLEAN = Pair(EditingErrorCategory.ERROR, "Not a Boolean")
+
+internal val WARN_FORMAT = Pair(EditingErrorCategory.WARNING, "Use the proper suffix (f) e.g: 1.0f")
+internal val WARN_GREATER_THAN_ZERO = Pair(EditingErrorCategory.WARNING, "Should be at least 1")
+internal val WARN_DECIMALS = Pair(EditingErrorCategory.WARNING, "Only one decimal supported")

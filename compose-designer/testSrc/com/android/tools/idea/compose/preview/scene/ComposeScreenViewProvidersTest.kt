@@ -51,7 +51,7 @@ class ComposeScreenViewProvidersTest {
     surface.model = model
 
     // Create a device with round shape
-    val deviceWithRoundFrame = DeviceConfig(width = 600, height = 600, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
+    val deviceWithRoundFrame = DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
       .createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
 

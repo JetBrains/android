@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
+import kotlin.math.roundToInt
 
 internal object PickerTrackerHelper {
   /**
@@ -31,7 +32,7 @@ internal object PickerTrackerHelper {
    */
   fun densityBucketOfDeviceConfig(config: DeviceConfig): PreviewPickerValue {
     val configCopy = config.toMutableConfig().apply { dimUnit = DimUnit.px } // We need pixel dimensions to calculate density
-    val density = AvdScreenData.getScreenDensity(null, false, configCopy.dpi.toDouble(), configCopy.height)
+    val density = AvdScreenData.getScreenDensity(null, false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
     return when (density) {
       Density.LOW -> PreviewPickerValue.DENSITY_LOW
       Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM

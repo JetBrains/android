@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.PreviewPickerPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
@@ -477,7 +478,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
       PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
-    var expectedModificationsCountdown = 15
+    var expectedModificationsCountdown = 16
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -537,6 +538,16 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("true", model.properties["", "IsRound"].value)
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=961px,height=360px,dpi=240,isRound=true,chinSize=30px")""",
+      noParametersPreview.annotationText()
+    )
+
+    // When using DeviceSpec Language, conversions should support floating point
+    model.properties["", "DimensionUnit"].value = DimUnit.dp.name
+    assertEquals("640.7", model.properties["", "Width"].value)
+    assertEquals("240", model.properties["", "Height"].value)
+    assertEquals("20", model.properties["", "ChinSize"].value)
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp")""",
       noParametersPreview.annotationText()
     )
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()

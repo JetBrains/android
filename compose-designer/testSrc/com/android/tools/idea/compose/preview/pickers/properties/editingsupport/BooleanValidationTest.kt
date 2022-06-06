@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
-import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -34,11 +33,9 @@ class BooleanValidationTest {
     assertEquals(EDITOR_NO_ERROR, validator("true"))
     assertEquals(EDITOR_NO_ERROR, validator("false"))
 
-    assertEquals(ERROR_NAN, validator("Test"))
-    assertEquals(ERROR_NAN, validator("t r u e"))
-    assertEquals(ERROR_NAN, validator("TrUe"))
-    assertEquals(ERROR_NAN, validator("FaLSe"))
+    assertEquals(ERROR_NOT_BOOLEAN, validator("Test"))
+    assertEquals(ERROR_NOT_BOOLEAN, validator("t r u e"))
+    assertEquals(ERROR_NOT_BOOLEAN, validator("TrUe"))
+    assertEquals(ERROR_NOT_BOOLEAN, validator("FaLSe"))
   }
 }
-
-private val ERROR_NAN = Pair(EditingErrorCategory.ERROR, "Not a Boolean")

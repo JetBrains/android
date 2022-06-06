@@ -103,7 +103,7 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:", fixture.lookupElementStrings!![1]) // Driven by Live Template
     assertEquals("spec:width=411dp,height=891dp,dpi=420", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=674dp,height=841dp", fixture.lookupElementStrings!![3])
+    assertEquals("spec:width=673.5dp,height=841dp", fixture.lookupElementStrings!![3])
     assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![4])
     assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![5])
 
@@ -117,7 +117,7 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:width=411dp,height=891dp,dpi=420", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=674dp,height=841dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=673.5dp,height=841dp", fixture.lookupElementStrings!![2])
     assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
     assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
 
@@ -126,7 +126,7 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("spec:", fixture.lookupElementStrings!![0]) // Driven by Live Template
     assertEquals("spec:width=411dp,height=891dp,dpi=420", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=674dp,height=841dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=673.5dp,height=841dp", fixture.lookupElementStrings!![2])
     assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
     assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
   }

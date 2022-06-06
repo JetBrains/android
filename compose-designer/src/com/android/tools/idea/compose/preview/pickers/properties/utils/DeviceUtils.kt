@@ -39,6 +39,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkData
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /** Prefix used by device specs to find devices by id. */
@@ -57,13 +58,13 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
   val deviceState = this.defaultState
   val screen = deviceState.hardware.screen
-  config.width = screen.xDimension
-  config.height = screen.yDimension
+  config.width = screen.xDimension.toFloat()
+  config.height = screen.yDimension.toFloat()
   config.dpi = screen.pixelDensity.dpiValue
   if (screen.screenRound == ScreenRound.ROUND) {
     if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
       config.shape = Shape.Round
-      config.chinSize = screen.chin
+      config.chinSize = screen.chin.toFloat()
     }
     else {
       config.shape = if (screen.chin != 0) Shape.Chin else Shape.Round
@@ -98,15 +99,15 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
     hardware = Hardware().apply {
       screen = Screen().apply {
         deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
-        xDimension = deviceConfig.width
-        yDimension = deviceConfig.height
+        xDimension = deviceConfig.width.roundToInt()
+        yDimension = deviceConfig.height.roundToInt()
         pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), yDimension)
         diagonalLength =
           sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
         screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND
         chin = when {
           deviceConfig.shape == Shape.Chin -> CHIN_SIZE_PX_FOR_ROUND_CHIN
-          deviceConfig.isRound -> deviceConfig.chinSize
+          deviceConfig.isRound -> deviceConfig.chinSize.roundToInt()
           else -> 0
         }
         size = ScreenSize.getScreenSize(diagonalLength)
