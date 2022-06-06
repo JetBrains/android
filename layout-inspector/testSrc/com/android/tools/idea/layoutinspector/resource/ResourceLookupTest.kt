@@ -55,7 +55,7 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val table = TestStringTable()
     val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
-    val appContext = AppContext(theme)
+    val appContext = AppContext(theme, 1440, 3120)
     val process = MODERN_DEVICE.createProcess("com.example.test")
     resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
     assertThat(resourceLookup.resolver).isNotNull()
@@ -68,7 +68,7 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val table = TestStringTable()
     val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
-    val appContext = AppContext(theme)
+    val appContext = AppContext(theme, 1440, 3120)
     val process = MODERN_DEVICE.createProcess("com.example.test.debug")
     resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
     assertThat(resourceLookup.resolver).isNotNull()

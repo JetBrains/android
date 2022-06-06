@@ -19,5 +19,7 @@ package com.android.tools.idea.layoutinspector.resource.data
  * Misc. context about the current running app.
  */
 class AppContext(
-  val theme: Resource = Resource()
+  val theme: Resource = Resource(),
+  val screenWidth: Int,
+  val screenHeight: Int
 )

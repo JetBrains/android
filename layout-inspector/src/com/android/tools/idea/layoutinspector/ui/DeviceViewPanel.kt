@@ -37,7 +37,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
@@ -519,10 +518,9 @@ class DeviceViewPanel(
       scrollPane.viewport.revalidate()
     }
     else {
-      val root = layoutInspector.layoutInspectorModel.root
       viewportLayoutManager.currentZoomOperation = type
       when (type) {
-        ZoomType.FIT -> newZoom = getFitZoom(root)
+        ZoomType.FIT -> newZoom = getFitZoom()
         ZoomType.ACTUAL -> newZoom = 100
         ZoomType.IN -> newZoom += 10
         ZoomType.OUT -> newZoom -= 10
@@ -538,21 +536,35 @@ class DeviceViewPanel(
     return false
   }
 
-  private fun getFitZoom(root: ViewNode): Int {
+  private fun getFitZoom(): Int {
+    val size = getScreenSize()
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
-    val desiredWidth = (root.width).toDouble()
-    val desiredHeight = (root.height).toDouble()
+    val desiredWidth = (size.width).toDouble()
+    val desiredHeight = (size.height).toDouble()
     return if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
     else (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+  }
+
+  private fun getScreenSize(): Dimension {
+    // Use the screen size from the resource lookup if available.
+    // This will make sure the screen size is correct even if there are windows we don't know about yet.
+    // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
+    // since it is often smaller than the screen size.
+    val size = layoutInspector.layoutInspectorModel.resourceLookup.screenDimension
+    if (size.width > 0 && size.height > 0) {
+      return size
+    }
+    // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
+    val root = layoutInspector.layoutInspectorModel.root
+    return Dimension(root.width, root.height)
   }
 
   override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
   override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty &&
-                                getFitZoom(layoutInspector.layoutInspectorModel.root) != viewSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 

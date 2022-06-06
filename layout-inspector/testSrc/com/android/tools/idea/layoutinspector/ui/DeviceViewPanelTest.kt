@@ -531,6 +531,38 @@ class DeviceViewPanelTest {
   }
 
   @Test
+  fun testZoomOnConnectWithFilteringAndScreenSizeFromAppContext() {
+    val viewSettings = EditorDeviceViewSettings()
+    val model = InspectorModel(projectRule.project)
+    val processes = ProcessesModel(TestProcessDiscovery())
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
+                                           executor = MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val stats: SessionStatistics = mock()
+    whenever(stats.rotation).thenReturn(mock())
+    val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = true
+    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable)
+
+    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+    model.resourceLookup.screenDimension.setSize(200, 300)
+
+    assertThat(viewSettings.scalePercent).isEqualTo(100)
+
+    val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
+      view(VIEW1, 25, 30, 50, 50) {
+        image()
+      }
+    }
+
+    model.update(newWindow, listOf(ROOT), 0)
+
+    // now we should be zoomed to fit
+    assertThat(viewSettings.scalePercent).isEqualTo(90)
+  }
+
+  @Test
   fun testDrawNewWindow() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)

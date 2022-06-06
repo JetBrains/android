@@ -267,7 +267,7 @@ DONE.
       view(0x3d2ff9c)
     }
     assertDrawTreesEqual(expected, window.root)
-    verify(resourceLookup).dpi = 560
+    verify(resourceLookup).updateLegacyConfiguration(eq(560))
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
   }
