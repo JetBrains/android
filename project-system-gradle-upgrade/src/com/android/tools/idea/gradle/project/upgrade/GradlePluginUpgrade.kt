@@ -224,13 +224,11 @@ fun versionsAreIncompatible(
 }
 
 /**
- * Prompts the user to perform a required upgrade to ensure that the versions of the Android Gradle Plugin is
- * compatible with the running version of studio.
- *
- * We offer the user two ways to correct this, either we can attempt to edit the files automatically or the user can opt
- * to manually fix the problem.
- *
- * Returns true if the upgrade was performed automatically, false otherwise.
+ * Called when the AGP and Android Studio versions are mutually incompatible (and the AGP version is not newer than the latest supported
+ * version of AGP in this Android Studio).  Pops up a modal dialog to offer the user an upgrade (as minimal as possible) to the version
+ * of AGP used by the project.  The user may dismiss the dialog in order to make changes manually; if they leave the modal upgrade
+ * flow without completing an upgrade, we report a Sync message noting the existing incompatibility.  Returns when the modal flow is
+ * complete: any upgrade will have been scheduled but might not have completed by the time this returns.
  */
 @Slow
 fun performForcedPluginUpgrade(
@@ -241,13 +239,13 @@ fun performForcedPluginUpgrade(
     GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
     IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
   ).target
-) : Boolean {
+) {
   val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
     ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion, newPluginVersion).showAndGet()
   }
 
   if (upgradeAccepted) {
-    // The user accepted the upgrade
+    // The user accepted the upgrade: show upgrade details and offer the action.
     // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
     val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
     val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
@@ -258,22 +256,22 @@ fun performForcedPluginUpgrade(
     val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
+      // upgrade refactoring scheduled
+      return
     }
-    return false
-  } else {
-    // The user did not accept the upgrade
-    val syncMessage = SyncMessage(
-      SyncMessage.DEFAULT_GROUP,
-      ERROR,
-      "The project is using an incompatible version of the ${AndroidPluginInfo.DESCRIPTION}.",
-      "Please update your project to use version $newPluginVersion."
-    )
-    val pluginName = GROUP_ID + GRADLE_PATH_SEPARATOR + ARTIFACT_ID
-    syncMessage.add(SearchInBuildFilesHyperlink(pluginName))
-
-    GradleSyncMessages.getInstance(project).report(syncMessage)
-    return false
   }
+
+  // The user has left the modal upgrade flow without completing an upgrade (maybe through cancel, maybe through preview).
+  val syncMessage = SyncMessage(
+    SyncMessage.DEFAULT_GROUP,
+    ERROR,
+    "The project is using an incompatible version of the ${AndroidPluginInfo.DESCRIPTION}.",
+    "Please update your project to use version $newPluginVersion."
+  )
+  val pluginName = GROUP_ID + GRADLE_PATH_SEPARATOR + ARTIFACT_ID
+  syncMessage.add(SearchInBuildFilesHyperlink(pluginName))
+
+  GradleSyncMessages.getInstance(project).report(syncMessage)
 }
 
 data class GradlePluginUpgradeState(
