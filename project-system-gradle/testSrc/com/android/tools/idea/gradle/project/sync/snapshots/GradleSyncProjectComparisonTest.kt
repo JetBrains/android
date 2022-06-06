@@ -15,77 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.API_DEPENDENCY
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_BUILDSRC
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_ML_MODELS
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.BASIC
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.CENTRAL_BUILD_DIRECTORY
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MAIN_IN_ROOT
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_FIXTURES
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_ONLY_MODULE
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.WITH_GRADLE_METADATA
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
-import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
-import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.JavaSdk
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.join
-import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.PathUtil.toSystemDependentName
-import com.intellij.util.indexing.IndexableSetContributor
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.File
 
 /**
@@ -95,284 +49,70 @@ import java.io.File
  * environment (and ideally should not depend on the versions of irrelevant libraries) and comparing them to pre-recorded golden sync
  * results.
  *
- * The pre-recorded sync results can be found in testData/syncedProjectSnapshots/ *.txt files. Consult [snapshotSuffixes] for more
- * details on the way in which the file names are constructed.
+ * The pre-recorded sync results can be found in testData/syncedProjectSnapshots/ *.txt files.
  *
  * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
  * target as "//tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots".
  */
-@RunsInEdt
-open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+data class ProjectStructureSnapshotTestDef(
+  override val testProject: TestProject,
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
+  private val roots: Map<String, File> = emptyMap(),
+  private val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT)
+) : SyncedProjectTest.TestDef {
 
-  @get:Rule
-  val testName = TestName()
+  override val name: String = testProject.projectName
 
-  override fun getName(): String = testName.methodName
+  override fun toString(): String = testProject.projectName
 
-  protected val projectName: String get() = "p/${getName()}"
-
-  @Before
-  fun before() {
-    // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
-    //       re-register it by its class name. It means that this test might affect tests running after this one.
-
-    // [KotlinScriptDependenciesIndexableSetContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
-    // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
-    // run faster.
-    IndexableSetContributor.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesIndexableSetContributor::class.java)
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+    return copy(agpVersion = agpVersion)
   }
 
-  @RunWith(JUnit4::class)
-  @RunsInEdt
-  class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
-    // https://code.google.com/p/android/issues/detail?id=233038
-    @Test
-    fun testLoadPlainJavaProject() {
-      val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
-      assertIsEqualToSnapshot(text)
-    }
+  override fun isCompatible(): Boolean {
+    return agpVersion in compatibleWith
+  }
 
-    @Test
-    fun testMainInRoot() {
-      val text = importSyncAndDumpProject(MAIN_IN_ROOT)
-      assertIsEqualToSnapshot(text)
-    }
+  override fun runTest(root: File, project: Project) {
+    val text = project.saveAndDump(additionalRoots = roots.mapValues { root.resolve(it.value) })
+    SnapshotContext(testProject.projectName, agpVersion, PROJECT_STRUCTURE_SNAPSHOT_DIR).assertIsEqualToSnapshot(text)
+  }
 
-    // See https://code.google.com/p/android/issues/detail?id=226802
-    @Test
-    fun testNestedModule() {
-      val text = importSyncAndDumpProject(NESTED_MODULE)
-      assertIsEqualToSnapshot(text)
-    }
-
-    // See https://code.google.com/p/android/issues/detail?id=76444
-    @Test
-    fun testWithEmptyGradleSettingsFileInSingleModuleProject() {
-      val text = importSyncAndDumpProject(
-        projectDir = BASIC,
-        patch = { projectRootPath -> createEmptyGradleSettingsFile(projectRootPath) }
-      ) { it.saveAndDump() }
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testTransitiveDependencies() {
-      // TODO(b/124505053): Remove almost identical snapshots when SDK naming is fixed.
-      val text = importSyncAndDumpProject(TRANSITIVE_DEPENDENCIES)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testSimpleApplication() {
-      val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testWithGradleMetadata() {
-      val text = importSyncAndDumpProject(WITH_GRADLE_METADATA)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testTestFixtures() {
-      val text = importSyncAndDumpProject(TEST_FIXTURES)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testTestOnlyModule() {
-      val text = importSyncAndDumpProject(TEST_ONLY_MODULE)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testWithMlModels() {
-      val text = importSyncAndDumpProject(APP_WITH_ML_MODELS)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testMultiFlavor() {
-      val text = importSyncAndDumpProject(MULTI_FLAVOR)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testExternalSourceSets() {
-      val projectRootPath = prepareGradleProject(NON_STANDARD_SOURCE_SETS, "project")
-      openPreparedProject("project/application") { project ->
-        val text = project.saveAndDump(
-          mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath, "externalRoot"),
-                "EXTERNAL_MANIFEST" to File(projectRootPath, "externalManifest"))
+  companion object {
+    val tests: List<ProjectStructureSnapshotTestDef> = listOf(
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
+      ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
+      ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),
+      ProjectStructureSnapshotTestDef(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE),
+      ProjectStructureSnapshotTestDef(TestProject.TRANSITIVE_DEPENDENCIES),
+      ProjectStructureSnapshotTestDef(TestProject.WITH_GRADLE_METADATA),
+      ProjectStructureSnapshotTestDef(TestProject.TEST_FIXTURES),
+      ProjectStructureSnapshotTestDef(TestProject.TEST_ONLY_MODULE),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
+      ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
+      ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
+      ProjectStructureSnapshotTestDef(TestProject.NEW_SYNC_KOTLIN_TEST),
+      ProjectStructureSnapshotTestDef(TestProject.PSD_SAMPLE_GROOVY),
+      ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
+      ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_KAPT),
+      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
+      ProjectStructureSnapshotTestDef(TestProject.API_DEPENDENCY),
+      ProjectStructureSnapshotTestDef(TestProject.LIGHT_SYNC_REFERENCE),
+      ProjectStructureSnapshotTestDef(
+        TestProject.NON_STANDARD_SOURCE_SETS,
+        roots = mapOf(
+          "EXTERNAL_SOURCE_SET" to File("externalRoot"),
+          "EXTERNAL_MANIFEST" to File("externalManifest")
         )
-        assertIsEqualToSnapshot(text)
-      }
-    }
-
-    @Test
-    fun testNonStandardSourceSetDependencies() {
-      val text = importSyncAndDumpProject(NON_STANDARD_SOURCE_SET_DEPENDENCIES)
-      assertIsEqualToSnapshot(text)
-    }
-
-    // See https://code.google.com/p/android/issues/detail?id=74259
-    @Test
-    fun testWithCentralBuildDirectoryInRootModuleDeleted() {
-      val text = importSyncAndDumpProject(CENTRAL_BUILD_DIRECTORY, { projectRootPath ->
-        // The bug appears only when the central build folder does not exist.
-        val centralBuildDirPath = File(projectRootPath, join("central", "build"))
-        val centralBuildParentDirPath = centralBuildDirPath.parentFile
-        FileUtil.delete(centralBuildParentDirPath)
-      }) { it.saveAndDump() }
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testSyncWithKotlinDsl() {
-      val text = importSyncAndDumpProject(KOTLIN_GRADLE_DSL)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testSyncKotlinProject() {
-      val text = importSyncAndDumpProject(NEW_SYNC_KOTLIN_TEST)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testPsdSample() {
-      val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testTwoJarsWithTheSameName() {
-      val text = importSyncAndDumpProject(TWO_JARS)
-      // TODO(b/125680482): Update the snapshot when the bug is fixed.
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testWithCompositeBuild() {
-      val text = importSyncAndDumpProject(COMPOSITE_BUILD)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testWithBuildSrc() {
-      val text = importSyncAndDumpProject(APP_WITH_BUILDSRC)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testKmp() {
-      val text = importSyncAndDumpProject(KOTLIN_MULTIPLATFORM)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testKapt() {
-      val text = importSyncAndDumpProject(KOTLIN_KAPT)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testCompatibilityWithAndroidStudio36Project() {
-      withJdkNamed18 {
-        val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36)
-        assertIsEqualToSnapshot(text)
-      }
-    }
-
-    @Test
-    fun testCompatibilityWithAndroidStudio36NoImlProject() {
-      withJdkNamed18 {
-        val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36_NO_IML)
-        assertIsEqualToSnapshot(text)
-      }
-    }
-
-    @Test
-    fun testApiDependency() {
-      val text = importSyncAndDumpProject(projectDir = API_DEPENDENCY)
-      assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testLightSyncReference() {
-      val text = importSyncAndDumpProject(projectDir = LIGHT_SYNC_REFERENCE)
-      assertIsEqualToSnapshot(text)
-    }
+      )
+    )
   }
-
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
-  override val snapshotSuffixes = listOfNotNull(
-    // Suffixes to use to override the default expected result.
-    ".single_variant", // TODO(b/168452472): Rename snapshots and remove.
-    ""
-  )
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
-
-  protected fun <T> importSyncAndDumpProject(
-    projectDir: String,
-    patch: ((projectRootPath: File) -> Unit)? = null,
-    body: (Project) -> T
-  ): T {
-    val projectRootPath = prepareGradleProject(projectDir, projectName)
-    patch?.invoke(projectRootPath)
-    return openPreparedProject(projectName) { project ->
-      waitForSourceFolderManagerToProcessUpdates(project)
-      body(project)
-    }
-  }
-
-  protected fun importSyncAndDumpProject(projectDir: String): String =
-    importSyncAndDumpProject(projectDir) { it.saveAndDump() }
-
-  protected fun Project.syncAndDumpProject(): String {
-    requestSyncAndWait()
-    waitForSourceFolderManagerToProcessUpdates(this)
-
-    return this.saveAndDump()
-  }
-
-  protected fun <T> withJdkNamed18(body: () -> T): T {
-    val newJdk = if (ProjectJdkTable.getInstance().findJdk("1.8") == null) {
-      val anyJdk = IdeSdks.getInstance().jdk!!
-      val newJdk = SdkConfigurationUtil.setupSdk(ProjectJdkTable.getInstance().allJdks, anyJdk.homeDirectory!!, JavaSdk.getInstance(),
-                                                 true, null, "1.8")!!
-      ApplicationManager.getApplication().runWriteAction { ProjectJdkTable.getInstance().addJdk(newJdk) }
-      newJdk
-    }
-    else {
-      null
-    }
-    try {
-      return body()
-    }
-    finally {
-      if (newJdk != null) {
-        ApplicationManager.getApplication().runWriteAction { ProjectJdkTable.getInstance().removeJdk(newJdk) }
-      }
-    }
-  }
-
-  protected fun createEmptyGradleSettingsFile(projectRootPath: File) {
-    val settingsFilePath = File(projectRootPath, FN_SETTINGS_GRADLE)
-    assertThat(FileUtil.delete(settingsFilePath)).isTrue()
-    writeToFile(settingsFilePath, " ")
-    assertAbout(file()).that(settingsFilePath).isFile()
-    refreshProjectFiles()
-  }
-
-  override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)))
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 }
 
 @RunsInEdt
@@ -381,7 +121,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
   var testName = TestName()
 
   val projectRule = AndroidProjectRule.withAndroidModels(
-    prepareProjectSources = fun (root: File) {
+    prepareProjectSources = fun(root: File) {
       prepareGradleProject(resolveTestDataPath(LIGHT_SYNC_REFERENCE), root, {})
       root.resolve(".gradle").mkdir()
     },
@@ -394,7 +134,14 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       groupId = "reference",
       version = "unspecified",
       selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":androidlibrary", "debug")) }).build(),
+      projectBuilder = AndroidProjectBuilder(androidModuleDependencyList = {
+        listOf(
+          AndroidModuleDependency(
+            ":androidlibrary",
+            "debug"
+          )
+        )
+      }).build(),
     ),
     AndroidModuleModelBuilder(
       gradlePath = ":androidlibrary",
@@ -417,7 +164,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   override fun getName(): String = testName.methodName
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
+  override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> = emptyList()
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
@@ -431,7 +178,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
   @Test
   fun compareResults() {
     val expectedSnapshot = object : SnapshotComparisonTest by this {
-      override fun getName(): String = "testLightSyncReference"
+      override fun getName(): String = "LightSyncReference_V2"
     }
     val (_, expectedSnapshotTest) = expectedSnapshot.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
 
@@ -443,6 +190,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
     assertThat(actualSnapshotTest.filterOutProperties()).isEqualTo(expectedSnapshotTest.filterOutProperties())
   }
 }
+
 private fun String.filterOutProperties(): String =
   this
     .splitToSequence('\n')
@@ -465,3 +213,5 @@ private val PROPERTIES_TO_SKIP_BY_PREFIXES = setOf(
   "PROJECT/MODULE/TEST_MODULE_PROPERTIES",
   "PROJECT/RUN_CONFIGURATION"
 )
+
+private const val PROJECT_STRUCTURE_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/syncedProjects"

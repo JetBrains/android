@@ -1,18 +1,18 @@
-PROJECT                       : testTransitiveDependencies
+PROJECT                       : project
     PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
-    MODULE                        : testTransitiveDependencies
+    MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : testTransitiveDependencies
+        LinkedProjectId               : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testTransitiveDependencies.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/project.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -25,13 +25,13 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : Android tests
             TEST_COMPILE_MODE             : Unit tests
             TEST_COMPILE_MODE             : None
-    MODULE                        : testTransitiveDependencies.app
+    MODULE                        : project.app
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.app
-            main                          : testTransitiveDependencies.app.main
-            unitTest                      : testTransitiveDependencies.app.unitTest
-            androidTest                   : testTransitiveDependencies.app.androidTest
-        ExternalModuleGroup           : testTransitiveDependencies
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
         LinkedProjectPath             : <PROJECT>/app
@@ -41,7 +41,7 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -114,24 +114,24 @@ PROJECT                       : testTransitiveDependencies
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testTransitiveDependencies.app.androidTest
+    MODULE                        : project.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.app
-            main                          : testTransitiveDependencies.app.main
-            unitTest                      : testTransitiveDependencies.app.unitTest
-            androidTest                   : testTransitiveDependencies.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:androidTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.androidTest.iml [-]
+            productionModuleName          : project.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -252,13 +252,13 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.app.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        ORDER_ENTRY                   : project.app.main
+        ORDER_ENTRY                   : project.javalib1.main
+        ORDER_ENTRY                   : project.javalib2.main
+        ORDER_ENTRY                   : project.library1.main
+        ORDER_ENTRY                   : project.library2.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.androidTest
+            -                             : file://<PROJECT>/build/classes/test/project.app.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -292,22 +292,22 @@ PROJECT                       : testTransitiveDependencies
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testTransitiveDependencies.app.main
+    MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.app
-            main                          : testTransitiveDependencies.app.main
-            unitTest                      : testTransitiveDependencies.app.unitTest
-            androidTest                   : testTransitiveDependencies.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:main
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -390,12 +390,12 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.google.j2objc:j2objc-annotations:1.1 [=]
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        ORDER_ENTRY                   : project.javalib1.main
+        ORDER_ENTRY                   : project.javalib2.main
+        ORDER_ENTRY                   : project.library1.main
+        ORDER_ENTRY                   : project.library2.main
         Classes
-            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.main
+            -                             : file://<PROJECT>/build/classes/production/project.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -429,24 +429,24 @@ PROJECT                       : testTransitiveDependencies
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testTransitiveDependencies.app.unitTest
+    MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.app
-            main                          : testTransitiveDependencies.app.main
-            unitTest                      : testTransitiveDependencies.app.unitTest
-            androidTest                   : testTransitiveDependencies.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:unitTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.unitTest.iml [-]
+            productionModuleName          : project.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -552,13 +552,13 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.app.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        ORDER_ENTRY                   : project.app.main
+        ORDER_ENTRY                   : project.javalib1.main
+        ORDER_ENTRY                   : project.javalib2.main
+        ORDER_ENTRY                   : project.library1.main
+        ORDER_ENTRY                   : project.library2.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.unitTest
+            -                             : file://<PROJECT>/build/classes/test/project.app.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -592,18 +592,18 @@ PROJECT                       : testTransitiveDependencies
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testTransitiveDependencies.javalib1
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib1
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib1
         LinkedProjectPath             : <PROJECT>/javalib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.javalib1 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.javalib1 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.javalib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.javalib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/testTransitiveDependencies.javalib1.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/project.javalib1.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -628,8 +628,8 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib1:assemble
                 COMPILE_JAVA                  : :javalib1:compileJava
-    MODULE                        : testTransitiveDependencies.javalib1.main
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib1.main
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib1:main
@@ -639,7 +639,7 @@ PROJECT                       : testTransitiveDependencies
             compilerSourceOutputPath      : file://<PROJECT>/javalib1/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/testTransitiveDependencies.javalib1.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/project.javalib1.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib1/src/main
             JavaSource                    : file://<PROJECT>/javalib1/src/main/java
@@ -652,7 +652,7 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.google.guava:guava:23.0 [=]
         LIBRARY                       : Gradle: com.google.j2objc:j2objc-annotations:1.1 [=]
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        ORDER_ENTRY                   : project.javalib2.main
         Classes
             -                             : file://<PROJECT>/javalib1/build/classes/java/main
         BUILD_TASKS
@@ -668,8 +668,8 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib1:assemble
                 COMPILE_JAVA                  : :javalib1:compileJava
-    MODULE                        : testTransitiveDependencies.javalib1.test
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib1.test
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib1:test
@@ -680,8 +680,8 @@ PROJECT                       : testTransitiveDependencies
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.javalib1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/testTransitiveDependencies.javalib1.test.iml [-]
+            productionModuleName          : project.javalib1.main
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib1/project.javalib1.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javalib1/src/test/java [-]
@@ -694,8 +694,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.google.guava:guava:23.0 [=]
         LIBRARY                       : Gradle: com.google.j2objc:j2objc-annotations:1.1 [=]
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        ORDER_ENTRY                   : project.javalib1.main
+        ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
@@ -709,18 +709,18 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib1:assemble
                 COMPILE_JAVA                  : :javalib1:compileJava
-    MODULE                        : testTransitiveDependencies.javalib2
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib2
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib2
         LinkedProjectPath             : <PROJECT>/javalib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.javalib2 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.javalib2 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.javalib2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.javalib2 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/testTransitiveDependencies.javalib2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/project.javalib2.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -745,8 +745,8 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib2:assemble
                 COMPILE_JAVA                  : :javalib2:compileJava
-    MODULE                        : testTransitiveDependencies.javalib2.main
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib2.main
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib2:main
@@ -756,7 +756,7 @@ PROJECT                       : testTransitiveDependencies
             compilerSourceOutputPath      : file://<PROJECT>/javalib2/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/testTransitiveDependencies.javalib2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/project.javalib2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib2/src/main
             JavaSource                    : file://<PROJECT>/javalib2/src/main/java
@@ -779,8 +779,8 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib2:assemble
                 COMPILE_JAVA                  : :javalib2:compileJava
-    MODULE                        : testTransitiveDependencies.javalib2.test
-        ExternalModuleGroup           : testTransitiveDependencies
+    MODULE                        : project.javalib2.test
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :javalib2:test
@@ -791,8 +791,8 @@ PROJECT                       : testTransitiveDependencies
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.javalib2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/testTransitiveDependencies.javalib2.test.iml [-]
+            productionModuleName          : project.javalib2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib2/project.javalib2.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javalib2/src/test/java [-]
@@ -800,7 +800,7 @@ PROJECT                       : testTransitiveDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
@@ -814,13 +814,13 @@ PROJECT                       : testTransitiveDependencies
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javalib2:assemble
                 COMPILE_JAVA                  : :javalib2:compileJava
-    MODULE                        : testTransitiveDependencies.library1
+    MODULE                        : project.library1
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library1
-            main                          : testTransitiveDependencies.library1.main
-            unitTest                      : testTransitiveDependencies.library1.unitTest
-            androidTest                   : testTransitiveDependencies.library1.androidTest
-        ExternalModuleGroup           : testTransitiveDependencies
+            holder                        : project.library1
+            main                          : project.library1.main
+            unitTest                      : project.library1.unitTest
+            androidTest                   : project.library1.androidTest
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :library1
         LinkedProjectPath             : <PROJECT>/library1
@@ -830,7 +830,7 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/library1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/library1/project.library1.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -895,24 +895,24 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library1:clean, :library1:assembleDebug
                 COMPILE_JAVA                  : :library1:compileDebugSources
                 SOURCE_GEN                    : :library1:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library1.androidTest
+    MODULE                        : project.library1.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library1
-            main                          : testTransitiveDependencies.library1.main
-            unitTest                      : testTransitiveDependencies.library1.unitTest
-            androidTest                   : testTransitiveDependencies.library1.androidTest
+            holder                        : project.library1
+            main                          : project.library1.main
+            unitTest                      : project.library1.unitTest
+            androidTest                   : project.library1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library1:androidTest
         LinkedProjectPath             : <PROJECT>/library1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library1.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library1.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.library1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.androidTest.iml [-]
+            productionModuleName          : project.library1.main
+        ModuleFile                    : <PROJECT>/.idea/modules/library1/project.library1.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1043,9 +1043,9 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        ORDER_ENTRY                   : project.library1.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.androidTest
+            -                             : file://<PROJECT>/build/classes/test/project.library1.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
@@ -1071,22 +1071,22 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library1:clean, :library1:assembleDebug
                 COMPILE_JAVA                  : :library1:compileDebugSources
                 SOURCE_GEN                    : :library1:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library1.main
+    MODULE                        : project.library1.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library1
-            main                          : testTransitiveDependencies.library1.main
-            unitTest                      : testTransitiveDependencies.library1.unitTest
-            androidTest                   : testTransitiveDependencies.library1.androidTest
+            holder                        : project.library1
+            main                          : project.library1.main
+            unitTest                      : project.library1.unitTest
+            androidTest                   : project.library1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library1:main
         LinkedProjectPath             : <PROJECT>/library1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library1.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library1.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/library1/project.library1.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library1/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1163,7 +1163,7 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
         Classes
-            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.main
+            -                             : file://<PROJECT>/build/classes/production/project.library1.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
@@ -1189,24 +1189,24 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library1:clean, :library1:assembleDebug
                 COMPILE_JAVA                  : :library1:compileDebugSources
                 SOURCE_GEN                    : :library1:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library1.unitTest
+    MODULE                        : project.library1.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library1
-            main                          : testTransitiveDependencies.library1.main
-            unitTest                      : testTransitiveDependencies.library1.unitTest
-            androidTest                   : testTransitiveDependencies.library1.androidTest
+            holder                        : project.library1
+            main                          : project.library1.main
+            unitTest                      : project.library1.unitTest
+            androidTest                   : project.library1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library1:unitTest
         LinkedProjectPath             : <PROJECT>/library1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library1.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library1.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.library1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.unitTest.iml [-]
+            productionModuleName          : project.library1.main
+        ModuleFile                    : <PROJECT>/.idea/modules/library1/project.library1.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library1/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1302,9 +1302,9 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        ORDER_ENTRY                   : project.library1.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.unitTest
+            -                             : file://<PROJECT>/build/classes/test/project.library1.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library1:generateDebugSources, :library1:createMockableJar, :library1:generateDebugAndroidTestSources
@@ -1330,13 +1330,13 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library1:clean, :library1:assembleDebug
                 COMPILE_JAVA                  : :library1:compileDebugSources
                 SOURCE_GEN                    : :library1:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library2
+    MODULE                        : project.library2
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library2
-            main                          : testTransitiveDependencies.library2.main
-            unitTest                      : testTransitiveDependencies.library2.unitTest
-            androidTest                   : testTransitiveDependencies.library2.androidTest
-        ExternalModuleGroup           : testTransitiveDependencies
+            holder                        : project.library2
+            main                          : project.library2.main
+            unitTest                      : project.library2.unitTest
+            androidTest                   : project.library2.androidTest
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :library2
         LinkedProjectPath             : <PROJECT>/library2
@@ -1346,7 +1346,7 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/library2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/library2/project.library2.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -1411,24 +1411,24 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library2:clean, :library2:assembleDebug
                 COMPILE_JAVA                  : :library2:compileDebugSources
                 SOURCE_GEN                    : :library2:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library2.androidTest
+    MODULE                        : project.library2.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library2
-            main                          : testTransitiveDependencies.library2.main
-            unitTest                      : testTransitiveDependencies.library2.unitTest
-            androidTest                   : testTransitiveDependencies.library2.androidTest
+            holder                        : project.library2
+            main                          : project.library2.main
+            unitTest                      : project.library2.unitTest
+            androidTest                   : project.library2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library2:androidTest
         LinkedProjectPath             : <PROJECT>/library2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.library2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.androidTest.iml [-]
+            productionModuleName          : project.library2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/library2/project.library2.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1539,10 +1539,10 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        ORDER_ENTRY                   : project.library1.main
+        ORDER_ENTRY                   : project.library2.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.androidTest
+            -                             : file://<PROJECT>/build/classes/test/project.library2.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
@@ -1568,22 +1568,22 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library2:clean, :library2:assembleDebug
                 COMPILE_JAVA                  : :library2:compileDebugSources
                 SOURCE_GEN                    : :library2:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library2.main
+    MODULE                        : project.library2.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library2
-            main                          : testTransitiveDependencies.library2.main
-            unitTest                      : testTransitiveDependencies.library2.unitTest
-            androidTest                   : testTransitiveDependencies.library2.androidTest
+            holder                        : project.library2
+            main                          : project.library2.main
+            unitTest                      : project.library2.unitTest
+            androidTest                   : project.library2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library2:main
         LinkedProjectPath             : <PROJECT>/library2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library2.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/library2/project.library2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library2/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1661,9 +1661,9 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.code.gson:gson:2.2.4 [=]
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        ORDER_ENTRY                   : project.library1.main
         Classes
-            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.main
+            -                             : file://<PROJECT>/build/classes/production/project.library2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
@@ -1689,24 +1689,24 @@ PROJECT                       : testTransitiveDependencies
                 REBUILD                       : :library2:clean, :library2:assembleDebug
                 COMPILE_JAVA                  : :library2:compileDebugSources
                 SOURCE_GEN                    : :library2:generateDebugSources
-    MODULE                        : testTransitiveDependencies.library2.unitTest
+    MODULE                        : project.library2.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testTransitiveDependencies.library2
-            main                          : testTransitiveDependencies.library2.main
-            unitTest                      : testTransitiveDependencies.library2.unitTest
-            androidTest                   : testTransitiveDependencies.library2.androidTest
+            holder                        : project.library2
+            main                          : project.library2.main
+            unitTest                      : project.library2.unitTest
+            androidTest                   : project.library2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :library2:unitTest
         LinkedProjectPath             : <PROJECT>/library2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.library2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.library2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testTransitiveDependencies.library2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.unitTest.iml [-]
+            productionModuleName          : project.library2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/library2/project.library2.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/library2/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1806,10 +1806,10 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testTransitiveDependencies.library1.main
-        ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        ORDER_ENTRY                   : project.library1.main
+        ORDER_ENTRY                   : project.library2.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest
+            -                             : file://<PROJECT>/build/classes/test/project.library2.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :library2:generateDebugSources, :library2:createMockableJar, :library2:generateDebugAndroidTestSources
@@ -1837,8 +1837,8 @@ PROJECT                       : testTransitiveDependencies
                 SOURCE_GEN                    : :library2:generateDebugSources
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTransitiveDependencies.app.main
-        Module                        : testTransitiveDependencies.app.main
+        ModuleName                    : project.app.main
+        Module                        : project.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./library2/libs/fakelib.jar
             *CLASSES                      : jar://<PROJECT>/library2/libs/fakelib.jar!/

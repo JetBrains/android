@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectRe
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.TestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
@@ -107,7 +108,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
   override fun toString(): String = testProject.projectName
 
   override fun isCompatible(): Boolean {
-    return isCompatibleWith(agpVersion)
+    return isCompatibleWith(agpVersion) && agpVersion >= AGP_41
   }
 
   override fun runTest(root: File, project: Project) {
@@ -126,6 +127,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_CURRENT -> testV1vsV2(AGP_CURRENT_V1, AGP_CURRENT)
       AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
       // Do not replace with when.
+      AGP_32 -> Unit
       AGP_35 -> Unit
       AGP_40 -> Unit
       AGP_41 -> Unit

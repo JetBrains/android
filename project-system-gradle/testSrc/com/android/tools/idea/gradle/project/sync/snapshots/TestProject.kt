@@ -93,7 +93,22 @@ enum class TestProject(
   NAMESPACES(TestProjectToSnapshotPaths.NAMESPACES),
   INCLUDE_FROM_LIB(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
   LOCAL_AARS_AS_MODULES(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES),
-  BASIC(TestProjectToSnapshotPaths.BASIC);
+  BASIC(TestProjectToSnapshotPaths.BASIC),
+  BASIC_WITH_EMPTY_SETTINGS_FILE(
+    TestProjectToSnapshotPaths.BASIC,
+    testName = "basicWithEmptySettingsFile",
+    patch = { projectRootPath ->
+      createEmptyGradleSettingsFile(projectRootPath)
+    }),
+  MAIN_IN_ROOT(TestProjectToSnapshotPaths.MAIN_IN_ROOT),
+  NESTED_MODULE(TestProjectToSnapshotPaths.NESTED_MODULE),
+  TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES),
+  KOTLIN_GRADLE_DSL(TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL),
+  NEW_SYNC_KOTLIN_TEST(TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST),
+  TWO_JARS(TestProjectToSnapshotPaths.TWO_JARS),
+  API_DEPENDENCY(TestProjectToSnapshotPaths.API_DEPENDENCY),
+  LIGHT_SYNC_REFERENCE(TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE),
+  PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT);
 
   val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 }
@@ -121,6 +136,7 @@ private fun createEmptyGradleSettingsFile(projectRootPath: File) {
 fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"
@@ -138,7 +154,7 @@ fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
 class SnapshotContext(
   projectName: String,
   agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  private val workspace: String,
+  workspace: String,
 ) : SnapshotComparisonTest {
 
   private val name: String =

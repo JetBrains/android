@@ -44,6 +44,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    */
   val modelVersion: ModelVersion = ModelVersion.V2
 ) {
+  AGP_32("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_40("4.0.0", gradleVersion = "6.5", modelVersion = ModelVersion.V1),
   AGP_41("4.1.0", gradleVersion = "6.5", modelVersion = ModelVersion.V1),

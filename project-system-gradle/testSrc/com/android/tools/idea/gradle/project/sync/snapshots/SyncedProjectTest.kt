@@ -69,7 +69,11 @@ abstract class SyncedProjectTest(
   }
 
   companion object {
-    val tests = (IdeModelSnapshotComparisonTestDefinition.tests() + SourceProvidersTestDef.tests).groupBy { it.testProject }
+    val tests = (
+      IdeModelSnapshotComparisonTestDefinition.tests() +
+        SourceProvidersTestDef.tests +
+        ProjectStructureSnapshotTestDef.tests
+      ).groupBy { it.testProject }
   }
 
   @get:Rule
@@ -148,6 +152,36 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testBasic() = testProject(TestProject.BASIC)
+
+  @Test
+  fun testBasicWithEmptySettingsFile() = testProject(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE)
+
+  @Test
+  fun testMainInRoot() = testProject(TestProject.MAIN_IN_ROOT)
+
+  @Test
+  fun testNestedModule() = testProject(TestProject.NESTED_MODULE)
+
+  @Test
+  fun testTransitiveDependencies() = testProject(TestProject.TRANSITIVE_DEPENDENCIES)
+
+  @Test
+  fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
+
+  @Test
+  fun testNewSyncKotlinTest() = testProject(TestProject.NEW_SYNC_KOTLIN_TEST)
+
+  @Test
+  fun testTwoJas() = testProject(TestProject.TWO_JARS)
+
+  @Test
+  fun testApiDependency() = testProject(TestProject.API_DEPENDENCY)
+
+  @Test
+  fun testLightSyncReference() = testProject(TestProject.LIGHT_SYNC_REFERENCE)
+
+  @Test
+  fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
   private fun testProject(testProject: TestProject) {
     if (selfTest) throw ReportUsedProjectException(testProject)

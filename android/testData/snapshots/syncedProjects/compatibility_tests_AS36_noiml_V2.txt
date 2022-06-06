@@ -1,18 +1,18 @@
-PROJECT                       : AS36
-    PROJECT_JDK                   : <JAVA_VERSION>
+PROJECT                       : AS36_noiml
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
-    MODULE                        : AS36
+    MODULE                        : AS36_noiml
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : AS36
+        LinkedProjectId               : AS36_noiml
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/AS36.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/AS36_noiml.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -25,13 +25,13 @@ PROJECT                       : AS36
             TEST_COMPILE_MODE             : Android tests
             TEST_COMPILE_MODE             : Unit tests
             TEST_COMPILE_MODE             : None
-    MODULE                        : AS36.app
+    MODULE                        : AS36_noiml.app
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.app
-            main                          : AS36.app.main
-            unitTest                      : AS36.app.unitTest
-            androidTest                   : AS36.app.androidTest
-        ExternalModuleGroup           : AS36
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
+        ExternalModuleGroup           : AS36_noiml
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
         LinkedProjectPath             : <PROJECT>/app
@@ -41,7 +41,7 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -114,24 +114,24 @@ PROJECT                       : AS36
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:generateDebugSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : AS36.app.androidTest
+    MODULE                        : AS36_noiml.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.app
-            main                          : AS36.app.main
-            unitTest                      : AS36.app.unitTest
-            androidTest                   : AS36.app.androidTest
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:androidTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.app.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.androidTest.iml [-]
+            productionModuleName          : AS36_noiml.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -176,8 +176,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -271,7 +271,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/AS36.app.androidTest
+            -                             : file://<PROJECT>/build/classes/test/AS36_noiml.app.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -305,22 +305,22 @@ PROJECT                       : AS36
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:generateDebugSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : AS36.app.main
+    MODULE                        : AS36_noiml.app.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.app
-            main                          : AS36.app.main
-            unitTest                      : AS36.app.unitTest
-            androidTest                   : AS36.app.androidTest
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:main
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.app.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -365,7 +365,7 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
@@ -399,7 +399,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
-            -                             : file://<PROJECT>/build/classes/production/AS36.app.main
+            -                             : file://<PROJECT>/build/classes/production/AS36_noiml.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -433,24 +433,24 @@ PROJECT                       : AS36
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:generateDebugSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : AS36.app.unitTest
+    MODULE                        : AS36_noiml.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.app
-            main                          : AS36.app.main
-            unitTest                      : AS36.app.unitTest
-            androidTest                   : AS36.app.androidTest
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:unitTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.app.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.unitTest.iml [-]
+            productionModuleName          : AS36_noiml.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -480,8 +480,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -551,7 +551,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/AS36.app.unitTest
+            -                             : file://<PROJECT>/build/classes/test/AS36_noiml.app.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -585,18 +585,18 @@ PROJECT                       : AS36
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:generateDebugSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : AS36.features
-        ExternalModuleGroup           : AS36
+    MODULE                        : AS36_noiml.features
+        ExternalModuleGroup           : AS36_noiml
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :features
         LinkedProjectPath             : <PROJECT>/features
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/features/AS36.features.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/AS36_noiml.features.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -613,13 +613,13 @@ PROJECT                       : AS36
             TEST_COMPILE_MODE             : Android tests
             TEST_COMPILE_MODE             : Unit tests
             TEST_COMPILE_MODE             : None
-    MODULE                        : AS36.features.dynamicfeature
+    MODULE                        : AS36_noiml.features.dynamicfeature
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature
-            main                          : AS36.features.dynamicfeature.main
-            unitTest                      : AS36.features.dynamicfeature.unitTest
-            androidTest                   : AS36.features.dynamicfeature.androidTest
-        ExternalModuleGroup           : AS36.features
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
+        ExternalModuleGroup           : AS36_noiml.features
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :features:dynamicfeature
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
@@ -629,7 +629,7 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -696,24 +696,24 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature:clean, :features:dynamicfeature:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature.androidTest
+    MODULE                        : AS36_noiml.features.dynamicfeature.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature
-            main                          : AS36.features.dynamicfeature.main
-            unitTest                      : AS36.features.dynamicfeature.unitTest
-            androidTest                   : AS36.features.dynamicfeature.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature:androidTest
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.features.dynamicfeature.main
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.androidTest.iml [-]
+            productionModuleName          : AS36_noiml.features.dynamicfeature.main
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -758,8 +758,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.features.dynamicfeature.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources
@@ -787,22 +787,22 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature:clean, :features:dynamicfeature:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature.main
+    MODULE                        : AS36_noiml.features.dynamicfeature.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature
-            main                          : AS36.features.dynamicfeature.main
-            unitTest                      : AS36.features.dynamicfeature.unitTest
-            androidTest                   : AS36.features.dynamicfeature.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature:main
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out [-]
@@ -847,7 +847,7 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources
@@ -875,24 +875,24 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature:clean, :features:dynamicfeature:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature.unitTest
+    MODULE                        : AS36_noiml.features.dynamicfeature.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature
-            main                          : AS36.features.dynamicfeature.main
-            unitTest                      : AS36.features.dynamicfeature.unitTest
-            androidTest                   : AS36.features.dynamicfeature.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature:unitTest
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.features.dynamicfeature.main
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.unitTest.iml [-]
+            productionModuleName          : AS36_noiml.features.dynamicfeature.main
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -922,8 +922,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.features.dynamicfeature.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources
@@ -951,13 +951,13 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature:clean, :features:dynamicfeature:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature2
+    MODULE                        : AS36_noiml.features.dynamicfeature2
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature2
-            main                          : AS36.features.dynamicfeature2.main
-            unitTest                      : AS36.features.dynamicfeature2.unitTest
-            androidTest                   : AS36.features.dynamicfeature2.androidTest
-        ExternalModuleGroup           : AS36.features
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
+        ExternalModuleGroup           : AS36_noiml.features
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :features:dynamicfeature2
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
@@ -967,7 +967,7 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -1034,24 +1034,24 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature2:clean, :features:dynamicfeature2:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature2:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature2.androidTest
+    MODULE                        : AS36_noiml.features.dynamicfeature2.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature2
-            main                          : AS36.features.dynamicfeature2.main
-            unitTest                      : AS36.features.dynamicfeature2.unitTest
-            androidTest                   : AS36.features.dynamicfeature2.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature2:androidTest
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature2.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature2.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.features.dynamicfeature2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.androidTest.iml [-]
+            productionModuleName          : AS36_noiml.features.dynamicfeature2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1096,8 +1096,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.features.dynamicfeature2.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources
@@ -1125,22 +1125,22 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature2:clean, :features:dynamicfeature2:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature2:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature2.main
+    MODULE                        : AS36_noiml.features.dynamicfeature2.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature2
-            main                          : AS36.features.dynamicfeature2.main
-            unitTest                      : AS36.features.dynamicfeature2.unitTest
-            androidTest                   : AS36.features.dynamicfeature2.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature2:main
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature2.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature2.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1185,7 +1185,7 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources
@@ -1213,24 +1213,24 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature2:clean, :features:dynamicfeature2:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature2:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources
-    MODULE                        : AS36.features.dynamicfeature2.unitTest
+    MODULE                        : AS36_noiml.features.dynamicfeature2.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.features.dynamicfeature2
-            main                          : AS36.features.dynamicfeature2.main
-            unitTest                      : AS36.features.dynamicfeature2.unitTest
-            androidTest                   : AS36.features.dynamicfeature2.androidTest
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :features:dynamicfeature2:unitTest
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features.dynamicfeature2.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features.dynamicfeature2.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.features.dynamicfeature2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.unitTest.iml [-]
+            productionModuleName          : AS36_noiml.features.dynamicfeature2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1260,8 +1260,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.app.main
-        ORDER_ENTRY                   : AS36.features.dynamicfeature2.main
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources
@@ -1289,18 +1289,18 @@ PROJECT                       : AS36
                 REBUILD                       : :features:dynamicfeature2:clean, :features:dynamicfeature2:assembleDebug
                 COMPILE_JAVA                  : :features:dynamicfeature2:compileDebugSources
                 SOURCE_GEN                    : :features:dynamicfeature2:generateDebugSources
-    MODULE                        : AS36.libs
-        ExternalModuleGroup           : AS36
+    MODULE                        : AS36_noiml.libs
+        ExternalModuleGroup           : AS36_noiml
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs
         LinkedProjectPath             : <PROJECT>/libs
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36.libs.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36_noiml.libs.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -1317,13 +1317,13 @@ PROJECT                       : AS36
             TEST_COMPILE_MODE             : Android tests
             TEST_COMPILE_MODE             : Unit tests
             TEST_COMPILE_MODE             : None
-    MODULE                        : AS36.libs.android_library
+    MODULE                        : AS36_noiml.libs.android_library
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.libs.android_library
-            main                          : AS36.libs.android_library.main
-            unitTest                      : AS36.libs.android_library.unitTest
-            androidTest                   : AS36.libs.android_library.androidTest
-        ExternalModuleGroup           : AS36.libs
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
+        ExternalModuleGroup           : AS36_noiml.libs
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs:android_library
         LinkedProjectPath             : <PROJECT>/libs/android_library
@@ -1333,7 +1333,7 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -1398,24 +1398,24 @@ PROJECT                       : AS36
                 REBUILD                       : :libs:android_library:clean, :libs:android_library:assembleDebug
                 COMPILE_JAVA                  : :libs:android_library:compileDebugSources
                 SOURCE_GEN                    : :libs:android_library:generateDebugSources
-    MODULE                        : AS36.libs.android_library.androidTest
+    MODULE                        : AS36_noiml.libs.android_library.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.libs.android_library
-            main                          : AS36.libs.android_library.main
-            unitTest                      : AS36.libs.android_library.unitTest
-            androidTest                   : AS36.libs.android_library.androidTest
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :libs:android_library:androidTest
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs.android_library.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.android_library.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.libs.android_library.main
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.androidTest.iml [-]
+            productionModuleName          : AS36_noiml.libs.android_library.main
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1460,8 +1460,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.libs.android_library.main
-        ORDER_ENTRY                   : AS36.libs.java_lib.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -1555,7 +1555,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/AS36.libs.android_library.androidTest
+            -                             : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:generateDebugSources, :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources
@@ -1581,22 +1581,22 @@ PROJECT                       : AS36
                 REBUILD                       : :libs:android_library:clean, :libs:android_library:assembleDebug
                 COMPILE_JAVA                  : :libs:android_library:compileDebugSources
                 SOURCE_GEN                    : :libs:android_library:generateDebugSources
-    MODULE                        : AS36.libs.android_library.main
+    MODULE                        : AS36_noiml.libs.android_library.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.libs.android_library
-            main                          : AS36.libs.android_library.main
-            unitTest                      : AS36.libs.android_library.unitTest
-            androidTest                   : AS36.libs.android_library.androidTest
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :libs:android_library:main
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs.android_library.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.android_library.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1641,7 +1641,7 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.libs.java_lib.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
@@ -1675,7 +1675,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
-            -                             : file://<PROJECT>/build/classes/production/AS36.libs.android_library.main
+            -                             : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:generateDebugSources, :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources
@@ -1701,24 +1701,24 @@ PROJECT                       : AS36
                 REBUILD                       : :libs:android_library:clean, :libs:android_library:assembleDebug
                 COMPILE_JAVA                  : :libs:android_library:compileDebugSources
                 SOURCE_GEN                    : :libs:android_library:generateDebugSources
-    MODULE                        : AS36.libs.android_library.unitTest
+    MODULE                        : AS36_noiml.libs.android_library.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : AS36.libs.android_library
-            main                          : AS36.libs.android_library.main
-            unitTest                      : AS36.libs.android_library.unitTest
-            androidTest                   : AS36.libs.android_library.androidTest
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :libs:android_library:unitTest
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs.android_library.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.android_library.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.libs.android_library.main
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.unitTest.iml [-]
+            productionModuleName          : AS36_noiml.libs.android_library.main
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1748,8 +1748,8 @@ PROJECT                       : AS36
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.libs.android_library.main
-        ORDER_ENTRY                   : AS36.libs.java_lib.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -1819,7 +1819,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/AS36.libs.android_library.unitTest
+            -                             : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:generateDebugSources, :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources
@@ -1845,18 +1845,18 @@ PROJECT                       : AS36
                 REBUILD                       : :libs:android_library:clean, :libs:android_library:assembleDebug
                 COMPILE_JAVA                  : :libs:android_library:compileDebugSources
                 SOURCE_GEN                    : :libs:android_library:generateDebugSources
-    MODULE                        : AS36.libs.java_lib
-        ExternalModuleGroup           : AS36.libs
+    MODULE                        : AS36_noiml.libs.java_lib
+        ExternalModuleGroup           : AS36_noiml.libs
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs:java_lib
         LinkedProjectPath             : <PROJECT>/libs/java_lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs.java_lib [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.java_lib [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.java_lib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.java_lib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -1881,8 +1881,8 @@ PROJECT                       : AS36
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :libs:java_lib:assemble
                 COMPILE_JAVA                  : :libs:java_lib:compileJava
-    MODULE                        : AS36.libs.java_lib.main
-        ExternalModuleGroup           : AS36.libs
+    MODULE                        : AS36_noiml.libs.java_lib.main
+        ExternalModuleGroup           : AS36_noiml.libs
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs:java_lib:main
@@ -1892,7 +1892,7 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/main
             JavaSource                    : file://<PROJECT>/libs/java_lib/src/main/java
@@ -1915,8 +1915,8 @@ PROJECT                       : AS36
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :libs:java_lib:assemble
                 COMPILE_JAVA                  : :libs:java_lib:compileJava
-    MODULE                        : AS36.libs.java_lib.test
-        ExternalModuleGroup           : AS36.libs
+    MODULE                        : AS36_noiml.libs.java_lib.test
+        ExternalModuleGroup           : AS36_noiml.libs
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs:java_lib:test
@@ -1927,8 +1927,8 @@ PROJECT                       : AS36
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : AS36.libs.java_lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.test.iml [-]
+            productionModuleName          : AS36_noiml.libs.java_lib.main
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/java_lib/src/test/java [-]
@@ -1936,7 +1936,7 @@ PROJECT                       : AS36
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36.libs.java_lib.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :libs:java_lib:assemble, :libs:java_lib:testClasses
@@ -1952,8 +1952,8 @@ PROJECT                       : AS36
                 COMPILE_JAVA                  : :libs:java_lib:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : AS36.app.main
-        Module                        : AS36.app.main
+        ModuleName                    : AS36_noiml.app.main
+        Module                        : AS36_noiml.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

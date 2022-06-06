@@ -1,18 +1,18 @@
-PROJECT                       : testSyncKotlinProject
+PROJECT                       : project
     PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
-    MODULE                        : testSyncKotlinProject
+    MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : testSyncKotlinProject
+        LinkedProjectId               : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testSyncKotlinProject.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/project.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -25,13 +25,13 @@ PROJECT                       : testSyncKotlinProject
             TEST_COMPILE_MODE             : Android tests
             TEST_COMPILE_MODE             : Unit tests
             TEST_COMPILE_MODE             : None
-    MODULE                        : testSyncKotlinProject.app
+    MODULE                        : project.app
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.app
-            main                          : testSyncKotlinProject.app.main
-            unitTest                      : testSyncKotlinProject.app.unitTest
-            androidTest                   : testSyncKotlinProject.app.androidTest
-        ExternalModuleGroup           : testSyncKotlinProject
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
         LinkedProjectPath             : <PROJECT>/app
@@ -41,7 +41,7 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -114,24 +114,24 @@ PROJECT                       : testSyncKotlinProject
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testSyncKotlinProject.app.androidTest
+    MODULE                        : project.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.app
-            main                          : testSyncKotlinProject.app.main
-            unitTest                      : testSyncKotlinProject.app.unitTest
-            androidTest                   : testSyncKotlinProject.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:androidTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testSyncKotlinProject.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.androidTest.iml [-]
+            productionModuleName          : project.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -332,10 +332,10 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testSyncKotlinProject.app.main
-        ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        ORDER_ENTRY                   : project.app.main
+        ORDER_ENTRY                   : project.contentLib.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.androidTest
+            -                             : file://<PROJECT>/build/classes/test/project.app.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -369,22 +369,22 @@ PROJECT                       : testSyncKotlinProject
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testSyncKotlinProject.app.main
+    MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.app
-            main                          : testSyncKotlinProject.app.main
-            unitTest                      : testSyncKotlinProject.app.unitTest
-            androidTest                   : testSyncKotlinProject.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:main
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -524,9 +524,9 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        ORDER_ENTRY                   : project.contentLib.main
         Classes
-            -                             : file://<PROJECT>/build/classes/production/testSyncKotlinProject.app.main
+            -                             : file://<PROJECT>/build/classes/production/project.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -560,24 +560,24 @@ PROJECT                       : testSyncKotlinProject
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testSyncKotlinProject.app.unitTest
+    MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.app
-            main                          : testSyncKotlinProject.app.main
-            unitTest                      : testSyncKotlinProject.app.unitTest
-            androidTest                   : testSyncKotlinProject.app.androidTest
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:unitTest
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testSyncKotlinProject.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.unitTest.iml [-]
+            productionModuleName          : project.app.main
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -743,10 +743,10 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testSyncKotlinProject.app.main
-        ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        ORDER_ENTRY                   : project.app.main
+        ORDER_ENTRY                   : project.contentLib.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.unitTest
+            -                             : file://<PROJECT>/build/classes/test/project.app.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:createMockableJar, :app:generateDebugAndroidTestSources
@@ -780,13 +780,13 @@ PROJECT                       : testSyncKotlinProject
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    MODULE                        : testSyncKotlinProject.awesomeandroidlibrary
+    MODULE                        : project.awesomeandroidlibrary
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.awesomeandroidlibrary
-            main                          : testSyncKotlinProject.awesomeandroidlibrary.main
-            unitTest                      : testSyncKotlinProject.awesomeandroidlibrary.unitTest
-            androidTest                   : testSyncKotlinProject.awesomeandroidlibrary.androidTest
-        ExternalModuleGroup           : testSyncKotlinProject
+            holder                        : project.awesomeandroidlibrary
+            main                          : project.awesomeandroidlibrary.main
+            unitTest                      : project.awesomeandroidlibrary.unitTest
+            androidTest                   : project.awesomeandroidlibrary.androidTest
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :awesomeandroidlibrary
         LinkedProjectPath             : <PROJECT>/awesomeandroidlibrary
@@ -796,7 +796,7 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
@@ -861,24 +861,24 @@ PROJECT                       : testSyncKotlinProject
                 REBUILD                       : :awesomeandroidlibrary:clean, :awesomeandroidlibrary:assembleDebug
                 COMPILE_JAVA                  : :awesomeandroidlibrary:compileDebugSources
                 SOURCE_GEN                    : :awesomeandroidlibrary:generateDebugSources
-    MODULE                        : testSyncKotlinProject.awesomeandroidlibrary.androidTest
+    MODULE                        : project.awesomeandroidlibrary.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.awesomeandroidlibrary
-            main                          : testSyncKotlinProject.awesomeandroidlibrary.main
-            unitTest                      : testSyncKotlinProject.awesomeandroidlibrary.unitTest
-            androidTest                   : testSyncKotlinProject.awesomeandroidlibrary.androidTest
+            holder                        : project.awesomeandroidlibrary
+            main                          : project.awesomeandroidlibrary.main
+            unitTest                      : project.awesomeandroidlibrary.unitTest
+            androidTest                   : project.awesomeandroidlibrary.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :awesomeandroidlibrary:androidTest
         LinkedProjectPath             : <PROJECT>/awesomeandroidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.awesomeandroidlibrary.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.androidTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.awesomeandroidlibrary.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testSyncKotlinProject.awesomeandroidlibrary.main
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.androidTest.iml [-]
+            productionModuleName          : project.awesomeandroidlibrary.main
+        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -1063,9 +1063,9 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testSyncKotlinProject.awesomeandroidlibrary.main
+        ORDER_ENTRY                   : project.awesomeandroidlibrary.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.androidTest
+            -                             : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :awesomeandroidlibrary:generateDebugSources, :awesomeandroidlibrary:createMockableJar, :awesomeandroidlibrary:generateDebugAndroidTestSources
@@ -1091,22 +1091,22 @@ PROJECT                       : testSyncKotlinProject
                 REBUILD                       : :awesomeandroidlibrary:clean, :awesomeandroidlibrary:assembleDebug
                 COMPILE_JAVA                  : :awesomeandroidlibrary:compileDebugSources
                 SOURCE_GEN                    : :awesomeandroidlibrary:generateDebugSources
-    MODULE                        : testSyncKotlinProject.awesomeandroidlibrary.main
+    MODULE                        : project.awesomeandroidlibrary.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.awesomeandroidlibrary
-            main                          : testSyncKotlinProject.awesomeandroidlibrary.main
-            unitTest                      : testSyncKotlinProject.awesomeandroidlibrary.unitTest
-            androidTest                   : testSyncKotlinProject.awesomeandroidlibrary.androidTest
+            holder                        : project.awesomeandroidlibrary
+            main                          : project.awesomeandroidlibrary.main
+            unitTest                      : project.awesomeandroidlibrary.unitTest
+            androidTest                   : project.awesomeandroidlibrary.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :awesomeandroidlibrary:main
         LinkedProjectPath             : <PROJECT>/awesomeandroidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.awesomeandroidlibrary.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.main [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.awesomeandroidlibrary.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -1233,7 +1233,7 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
-            -                             : file://<PROJECT>/build/classes/production/testSyncKotlinProject.awesomeandroidlibrary.main
+            -                             : file://<PROJECT>/build/classes/production/project.awesomeandroidlibrary.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :awesomeandroidlibrary:generateDebugSources, :awesomeandroidlibrary:createMockableJar, :awesomeandroidlibrary:generateDebugAndroidTestSources
@@ -1259,24 +1259,24 @@ PROJECT                       : testSyncKotlinProject
                 REBUILD                       : :awesomeandroidlibrary:clean, :awesomeandroidlibrary:assembleDebug
                 COMPILE_JAVA                  : :awesomeandroidlibrary:compileDebugSources
                 SOURCE_GEN                    : :awesomeandroidlibrary:generateDebugSources
-    MODULE                        : testSyncKotlinProject.awesomeandroidlibrary.unitTest
+    MODULE                        : project.awesomeandroidlibrary.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : testSyncKotlinProject.awesomeandroidlibrary
-            main                          : testSyncKotlinProject.awesomeandroidlibrary.main
-            unitTest                      : testSyncKotlinProject.awesomeandroidlibrary.unitTest
-            androidTest                   : testSyncKotlinProject.awesomeandroidlibrary.androidTest
+            holder                        : project.awesomeandroidlibrary
+            main                          : project.awesomeandroidlibrary.main
+            unitTest                      : project.awesomeandroidlibrary.unitTest
+            androidTest                   : project.awesomeandroidlibrary.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :awesomeandroidlibrary:unitTest
         LinkedProjectPath             : <PROJECT>/awesomeandroidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.awesomeandroidlibrary.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.unitTest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.awesomeandroidlibrary.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testSyncKotlinProject.awesomeandroidlibrary.main
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.unitTest.iml [-]
+            productionModuleName          : project.awesomeandroidlibrary.main
+        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
@@ -1426,9 +1426,9 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : testSyncKotlinProject.awesomeandroidlibrary.main
+        ORDER_ENTRY                   : project.awesomeandroidlibrary.main
         Classes
-            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.unitTest
+            -                             : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :awesomeandroidlibrary:generateDebugSources, :awesomeandroidlibrary:createMockableJar, :awesomeandroidlibrary:generateDebugAndroidTestSources
@@ -1454,18 +1454,18 @@ PROJECT                       : testSyncKotlinProject
                 REBUILD                       : :awesomeandroidlibrary:clean, :awesomeandroidlibrary:assembleDebug
                 COMPILE_JAVA                  : :awesomeandroidlibrary:compileDebugSources
                 SOURCE_GEN                    : :awesomeandroidlibrary:generateDebugSources
-    MODULE                        : testSyncKotlinProject.contentLib
-        ExternalModuleGroup           : testSyncKotlinProject
+    MODULE                        : project.contentLib
+        ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :contentLib
         LinkedProjectPath             : <PROJECT>/contentLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.contentLib [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.contentLib [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.contentLib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.contentLib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -1490,8 +1490,8 @@ PROJECT                       : testSyncKotlinProject
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :contentLib:assemble
                 COMPILE_JAVA                  : :contentLib:compileJava
-    MODULE                        : testSyncKotlinProject.contentLib.main
-        ExternalModuleGroup           : testSyncKotlinProject
+    MODULE                        : project.contentLib.main
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :contentLib:main
@@ -1501,7 +1501,7 @@ PROJECT                       : testSyncKotlinProject
             compilerSourceOutputPath      : file://<PROJECT>/contentLib/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
@@ -1583,8 +1583,8 @@ PROJECT                       : testSyncKotlinProject
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :contentLib:assemble
                 COMPILE_JAVA                  : :contentLib:compileJava
-    MODULE                        : testSyncKotlinProject.contentLib.test
-        ExternalModuleGroup           : testSyncKotlinProject
+    MODULE                        : project.contentLib.test
+        ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :contentLib:test
@@ -1595,8 +1595,8 @@ PROJECT                       : testSyncKotlinProject
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : testSyncKotlinProject.contentLib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.test.iml [-]
+            productionModuleName          : project.contentLib.main
+        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
@@ -1665,7 +1665,7 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        ORDER_ENTRY                   : project.contentLib.main
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/test
         BUILD_TASKS
@@ -1683,8 +1683,8 @@ PROJECT                       : testSyncKotlinProject
                 COMPILE_JAVA                  : :contentLib:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testSyncKotlinProject.app.main
-        Module                        : testSyncKotlinProject.app.main
+        ModuleName                    : project.app.main
+        Module                        : project.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
