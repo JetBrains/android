@@ -105,6 +105,8 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseEvent.BUTTON2
+import java.awt.event.MouseEvent.BUTTON3
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
@@ -222,8 +224,8 @@ class EmulatorView(
 
   /** Last multi-touch event with pressure. */
   private var lastMultiTouchEvent: TouchEvent? = null
-  /** Last received state of the first mouse button. */
-  private var mouseButton1Pressed = false
+  /** A bit set indicating the current pressed buttons. */
+  private var buttons = 0
 
   private var virtualSceneCameraActive = false
     set(value) {
@@ -418,7 +420,7 @@ class EmulatorView(
     }
 
     if (multiTouchMode) {
-      drawMultiTouchFeedback(g, displayRect, mouseButton1Pressed)
+      drawMultiTouchFeedback(g, displayRect, (buttons and BUTTON1_BIT) != 0)
     }
 
     if (deviceFrameVisible) {
@@ -571,6 +573,15 @@ class EmulatorView(
   private val IdeGlassPane.rootPane
     get() = (this as IdeGlassPaneImpl).rootPane
 
+  private fun getButtonBit(button: Int): Int {
+    return when(button) {
+      BUTTON1 -> BUTTON1_BIT
+      BUTTON2 -> BUTTON2_BIT
+      BUTTON3 -> BUTTON3_BIT
+      else -> 0
+    }
+  }
+
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
     override fun onNext(response: EmulatorNotification) {
@@ -690,18 +701,18 @@ class EmulatorView(
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (event.button == BUTTON1) {
-        mouseButton1Pressed = true
         updateMultiTouchMode(event)
-        sendMouseEvent(event.x, event.y, 1)
       }
+      buttons = buttons or getButtonBit(event.button)
+      sendMouseEvent(event.x, event.y, buttons)
     }
 
     override fun mouseReleased(event: MouseEvent) {
       if (event.button == BUTTON1) {
-        mouseButton1Pressed = false
         updateMultiTouchMode(event)
-        sendMouseEvent(event.x, event.y, 0)
       }
+      buttons = buttons and getButtonBit(event.button).inv()
+      sendMouseEvent(event.x, event.y, buttons)
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -718,7 +729,7 @@ class EmulatorView(
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating) {
-        sendMouseEvent(event.x, event.y, 1, drag = true)
+        sendMouseEvent(event.x, event.y, buttons, drag = true)
       }
     }
 
@@ -1128,6 +1139,12 @@ private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MA
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
+// In Android MotionEvent, the right button is secondary and the middle button is tertiary, while in AWT the middle button is secondary and
+// the right button is tertiary. Here the bits are for the Android (and the emulator gRPC) definition.
+private const val BUTTON1_BIT = 1 shl 0 // Left
+private const val BUTTON2_BIT = 1 shl 2 // Middle
+private const val BUTTON3_BIT = 1 shl 1 // Right
+
 
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 

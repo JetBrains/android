@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
+import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
@@ -31,6 +32,7 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo
 import com.intellij.openapi.application.ApplicationManager
@@ -559,6 +561,66 @@ class EmulatorViewTest {
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
     assertThat(shortDebugString(call.request)).contains("button") // Some button should be pressed
+  }
+
+  @Test
+  fun testMouseButtonFilledInGrpc() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 1.0)
+
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    ui.render()
+
+    val params = listOf(Pair(FakeMouse.Button.RIGHT, "buttons: 2"), Pair(FakeMouse.Button.MIDDLE, "buttons: 4"))
+    for ((button, expected) in params) {
+      ui.mouse.press(135, 190, button)
+      ui.mouse.release()
+
+      emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
+        assertWithMessage(button.name).that(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+        assertWithMessage(button.name).that(shortDebugString(it.request)).contains(expected)
+      }
+
+      emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
+        assertWithMessage(button.name).that(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+        assertWithMessage(button.name).that(shortDebugString(it.request)).doesNotContain("button") // No button should be pressed
+      }
+    }
+  }
+
+  @Test
+  fun testMouseDragHasPressedButton() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 1.0)
+
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    ui.render()
+
+    ui.mouse.press(135, 190, FakeMouse.Button.RIGHT)
+    ui.mouse.dragDelta(5, 0)
+    ui.mouse.release()
+
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
+      assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    }
+
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
+      assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+      assertThat(shortDebugString(it.request)).contains("buttons: 2")
+    }
+
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
+      assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+      assertThat(shortDebugString(it.request)).doesNotContain("button") // No button should be pressed
+    }
   }
 
   private fun createScrollPane(view: Component): JScrollPane {
