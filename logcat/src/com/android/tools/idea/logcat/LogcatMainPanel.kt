@@ -42,6 +42,7 @@ import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
@@ -75,6 +76,7 @@ import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
+import com.android.tools.idea.logcat.util.toggleFilterTerm
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
@@ -129,7 +131,6 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
 import javax.swing.Icon
 import kotlin.math.max
-import kotlin.text.RegexOption.LITERAL
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
 private const val MAX_TAGS = 1000
@@ -290,6 +291,7 @@ internal class LogcatMainPanel(
       add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
+      add(ToggleFilterAction(this@LogcatMainPanel, logcatFilterParser))
       add(Separator.create())
       actions.forEach { add(it) }
       add(Separator.create())
@@ -564,6 +566,12 @@ internal class LogcatMainPanel(
     return filterHint?.getFilter()
   }
 
+  override fun getFilter(): String = headerPanel.filter
+
+  override fun setFilter(filter: String) {
+    headerPanel.filter = filter
+  }
+
   private fun EditorEx.addFilterHintHandlers() {
     // Note that adding & removing a filter to an existing filter properly is not trivial. For example, if the existing filter contains
     // logical operators & parens, just appending/deleting the filter term can result in unexpected results or even in an invalid filter.
@@ -576,7 +584,7 @@ internal class LogcatMainPanel(
         if (e.isControlDown && e.button == BUTTON1) {
           val hintFilter = e.getHintFilter()
           if (hintFilter != null) {
-            val newFilter = calculateNewFilter(hintFilter)
+            val newFilter = toggleFilterTerm(logcatFilterParser, headerPanel.filter, hintFilter)
             if (newFilter != null) {
               headerPanel.filter = newFilter
             }
@@ -588,7 +596,7 @@ internal class LogcatMainPanel(
       override fun mouseMoved(e: MouseEvent) {
         if (e.isControlDown) {
           val hintFilter = e.getHintFilter()
-          if (hintFilter != null && calculateNewFilter(hintFilter) != null) {
+          if (hintFilter != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, hintFilter) != null) {
             contentComponent.cursor = HAND_CURSOR
             return
           }
@@ -596,17 +604,6 @@ internal class LogcatMainPanel(
         contentComponent.cursor = TEXT_CURSOR
       }
     })
-  }
-
-  private fun calculateNewFilter(filter: String): String? {
-    val oldFilter = headerPanel.filter
-    val newFilter = when {
-      oldFilter.contains(filter) -> oldFilter.replace("""\b+${filter.toRegex(LITERAL)}\b+""".toRegex(), " ").trim()
-      oldFilter.isEmpty() -> filter
-      else -> headerPanel.filter + " $filter"
-    }
-
-    return if (logcatFilterParser.isValid(newFilter)) newFilter else null
   }
 
   private sealed class LogcatServiceEvent {

@@ -84,4 +84,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun pauseLogcat()
 
   fun resumeLogcat()
+
+  fun getFilter(): String
+
+  fun setFilter(filter: String)
 }

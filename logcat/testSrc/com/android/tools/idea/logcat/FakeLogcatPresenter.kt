@@ -113,6 +113,14 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun getFilter(): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun setFilter(filter: String) {
+    TODO("Not yet implemented")
+  }
+
   fun appendMessage(message: String) {
     lineBatches.add(listOf(message))
   }
