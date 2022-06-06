@@ -22,8 +22,8 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
-import javax.swing.event.HyperlinkListener
 
 /**
  * Maximum length of a line of text, according to Material Design guidelines.
@@ -36,6 +36,9 @@ private const val MAX_LENGTH = 120
 object LongTextAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LONG_TEXT
+
+  override val backgroundEnabled: Boolean
+    get() = LongTextAnalyzerInspection.longTextBackground
 
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
@@ -77,4 +80,8 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
     }
     return VisualLintIssueContent(view, summary, provider)
   }
+}
+
+object LongTextAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
+  var longTextBackground = true
 }

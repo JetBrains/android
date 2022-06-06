@@ -25,6 +25,13 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -47,6 +54,10 @@ class VisualLintServiceTest {
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     myAnalyticsManager = VisualLintAnalyticsManager(null)
     DesignerTypeRegistrar.register(LayoutFileType)
+    val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
+                                        TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
+                                        ButtonSizeAnalyzerInspection)
+    projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
   @After

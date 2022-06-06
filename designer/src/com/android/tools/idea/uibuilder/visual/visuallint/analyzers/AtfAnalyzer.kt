@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 
@@ -34,10 +35,17 @@ object AtfAnalyzer {
    *
    * To run more checks, update the policy in [VisualLintAtfAnalysis.validateAndUpdateLint]
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, issueProvider: VisualLintIssueProvider) {
+  fun analyze(renderResult: RenderResult, model: NlModel, issueProvider: VisualLintIssueProvider, runningInBackground: Boolean) {
+    if (runningInBackground && !AtfAnalyzerInspection.atfBackground) {
+      return
+    }
     val atfAnalyzer = VisualLintAtfAnalysis(model)
     val atfIssues: List<VisualLintAtfIssue> = atfAnalyzer.validateAndUpdateLint(renderResult)
     // TODO: Equals and hashcode might need to change here.
     issueProvider.addAllIssues(VisualLintErrorType.ATF, atfIssues)
   }
+}
+
+object AtfAnalyzerInspection: VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
+  var atfBackground = true
 }

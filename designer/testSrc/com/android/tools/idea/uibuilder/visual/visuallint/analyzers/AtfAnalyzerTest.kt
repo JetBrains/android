@@ -94,7 +94,7 @@ class AtfAnalyzerTest {
         val issueProvider = VisualLintIssueProvider(projectRule.testRootDisposable)
         val result = task.render().get()
         NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-        AtfAnalyzer.analyze(result, nlModel, issueProvider)
+        AtfAnalyzer.analyze(result, nlModel, issueProvider, false)
         val issues = issueProvider.getIssues()
         assertEquals(1, issues.size)
         issues.forEach {

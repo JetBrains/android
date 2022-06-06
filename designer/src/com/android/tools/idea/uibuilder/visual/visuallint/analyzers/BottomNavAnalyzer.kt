@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
@@ -34,6 +35,9 @@ private const val NAVIGATION_DRAWER_URL = "https://material.io/components/naviga
 object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_NAV
+
+  override val backgroundEnabled: Boolean
+    get() = BottomNavAnalyzerInspection.bottomNavBackground
 
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
@@ -68,4 +72,8 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
     }
     return VisualLintIssueContent(view, "Bottom navigation bar is not recommended for breakpoints over 600dp", content)
   }
+}
+
+object BottomNavAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
+  var bottomNavBackground = true
 }

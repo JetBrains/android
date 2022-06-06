@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
 
 /**
@@ -29,6 +30,9 @@ import com.android.utils.HtmlBuilder
 object BoundsAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOUNDS
+
+  override val backgroundEnabled: Boolean
+    get() = BoundsAnalyzerInspection.boundsBackground
 
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
@@ -74,4 +78,8 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
       it.name == "androidx.core.view.ScrollingView" || it.name == "com.android.internal.widget.ScrollingView"
     }
   }
+}
+
+object BoundsAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
+  var boundsBackground = true
 }

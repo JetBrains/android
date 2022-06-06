@@ -25,6 +25,13 @@ import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -36,6 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.fail
@@ -52,6 +60,10 @@ class VisualLintAnalysisTest {
     RenderTestUtil.beforeRenderTestCase()
     val surface = Mockito.mock(DesignSurface::class.java)
     myAnalyticsManager = VisualLintAnalyticsManager(surface)
+    val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
+                                        TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
+                                        ButtonSizeAnalyzerInspection)
+    projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
   @After
@@ -158,6 +170,17 @@ class VisualLintAnalysisTest {
       }
     }
 
+    projectRule.fixture.disableInspections(BoundsAnalyzerInspection, TextFieldSizeAnalyzerInspection)
+    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
+    analyzeFile(facet, filesToAnalyze, tabletConfiguration)
+    analyzeFile(facet, filesToAnalyze, foldableConfiguration)
+    analyzeFile(facet, filesToAnalyze, desktopConfiguration)
+    assertEquals(4, issues.size)
+    issues.map {it as VisualLintRenderIssue }.forEach {
+      assertNotEquals(VisualLintErrorType.BOUNDS, it.type)
+      assertNotEquals(VisualLintErrorType.TEXT_FIELD_SIZE, it.type)
+    }
   }
 
   private fun analyzeFile(

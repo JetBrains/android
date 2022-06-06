@@ -36,9 +36,13 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnal
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.codeInsight.daemon.HighlightDisplayKey
+import com.intellij.codeInspection.InspectionProfile
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.profile.ProfileChangeAdapter
+import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
@@ -71,6 +75,33 @@ class VisualLintService(project: Project) {
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
                                       OverlapAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
+
+  private val ignoredTypes: MutableList<VisualLintErrorType>
+
+  init {
+    val connection = project.messageBus.connect()
+    ignoredTypes = mutableListOf()
+    getIgnoredTypesFromProfile(InspectionProfileManager.getInstance(project).currentProfile)
+    connection.subscribe(ProfileChangeAdapter.TOPIC, object: ProfileChangeAdapter {
+      override fun profileActivated(oldProfile: InspectionProfile?, profile: InspectionProfile?) {
+        profile?.let { getIgnoredTypesFromProfile(it) }
+      }
+
+      override fun profileChanged(profile: InspectionProfile) {
+        getIgnoredTypesFromProfile(profile)
+      }
+    })
+  }
+
+  private fun getIgnoredTypesFromProfile(profile: InspectionProfile) {
+    ignoredTypes.clear()
+    for (type in VisualLintErrorType.values()) {
+      val enabled = profile.isToolEnabled(HighlightDisplayKey.find(type.shortName))
+      if (!enabled) {
+        ignoredTypes.add(type)
+      }
+    }
+  }
 
   fun removeIssues(surface: DesignSurface<*>) {
     surface.issueModel.removeIssueProvider(issueProvider)
@@ -110,7 +141,7 @@ class VisualLintService(project: Project) {
           inflate(model).handleAsync({ result, _ ->
             if (result != null) {
               updateHierarchy(result, model)
-              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
+              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null), true)
             }
             Disposer.dispose(model)
             latch.countDown()
@@ -130,14 +161,19 @@ class VisualLintService(project: Project) {
   fun analyzeAfterModelUpdate(result: RenderResult,
                               model: NlModel,
                               baseConfigIssues: VisualLintBaseConfigIssues,
-                              analyticsManager: VisualLintAnalyticsManager) {
-    basicAnalyzers.forEach {
-      val issues = it.analyze(result, model, analyticsManager)
+                              analyticsManager: VisualLintAnalyticsManager,
+                              runningInBackground: Boolean = false) {
+    basicAnalyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
+      val issues = it.analyze(result, model, analyticsManager, runningInBackground)
       issueProvider.addAllIssues(it.type, issues)
     }
-    LocaleAnalyzer(baseConfigIssues).let { issueProvider.addAllIssues(it.type, it.analyze(result, model, analyticsManager)) }
-    if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
-      AtfAnalyzer.analyze(result, model, issueProvider)
+    if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
+      LocaleAnalyzer(baseConfigIssues).let {
+        issueProvider.addAllIssues(it.type, it.analyze(result, model, analyticsManager, runningInBackground))
+      }
+    }
+    if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes) {
+      AtfAnalyzer.analyze(result, model, issueProvider, runningInBackground)
     }
   }
 }
