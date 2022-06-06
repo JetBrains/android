@@ -53,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 public class ResourceNotificationManagerTest extends AndroidTestCase {
 
   public void testEditNotifications() throws Exception {
-    ResourceUpdateTracer.startTracing();
+    FlightRecorder.initialize(1000);
     @Language("XML") String xml;
 
     // Setup sample project: a strings file, and a couple of layout file
