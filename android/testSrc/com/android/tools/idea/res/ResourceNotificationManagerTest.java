@@ -25,8 +25,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
-import com.android.utils.FlightRecorder;
-import com.android.utils.TraceUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -53,7 +51,6 @@ import org.jetbrains.annotations.NotNull;
 public class ResourceNotificationManagerTest extends AndroidTestCase {
 
   public void testEditNotifications() throws Exception {
-    FlightRecorder.initialize(1000);
     @Language("XML") String xml;
 
     // Setup sample project: a strings file, and a couple of layout file
@@ -104,7 +101,6 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     Ref<Boolean> called1 = new Ref<>(false);
     Ref<Set<Reason>> calledValue1 = new Ref<>();
     ResourceChangeListener listener1 = reason -> {
-      FlightRecorder.log(() -> "listener1 called " + reason);
       called1.set(true);
       calledValue1.set(reason);
     };
@@ -113,7 +109,6 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     Ref<Boolean> called2 = new Ref<>(false);
     Ref<Set<Reason>> calledValue2 = new Ref<>();
     ResourceChangeListener listener2 = reason -> {
-      FlightRecorder.log(() -> "listener1 called " + reason);
       called2.set(true);
       calledValue2.set(reason);
     };
@@ -310,17 +305,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
                             @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
-    FlightRecorder.log(() -> "ResourceNotificationManagerTest.ensureCalled " + reason);
-    try {
-      waitForResourceRepositoryUpdates(4, TimeUnit.SECONDS);
-    }
-    catch (TimeoutException e) {
-      System.out.println("ResourceNotificationManagerTest.ensureCalled: waitForResourceRepositoryUpdates timed out");
-      FlightRecorder.print();
-      System.out.println("----------");
-      System.out.println(TraceUtils.getStacksOfAllThreads());
-      throw e;
-    }
+    waitForResourceRepositoryUpdates(4, TimeUnit.SECONDS);
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(called1.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());
@@ -334,7 +319,6 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     called2.set(false);
     calledValue1.set(null);
     calledValue2.set(null);
-    FlightRecorder.log(() -> "ResourceNotificationManagerTest.clear");
   }
 
   private void ensureNotCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Boolean> called2) throws InterruptedException, TimeoutException {
