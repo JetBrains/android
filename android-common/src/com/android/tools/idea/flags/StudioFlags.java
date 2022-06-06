@@ -153,7 +153,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILEABLE_BUILDS = Flag.create(
     PROFILER, "profileable.builds", "Support building profileable apps",
     "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
-    false);
+    true);
 
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
   // Event Timeline or find a proper way to support it for Android S and newer.

@@ -121,7 +121,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we support profileable builds.
    */
-  private boolean myProfileablsBuildsEnabled = false;
+  private boolean myProfileablsBuildsEnabled = true;
 
   /**
    * Whether we support navigate-to-source action for Compose Tracing
