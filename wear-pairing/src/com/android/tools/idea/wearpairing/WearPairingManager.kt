@@ -527,7 +527,7 @@ private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls
 
 private fun IDevice.getDeviceID(): String {
   return when {
-    avdData?.isDone == true -> avdData.get().path ?: name
+    isEmulator && avdData?.isDone == true -> avdData.get()?.path ?: name
     isEmulator -> EmulatorConsole.getConsole(this)?.avdPath ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
