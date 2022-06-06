@@ -546,9 +546,8 @@ class ToolWindowModel(
       }
       ProgressManager.getInstance()
         .runProcessWithProgressSynchronously(rollback, "Revert to pre-upgrade state\u2026", true, project)
-      // TODO (b/234575703): add separate trigger for revert
       GradleSyncInvoker.getInstance()
-        .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE))
+        .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK))
     }
     catch (e: Exception) {
       uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error during revert.")))

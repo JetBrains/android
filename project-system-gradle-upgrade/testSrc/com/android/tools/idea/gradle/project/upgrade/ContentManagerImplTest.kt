@@ -46,6 +46,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
@@ -75,14 +76,15 @@ class ContentManagerImplTest {
 
   private val uiStates: MutableList<ToolWindowModel.UIState> = ArrayList()
 
-  private var syncRequested: Boolean = false
+  private var syncRequest: GradleSyncInvoker.Request? = null
 
   @Before
   fun replaceSyncInvoker() {
+    syncRequest = null
     val ideComponents = IdeComponents(projectRule.fixture)
     val fakeSyncInvoker = object : GradleSyncInvoker.FakeInvoker() {
       override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-        syncRequested = true
+        syncRequest = request
         super.requestProjectSync(project, request, listener)
       }
     }
@@ -656,17 +658,21 @@ class ContentManagerImplTest {
     val toolWindowModel = ToolWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
 
     toolWindowModel.runUpgrade(false)
+    assertThat(syncRequest).isNotNull()
+    assertThat(syncRequest!!.trigger).isEqualTo(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)
+
     toolWindowModel.syncStarted(project)
     changingCurrentAgpVersion = latestAgpVersion
     toolWindowModel.syncSucceeded(project)
 
-    syncRequested = false
+    syncRequest = null
     toolWindowModel.runRevert()
     // Need to commit so that pending changes from vcs are propagated to psi.
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
-    assertThat(syncRequested).isTrue()
+    assertThat(syncRequest).isNotNull()
+    assertThat(syncRequest!!.trigger).isEqualTo(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK)
 
     toolWindowModel.syncStarted(project)
     changingCurrentAgpVersion = currentAgpVersion
