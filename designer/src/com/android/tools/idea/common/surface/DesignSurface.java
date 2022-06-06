@@ -610,9 +610,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myModelToSceneManagersLock.writeLock().unlock();
     }
 
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
-
     if (myIsActive) {
       manager.activate(this);
     }
@@ -642,7 +639,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
    * be moved to the bottom of the list and a refresh will be triggered.
-   * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
+   * The scene views are updated before starting to render and the callback
+   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    * <br/><br/>
    * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
@@ -654,6 +652,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
     T modelSceneManager = addModel(model);
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
@@ -673,9 +673,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
    * If it is added before then it just returns the associated {@link SceneManager} which created before.
-   * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
-   * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
-   * when render is completed.
+   * In this function, the scene views are not updated and {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
+   * callback is triggered immediately.
+   * In the opposite, {@link #addAndRenderModel(NlModel)} updates the scene views and triggers
+   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} when render is completed.
    * <p>
    * <br/><br/>
    * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
@@ -768,6 +769,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
 
     addModel(model);
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {

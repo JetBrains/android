@@ -349,7 +349,9 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
       getSceneManager(model) as LayoutlibSceneManager
     }
 
-  repaint()
+  // Relayout the scene views and repaint, so that the updated lists of previews is shown before the render starts.
+  // While rendering, reused models will keep their current Preview image and new models will be empty.
+  revalidateScrollArea()
   if (newSceneManagers.isNotEmpty()) {
     var preview = 1 // next preview to render
     progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
