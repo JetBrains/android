@@ -175,12 +175,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   }
 
   fun setViewOptionFilter(filter: (Issue) -> Boolean) {
-    val wasEmpty = treeModel.root?.getChildren()?.isEmpty() ?: true
     issueProvider.filter = filter
-    treeModel.structureChanged(null)
-    if (wasEmpty) {
-      TreeUtil.promiseExpandAll(tree)
-    }
+    updateTree()
   }
 
   fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {
