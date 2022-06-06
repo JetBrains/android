@@ -214,7 +214,6 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
   }
 }
 
-
 abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
   @RunWith(Parameterized::class)

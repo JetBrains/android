@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.SyncIssue
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
@@ -47,14 +46,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.RUN_CONFIG_ACTIVITY,
-      ),
-      expectPackageName = "from.gradle.debug",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
       ),
@@ -64,25 +55,9 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
-      ),
-      expectPackageName = "one.name.defaultConfig.debug",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        viaBundle = true,
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
-      ),
-      expectPackageName = "one.name.defaultConfig.debug",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
         target = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        executeMakeBeforeRun = false,
       ),
       expectPackageName = "one.name.defaultConfig.debug",
       expectTestPackageName = "one.name.test_app"
@@ -100,27 +75,9 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
-      ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
-      expectPackageName = "one.dynamic.name.debug",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        viaBundle = true,
-        testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
-      ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
-      expectPackageName = "one.dynamic.name.debug",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
         target = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
         testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
+        executeMakeBeforeRun = false,
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
       expectPackageName = "one.dynamic.name.debug",
@@ -159,6 +116,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = TestProjectPaths.SIMPLE_APPLICATION,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
+        executeMakeBeforeRun = false,
       ),
       IGNORE = {
         if (agpVersion == AGP_CURRENT) {
@@ -173,6 +131,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY,
         target = TestTargetRunConfiguration("com.example.projectwithappandlib.lib.ExampleInstrumentedTest"),
+        executeMakeBeforeRun = false,
       ),
       expectPackageName = mapOf(
         AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
@@ -201,25 +160,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.TEST_ONLY_MODULE,
-        target = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
-      ),
-      expectPackageName = "com.example.android.app",
-      expectTestPackageName = "com.example.android.app.testmodule"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = TestProjectPaths.TEST_ONLY_MODULE,
         executeMakeBeforeRun = false,
-        target = TestTargetRunConfiguration("com.example.android.test2.ExampleTest"),
-      ),
-      expectPackageName = "com.example.android.app",
-      expectTestPackageName = "com.example.android.test2"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = TestProjectPaths.TEST_ONLY_MODULE,
         target = TestTargetRunConfiguration("com.example.android.test2.ExampleTest"),
       ),
       expectPackageName = "com.example.android.app",
@@ -238,34 +179,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.DYNAMIC_APP,
-      ),
-      expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
-      ),
-      expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "(null)"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
-      ),
-      expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "google.simpleapplication.test"
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
-        target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
+        executeMakeBeforeRun = false,
       ),
       expectPackageName = "google.simpleapplication",
       expectTestPackageName = "google.simpleapplication.test"
@@ -275,6 +190,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = TestProjectPaths.DYNAMIC_APP,
         target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
+        executeMakeBeforeRun = false,
       ),
       expectPackageName = "google.simpleapplication",
       expectTestPackageName = "com.example.feature1.test"
@@ -283,6 +199,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.INSTANT_APP,
+        executeMakeBeforeRun = false,
       ),
       IGNORE = { if (agpVersion != AGP_35) error("instant apps are not supported by this version of AGP. ") },
       expectPackageName = "com.example.instantapp",
