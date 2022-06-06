@@ -24,7 +24,8 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses(MlModelBindingTestSuite.class)  // a suite mustn't contain itself
 public class MlModelBindingTestSuite extends IdeaTestSuiteBase {
   static {
-    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/mlkit/test_deps.manifest");
   }
 }
