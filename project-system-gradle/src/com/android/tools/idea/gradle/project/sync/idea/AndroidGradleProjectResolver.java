@@ -315,13 +315,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     var mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel.class);
     var kotlinModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel.class);
     if (mppModel != null && kotlinModel != null) {
-      if (mppModel.getPartialCacheAware().getCacheOriginIdentifier() != kotlinModel.getPartialCacheAware().getCacheOriginIdentifier()) {
+      if (mppModel.getCacheAware().getCacheOriginIdentifier() != kotlinModel.getCacheAware().getCacheOriginIdentifier()) {
         throw new IllegalStateException("Mpp and Kotlin model cacheOriginIdentifier's do not match");
       }
     }
     var cacheOriginIdentifier = 0L;
-    if (mppModel != null) cacheOriginIdentifier = mppModel.getPartialCacheAware().getCacheOriginIdentifier();
-    if (kotlinModel != null) cacheOriginIdentifier = kotlinModel.getPartialCacheAware().getCacheOriginIdentifier();
+    if (mppModel != null) cacheOriginIdentifier = mppModel.getCacheAware().getCacheOriginIdentifier();
+    if (kotlinModel != null) cacheOriginIdentifier = kotlinModel.getCacheAware().getCacheOriginIdentifier();
     if (cacheOriginIdentifier != 0L) {
       myKotlinCacheOriginIdentifiers.add(cacheOriginIdentifier);
     }
