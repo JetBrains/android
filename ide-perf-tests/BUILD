@@ -29,8 +29,9 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/ide-perf-tests/testData",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
