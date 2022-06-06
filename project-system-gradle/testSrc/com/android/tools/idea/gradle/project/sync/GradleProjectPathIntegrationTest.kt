@@ -109,17 +109,17 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             TestCompositeLib3.lib.main ==> [TestCompositeLib3]:lib/MAIN
             TestCompositeLib3.lib.unitTest ==> [TestCompositeLib3]:lib/UNIT_TEST
             com.test.compositeNest3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
-            com.test.compositeNest3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]/MAIN
-            com.test.compositeNest3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]/test
+            com.test.compositeNest3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
+            com.test.compositeNest3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test
             composite2 ==> [TestCompositeLib2]:
-            composite2.main ==> [TestCompositeLib2]/MAIN
-            composite2.test ==> [TestCompositeLib2]/test
+            composite2.main ==> [TestCompositeLib2]:/MAIN
+            composite2.test ==> [TestCompositeLib2]:/test
             composite4 ==> [TestCompositeLib4]:
-            composite4.main ==> [TestCompositeLib4]/MAIN
-            composite4.test ==> [TestCompositeLib4]/test
+            composite4.main ==> [TestCompositeLib4]:/MAIN
+            composite4.test ==> [TestCompositeLib4]:/test
             compositeNest ==> [TestCompositeLib1/TestCompositeLibNested_1]:
-            compositeNest.main ==> [TestCompositeLib1/TestCompositeLibNested_1]/MAIN
-            compositeNest.test ==> [TestCompositeLib1/TestCompositeLibNested_1]/test
+            compositeNest.main ==> [TestCompositeLib1/TestCompositeLibNested_1]:/MAIN
+            compositeNest.test ==> [TestCompositeLib1/TestCompositeLibNested_1]:/test
         """.trimIndent()
       )
       assertThatProjectPathsCanBeResolved(project)
