@@ -49,7 +49,7 @@ public class NewImageAssetStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public NewImageAssetStepFixture<W> selectIconType(@NotNull String iconType) {
-    JComboBox comp = robot().finder().findByLabel(target(), "Icon Type:", JComboBox.class, true);
+    JComboBox comp = robot().finder().findByLabel(target(), "Icon type:", JComboBox.class, true);
     JComboBoxFixture combo = new JComboBoxFixture(robot(), comp);
     combo.selectItem(iconType);
     return this;

@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AdaptiveIconsTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(2, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -73,6 +73,7 @@ public class AdaptiveIconsTest {
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
     NewImageAssetStepFixture<AssetStudioWizardFixture> step = wizard.getImageAssetStep();
+    guiTest.robot().waitForIdle();
     step.selectIconType("Launcher Icons (Adaptive and Legacy)");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
     assertThat(step.getPreviewPanelIconNames(0)).containsExactly(
@@ -93,8 +94,6 @@ public class AdaptiveIconsTest {
       "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
       "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
       "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
-      "app/src/main/res/drawable/ic_launcher_background.xml",
-      "app/src/main/res/drawable-v24/ic_launcher_foreground.xml",
       "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
       "app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
       "app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
@@ -102,7 +101,17 @@ public class AdaptiveIconsTest {
       "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
       "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
       "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
-      "app/src/main/ic_launcher-playstore.png"
+      "app/src/main/ic_launcher-playstore.png",
+      "app/src/main/res/mipmap-hdpi/ic_launcher_background.png",
+      "app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_background.png",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_background.png",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_background.png",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.png",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"
     );
   }
 }
