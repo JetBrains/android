@@ -23,7 +23,8 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
     ],
     test_srcs = ["testSrc"],
     test_tags = [],
@@ -142,7 +143,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:4.0.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
@@ -169,7 +171,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:4.1.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
@@ -196,7 +199,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:4.2.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
@@ -223,7 +227,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:7.0.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
@@ -250,7 +255,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:7.1.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
@@ -277,7 +283,8 @@ old_agp_test(
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
     maven_deps = [
         ":test_deps",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
     ],
     tags = [
         "block-network",
