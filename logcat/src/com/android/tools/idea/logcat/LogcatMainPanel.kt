@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat
 import com.android.adblib.AdbLibSession
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
@@ -52,6 +51,7 @@ import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -336,10 +336,10 @@ internal class LogcatMainPanel(
     scrollPane.verticalScrollBar.addMouseMotionListener(mouseListener)
   }
 
-  override suspend fun processMessages(messages: List<LogCatMessage>) {
+  override suspend fun processMessages(messages: List<LogcatMessage>) {
     messageBacklog.get().addAll(messages)
     tags.addAll(messages.map { it.header.tag })
-    packages.addAll(messages.map(LogCatMessage::getPackageNameOrPid))
+    packages.addAll(messages.map { it.header.getAppName() })
     if (!isLogcatPaused) {
       // When paused, we don't send message to the document.
       messageProcessor.appendMessages(messages)
@@ -477,7 +477,7 @@ internal class LogcatMainPanel(
       withContext(uiThread) {
         document.setText("")
         if (connectedDevice.get()?.sdk == 26) {
-          processMessages(listOf(LogCatMessage(
+          processMessages(listOf(LogcatMessage(
             SYSTEM_HEADER,
             "WARNING: Logcat was not cleared on the device itself because of a bug in Android 8.0 (Oreo).")))
         }
@@ -541,7 +541,7 @@ internal class LogcatMainPanel(
     ignoreCaretAtBottom = false
   }
 
-  private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+  private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
     messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
 
@@ -611,8 +611,6 @@ internal class LogcatMainPanel(
     object StopLogcat : LogcatServiceEvent()
   }
 }
-
-private fun LogCatMessage.getPackageNameOrPid() = if (header.appName == "?") "pid-${header.pid}" else header.appName
 
 private fun LogcatPanelConfig?.getFormattingOptions(): FormattingOptions =
   this?.formattingConfig?.toFormattingOptions() ?: AndroidLogcatFormattingOptions.getDefaultOptions()

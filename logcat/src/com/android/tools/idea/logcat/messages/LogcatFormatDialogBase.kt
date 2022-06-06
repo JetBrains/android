@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.LogcatBundle.message
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.createLogcatEditor
@@ -70,13 +70,13 @@ private const val GRID_COLUMN_GAP = 50
 private val sampleZoneId = ZoneId.of("GMT")
 private val sampleTimestamp = Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, sampleZoneId))
 private val sampleMessages = listOf(
-  LogCatMessage(LogCatHeader(Log.LogLevel.DEBUG, 27217, 3814, "com.example.app1", "ExampleTag1", sampleTimestamp),
+  LogcatMessage(LogcatHeader(LogLevel.DEBUG, 27217, 3814, "com.example.app1", "", "ExampleTag1", sampleTimestamp),
                 "Sample logcat message 1."),
-  LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 27217, 3814, "com.example.app1", "ExampleTag1", sampleTimestamp),
+  LogcatMessage(LogcatHeader(LogLevel.INFO, 27217, 3814, "com.example.app1", "", "ExampleTag1", sampleTimestamp),
                 "Sample logcat message 2."),
-  LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp),
+  LogcatMessage(LogcatHeader(LogLevel.WARN, 24395, 24395, "com.example.app2", "", "ExampleTag2", sampleTimestamp),
                 "Sample logcat message 3."),
-  LogCatMessage(LogCatHeader(Log.LogLevel.ERROR, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp),
+  LogcatMessage(LogcatHeader(LogLevel.ERROR, 24395, 24395, "com.example.app2", "", "ExampleTag2", sampleTimestamp),
                 "Sample logcat multiline\nmessage."),
 )
 
@@ -208,16 +208,16 @@ internal abstract class LogcatFormatDialogBase(
   protected open fun getLogcatFormatDialogEvent(): LogcatUsageEvent.LogcatFormatDialog.Builder =
     LogcatUsageEvent.LogcatFormatDialog.newBuilder()
       .setConfiguration(LogcatFormatConfiguration.newBuilder()
-        .setIsShowTimestamp(showTimestampCheckbox.isSelected)
-        .setIsShowDate(timestampStyleComboBox.item == DATETIME)
-        .setIsShowProcessId(showPidCheckbox.isSelected)
-        .setIsShowThreadId(includeTidCheckbox.isSelected)
-        .setIsShowTags(showTagsCheckbox.isSelected)
-        .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
-        .setTagWidth(tagWidthSpinner.number)
-        .setIsShowPackages(showPackagesCheckbox.isSelected)
-        .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
-        .setPackageWidth(packageWidthSpinner.number))
+                          .setIsShowTimestamp(showTimestampCheckbox.isSelected)
+                          .setIsShowDate(timestampStyleComboBox.item == DATETIME)
+                          .setIsShowProcessId(showPidCheckbox.isSelected)
+                          .setIsShowThreadId(includeTidCheckbox.isSelected)
+                          .setIsShowTags(showTagsCheckbox.isSelected)
+                          .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
+                          .setTagWidth(tagWidthSpinner.number)
+                          .setIsShowPackages(showPackagesCheckbox.isSelected)
+                          .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
+                          .setPackageWidth(packageWidthSpinner.number))
 
   private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
     titledRow(message("logcat.header.options.timestamp.title")) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log.LogLevel
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.message.LogLevel
 import com.android.utils.usLocaleCapitalize
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

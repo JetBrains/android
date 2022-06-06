@@ -4,11 +4,14 @@ import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
 import com.android.adblib.utils.LineBatchShellCollector
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat
+import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
+import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.STANDARD_FORMAT
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -24,12 +27,19 @@ internal class LogcatServiceImpl(
   private val processNameMonitor: ProcessNameMonitor,
 ) : LogcatService {
 
-  override suspend fun readLogcat(device: Device): Flow<List<LogCatMessage>> {
+  override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
     @Suppress("OPT_IN_USAGE")
     return channelFlow {
-      val messageAssembler = LogcatMessageAssembler(disposableParent, device.serialNumber, channel, processNameMonitor, coroutineContext)
-      deviceServicesFactory().shell(deviceSelector, buildLogcatCommand(device), LineBatchShellCollector()).collect {
+      val logcatFormat = device.logcatFormat
+      val messageAssembler = LogcatMessageAssembler(
+        disposableParent,
+        device.serialNumber,
+        logcatFormat,
+        channel,
+        processNameMonitor,
+        coroutineContext)
+      deviceServicesFactory().shell(deviceSelector, buildLogcatCommand(logcatFormat), LineBatchShellCollector()).collect {
         messageAssembler.processNewLines(it)
       }
 
@@ -45,8 +55,8 @@ internal class LogcatServiceImpl(
         else {
           channel.send(
             listOf(
-              LogCatMessage(message.header, split[0]),
-              LogCatMessage(SYSTEM_HEADER, split[1])),
+              LogcatMessage(message.header, split[0]),
+              LogcatMessage(SYSTEM_HEADER, split[1])),
           )
         }
       }
@@ -61,9 +71,11 @@ internal class LogcatServiceImpl(
   }
 }
 
-private fun buildLogcatCommand(device: Device): String {
+private val Device.logcatFormat get() = if (sdk >= AndroidVersion.VersionCodes.N) EPOCH_FORMAT else STANDARD_FORMAT
+
+private fun buildLogcatCommand(logcatFormat: LogcatFormat): String {
   val command = StringBuilder("logcat -v long")
-  if (device.sdk >= AndroidVersion.VersionCodes.N) {
+  if (logcatFormat == EPOCH_FORMAT) {
     command.append(" -v epoch")
   }
   return command.toString()

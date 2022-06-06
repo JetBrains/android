@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
@@ -23,6 +22,7 @@ import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
+import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -72,10 +72,10 @@ private val ALL_KEYS
 
 private fun maybeAddIsKey() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf(IS_KEY) else emptyList()
 
-private val LEVEL_LOOKUPS_LOWERCASE = Log.LogLevel.values()
+private val LEVEL_LOOKUPS_LOWERCASE = LogLevel.values()
   .map { it.name.lowercase().toLookupElement(suffix = " ") }
 
-private val LEVEL_LOOKUPS_UPPERCASE = Log.LogLevel.values()
+private val LEVEL_LOOKUPS_UPPERCASE = LogLevel.values()
   .map { it.name.uppercase().toLookupElement(suffix = " ") }
 
 private val IS_LOOKUPS = listOf("crash", "stacktrace").map { it.toLookupElement(suffix = " ") }

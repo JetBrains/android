@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
@@ -55,14 +55,28 @@ internal fun MessageProcessor.onIdle(run: () -> Unit) {
 }
 
 /**
- * Convenience creation of a [LogCatMessage] for testing
+ * Convenience creation of a [LogcatMessage] for testing
  */
-fun logCatMessage(
-  logLevel: Log.LogLevel = INFO,
+internal fun logCatMessage(
+  logLevel: LogLevel = INFO,
   pid: Int = 1,
   tid: Int = 2,
-  appName: String = "com.example.app",
+  appId: String = "com.example.app",
   tag: String = "ExampleTag",
   timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
   message: String = "message",
-): LogCatMessage = LogCatMessage(LogCatHeader(logLevel, pid, tid, appName, tag, timestamp), message)
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, "", tag, timestamp), message)
+
+/**
+ * Convenience creation of a [LogcatMessage] for testing
+ */
+internal fun logCatMessage(
+  logLevel: LogLevel = INFO,
+  pid: Int = 1,
+  tid: Int = 2,
+  appId: String = "com.example.app",
+  processName: String = "com.example.app",
+  tag: String = "ExampleTag",
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
+  message: String = "message",
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, processName, tag, timestamp), message)

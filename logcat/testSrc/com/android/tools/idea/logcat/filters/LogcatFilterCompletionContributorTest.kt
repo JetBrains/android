@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log.LogLevel
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
@@ -24,6 +23,7 @@ import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.TagsProvider
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.testing.AndroidProjectRule

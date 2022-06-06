@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel
 import com.android.tools.adtui.common.ColorPaletteManager
+import com.android.tools.idea.logcat.message.LogLevel
 import com.google.gson.Gson
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
@@ -36,7 +35,7 @@ private const val PALETTE_JSON_FILENAME = "/palette/logcat-tags-palette.json"
  * Colors are stored as [TextAttributes] which can be assigned to [com.intellij.openapi.editor.Document]
  * [com.intellij.openapi.editor.markup.MarkupModel] ranges.
  *
- * [Log.LogLevel] colors are provided with an extension method.
+ * [LogLevel] colors are provided with an extension method.
  *
  * Tag colors are assigned dynamically from a small pool and stored in a map.
  */
@@ -51,13 +50,13 @@ internal class LogcatColors {
   private val tagColors = ConcurrentHashMap<Int, TextAttributes>()
 
   /**
-   * Map a [Log.LogLevel] to a [TextAttributesKey] object for rendering a log level.
+   * Map a [LogLevel] to a [TextAttributesKey] object for rendering a log level.
    */
   internal fun getLogLevelKey(level: LogLevel) =
     LEVEL_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
 
   /**
-   * Map a [Log.LogLevel] to a [TextAttributesKey] object for rendering a message.
+   * Map a [LogLevel] to a [TextAttributesKey] object for rendering a message.
    */
   internal fun getMessageKey(level: LogLevel) =
     MESSAGE_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")

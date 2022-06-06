@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.logcat.LogCatHeader
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogcatHeader
 import com.intellij.openapi.util.Key
 import java.time.Instant
 
@@ -29,4 +29,4 @@ internal val TAGS_PROVIDER_KEY = Key<TagsProvider>("TagProvider")
 internal val PACKAGE_NAMES_PROVIDER_KEY = Key<PackageNamesProvider>("PackageNamesProvider")
 
 @JvmField
-internal val SYSTEM_HEADER = LogCatHeader(INFO, 0, 0, "", "", Instant.EPOCH)
+internal val SYSTEM_HEADER = LogcatHeader(LogLevel.INFO, 0, 0, "", "", "", Instant.EPOCH)

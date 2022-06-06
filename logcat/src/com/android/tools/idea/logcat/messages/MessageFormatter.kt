@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.SYSTEM_HEADER
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.AppName
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Level
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import java.time.ZoneId
-import kotlin.math.max
 import kotlin.math.min
 
 
 /**
- * Formats [LogCatMessage]'s into a [TextAccumulator]
+ * Formats [LogcatMessage]'s into a [TextAccumulator]
  */
 internal class MessageFormatter(private val logcatColors: LogcatColors, private val zoneId: ZoneId) {
   // Keeps track of the previous tag, so we can omit on consecutive lines
@@ -34,7 +33,7 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
   private var previousTag: String? = null
   private var previousPid: Int? = null
 
-  fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+  fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 5)
     for (message in messages) {
@@ -44,7 +43,7 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       }
       val header = message.header
       val tag = header.tag
-      val appName = header.appName
+      val appName = header.getAppName()
 
       textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
       textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))

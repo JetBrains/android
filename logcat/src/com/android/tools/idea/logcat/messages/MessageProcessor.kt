@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Document
@@ -35,11 +35,11 @@ const val MAX_TIME_PER_BATCH_MS = 100
 const val MAX_MESSAGES_PER_BATCH = 5000
 
 /**
- * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
+ * Prints formatted [LogcatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
 internal class MessageProcessor @TestOnly constructor(
   private val logcatPresenter: LogcatPresenter,
-  private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
+  private val formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
   var logcatFilter: LogcatFilter?,
   private val clock: Clock,
   private val maxTimePerBatchMs: Int,
@@ -48,7 +48,7 @@ internal class MessageProcessor @TestOnly constructor(
 ) {
   constructor(
     logcatPresenter: LogcatPresenter,
-    formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
+    formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
     logcatFilter: LogcatFilter?,
   ) : this(
     logcatPresenter,
@@ -59,7 +59,7 @@ internal class MessageProcessor @TestOnly constructor(
     MAX_MESSAGES_PER_BATCH,
     autoStart = true)
 
-  private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
+  private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
 
   init {
     if (autoStart) {
@@ -67,7 +67,7 @@ internal class MessageProcessor @TestOnly constructor(
     }
   }
 
-  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
+  internal suspend fun appendMessages(messages: List<LogcatMessage>) {
     val filteredMessages = LogcatMasterFilter(logcatFilter).filter(messages)
     if (filteredMessages.isNotEmpty()) {
       messageChannel.send(filteredMessages)

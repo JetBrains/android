@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 

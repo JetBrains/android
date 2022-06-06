@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log.LogLevel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
@@ -37,6 +36,7 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.filters.parser.isTopLevelValue
 import com.android.tools.idea.logcat.filters.parser.toText
+import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent

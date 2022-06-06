@@ -23,9 +23,9 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.Client.CHANGE_NAME
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.logcat.message.LogcatMessage
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -91,11 +91,11 @@ internal class ProjectAppMonitor(
 }
 
 @VisibleForTesting
-internal fun Client.startedMessage(): LogCatMessage =
+internal fun Client.startedMessage(): LogcatMessage =
   // clientData.packageName cannot be null because if this method was called, is has already satisfied Client.isProjectClient()
-  LogCatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.started", clientData.pid.toString(), clientData.packageName!!))
+  LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.started", clientData.pid.toString(), clientData.packageName!!))
 
 @VisibleForTesting
-internal fun Client.endedMessage(): LogCatMessage =
+internal fun Client.endedMessage(): LogcatMessage =
   // clientData.packageName cannot be null because if this method was called, is has already satisfied Client.isProjectClient()
-  LogCatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.ended", clientData.pid.toString(), clientData.packageName!!))
+  LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.ended", clientData.pid.toString(), clientData.packageName!!))

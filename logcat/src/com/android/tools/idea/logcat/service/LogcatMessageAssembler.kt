@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.logcat.service
 
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatHeaderParser
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.folding.StackTraceExpander
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatHeaderParser
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.channels.SendChannel
@@ -38,7 +38,7 @@ private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
 private const val DELAY_MILLIS = 100L
 
 /**
- * Receives batches of lines from an `adb logcat -v long` process and assembles them into complete [LogCatMessage]'s.
+ * Receives batches of lines from an `adb logcat -v long` process and assembles them into complete [LogcatMessage]'s.
  *
  * A logcat entry starts with a header:
  *
@@ -58,20 +58,16 @@ private const val DELAY_MILLIS = 100L
 internal class LogcatMessageAssembler(
   disposableParent: Disposable,
   private val serialNumber: String,
-  private val channel: SendChannel<List<LogCatMessage>>,
-  private val processNameMonitor: ProcessNameMonitor,
+  logcatFormat: LogcatHeaderParser.LogcatFormat,
+  private val channel: SendChannel<List<LogcatMessage>>,
+  processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
 ) : Disposable {
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
-  /**
-   * Keep a lambda se we don't allocate a new one for each parsed line
-   */
-  private val applicationIdGetter = this::getApplicationId
-
   private val previousState = AtomicReference<PartialMessage?>()
 
-  private val headerParser = LogCatHeaderParser()
+  private val headerParser = LogcatHeaderParser(logcatFormat, processNameMonitor)
 
   init {
     Disposer.register(disposableParent, this)
@@ -125,10 +121,10 @@ internal class LogcatMessageAssembler(
     }
   }
 
-  fun getAndResetPendingMessage(): LogCatMessage? {
+  fun getAndResetPendingMessage(): LogcatMessage? {
     val pendingState = previousState.getAndSet(null)
     return when {
-      pendingState?.header != null -> LogCatMessage(pendingState.header, pendingState.lines.toMessage())
+      pendingState?.header != null -> LogcatMessage(pendingState.header, pendingState.lines.toMessage())
       else -> null
     }
   }
@@ -140,18 +136,18 @@ internal class LogcatMessageAssembler(
 
     var lastHeader = state?.header
     val lastLines = state?.lines?.toMutableList() ?: mutableListOf()
-    val batchMessages = mutableListOf<LogCatMessage>()
+    val batchMessages = mutableListOf<LogcatMessage>()
 
     for (line in newLines.map { it.fixLine() }) {
       if (line.isSystemLine()) {
-        batchMessages.add(LogCatMessage(SYSTEM_HEADER, line))
+        batchMessages.add(LogcatMessage(SYSTEM_HEADER, line))
         continue
       }
-      val header = headerParser.parseHeader(line, applicationIdGetter)
+      val header = headerParser.parseHeader(line, serialNumber)
       if (header != null) {
         // It's a header, flush active lines.
         if (lastHeader != null && lastLines.isNotEmpty()) {
-          batchMessages.add(LogCatMessage(lastHeader, lastLines.toMessage()))
+          batchMessages.add(LogcatMessage(lastHeader, lastLines.toMessage()))
         }
         // previous lines without a previous header are discarded
         lastLines.clear()
@@ -164,25 +160,16 @@ internal class LogcatMessageAssembler(
     return Batch(batchMessages, lastHeader, lastLines)
   }
 
-  private fun getApplicationId(pid: Int): String {
-    val names = processNameMonitor.getProcessNames(serialNumber, pid)
-    return when {
-      names == null -> "pid-$pid"
-      names.applicationId.isEmpty() -> names.processName
-      else -> names.applicationId
-    }
-  }
-
   /**
    * A batch consists of the first n-1 log entries in a batch. The last entry can be incomplete and is stored as a header and a list of
    * lines.
    */
-  private class Batch(val messages: List<LogCatMessage>, val lastHeader: LogCatHeader?, val lastLines: List<String>)
+  private class Batch(val messages: List<LogcatMessage>, val lastHeader: LogcatHeader?, val lastLines: List<String>)
 
   /**
    * A header and lines of a possibly unfinished message.
    */
-  private class PartialMessage(val header: LogCatHeader?, val lines: List<String>)
+  private class PartialMessage(val header: LogcatHeader?, val lines: List<String>)
 }
 
 private fun String.isSystemLine(): Boolean {

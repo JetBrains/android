@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.ASSERT
-import com.android.ddmlib.Log.LogLevel.ERROR
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import java.time.Clock
 import java.time.Duration
@@ -32,7 +32,7 @@ import java.util.regex.PatternSyntaxException
  */
 internal class LogcatMasterFilter(val logcatFilter: LogcatFilter?) {
 
-  fun filter(messages: List<LogCatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogCatMessage> {
+  fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
     if (logcatFilter == null) {
       return messages
     }
@@ -42,7 +42,7 @@ internal class LogcatMasterFilter(val logcatFilter: LogcatFilter?) {
 }
 
 /**
- * Matches a [LogCatMessage]
+ * Matches a [LogcatMessage]
  */
 internal interface LogcatFilter {
   /**
@@ -85,7 +85,7 @@ internal enum class LogcatFilterField {
     override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.tag
   },
   APP {
-    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.appName
+    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.getAppName()
   },
   MESSAGE {
     override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.message
@@ -130,7 +130,7 @@ internal data class NegatedRegexFilter(val string: String, val field: LogcatFilt
   override fun matches(message: LogcatMessageWrapper) = !regex.containsMatchIn(field.getValue(message))
 }
 
-internal data class LevelFilter(val level: Log.LogLevel) : LogcatFilter {
+internal data class LevelFilter(val level: LogLevel) : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel >= level
 }
 
@@ -140,7 +140,7 @@ internal data class AgeFilter(val age: Duration, private val clock: Clock) : Log
 }
 
 /**
- * A special filter that matches the appName field in a [LogCatMessage] against a list of package names from the project.
+ * A special filter that matches the appName field in a [LogcatMessage] against a list of package names from the project.
  */
 internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesProvider) : LogcatFilter {
   private var packageNames: Set<String> = emptySet()
@@ -153,7 +153,7 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
 
   override fun matches(message: LogcatMessageWrapper): Boolean {
     val header = message.logCatMessage.header
-    return packageNames.contains(header.appName)
+    return packageNames.contains(header.getAppName())
            || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logCatMessage.message))
   }
 

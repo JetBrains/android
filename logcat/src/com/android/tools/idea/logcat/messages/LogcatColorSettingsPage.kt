@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.ASSERT
-import com.android.ddmlib.Log.LogLevel.DEBUG
-import com.android.ddmlib.Log.LogLevel.ERROR
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.VERBOSE
-import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.DEBUG
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
+import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.PlainSyntaxHighlighter
@@ -62,7 +62,7 @@ internal class LogcatColorSettingsPage : ColorSettingsPage {
 }
 
 private class LogcatDescriptorInfo(
-  level: Log.LogLevel,
+  level: LogLevel,
   val levelKey: TextAttributesKey,
   val levelTag: String,
   val messageKey: TextAttributesKey,

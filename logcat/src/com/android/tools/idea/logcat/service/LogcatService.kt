@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.logcat.service
 
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.message.LogcatMessage
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Reads and clears a logcat from a device
  */
 internal interface LogcatService {
-  suspend fun readLogcat(device: Device) : Flow<List<LogCatMessage>>
+  suspend fun readLogcat(device: Device) : Flow<List<LogcatMessage>>
 
   suspend fun clearLogcat(device: Device)
 }

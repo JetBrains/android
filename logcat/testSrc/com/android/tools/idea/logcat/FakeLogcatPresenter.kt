@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
@@ -42,7 +42,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   var logcatRestartedCount = 0
   var attachedDevice: Device? = null
 
-  val messageBatches = mutableListOf<List<LogCatMessage>>()
+  val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
 
   @Suppress("UNUSED_PARAMETER")
@@ -66,7 +66,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun isLogcatEmpty(): Boolean = lineBatches.isEmpty()
 
-  override suspend fun processMessages(messages: List<LogCatMessage>) {
+  override suspend fun processMessages(messages: List<LogcatMessage>) {
     messageBatches.add(messages)
   }
 

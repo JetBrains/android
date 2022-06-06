@@ -19,15 +19,15 @@ import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices.ShellRequest
 import com.android.adblib.testing.FakeAdbLibSession
-import com.android.ddmlib.Log.LogLevel.DEBUG
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.TestResources
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.message.LogLevel.DEBUG
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -126,9 +126,11 @@ class LogcatServiceImplTest {
     val messages = service.readLogcat(device30).toList().flatten()
 
     assertThat(messages).containsExactly(
-      logCatMessage(DEBUG, 1, 1000, "app-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(619)), "A message"),
-      logCatMessage(INFO, 1, 1000, "app-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(700)), "Last message"),
-      LogCatMessage(SYSTEM_HEADER, "Error message\n\nMore error information"),
+      logCatMessage(
+        DEBUG, 1, 1000, "app-1.1", "process-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(619)), "A message"),
+      logCatMessage(
+        INFO, 1, 1000, "app-1.1", "process-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(700)), "Last message"),
+      LogcatMessage(SYSTEM_HEADER, "Error message\n\nMore error information"),
     )
   }
 

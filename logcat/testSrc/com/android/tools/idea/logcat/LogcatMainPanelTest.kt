@@ -21,11 +21,6 @@ import com.android.adblib.testing.FakeAdbLibSession
 import com.android.ddmlib.AvdData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
-import com.android.ddmlib.Log.LogLevel.ERROR
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.WARN
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -47,6 +42,11 @@ import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.WARN
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
@@ -216,8 +216,8 @@ class LogcatMainPanelTest {
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -233,8 +233,8 @@ class LogcatMainPanelTest {
   fun applyFilter() = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     logcatMainPanel.processMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -643,8 +643,8 @@ class LogcatMainPanelTest {
   fun processMessage_addsUpdatesBacklog(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val messages = listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     )
 
     logcatMainPanel.processMessages(messages)
@@ -663,8 +663,8 @@ class LogcatMainPanelTest {
   fun processMessage_paused_doesNotUpdateDocument(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val messages = listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     )
     logcatMainPanel.pauseLogcat()
 
@@ -680,8 +680,8 @@ class LogcatMainPanelTest {
   fun processMessage_pauseResume_doesUpdateDocument(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val messages = listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     )
     logcatMainPanel.pauseLogcat()
     logcatMainPanel.processMessages(messages)
@@ -704,8 +704,8 @@ class LogcatMainPanelTest {
   fun processMessage_updatesTags(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val messages = listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     )
 
     logcatMainPanel.processMessages(messages)
@@ -717,13 +717,13 @@ class LogcatMainPanelTest {
   fun processMessage_updatesPackages(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val messages = listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "?", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     )
 
     logcatMainPanel.processMessages(messages)
 
-    assertThat(logcatMainPanel.getPackageNames()).containsExactly("app1", "pid-1")
+    assertThat(logcatMainPanel.getPackageNames()).containsExactly("app1", "app2")
   }
 
   @Test
@@ -748,7 +748,7 @@ class LogcatMainPanelTest {
   fun setFormattingOptions_reloadsMessages() = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     logcatMainPanel.processMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -900,7 +900,7 @@ class LogcatMainPanelTest {
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -924,7 +924,7 @@ class LogcatMainPanelTest {
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -948,7 +948,7 @@ class LogcatMainPanelTest {
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -972,7 +972,7 @@ class LogcatMainPanelTest {
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -996,7 +996,7 @@ class LogcatMainPanelTest {
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(ERROR, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      LogcatMessage(LogcatHeader(LogLevel.ERROR, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -1053,7 +1053,7 @@ class LogcatMainPanelTest {
     }
 }
 
-private fun LogCatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
+private fun LogcatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
 
 private fun mockDevice(serialNumber: String, avdName: String = ""): IDevice {
   return mock<IDevice>().also {
@@ -1069,7 +1069,7 @@ private fun mockDevice(serialNumber: String, avdName: String = ""): IDevice {
 }
 
 private class FakeLogcatService : LogcatService {
-  override suspend fun readLogcat(device: Device): Flow<List<LogCatMessage>> = flowOf(emptyList())
+  override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> = flowOf(emptyList())
 
   override suspend fun clearLogcat(device: Device) {
   }

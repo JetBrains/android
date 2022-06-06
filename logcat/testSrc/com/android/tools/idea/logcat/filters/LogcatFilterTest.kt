@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log.LogLevel
-import com.android.ddmlib.Log.LogLevel.ASSERT
-import com.android.ddmlib.Log.LogLevel.ERROR
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.VERBOSE
-import com.android.ddmlib.Log.LogLevel.WARN
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
@@ -29,6 +22,13 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
+import com.android.tools.idea.logcat.message.LogLevel.WARN
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
@@ -60,7 +60,7 @@ class LogcatFilterTest {
     val filter = object : LogcatFilter {
       override fun matches(message: LogcatMessageWrapper) = false
     }
-    val systemMessage = LogCatMessage(SYSTEM_HEADER, "message")
+    val systemMessage = LogcatMessage(SYSTEM_HEADER, "message")
 
     assertThat(LogcatMasterFilter(filter).filter(listOf(systemMessage))).containsExactly(systemMessage)
   }
@@ -182,9 +182,9 @@ class LogcatFilterTest {
 
   @Test
   fun appFilter_matches() {
-    val message1 = logCatMessage(appName = "foo")
-    val message2 = logCatMessage(appName = "bar")
-    val message3 = logCatMessage(appName = "foobar")
+    val message1 = logCatMessage(appId = "foo")
+    val message2 = logCatMessage(appId = "bar")
+    val message3 = logCatMessage(appId = "foobar")
 
     assertThat(ProjectAppFilter(FakePackageNamesProvider("foo", "bar")).filter(listOf(message1, message2, message3)))
       .containsExactly(
@@ -195,9 +195,9 @@ class LogcatFilterTest {
 
   @Test
   fun appFilter_emptyMatchesNone() {
-    val message1 = logCatMessage(appName = "foo")
-    val message2 = logCatMessage(appName = "bar")
-    val message3 = logCatMessage(appName = "foobar")
+    val message1 = logCatMessage(appId = "foo")
+    val message2 = logCatMessage(appId = "bar")
+    val message3 = logCatMessage(appId = "foobar")
 
     assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3))).isEmpty()
   }
@@ -268,6 +268,6 @@ private class FalseFilter : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) = false
 }
 
-private fun LogcatFilter.filter(messages: List<LogCatMessage>) = LogcatMasterFilter(this).filter(messages)
+private fun LogcatFilter.filter(messages: List<LogcatMessage>) = LogcatMasterFilter(this).filter(messages)
 
-private fun LogcatFilter.matches(logCatMessage: LogCatMessage) = matches(LogcatMessageWrapper(logCatMessage))
+private fun LogcatFilter.matches(logCatMessage: LogcatMessage) = matches(LogcatMessageWrapper(logCatMessage))

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
@@ -30,6 +27,9 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
@@ -138,7 +138,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_levelKeys() {
-    for (logLevel in Log.LogLevel.values()) {
+    for (logLevel in LogLevel.values()) {
       assertThat(logcatFilterParser().parse("level: $logLevel")).isEqualTo(LevelFilter(logLevel))
       assertThat(logcatFilterParser().parse("level:$logLevel")).isEqualTo(LevelFilter(logLevel))
     }
@@ -181,7 +181,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun isValidLogLevel() {
-    for (logLevel in Log.LogLevel.values()) {
+    for (logLevel in LogLevel.values()) {
       assertThat(logLevel.name.isValidLogLevel()).named(logLevel.name).isTrue()
     }
     assertThat("foo".isValidLogLevel()).isFalse()
