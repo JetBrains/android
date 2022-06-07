@@ -114,7 +114,8 @@ data class ProjectStructureSnapshotTestDef(
           "EXTERNAL_SOURCE_SET" to File("externalRoot"),
           "EXTERNAL_MANIFEST" to File("externalManifest")
         )
-      )
+      ),
+      ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE),
     )
   }
 }

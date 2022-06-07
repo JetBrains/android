@@ -1,0 +1,5 @@
+rootProject.name = "BuildSrcWithComposite"
+include ':app'
+
+includeBuild("android-included")
+includeBuild("java-included")

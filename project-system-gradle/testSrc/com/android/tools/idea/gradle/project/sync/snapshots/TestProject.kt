@@ -165,7 +165,9 @@ enum class TestProject(
   SIMPLE_APPLICATION_VERSION_CATALOG(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_VERSION_CATALOG),
   CUSTOM_SOURCE_TYPE(TestProjectToSnapshotPaths.CUSTOM_SOURCE_TYPE),
   LIGHT_SYNC_REFERENCE(TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE),
-  PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT);
+  PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT),
+  BUILDSRC_WITH_COMPOSITE(TestProjectToSnapshotPaths.BUILDSRC_WITH_COMPOSITE),
+  ;
 
   val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 }
