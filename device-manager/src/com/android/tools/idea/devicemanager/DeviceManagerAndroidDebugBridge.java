@@ -29,14 +29,14 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceManagerAndroidDebugBridge {
   @UiThread
-  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getDevices(@Nullable Project project) {
+  public @NotNull ListenableFuture<@NotNull List<@NotNull IDevice>> getDevices(@Nullable Project project) {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     // noinspection UnstableApiUsage
@@ -49,12 +49,12 @@ public final class DeviceManagerAndroidDebugBridge {
    * Called by an application pool thread
    */
   @WorkerThread
-  private static @NotNull Collection<@NotNull IDevice> getDevices(@NotNull AndroidDebugBridge bridge) {
+  private static @NotNull List<@NotNull IDevice> getDevices(@NotNull AndroidDebugBridge bridge) {
     if (!bridge.isConnected()) {
       throw new IllegalArgumentException();
     }
 
-    Collection<IDevice> devices = Arrays.asList(bridge.getDevices());
+    List<IDevice> devices = Arrays.asList(bridge.getDevices());
 
     if (bridge.hasInitialDeviceList()) {
       Logger.getInstance(DeviceManagerAndroidDebugBridge.class).info(devices.toString());
