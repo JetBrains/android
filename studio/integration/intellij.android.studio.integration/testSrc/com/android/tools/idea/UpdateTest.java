@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -109,7 +108,6 @@ public class UpdateTest {
   }
 
   @Test
-  @Ignore("b/234170016")
   public void updateTest() throws Exception {
     Path tempDir = tempFolder.newFolder("update-test").toPath();
 

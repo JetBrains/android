@@ -10,8 +10,5 @@
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
   </component>
 </module>

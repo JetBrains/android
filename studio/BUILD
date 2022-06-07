@@ -752,9 +752,6 @@ iml_module(
         ":android-studio.mac.zip",
         ":android-studio.win.zip",
         ":android-studio.plugin.lst",
-        # These are to be able to create patches in the test.
-        ":updater",
-        ":updater.jar",
     ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
@@ -763,8 +760,49 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.integration",
+    iml_files = ["integration/intellij.android.studio.integration/intellij.android.studio.integration.iml"],
+    test_srcs = ["integration/intellij.android.studio.integration/testSrc"],
+    test_tags = [
+        "manual",  # These tests are run individually below
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/tools/common/m2:junit-4.12[test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+    ],
+)
+
+java_test(
+    name = "StartUpTest",
+    data = [":android-studio.linux.zip"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.StartUpTest",
+    runtime_deps = [":intellij.android.studio.integration_testlib"],
+)
+
+java_test(
+    name = "UpdateTest",
+    data = [
+        ":android-studio.linux.zip",
+        ":updater",
+        ":updater.jar",
+    ],
+    tags = [
+        "manual",  # b/234170016
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.UpdateTest",
+    runtime_deps = [":intellij.android.studio.integration_testlib"],
 )
