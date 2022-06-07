@@ -1105,6 +1105,12 @@
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
     <option name="kb" hit=" KB" />
+    <option name="add" hit="Add filters from history to autocomplete" />
+    <option name="autocomplete" hit="Add filters from history to autocomplete" />
+    <option name="filters" hit="Add filters from history to autocomplete" />
+    <option name="from" hit="Add filters from history to autocomplete" />
+    <option name="history" hit="Add filters from history to autocomplete" />
+    <option name="to" hit="Add filters from history to autocomplete" />
     <option name="default" hit="Default filter for new Logcat windows:" />
     <option name="filter" hit="Default filter for new Logcat windows:" />
     <option name="for" hit="Default filter for new Logcat windows:" />

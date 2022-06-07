@@ -24,6 +24,7 @@ import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.TagsProvider
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -60,21 +61,18 @@ class LogcatFilterCompletionContributorTest {
     projectRule,
     EdtRule(),
     RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER),
-    RestoreFlagRule(StudioFlags.LOGCAT_HISTORY_COMPLETIONS),
   )
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
-
   private val history by lazy { AndroidLogcatFilterHistory() }
+  private val settings = AndroidLogcatSettings()
 
   @Before
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    StudioFlags.LOGCAT_HISTORY_COMPLETIONS.override(true)
-    ApplicationManager.getApplication().replaceService(
-      AndroidLogcatFilterHistory::class.java,
-      history,
-      projectRule.project)
+    val application = ApplicationManager.getApplication()
+    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.project)
+    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.project)
   }
 
   @Test
@@ -96,6 +94,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_keys_withHistory() {
+    settings.filterHistoryAutocomplete = true
     history.favorites.add("favorite item")
     history.nonFavorites.add("history item")
     fixture.configure("")
@@ -142,6 +141,7 @@ class LogcatFilterCompletionContributorTest {
    */
   @Test
   fun complete_tag_withHistory() {
+    settings.filterHistoryAutocomplete = true
     history.favorites.add("favorite item")
     history.favorites.add("tag:favorite")
     history.nonFavorites.add("history item")

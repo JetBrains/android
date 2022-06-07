@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -197,7 +198,7 @@ private fun List<String>.lookupsWithHistory(): List<LookupElementBuilder> {
   val history = AndroidLogcatFilterHistory.getInstance()
   val lookups = mutableSetOf<String>()
   lookups.addAll(this)
-  if (StudioFlags.LOGCAT_HISTORY_COMPLETIONS.get()) {
+  if (AndroidLogcatSettings.getInstance().filterHistoryAutocomplete) {
     lookups.addAll(history.favorites)
     lookups.addAll(history.nonFavorites)
   }

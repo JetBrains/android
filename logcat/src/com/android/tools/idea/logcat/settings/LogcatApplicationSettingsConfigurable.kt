@@ -63,6 +63,10 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   internal val cyclicBufferSizeWarningLabel = JLabel()
 
   @VisibleForTesting
+  internal val filterHistoryAutocompleteCheckbox =
+    JCheckBox(LogcatBundle.message("logcat.settings.history.autocomplete"), logcatSettings.filterHistoryAutocomplete)
+
+  @VisibleForTesting
   internal val enableNamedFiltersCheckbox =
     JCheckBox(LogcatBundle.message("logcat.settings.enable.named.filters"), logcatSettings.namedFiltersEnabled)
 
@@ -84,6 +88,8 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
     add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
     add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST))
+
+    add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
 
     if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
       add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
@@ -112,16 +118,18 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
     return (bufferSizeKb != null && isValidBufferSize(bufferSizeKb) && bufferSizeKb != logcatSettings.bufferSize / 1024)
-           || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
            || defaultFilterTextField.text != logcatSettings.defaultFilter
            || mostRecentlyUsedFilterIsDefaultCheckbox.isSelected != logcatSettings.mostRecentlyUsedFilterIsDefault
+           || filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete
+           || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
   }
 
   override fun apply() {
     logcatSettings.bufferSize = getBufferSizeKb()?.times(1024) ?: return
-    logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
     logcatSettings.defaultFilter = defaultFilterTextField.text
     logcatSettings.mostRecentlyUsedFilterIsDefault = mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
+    logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
+    logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
 
     LogcatToolWindowFactory.logcatPresenters.forEach {
       it.applyLogcatSettings(logcatSettings)
