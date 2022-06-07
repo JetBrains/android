@@ -632,7 +632,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
     LOGCAT,
     "logcat.expression.filter.enable",
-    "Enable expression filter in Logcat",
+    "Enable expression filter in Logcat (deprecated)",
     "Enables the expression filter in Logcat",
     false
   );
@@ -641,17 +641,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
     LOGCAT,
     "logcat.suppressed.tags.enable",
-    "Enable Suppressed Tags Dialog in Logcat",
+    "Enable Suppressed Tags Dialog in Logcat (deprecated)",
     "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
     false
   );
-
-  public static final Flag<Boolean> ADBLIB_MIGRATION_LOGCAT = Flag.create(
-    LOGCAT,
-    "adblib.migration.logcat",
-    "Use adblib in the logcat toolwindow",
-    "Use adblib instead of ddmlib in the logcat toolwindow",
-    true);
 
   public static final Flag<Boolean> LOGCAT_NAMED_FILTERS_ENABLE = Flag.create(
     LOGCAT,
