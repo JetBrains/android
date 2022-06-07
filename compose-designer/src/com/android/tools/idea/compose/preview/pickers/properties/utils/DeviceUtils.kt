@@ -61,6 +61,10 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   config.width = screen.xDimension.toFloat()
   config.height = screen.yDimension.toFloat()
   config.dpi = screen.pixelDensity.dpiValue
+  config.orientation = when(deviceState.orientation) {
+    ScreenOrientation.LANDSCAPE -> Orientation.landscape
+    else -> Orientation.portrait
+  }
   if (screen.screenRound == ScreenRound.ROUND) {
     if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
       config.shape = Shape.Round

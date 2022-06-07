@@ -42,6 +42,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -77,6 +78,12 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
   private val module get() = projectRule.fixture.module
+
+  @After
+  fun teardown() {
+    // Flag might not get cleared if a test that overrides it fails
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
 
   @RunsInEdt
   @Test
@@ -478,7 +485,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
       PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
-    var expectedModificationsCountdown = 16
+    var expectedModificationsCountdown = 17
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -548,6 +555,15 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("20", model.properties["", "ChinSize"].value)
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp")""",
+      noParametersPreview.annotationText()
+    )
+
+    // Since there's no orientation parameter, it's implied from the width/height values
+    assertEquals("landscape", model.properties["", "Orientation"].value)
+    // When changed, it has to be reflected explicitly in the spec, without affecting the width/height
+    model.properties["", "Orientation"].value = "portrait"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp,orientation=portrait")""",
       noParametersPreview.annotationText()
     )
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()

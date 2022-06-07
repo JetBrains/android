@@ -16,13 +16,21 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.tools.idea.flags.StudioFlags
+import org.junit.After
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 internal class DeviceConfigTest {
+
+  @After
+  fun teardown() {
+    // Flag might not get cleared if a test that overrides it fails
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
 
   @Test
   fun parseTest() {
@@ -55,7 +63,8 @@ internal class DeviceConfigTest {
   @Test
   fun parseTestDeviceSpecLanguage() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    var config = DeviceConfig.toDeviceConfigOrNull("spec:width=1080.1px,height=1920.2px,dpi=320,isRound=true,chinSize=50.3px")
+    var config = DeviceConfig.toDeviceConfigOrNull(
+      "spec:width=1080.1px,height=1920.2px,dpi=320,isRound=true,chinSize=50.3px,orientation=landscape")
     assertNotNull(config)
     assertEquals(1080.1f, config.width)
     assertEquals(1920.2f, config.height)
@@ -63,6 +72,7 @@ internal class DeviceConfigTest {
     assertTrue(config.isRound)
     assertEquals(50.3f, config.chinSize)
     assertEquals(DimUnit.px, config.dimUnit)
+    assertEquals(Orientation.landscape, config.orientation)
 
     config = DeviceConfig.toDeviceConfigOrNull("spec:width=200.4dp,height=300.5dp,chinSize=10.6dp")
     assertNotNull(config)
@@ -72,6 +82,17 @@ internal class DeviceConfigTest {
     assertTrue(config.isRound)
     assertEquals(10.6f, config.chinSize)
     assertEquals(DimUnit.dp, config.dimUnit)
+
+    // Verify default values
+    config = DeviceConfig.toDeviceConfigOrNull("spec:width=300dp,height=200dp")
+    assertNotNull(config)
+    assertEquals(480, config.dpi)
+    assertFalse(config.isRound)
+    assertEquals(0f, config.chinSize)
+    assertEquals(Orientation.landscape, config.orientation) // orientation implied
+    config = DeviceConfig.toDeviceConfigOrNull("spec:width=100dp,height=200dp")
+    assertNotNull(config)
+    assertEquals(Orientation.portrait, config.orientation) // orientation implied
 
     // Width & height required
     assertNull(DeviceConfig.toDeviceConfigOrNull("spec:width=100dp"))
@@ -110,20 +131,54 @@ internal class DeviceConfigTest {
     val temp = config.width
     config.width = config.height
     config.height = temp
-    assertEquals(Orientation.landscape, config.orientation)
+    // Have to manually change the orientation
+    assertEquals(Orientation.portrait, config.orientation)
+
+    val tempW = config.width
+    val tempH = config.height
+
+    // After orientation change, width and height should remain the same
+    config.orientation = Orientation.landscape
+    assertEquals(tempW, config.width)
+    assertEquals(tempH, config.height)
   }
 
   @Test
-  fun testDeviceSpecString() {
+  fun deviceSpecStringInLegacyFormat() {
     // Example of DeviceSpec string when new DeviceSpec Language is NOT in use, chinSize ignored
     var config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40f)
     assertEquals("spec:shape=Round,width=100,height=200,unit=dp,dpi=300", config.deviceSpec())
 
+    // For old DeviceSpec format, width and height are swapped based on orientation.
+    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.portrait)
+    assertEquals("spec:shape=Normal,width=100,height=200,unit=px,dpi=480", config.deviceSpec())
+    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.landscape)
+    assertEquals("spec:shape=Normal,width=200,height=100,unit=px,dpi=480", config.deviceSpec())
+
+    // For legacy DeviceSpec format, no floating point supported, rounded numbers
+    assertEquals("spec:shape=Normal,width=123,height=568,unit=px,dpi=480", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
+  }
+
+  @Test
+  fun deviceSpecLanguageString() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    // For usage with DeviceSpec Language, note that parameters with default values are not shown (except for width & height)
-    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40f)
+    // For usage with DeviceSpec Language
+    var config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40f)
     assertEquals("spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp", config.deviceSpec())
 
+    // Orientation change is reflected as a parameter with the DeviceSpec Language
+    assertEquals(
+      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,orientation=landscape",
+      config.toMutableConfig().apply { orientation = Orientation.landscape }.deviceSpec()
+    )
+
+    // Implied Orientation of width/height is not reflected in spec
+    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.landscape)
+    assertEquals("spec:width=200px,height=100px", config.deviceSpec())
+    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.portrait)
+    assertEquals("spec:width=200px,height=100px,orientation=portrait", config.deviceSpec())
+
+    // Parameters with default values are not shown (except for width & height)
     // Default dpi not shown
     config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Round, chinSize = 40f)
     assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp", config.deviceSpec())
@@ -139,8 +194,5 @@ internal class DeviceConfigTest {
     // For DeviceSpec Language, one decimal for floating point supported
     assertEquals("spec:width=123.5px,height=567.9px", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
-
-    // For legacy DeviceSpec format, no floating point supported, rounded numbers
-    assertEquals("spec:shape=Normal,width=123,height=568,unit=px,dpi=480", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
   }
 }

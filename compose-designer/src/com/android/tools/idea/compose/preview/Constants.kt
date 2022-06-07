@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 
 // region Preview
@@ -92,6 +93,7 @@ object Preview {
     internal const val DEFAULT_DPI = 480
     internal const val DEFAULT_IS_ROUND = false
     internal const val DEFAULT_CHIN_SIZE_ZERO = 0
+    internal val DEFAULT_ORIENTATION = Orientation.portrait
 
     /**
      * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value
