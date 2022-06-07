@@ -33,4 +33,5 @@ interface DiagnosticsSummaryFileProvider {
 }
 
 // TODO (b/231162502)
-val DiagnosticSummaryFileProviders: Array<DiagnosticsSummaryFileProvider> = arrayOf(DefaultLogFileProvider, SystemInfoFileProvider)
+val DiagnosticSummaryFileProviders: Array<DiagnosticsSummaryFileProvider> = arrayOf(DefaultLogFileProvider, SystemInfoFileProvider,
+                                                                                    DefaultMetricsLogFileProvider)
