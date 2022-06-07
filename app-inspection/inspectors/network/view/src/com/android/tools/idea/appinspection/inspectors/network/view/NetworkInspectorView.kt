@@ -126,7 +126,7 @@ class NetworkInspectorView(
   @VisibleForTesting
   val connectionsView = ConnectionsView(model, parentPane)
 
-  val rulesView = RulesTableView(inspectorServices.client, scope, model)
+  val rulesView = RulesTableView(inspectorServices.client, scope, model, inspectorServices.usageTracker)
 
   @VisibleForTesting
   val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }

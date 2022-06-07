@@ -59,7 +59,7 @@ class NetworkInspectorDetailsPanel(
 
     cardLayoutView = JPanel(cardLayout)
     connectionDetailsView = ConnectionDetailsView(inspectorView, usageTracker)
-    ruleDetailsView = RuleDetailsView()
+    ruleDetailsView = RuleDetailsView(usageTracker)
     cardLayoutView.add(connectionDetailsView, NetworkInspectorModel.DetailContent.CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model

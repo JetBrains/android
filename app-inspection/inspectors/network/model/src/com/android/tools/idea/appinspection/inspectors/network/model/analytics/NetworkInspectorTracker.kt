@@ -19,11 +19,27 @@ package com.android.tools.idea.appinspection.inspectors.network.model.analytics
  * Tracks usage of common Network Inspector UI components.
  */
 interface NetworkInspectorTracker {
+  enum class InterceptionCriteria {
+    URL_PROTOCOL,
+    URL_HOST,
+    URL_PORT,
+    URL_PATH,
+    URL_QUERY,
+    FIND_CODE,
+    FIND_REPLACE_CODE,
+    ADD_HEADER,
+    FIND_REPLACE_HEADER,
+    FIND_REPLACE_BODY,
+    REPLACE_BODY,
+  }
+
   fun trackMigrationDialogSelected()
   fun trackConnectionDetailsSelected()
   fun trackRequestTabSelected()
   fun trackResponseTabSelected()
   fun trackCallstackTabSelected()
+  fun trackRuleCreated()
+  fun trackRuleUpdated(component: InterceptionCriteria)
   fun trackResponseIntercepted(
     statusCode: Boolean,
     headerAdded: Boolean,
@@ -42,7 +58,8 @@ class StubNetworkInspectorTracker : NetworkInspectorTracker {
   override fun trackRequestTabSelected() = Unit
   override fun trackResponseTabSelected() = Unit
   override fun trackCallstackTabSelected() = Unit
-
+  override fun trackRuleCreated() = Unit
+  override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) = Unit
   override fun trackResponseIntercepted(
     statusCode: Boolean,
     headerAdded: Boolean,

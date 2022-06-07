@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.rules
 
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
@@ -33,7 +34,8 @@ import javax.swing.ListSelectionModel
 class RulesTableView(
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
-  model: NetworkInspectorModel
+  model: NetworkInspectorModel,
+  usageTracker: NetworkInspectorTracker
 ) {
   val component: JComponent
 
@@ -47,6 +49,7 @@ class RulesTableView(
       val selectedRow = tableModel.rowCount - 1
       table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
       model.detailContent = NetworkInspectorModel.DetailContent.RULE
+      usageTracker.trackRuleCreated()
     }.setRemoveAction {
       val index = table.selectedRow
       if (index < 0) {

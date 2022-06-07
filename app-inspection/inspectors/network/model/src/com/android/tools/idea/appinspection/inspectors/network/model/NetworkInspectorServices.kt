@@ -67,6 +67,8 @@ class TestNetworkInspectorServices(
     override fun trackRequestTabSelected() = Unit
     override fun trackResponseTabSelected() = Unit
     override fun trackCallstackTabSelected() = Unit
+    override fun trackRuleCreated() = Unit
+    override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) = Unit
     override fun trackResponseIntercepted(
       statusCode: Boolean,
       headerAdded: Boolean,

@@ -199,7 +199,7 @@ fun createTextField(
   this.name = name
   addFocusListener(object : FocusAdapter() {
     override fun focusLost(e: FocusEvent) {
-      focusLost(text)
+      focusLost(text.trim())
     }
   })
 }
