@@ -324,7 +324,8 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_terms() {
-    val query = "tag:foo tag:bar -package:foo line~:foo -message~:bar age:2m level:INFO package:mine foo"
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    val query = "tag:foo tag:bar -package:foo line~:foo -message~:bar age:2m level:INFO package:mine foo is:crash is:stacktrace"
 
     assertThat(logcatFilterParser().getUsageTrackingEvent(query)?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
@@ -335,6 +336,8 @@ class LogcatFilterParserTest {
         .setImplicitLineTerms(1)
         .setLevelTerms(1)
         .setAgeTerms(1)
+        .setCrashTerms(1)
+        .setStacktraceTerms(1)
         .setPackageProjectTerms(1)
         .build())
   }

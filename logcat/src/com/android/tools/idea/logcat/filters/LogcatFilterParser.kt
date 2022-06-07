@@ -143,6 +143,8 @@ internal class LogcatFilterParser(
             filter is ProjectAppFilter -> builder.packageProjectTerms++
             filter is LevelFilter -> builder.levelTerms++
             filter is AgeFilter -> builder.ageTerms++
+            filter is CrashFilter -> builder.crashTerms++
+            filter is StackTraceFilter -> builder.stacktraceTerms++
           }
         }
 
