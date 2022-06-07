@@ -73,8 +73,6 @@ class ForegroundProcessDetectionInitializerTest {
     ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
 
     val testProcessDiscovery = TestProcessDiscovery()
-    testProcessDiscovery.addDevice(device1)
-    testProcessDiscovery.addDevice(device2)
     processModel = ProcessesModel(testProcessDiscovery)
     deviceModel = DeviceModel(processModel)
 
@@ -107,17 +105,35 @@ class ForegroundProcessDetectionInitializerTest {
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
   }
 
-  // TODO re enable with handshake CL
   @Test
-  @Ignore("Re enable with handshake CL")
   fun testStartPollingOnDeviceWhenProcessIsSelectedFromOutside() {
     val transportClient = TransportClient(grpcServerRule.name)
     val latch1 = CountDownLatch(1)
     val latch2 = CountDownLatch(1)
 
+    val handshakeLatch1 = CountDownLatch(1)
+    val handshakeLatch2 = CountDownLatch(1)
+
     val observedConnectedStreamIds = mutableListOf<Long>()
     val observedDisconnectedStreamIds = mutableListOf<Long>()
 
+    transportService.setCommandHandler(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED) { command ->
+      val event = Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
+        .setLayoutInspectorTrackingForegroundProcessSupported(
+          Common.Event.newBuilder().layoutInspectorTrackingForegroundProcessSupportedBuilder
+            .setSupported(true).build()
+        )
+        .build()
+
+      transportService.addEventToStream(command.streamId, event)
+
+      when (command.streamId) {
+        fakeStream1.streamId -> handshakeLatch1.countDown()
+        fakeStream2.streamId -> handshakeLatch2.countDown()
+        else -> throw RuntimeException("Received handshake command from unexpected stream.")
+      }
+    }
     transportService.setCommandHandler(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) { command ->
       observedConnectedStreamIds.add(command.streamId)
       when (command.streamId) {
@@ -131,7 +147,6 @@ class ForegroundProcessDetectionInitializerTest {
     }
 
     connectStream(fakeStream1)
-    connectStream(fakeStream2)
 
     val foregroundProcessDetection = ForegroundProcessDetectionInitializer.initialize(
       processModel,
@@ -139,12 +154,19 @@ class ForegroundProcessDetectionInitializerTest {
       projectRule.project.coroutineScope,
       transportClient =  transportClient
     )
+
+    handshakeLatch1.await(5, TimeUnit.SECONDS)
+
     foregroundProcessDetection.startListeningForEvents()
 
     latch1.await(5, TimeUnit.SECONDS)
 
     assertThat(observedConnectedStreamIds).containsExactly(fakeStream1.streamId)
     assertThat(observedDisconnectedStreamIds).isEmpty()
+
+    connectStream(fakeStream2)
+
+    handshakeLatch2.await(5, TimeUnit.SECONDS)
 
     // setting process from outside ForegroundProcessDetection should start polling on the process's device
     processModel.selectedProcess = fakeProcess2

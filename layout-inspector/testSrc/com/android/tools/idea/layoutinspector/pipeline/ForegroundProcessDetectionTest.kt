@@ -21,13 +21,13 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.concurrency.SameThreadExecutor
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit
 
 class ForegroundProcessDetectionTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer, true)
+  private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
   val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
@@ -51,13 +51,22 @@ class ForegroundProcessDetectionTest {
 
   private val stream1 = createFakeStream(1, deviceName = "device1")
   private val stream2 = createFakeStream(2, deviceName = "device2")
+  private val stream3 = createFakeStream(3, deviceName = "device2")
 
   private lateinit var helper: ForegroundProcessDetectionHelper
 
   @Before
   fun createPoller() {
     transportClient = TransportClient(grpcServerRule.name)
-    helper = ForegroundProcessDetectionHelper(timer, transportService, listOf(stream1, stream2))
+    helper = ForegroundProcessDetectionHelper(
+      timer,
+      transportService,
+      setOf(
+        ForegroundProcessDetectionStream(stream1, true),
+        ForegroundProcessDetectionStream(stream2, true),
+        ForegroundProcessDetectionStream(stream3, false),
+      )
+    )
   }
 
   @Test
@@ -96,6 +105,7 @@ class ForegroundProcessDetectionTest {
     assertThat(receivedForegroundProcesses).isEqualTo(expectedForegroundProcesses)
     assertThat(receivedDevices).isEqualTo(expectedDevices)
     assertThat(helper.startCommandInvocationCount).isEqualTo(1)
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(1)
     assertThat(helper.stopCommandInvocationCount).isEqualTo(0)
   }
 
@@ -154,7 +164,43 @@ class ForegroundProcessDetectionTest {
     foregroundProcessDetection.stopListeningForEvents()
 
     assertThat(helper.startCommandInvocationCount).isEqualTo(2)
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
     assertThat(helper.stopCommandInvocationCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testHandshakeIsNegative() {
+    val expectedForegroundProcesses = emptyList<ForegroundProcess>()
+    val receivedForegroundProcesses = mutableListOf<ForegroundProcess>()
+
+    val foregroundProcessLatch = CountDownLatch(1)
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = ForegroundProcessDetection(deviceModel, transportClient, object : ForegroundProcessListener {
+      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        receivedForegroundProcesses.add(foregroundProcess)
+
+        foregroundProcessLatch.countDown()
+      }
+    }, CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()), SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    connectStream(stream3)
+
+    helper.sendEvents(stream3, expectedForegroundProcesses)
+
+    // wait for events to be dispatched
+    foregroundProcessLatch.await(2, TimeUnit.SECONDS)
+
+    foregroundProcessDetection.stopListeningForEvents()
+
+    // no foreground process event received
+    assertThat(receivedForegroundProcesses).isEqualTo(expectedForegroundProcesses)
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(1)
+    // start command was never sent
+    assertThat(helper.startCommandInvocationCount).isEqualTo(0)
+    assertThat(helper.stopCommandInvocationCount).isEqualTo(0)
   }
 
   private fun createDeviceModel(vararg devices: DeviceDescriptor): DeviceModel {
@@ -229,15 +275,36 @@ class ForegroundProcessDetectionTest {
    * Helper class used to send LAYOUT_INSPECTOR_FOREGROUND_PROCESS events.
    * Only sends events to a stream if it is connected. If it's not the events are held in a queue waiting for the stream to connect.
    */
-  class ForegroundProcessDetectionHelper(private val timer: FakeTimer, private val transportService: FakeTransportService, private val availableStreams: List<Stream>) {
-
+  private class ForegroundProcessDetectionHelper(private val timer: FakeTimer, private val transportService: FakeTransportService, private val availableStreams: Set<ForegroundProcessDetectionStream>) {
     private val connectedStreamIds = mutableListOf<Long>()
     private var eventsQueue = mutableMapOf<Stream, MutableList<Common.Event>>()
 
+    var startHandshakeCommandInvocationCount = 0
     var startCommandInvocationCount = 0
     var stopCommandInvocationCount = 0
 
     init {
+      // Handler for the handshake command.
+      transportService.setCommandHandler(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED) { command ->
+        startHandshakeCommandInvocationCount += 1
+
+        val foregroundProcessDetectionStream = availableStreams.find {
+          it.stream.streamId == command.streamId
+        } ?: throw java.lang.RuntimeException("Received command from unknown streamId: ${command.streamId}")
+
+        val event = Common.Event.newBuilder()
+          .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
+          .setLayoutInspectorTrackingForegroundProcessSupported(
+            Common.Event.newBuilder().layoutInspectorTrackingForegroundProcessSupportedBuilder
+              .setSupported(
+                foregroundProcessDetectionStream.supportsForegroundProcessDetection
+              ).build()
+          )
+          .build()
+
+        sendEventImmediately(foregroundProcessDetectionStream.stream, event)
+      }
+
       // Handler for the start command.
       transportService.setCommandHandler(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) { command ->
         startCommandInvocationCount += 1
@@ -252,7 +319,7 @@ class ForegroundProcessDetectionTest {
     }
 
     private fun onStreamConnected(streamId: Long) {
-      val stream = availableStreams.find { it.streamId == streamId }!!
+      val stream = availableStreams.find { it.stream.streamId == streamId }!!.stream
 
       connectedStreamIds.add(streamId)
       val eventsToSend = eventsQueue.remove(stream) ?: emptyList()
@@ -273,20 +340,24 @@ class ForegroundProcessDetectionTest {
       }
     }
 
-    private fun sendEvent(stream: Stream, foregroundProcessEvent: Common.Event) {
-      assertThat(foregroundProcessEvent.kind).isEqualTo(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
+    private fun sendEvent(stream: Stream, event: Common.Event) {
+      assertThat(event.kind).isEqualTo(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
 
       if (connectedStreamIds.contains(stream.streamId)) {
-        transportService.addEventToStream(stream.streamId, foregroundProcessEvent)
+        sendEventImmediately(stream, event)
       }
       else {
         if (eventsQueue.containsKey(stream)) {
-          eventsQueue[stream]?.add(foregroundProcessEvent)
+          eventsQueue[stream]?.add(event)
         }
         else {
-          eventsQueue[stream] = mutableListOf(foregroundProcessEvent)
+          eventsQueue[stream] = mutableListOf(event)
         }
       }
+    }
+
+    private fun sendEventImmediately(stream: Stream, event: Event) {
+      transportService.addEventToStream(stream.streamId, event)
     }
 
     private fun createForegroundProcessEvent(foregroundProcess: ForegroundProcess, timestamp: Int, stream: Stream): Common.Event {
@@ -317,3 +388,5 @@ class ForegroundProcessDetectionTest {
     }
   }
 }
+
+private data class ForegroundProcessDetectionStream(val stream: Common.Stream, val supportsForegroundProcessDetection: Boolean)

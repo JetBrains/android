@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -116,6 +117,7 @@ class DeviceViewPanel(
   deviceModel: DeviceModel?,
   val processesModel: ProcessesModel?,
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
+  onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable,
@@ -138,6 +140,7 @@ class DeviceViewPanel(
     SelectDeviceAction(
       deviceModel = deviceModel,
       onDeviceSelected = onDeviceSelected,
+      onProcessSelected = onProcessSelected,
       detachPresentation = SelectDeviceAction.DetachPresentation(
         "Stop Inspector",
         "Stop running the layout inspector against the current device"),

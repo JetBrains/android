@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_DEVICE_ACTION
+import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -30,6 +31,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import icons.StudioIcons
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -40,7 +42,7 @@ import javax.swing.JComponent
 class SelectDeviceAction(
   private val deviceModel: DeviceModel,
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
-  private val createDeviceLabel: (DeviceDescriptor) -> String = Companion::createDefaultDeviceLabel,
+  private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val detachPresentation: DetachPresentation = DetachPresentation(),
   private val onDetachAction: ((ProcessDescriptor) -> Unit)? = null,
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> }
@@ -50,14 +52,6 @@ class SelectDeviceAction(
     "Select a device to connect to.",
     ICON_PHONE) {
 
-  companion object {
-    private fun createDefaultDeviceLabel(device: DeviceDescriptor): String {
-      return device.buildDeviceName()
-    }
-  }
-
-  private var lastDevice: DeviceDescriptor? = null
-  private var lastDevicesCount = 0
   var button: JComponent? = null
     private set
 
@@ -66,27 +60,41 @@ class SelectDeviceAction(
   }
 
   override fun update(event: AnActionEvent) {
-    val currentDevice = deviceModel.selectedDevice
-    val content = currentDevice?.let {
-      createDeviceLabel(it)
-    } ?: if (deviceModel.devices.isEmpty()) {
-      "No device available"
-    } else {
-      "No device selected"
+    val selectedDevice = deviceModel.selectedDevice
+    val selectedProcess = deviceModel.selectedProcess
+
+    val dropDownPresentation = if (selectedDevice != null) {
+      // if a device is selected, use the device
+      DropDownPresentation(createDeviceLabel(selectedDevice), selectedDevice.toIcon())
+    }
+    else if (selectedProcess != null) {
+      // if a device is not selected, but a process is, use the process's device
+      // this is for the case where ForegroundProcessDetection does not work, and we fall back to having the user selecting the process.
+      DropDownPresentation(createDeviceLabel(selectedProcess.device, selectedProcess), selectedProcess.device.toIcon())
+    }
+    else if (deviceModel.devices.isEmpty()) {
+      DropDownPresentation("No Device Available", null)
+    }
+    else {
+      DropDownPresentation("No Device Selected", null)
     }
 
-    event.presentation.icon = currentDevice?.toIcon()
-    event.presentation.text = content
-
-    lastDevice = currentDevice
-    lastDevicesCount = deviceModel.devices.size
+    event.presentation.icon = dropDownPresentation.icon
+    event.presentation.text = dropDownPresentation.text
   }
 
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
 
     // Rebuild the action tree.
-    deviceModel.devices.sortedBy { it.buildDeviceName() }.forEach { device -> add(DeviceAction(device)) }
+    deviceModel.devices.sortedBy { it.buildDeviceName() }.forEach { device ->
+      if (deviceModel.supportsForegroundProcessDetection(device)) {
+        add(DeviceAction(device))
+      }
+      else {
+        add(DeviceProcessPickerAction(device))
+      }
+    }
 
     if (childrenCount == 0) {
       add(NO_DEVICE_ACTION)
@@ -140,6 +148,55 @@ class SelectDeviceAction(
       onDeviceSelected.invoke(device)
     }
   }
+
+  /**
+   * A device with all its debuggable processes, which the user can select.
+   */
+  private inner class DeviceProcessPickerAction(
+    private val device: DeviceDescriptor,
+  ) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+    override fun displayTextInToolbar() = true
+
+    init {
+      val processes = deviceModel.processes
+        .sortedBy { it.name }
+        .filter { (it.isRunning) && (it.device.serial == device.serial) }
+
+      for (process in processes) {
+        add(ConnectAction(process))
+      }
+      if (childrenCount == 0) {
+        add(NO_PROCESS_ACTION)
+      }
+    }
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      customDeviceAttribution(device, event)
+    }
+  }
+
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
+    ToggleAction(processDescriptor.name) {
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return processDescriptor == deviceModel.selectedProcess
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      onProcessSelected(processDescriptor)
+    }
+  }
 }
 
-private fun DeviceDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE
+private fun createDeviceLabel(device: DeviceDescriptor, process: ProcessDescriptor? = null): String {
+  return if (process != null) {
+    "${device.buildDeviceName()} > ${process.name}"
+  }
+  else {
+    device.buildDeviceName()
+  }
+}
+
+private fun DeviceDescriptor.toIcon() = if (isEmulator) ICON_EMULATOR else ICON_PHONE
+
+private data class DropDownPresentation(val text: String, val icon: Icon?)

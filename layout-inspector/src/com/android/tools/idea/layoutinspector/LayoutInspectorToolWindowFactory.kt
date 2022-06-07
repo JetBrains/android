@@ -125,6 +125,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           processesModel = processesModel,
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
+          onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
           disposableParent = workbench
