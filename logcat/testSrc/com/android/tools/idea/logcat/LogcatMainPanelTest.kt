@@ -691,12 +691,13 @@ class LogcatMainPanelTest {
     }
 
     assertThat(logcatMainPanel.messageBacklog.get().messages).containsExactlyElementsIn(messages)
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
+
+    waitForCondition(2, SECONDS) {
+      logcatMainPanel.editor.document.text == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 I  message2
         
-      """.trimIndent())
+      """.trimIndent()
     }
   }
 
