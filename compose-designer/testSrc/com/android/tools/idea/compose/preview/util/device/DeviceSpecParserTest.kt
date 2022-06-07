@@ -54,6 +54,11 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(spec)('spec')
           PsiElement(:)(':')
           DeviceSpecSpecImpl(SPEC)
+            DeviceSpecIdParamImpl(ID_PARAM)
+              PsiElement(id)('id')
+              PsiElement(=)('=')
+              PsiElement(STRING_T)('an_id')
+            PsiElement(,)(',')
             DeviceSpecNameParamImpl(NAME_PARAM)
               PsiElement(name)('name')
               PsiElement(=)('=')
@@ -81,7 +86,7 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(portrait)('portrait')
       """.trimIndent(),
-      toParseTreeText("spec: name=my_device_spec,width=200dp,height=200dp,orientation=portrait")
+      toParseTreeText("spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait")
     )
   }
 

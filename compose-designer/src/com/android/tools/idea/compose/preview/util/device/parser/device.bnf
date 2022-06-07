@@ -77,6 +77,7 @@ boolean_t ::= TRUE | FALSE
 
 /* Parameter definitions */
 name_param ::= NAME_KEYWORD EQUALS STRING_T
+id_param ::= ID_KEYWORD EQUALS STRING_T
 width_param::= WIDTH_KEYWORD EQUALS size_t
 height_param ::= HEIGHT_KEYWORD EQUALS size_t
 shape_param ::= "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin") // Deprecated, just here to be compatible with the old parser
@@ -89,6 +90,7 @@ dpi_param ::= DPI_KEYWORD EQUALS NUMERIC_T
 
 /* Top level definitions */
 param ::= parent_param
+   | id_param
    | name_param
    | width_param
    | height_param

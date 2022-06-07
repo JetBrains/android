@@ -23,6 +23,10 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitParam(o);
   }
 
+  public void visitIdParam(@NotNull DeviceSpecIdParam o) {
+    visitParam(o);
+  }
+
   public void visitIsRoundParam(@NotNull DeviceSpecIsRoundParam o) {
     visitParam(o);
   }

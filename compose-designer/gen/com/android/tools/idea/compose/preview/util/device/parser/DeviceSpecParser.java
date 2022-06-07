@@ -36,9 +36,9 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
-    create_token_set_(CHIN_SIZE_PARAM, DPI_PARAM, HEIGHT_PARAM, IS_ROUND_PARAM,
-      NAME_PARAM, ORIENTATION_PARAM, PARAM, PARENT_PARAM,
-      SHAPE_PARAM, UNIT_PARAM, WIDTH_PARAM),
+    create_token_set_(CHIN_SIZE_PARAM, DPI_PARAM, HEIGHT_PARAM, ID_PARAM,
+      IS_ROUND_PARAM, NAME_PARAM, ORIENTATION_PARAM, PARAM,
+      PARENT_PARAM, SHAPE_PARAM, UNIT_PARAM, WIDTH_PARAM),
   };
 
   /* ********************************************************** */
@@ -89,6 +89,18 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     r = consumeTokens(b, 0, HEIGHT_KEYWORD, EQUALS);
     r = r && size_t(b, l + 1);
     exit_section_(b, m, HEIGHT_PARAM, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ID_KEYWORD EQUALS STRING_T
+  public static boolean id_param(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "id_param")) return false;
+    if (!nextTokenIs(b, ID_KEYWORD)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, ID_KEYWORD, EQUALS, STRING_T);
+    exit_section_(b, m, ID_PARAM, r);
     return r;
   }
 
@@ -145,6 +157,7 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // parent_param
+  //    | id_param
   //    | name_param
   //    | width_param
   //    | height_param
@@ -159,6 +172,7 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _COLLAPSE_, PARAM, "<param>");
     r = parent_param(b, l + 1);
+    if (!r) r = id_param(b, l + 1);
     if (!r) r = name_param(b, l + 1);
     if (!r) r = width_param(b, l + 1);
     if (!r) r = height_param(b, l + 1);

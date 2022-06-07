@@ -12,6 +12,7 @@ public interface DeviceSpecTypes {
   IElementType CHIN_SIZE_PARAM = new DeviceSpecElementType("CHIN_SIZE_PARAM");
   IElementType DPI_PARAM = new DeviceSpecElementType("DPI_PARAM");
   IElementType HEIGHT_PARAM = new DeviceSpecElementType("HEIGHT_PARAM");
+  IElementType ID_PARAM = new DeviceSpecElementType("ID_PARAM");
   IElementType IS_ROUND_PARAM = new DeviceSpecElementType("IS_ROUND_PARAM");
   IElementType NAME_PARAM = new DeviceSpecElementType("NAME_PARAM");
   IElementType ORIENTATION_PARAM = new DeviceSpecElementType("ORIENTATION_PARAM");
@@ -63,6 +64,9 @@ public interface DeviceSpecTypes {
       }
       else if (type == HEIGHT_PARAM) {
         return new DeviceSpecHeightParamImpl(node);
+      }
+      else if (type == ID_PARAM) {
+        return new DeviceSpecIdParamImpl(node);
       }
       else if (type == IS_ROUND_PARAM) {
         return new DeviceSpecIsRoundParamImpl(node);
