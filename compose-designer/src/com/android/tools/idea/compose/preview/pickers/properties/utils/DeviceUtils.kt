@@ -182,7 +182,7 @@ internal fun Collection<Device>.findByIdOrName(
       return deviceByName
     }
     else -> {
-      logger.warn("Unsupported device definition: $this")
+      logger.warn("Unsupported device definition: $deviceDefinition")
       null
     }
   }
