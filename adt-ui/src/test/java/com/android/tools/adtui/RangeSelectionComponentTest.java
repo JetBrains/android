@@ -50,6 +50,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@org.junit.Ignore("b/235269148")
 public class RangeSelectionComponentTest {
 
   private static final double DELTA = 1e-3;
