@@ -37,10 +37,9 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -99,7 +98,6 @@ import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -144,12 +142,6 @@ class LogcatMainPanelTest {
       AndroidLogcatFormattingOptions::class.java,
       androidLogcatFormattingOptions,
       projectRule.project)
-    StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.clearOverride()
   }
 
   @RunsInEdt

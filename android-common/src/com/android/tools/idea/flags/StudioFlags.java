@@ -674,7 +674,7 @@ public final class StudioFlags {
     "logcat.click.to.add.filter",
     "Enable Logcat click to add/remove filter feature",
     "Enable Logcat click to add/remove filter feature",
-    false
+    true
   );
 
   public static final Flag<Boolean> LOGCAT_IS_FILTER = Flag.create(
