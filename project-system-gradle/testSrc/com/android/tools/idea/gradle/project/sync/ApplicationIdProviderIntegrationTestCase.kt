@@ -203,7 +203,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_35) error("instant apps are not supported by this version of AGP. ") },
       expectPackageName = "com.example.instantapp",
-      expectTestPackageName = "(null)",
+      expectTestPackageName = "(null)", // The instant-app wrapper project does not have tests.
       expectSyncIssueContent = listOf(
         "The com.android.feature plugin is deprecated and will be removed by the end of 2019. " +
         "Please switch to using dynamic-features or libraries. " +

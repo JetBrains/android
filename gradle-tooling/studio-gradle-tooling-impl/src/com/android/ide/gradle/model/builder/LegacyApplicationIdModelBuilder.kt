@@ -44,7 +44,7 @@ class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : Tool
     val applicationIdMap = mutableMapOf<String, String>()
     val problems = mutableListOf<Exception>()
 
-    for (method: String in pluginType.variantCollectionGetters) {
+    for (method: String in pluginType.variantCollectionGetters(extension)) {
       val container = extension.invokeMethod<DomainObjectSet<*>>(method)
       for (variant in container) {
         val componentName = variant.invokeMethod<String>("getName")
@@ -61,16 +61,25 @@ class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : Tool
         applicationIdMap[componentName] = applicationId
       }
     }
-
     return LegacyApplicationIdModelImpl(applicationIdMap, problems)
   }
 
-  enum class PluginType(val variantCollectionGetters: Set<String>) {
-    APPLICATION(setOf("getApplicationVariants", "getTestVariants")),
-    LIBRARY(setOf("getTestVariants")),
-    TEST(setOf("getApplicationVariants")),
+  enum class PluginType(val variantCollectionGetters: (Any) -> Set<String>) {
+    APPLICATION({ setOf("getApplicationVariants", "getTestVariants") }),
+    LIBRARY({ setOf("getTestVariants") }),
+    TEST({ setOf("getApplicationVariants") }),
     // Don't get main application IDs from dynamic features (see comment on com.android.builder.model.v2.ide.AndroidArtifact.applicationId)
-    DYNAMIC_FEATURE(setOf("getTestVariants"))
+    DYNAMIC_FEATURE({ setOf("getTestVariants") }),
+    INSTANT_APP_FEATURE(
+      { androidExtension ->
+        // Only return the main application ID for base features (equivalent to apps in the new dynamic feature world)
+        if (androidExtension.invokeMethod<Boolean?>("getBaseFeature") == true) {
+          setOf("getFeatureVariants", "getTestVariants")
+        } else {
+          setOf("getTestVariants")
+        }
+      }
+    ),
   }
 
   companion object {
@@ -91,6 +100,7 @@ class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : Tool
       project.pluginManager.withPlugin("com.android.application") { register(registry, PluginType.APPLICATION) }
       project.pluginManager.withPlugin("com.android.library") { register(registry, PluginType.LIBRARY) }
       project.pluginManager.withPlugin("com.android.dynamic-feature") { register(registry, PluginType.DYNAMIC_FEATURE) }
+      project.pluginManager.withPlugin("com.android.feature") { register(registry, PluginType.INSTANT_APP_FEATURE) }
       project.pluginManager.withPlugin("com.android.test") { register(registry, PluginType.TEST) }
     }
 

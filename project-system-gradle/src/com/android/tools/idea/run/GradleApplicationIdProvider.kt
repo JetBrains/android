@@ -73,7 +73,7 @@ class GradleApplicationIdProvider(
       PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.holderModule) }.packageName
       PROJECT_TYPE_APP -> androidModel.selectedVariant.mainArtifact.applicationId.nullize()
       PROJECT_TYPE_ATOM -> null
-      PROJECT_TYPE_FEATURE -> if (androidModel.androidProject.isBaseSplit) androidFacet.getModuleSystem().getPackageName()
+      PROJECT_TYPE_FEATURE -> if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
                               else getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
     }
     if (applicationId == null) {

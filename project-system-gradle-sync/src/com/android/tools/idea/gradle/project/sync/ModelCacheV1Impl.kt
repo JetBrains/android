@@ -732,9 +732,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
     val dependencies = dependenciesFrom(artifact, variantNameForDependencies, androidModuleId)
     val ideArtifactName = convertArtifactName(artifact.name)
+    // Legacy feature plugins are both library-like, and application/dynamic-feature-like
+    // (with separate 'Feature'-suffixed variants for the application/dynamic-feature-like functionality)
+    // From the IDE perspective attach the <variant>Feature applicationId to the library-like variant.
+    val apkVariantName = if(projectType == IdeAndroidProjectType.PROJECT_TYPE_FEATURE) variantName + "Feature" else variantName
     val applicationId = when(ideArtifactName) {
       // NB: the model will not be available for things that are not applicable, e.g. library and dynamic feature main
-      IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName)
+      IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(apkVariantName)
       IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
       IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
     }
