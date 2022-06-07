@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
@@ -39,7 +40,8 @@ private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
-  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
+  scope: CoroutineScope,
+  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource, services.usageTracker, scope),
   startTimeStampNs: Long = 0
 ) : AspectModel<NetworkInspectorAspect>() {
 

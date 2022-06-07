@@ -64,6 +64,26 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
     )
   }
 
+  override fun trackResponseIntercepted(
+    statusCode: Boolean,
+    headerAdded: Boolean,
+    headerReplaced: Boolean,
+    bodyReplaced: Boolean,
+    bodyModified: Boolean
+  ) {
+    track(
+      NetworkInspectorEvent.newBuilder().apply {
+        type = NetworkInspectorEvent.Type.RESPONSE_INTERCEPTED
+        responseInterceptedBuilder.apply {
+          this.statusCode = statusCode
+          this.headerAdded = headerAdded
+          this.bodyReplaced = bodyReplaced
+          this.bodyModified = bodyModified
+        }
+      }
+    )
+  }
+
   private fun track(networkEvent: NetworkInspectorEvent.Builder) {
     val inspectionEvent = AppInspectionEvent.newBuilder()
       .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)

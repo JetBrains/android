@@ -17,6 +17,10 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
@@ -34,7 +38,29 @@ interface HttpDataModel {
   fun getData(timeCurrentRangeUs: Range): List<HttpData>
 }
 
-class HttpDataModelImpl(private val dataSource: NetworkInspectorDataSource) : HttpDataModel {
+class HttpDataModelImpl(
+  private val dataSource: NetworkInspectorDataSource,
+  private val usageTracker: NetworkInspectorTracker,
+  scope: CoroutineScope,
+) : HttpDataModel {
+
+  init {
+    scope.launch {
+      dataSource.connectionEventFlow.collect { event ->
+        if (event.hasHttpResponseIntercepted()) {
+          val interception = event.httpResponseIntercepted
+          usageTracker.trackResponseIntercepted(
+            statusCode = interception.statusCode,
+            headerAdded = interception.headerAdded,
+            headerReplaced = interception.headerReplaced,
+            bodyReplaced = interception.bodyReplaced,
+            bodyModified = interception.bodyModified
+          )
+        }
+      }
+    }
+  }
+
   override fun getData(timeCurrentRangeUs: Range) = runBlocking {
     dataSource.queryForHttpData(timeCurrentRangeUs)
       .groupBy { httpEvent -> httpEvent.httpConnectionEvent.connectionId }

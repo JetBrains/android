@@ -118,13 +118,13 @@ class RuleDetailsViewTest {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
     })
     model.detailContent = NetworkInspectorModel.DetailContent.RULE
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel

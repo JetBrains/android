@@ -22,18 +22,14 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
-import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -88,9 +84,10 @@ class ThreadsViewTest {
 
   @Before
   fun setUp() {
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       private val dataList = FAKE_DATA
       override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
         return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
@@ -98,7 +95,6 @@ class ThreadsViewTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
 

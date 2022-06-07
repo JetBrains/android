@@ -83,6 +83,7 @@ class NetworkInspectorViewTest {
   @Before
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(
       speedEventList = listOf(
@@ -95,7 +96,7 @@ class NetworkInspectorViewTest {
         createSpeedEvent(40, 1, 1),
         createSpeedEvent(50, 1, 1)
       )
-    ))
+    ), scope)
 
 
     val parentPanel = JPanel(BorderLayout())
@@ -109,7 +110,6 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)

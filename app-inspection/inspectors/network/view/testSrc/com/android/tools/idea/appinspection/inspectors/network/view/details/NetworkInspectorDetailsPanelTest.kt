@@ -81,7 +81,8 @@ class NetworkInspectorDetailsPanelTest {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       private val dataList = listOf(DEFAULT_DATA)
       override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
         return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
@@ -89,7 +90,6 @@ class NetworkInspectorDetailsPanelTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel

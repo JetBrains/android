@@ -105,7 +105,7 @@ class NetworkInspectorTab(
         parentPanel.add(toolbar, BorderLayout.NORTH)
         parentPanel.add(stagePanel, BorderLayout.CENTER)
 
-        model = NetworkInspectorModel(services, dataSource, startTimeStampNs = deviceTime)
+        model = NetworkInspectorModel(services, dataSource, scope, startTimeStampNs = deviceTime)
         view = NetworkInspectorView(model, componentsProvider, component, services, scope)
         stagePanel.add(view.component)
 
