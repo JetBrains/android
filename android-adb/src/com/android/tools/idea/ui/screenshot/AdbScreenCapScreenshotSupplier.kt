@@ -24,6 +24,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.AndroidAdbBundle
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -40,8 +41,8 @@ internal class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
   private val sdk: Int,
-) : ScreenshotSupplier {
-  private val coroutineScope = AndroidCoroutineScope(project)
+) : ScreenshotSupplier, Disposable {
+  private val coroutineScope = AndroidCoroutineScope(this)
   private val adbLibService = AdbLibService.getInstance(project)
 
   @Slow
@@ -71,4 +72,6 @@ internal class AdbScreenCapScreenshotSupplier(
       ScreenshotImage(image, 0, roundScreen)
     }
   }
+
+  override fun dispose() {}
 }

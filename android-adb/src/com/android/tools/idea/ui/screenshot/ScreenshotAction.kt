@@ -22,12 +22,14 @@ import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.AndroidAdbBundle
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import icons.StudioIcons
@@ -53,6 +55,7 @@ class ScreenshotAction : DumbAwareAction(
     val project = e.project ?: return
 
     val screenshotSupplier = AdbScreenCapScreenshotSupplier(project, serialNumber, sdk)
+    var disposable: Disposable? = screenshotSupplier
     object : ScreenshotTask(project, screenshotSupplier) {
 
       override fun onSuccess() {
@@ -77,6 +80,7 @@ class ScreenshotAction : DumbAwareAction(
             framingOptions,
             defaultFrame,
             EnumSet.of(Option.ALLOW_IMAGE_ROTATION)) {
+
             override fun doOKAction() {
               super.doOKAction()
               screenshot?.let {
@@ -88,6 +92,8 @@ class ScreenshotAction : DumbAwareAction(
             }
           }
           viewer.show()
+          Disposer.register(viewer.disposable, screenshotSupplier)
+          disposable = null
         }
         catch (e: Exception) {
           thisLogger().warn("Error while displaying screenshot viewer: ", e)
@@ -97,6 +103,13 @@ class ScreenshotAction : DumbAwareAction(
             AndroidAdbBundle.message("screenshot.action.title"))
         }
       }
+
+      override fun onFinished() {
+        disposable?.let {
+          Disposer.dispose(it)
+        }
+      }
+
     }.queue()
   }
 
