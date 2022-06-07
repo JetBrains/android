@@ -42,27 +42,14 @@ internal class DeviceConfigTest {
     assertEquals(Orientation.landscape, config.orientation)
     assertEquals(Shape.Round, config.shape)
 
-    config = DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=invalid,height=1920,unit=px,dpi=invalid")
-    assertNull(config)
-  }
+    // Additional parameters ignored, should be handled by Inspections
+    assertNotNull(DeviceConfig.toDeviceConfigOrNull("spec:id=myId,shape=Round,width=240,height=120,unit=px,dpi=480,foo=bar"))
 
-  @Test
-  fun parseTestLegacy() {
-    var config = DeviceConfig.toDeviceConfigOrNull("spec:Normal;120w;240h;px;480dpi")
-    assertNotNull(config)
-    assertEquals(120f, config.width)
-    assertEquals(240f, config.height)
-    assertEquals(DimUnit.px, config.dimUnit)
-    assertEquals(480, config.dpi)
-    assertEquals(Orientation.portrait, config.orientation)
+    // Invalid values in known parameters
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=invalid,height=1920,unit=px,dpi=invalid"))
 
-    config = DeviceConfig.toDeviceConfigOrNull("spec:Round;240w;120h;px;480dpi")
-    assertNotNull(config)
-    assertEquals(Orientation.landscape, config.orientation)
-    assertEquals(Shape.Round, config.shape)
-
-    config = DeviceConfig.toDeviceConfigOrNull("spec:Round;invalid;1920;px;invalid")
-    assertNull(config)
+    // Missing required parameters
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=240,height=120"))
   }
 
   @Test

@@ -69,7 +69,7 @@ internal class PreviewAnnotationCheckTest {
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
         @Composable
         fun myFun() {}
       """.trimIndent()

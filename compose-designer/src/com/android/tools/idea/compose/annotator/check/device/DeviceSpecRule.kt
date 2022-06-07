@@ -26,7 +26,9 @@ internal enum class DeviceSpecRule(
     requiredParameters = listOf(
       LegacyParameterRule.shape, LegacyParameterRule.width, LegacyParameterRule.height, LegacyParameterRule.unit, LegacyParameterRule.dpi
     ),
-    optionalParameters = emptyList()
+    optionalParameters = listOf(
+      LegacyParameterRule.id
+    )
   ),
   LanguageBased(
     requiredParameters = listOf(

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator.check.device
 
+import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.simpleParameterRule
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
@@ -57,6 +58,15 @@ internal object LegacyParameterRule {
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_DPI.toString()
   ) { it.toIntOrNull() != null }
+
+  /**
+   * Unused in the picker, so this rule is just to cover the possibility of the parameter, regardless of value, see b/234620152.
+   */
+  val id = simpleParameterRule(
+    name = DeviceSpec.PARAMETER_ID,
+    expectedType = OpenEndedValueType("String"),
+    defaultValue = ""
+  ) { true }
 }
 
 /**

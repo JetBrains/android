@@ -43,12 +43,6 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
 
-private const val PARAM_LEGACY_SEPARATOR = ';'
-
-private const val DENSITY_SUFFIX = "dpi"
-private const val WIDTH_SUFFIX = "w"
-private const val HEIGHT_SUFFIX = "h"
-
 /**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
  *
@@ -170,11 +164,9 @@ internal open class DeviceConfig(
         return parseDeviceSpecLanguage(paramsMap)
       }
 
-      if (paramsMap.size != 5) {
-        // Try to parse with old method, otherwise, continue
-        legacyParseToDeviceConfig(serialized)?.let { return it }
-      }
-
+      // This format supports (and requires) 5 parameters: shape, width, height, unit, dpi
+      // This should only be called because the Preview Inspection didn't find anything wrong, so we can just worry about parsing the
+      // parameters we use and ignore everything else
       val shape = enumValueOfOrNull<Shape>(paramsMap.getOrDefault(PARAMETER_SHAPE, "")) ?: return null
       val width = paramsMap.getOrDefault(PARAMETER_WIDTH, "").toIntOrNull() ?: return null
       val height = paramsMap.getOrDefault(PARAMETER_HEIGHT, "").toIntOrNull() ?: return null
@@ -183,6 +175,15 @@ internal open class DeviceConfig(
       return DeviceConfig(width = width.toFloat(), height = height.toFloat(), dimUnit = dimUnit, dpi = dpi, shape = shape)
     }
 
+    /**
+     * Parse the DeviceSpec as defined by the DeviceSpec Language.
+     *
+     * For this format, we only check for width and height as required parameters.
+     *
+     * All other parameters processed here are optional.
+     *
+     * May return null if the required parameters aren't found or if there's an issue parsing any found parameter.
+     */
     private fun parseDeviceSpecLanguage(params: Map<String, String>): DeviceConfig? {
       // Width & height are required
       val width = parseAndroidNumberOrNull(params[PARAMETER_WIDTH]) ?: return null
@@ -230,20 +231,6 @@ internal open class DeviceConfig(
         shape = if (isRound || chinSizeValue > 0) Shape.Round else Shape.Normal,
         chinSize = chinSizeValue
       )
-    }
-
-    private fun legacyParseToDeviceConfig(serialized: String?): DeviceConfig? {
-      if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
-      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
-      val params = configString.split(PARAM_LEGACY_SEPARATOR)
-      if (params.size != 5) return null
-
-      val shape = enumValueOfOrNull<Shape>(params[0]) ?: return null
-      val width = params[1].substringBefore(WIDTH_SUFFIX).toIntOrNull() ?: return null
-      val height = params[2].substringBefore(HEIGHT_SUFFIX).toIntOrNull() ?: return null
-      val dimUnit = enumValueOfOrNull<DimUnit>(params[3].toLowerCaseAsciiOnly()) ?: return null
-      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: return null
-      return DeviceConfig(width = width.toFloat(), height = height.toFloat(), dimUnit = dimUnit, dpi = dpi, shape = shape)
     }
   }
 }

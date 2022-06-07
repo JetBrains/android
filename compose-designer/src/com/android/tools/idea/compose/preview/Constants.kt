@@ -70,6 +70,15 @@ object Preview {
     internal const val PARAMETER_UNIT = "unit"
     internal const val PARAMETER_DPI = "dpi"
 
+    /**
+     * Unused, may be used to define an `id` for user defined custom devices.
+     *
+     * E.g: "spec:id=my_device,width=900px,height=1900px"
+     *
+     * See b/234620152 for more context.
+     */
+    internal const val PARAMETER_ID = "id"
+
     // region DeviceSpec Language only
     internal const val PARAMETER_IS_ROUND = "isRound"
     internal const val PARAMETER_CHIN_SIZE = "chinSize"
