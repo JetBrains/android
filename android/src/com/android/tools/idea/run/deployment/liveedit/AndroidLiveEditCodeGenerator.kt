@@ -22,13 +22,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -42,13 +37,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
-import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
-import java.lang.Math.ceil
-
-const val SLOTS_PER_INT = 10
-const val BITS_PER_INT = 31
 
 class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
   data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
@@ -289,65 +278,6 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     return Pair(primaryClass, supportClasses)
   }
 
-  fun remapFunctionSignatureIfNeeded(desc: SimpleFunctionDescriptor, mapper: KotlinTypeMapper) : String {
-    var target = "${desc.name}("
-    for (param in desc.valueParameters) {
-      target += remapComposableFunctionType(param.type, mapper)
-    }
-
-    var additionalParams = ""
-    if (desc.hasComposableAnnotation()) {
-      val totalSyntheticParamCount = calcStateParamCount(desc.valueParameters.size, desc.valueParameters.count { it.hasDefaultValue() })
-      // Add the Composer parameter as well as number of additional ints computed above.
-      additionalParams = "Landroidx/compose/runtime/Composer;"
-      for (x in 1 .. totalSyntheticParamCount) {
-        additionalParams += "I"
-      }
-    }
-    target += "$additionalParams)"
-    // We are done with parameters, last thing to do is append return type.
-    target += remapComposableFunctionType(desc.returnType, mapper)
-    return target
-  }
-
-  fun remapComposableFunctionType(type: KotlinType?, mapper: KotlinTypeMapper ) : String {
-    val funInternalNamePrefix = "Lkotlin/jvm/functions/Function"
-    if (type == null) {
-      return "Lkotlin/Unit;"
-    }
-    val originalType = mapper.mapType(type).toString()
-    val numParamStart = originalType.indexOf(funInternalNamePrefix)
-    if (!type.hasComposableAnnotation() || numParamStart < 0) {
-      return originalType
-    }
-    var numParam = originalType.substring(numParamStart + funInternalNamePrefix.length, originalType.length - 1).toInt()
-    numParam += calcStateParamCount(numParam) + 1 // Add the one extra param for Composer.
-    return "$funInternalNamePrefix$numParam;"
-  }
-
-  fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int {
-    // The number of synthetic int param added to a function is the total of:
-    // 1. max (1, ceil(numParameters / 10))
-    // 2. 0 default int parameters if none of the N parameters have default expressions
-    // 3. ceil(N / 31) N parameters have default expressions if there are any defaults
-    //
-    // The formula follows the one found in ComposableFunctionBodyTransformer.kt
-    var totalSyntheticParamCount = 0
-    if (realValueParamsCount == 0) {
-      totalSyntheticParamCount += 1;
-    } else {
-      val totalParams = realValueParamsCount
-      totalSyntheticParamCount += ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
-    }
-
-    if (realValueParamsCount != 0 && numDefaults != 0) {
-      totalSyntheticParamCount += ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
-    }
-    return totalSyntheticParamCount;
-  }
-
-  fun Annotated.hasComposableAnnotation() = this.annotations.hasAnnotation(FqName("androidx.compose.runtime.Composable"))
-
   // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
   // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
   // and class name in "import" format and returns the same class name in "internal" format.
@@ -361,47 +291,5 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     }
     val classSuffix = className.substringAfter(packagePrefix)
     return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
-  }
-
-  private fun isKeyMetaClass(output: OutputFile) = output.relativePath.endsWith("\$KeyMeta.class")
-
-  private fun getGroupKey(compilerOutput: List<OutputFile>, function: KtFunction, parentGroups: List<KtFunction>? = null) : Int? {
-    fun computeStartOffset(target: KtFunction) : Int {
-      return if (target is KtNamedFunction && target.funKeyword != null) {
-        target.funKeyword!!.startOffset
-      } else {
-        target.startOffset
-      }
-    }
-
-    for (c in compilerOutput) {
-      if (!isKeyMetaClass(c)) {
-        continue
-      }
-
-      val (file, groupsOffSets) = computeGroups(ClassReader(c.asByteArray()))
-
-      if (!function.containingFile.virtualFile.canonicalPath.equals(file)) {
-        continue
-      }
-
-      var startOffset = computeStartOffset(function)
-      var endOffset = function.endOffset
-
-      groupsOffSets.find { it.startOffset == startOffset && it.endOffSet == endOffset }?.let { return it.key }
-
-      parentGroups?.let {
-        it.forEach { parentGroup ->
-          startOffset = computeStartOffset(parentGroup)
-          endOffset = parentGroup.endOffset
-          groupsOffSets.find { entry -> entry.startOffset == startOffset && entry.endOffSet == endOffset }
-            ?.let { offset -> return offset.key }
-        }
-      }
-
-      println("Can't find group")
-      return null
-    }
-    return null
   }
 }
