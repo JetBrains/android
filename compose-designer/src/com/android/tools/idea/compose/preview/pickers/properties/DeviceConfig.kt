@@ -18,6 +18,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_PX
@@ -32,11 +33,13 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_DPI
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_HEIGHT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_IS_ROUND
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_ORIENTATION
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_PARENT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_SHAPE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_UNIT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.SEPARATOR
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
 import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.enumValueOfOrNull
@@ -44,6 +47,8 @@ import com.android.utils.HashCodes
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
+import kotlin.properties.ObservableProperty
+import kotlin.reflect.KProperty
 
 /**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
@@ -51,6 +56,7 @@ import kotlin.math.roundToInt
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables).
  * @param chinSize For round devices only, defines the height of the flat surface on a screen, measured from the bottom.
+ * @param backingDeviceId ID of the device this configuration represents, null if it's a custom device
  */
 internal open class DeviceConfig(
   open val width: Float = DEFAULT_WIDTH_PX.toFloat(),
@@ -59,7 +65,8 @@ internal open class DeviceConfig(
   open val dpi: Int = DEFAULT_DPI,
   open val shape: Shape = DEFAULT_SHAPE,
   open val chinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
-  open val orientation: Orientation = DEFAULT_ORIENTATION
+  open val orientation: Orientation = DEFAULT_ORIENTATION,
+  open val backingDeviceId: String? = null
 ) {
   /**
    * String representation of the width as it is used in DeviceSpec Language.
@@ -112,7 +119,12 @@ internal open class DeviceConfig(
       return builder.toString()
     }
     else {
-      // TODO(b/227255434): Support parent=<device_id>
+      if (backingDeviceId != null) {
+        // When there's a backing Device ID, only print the parameters that are not inherent to a device, e.g: orientation
+        builder.appendParamValue(PARAMETER_PARENT, backingDeviceId.toString())
+        builder.addOrientationIfNeeded()
+        return builder.toString()
+      }
       builder.appendParamValue(PARAMETER_WIDTH, widthString + dimUnit.name)
       builder.appendSeparator()
       builder.appendParamValue(PARAMETER_HEIGHT, heightString + dimUnit.name)
@@ -129,12 +141,19 @@ internal open class DeviceConfig(
           builder.appendParamValue(PARAMETER_CHIN_SIZE, chinSizeString + dimUnit.name)
         }
       }
-      if (height > width && orientation == Orientation.landscape || width > height && orientation == Orientation.portrait) {
-        // Only add orientation if it's relevant
-        builder.appendSeparator()
-        builder.appendParamValue(PARAMETER_ORIENTATION, orientation.name)
-      }
+      builder.addOrientationIfNeeded()
       return builder.toString()
+    }
+  }
+
+  /**
+   * Adds the Orientation parameter if it's relevant. That means, that the orientation value doesn't match the implicit orientation from
+   * the width and height.
+   */
+  private fun StringBuilder.addOrientationIfNeeded() {
+    if (height > width && orientation == Orientation.landscape || width > height && orientation == Orientation.portrait) {
+      appendSeparator()
+      appendParamValue(PARAMETER_ORIENTATION, orientation.name)
     }
   }
 
@@ -154,16 +173,29 @@ internal open class DeviceConfig(
       dimUnit.hashCode(),
       chinSize.hashCode(),
       isRound.hashCode(),
-      orientation.hashCode()
+      orientation.hashCode(),
+      backingDeviceId.hashCode()
     )
   }
 
   companion object {
-    fun toMutableDeviceConfigOrNull(serialized: String?): MutableDeviceConfig? {
-      return toDeviceConfigOrNull(serialized)?.toMutableConfig()
+    /**
+     * Parses [serialized] into a mutable [DeviceConfig] instance. It may specify a custom Device by its properties, such as Width and
+     * Height, or it may specify an existing Device with a slight modification, in which case, [availableDevices] should not be empty.
+     *
+     * @see [DeviceConfig.deviceSpec]
+     */
+    fun toMutableDeviceConfigOrNull(serialized: String?, availableDevices: Collection<Device>): MutableDeviceConfig? {
+      return toDeviceConfigOrNull(serialized, availableDevices)?.toMutableConfig()
     }
 
-    fun toDeviceConfigOrNull(serialized: String?): DeviceConfig? {
+    /**
+     * Parses [serialized] into a [DeviceConfig] instance. It may specify a custom Device by its properties, such as Width and
+     * Height, or it may specify an existing Device with a slight modification, in which case, [availableDevices] should not be empty.
+     *
+     * @see [DeviceConfig.deviceSpec]
+     */
+    fun toDeviceConfigOrNull(serialized: String?, availableDevices: Collection<Device>): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
       val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       val paramsMap = configString.split(SEPARATOR).filter {
@@ -173,7 +205,7 @@ internal open class DeviceConfig(
       }
 
       if (!paramsMap.containsKey(PARAMETER_SHAPE) && StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
-        return parseDeviceSpecLanguage(paramsMap)
+        return parseDeviceSpecLanguage(paramsMap, availableDevices)
       }
 
       // This format supports (and requires) 5 parameters: shape, width, height, unit, dpi
@@ -197,13 +229,42 @@ internal open class DeviceConfig(
     /**
      * Parse the DeviceSpec as defined by the DeviceSpec Language.
      *
-     * For this format, we only check for width and height as required parameters.
-     *
-     * All other parameters processed here are optional.
+     * There are two supported formats:
+     * - Based on an existing [Device], given by the [PARAMETER_PARENT], with an optional [PARAMETER_ORIENTATION].
+     * - Fully custom device, requires at least [PARAMETER_WIDTH] and [PARAMETER_HEIGHT], with all other screen related parameters being
+     * optional.
      *
      * May return null if the required parameters aren't found or if there's an issue parsing any found parameter.
+     *
+     * @param params Name-value map of the parameters to parse
+     * @param availableDevices Collection used to find the [Device] referenced by [PARAMETER_PARENT] (if it's present)
      */
-    private fun parseDeviceSpecLanguage(params: Map<String, String>): DeviceConfig? {
+    private fun parseDeviceSpecLanguage(params: Map<String, String>, availableDevices: Collection<Device>): DeviceConfig? {
+      val parentId = params[PARAMETER_PARENT]
+      if (parentId != null) {
+        val matchingDevice = availableDevices.firstOrNull { it.id == parentId } ?: return null
+        return parseFromExistingDeviceWithDeviceSpecLanguage(matchingDevice, params)
+      }
+      else {
+        return parseFromCustomDeviceSpecLanguage(params)
+      }
+    }
+
+    private fun parseFromExistingDeviceWithDeviceSpecLanguage(device: Device, params: Map<String, String>): DeviceConfig? {
+      val initialConfig = device.toDeviceConfig()
+      if (params[PARAMETER_ORIENTATION] != null) {
+        // Return null if parsing fails
+        val orientation = enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, "")) ?: return null
+
+        // Override orientation
+        return initialConfig.toMutableConfig().apply {
+          this.orientation = orientation
+        }.toImmutableConfig()
+      }
+      return initialConfig
+    }
+
+    private fun parseFromCustomDeviceSpecLanguage(params: Map<String, String>): DeviceConfig? {
       // Width & height are required
       val width = parseAndroidNumberOrNull(params[PARAMETER_WIDTH]) ?: return null
       val height = parseAndroidNumberOrNull(params[PARAMETER_HEIGHT]) ?: return null
@@ -261,7 +322,8 @@ internal open class DeviceConfig(
         dpi = dpi,
         shape = if (isRound || chinSizeValue > 0) Shape.Round else Shape.Normal,
         chinSize = chinSizeValue,
-        orientation = orientation
+        orientation = orientation,
+        backingDeviceId = null // Not supported when explicitly declaring width, height, dpi, shape, chinSize
       )
     }
   }
@@ -279,17 +341,41 @@ internal class MutableDeviceConfig(
   initialDpi: Int = DEFAULT_DPI,
   initialShape: Shape = DEFAULT_SHAPE,
   initialChinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
-  initialOrientation: Orientation = DEFAULT_ORIENTATION
+  initialOrientation: Orientation = DEFAULT_ORIENTATION,
+  initialBackingDeviceId: String? = null
 ) : DeviceConfig(initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
-  override var width: Float = initialWidth
 
-  override var height: Float = initialHeight
+  /**
+   * ID of the device this configuration represents, null if it's a custom device.
+   *
+   * This means that changes on other device properties may nullify this property.
+   */
+  override var backingDeviceId: String? = initialBackingDeviceId
 
-  override var chinSize: Float = initialChinSize
+  /**
+   * Changes to this property nullifies [backingDeviceId].
+   */
+  override var width: Float by invalidateIdOnPropertyChangeDelegate(initialWidth)
 
-  override var dpi: Int = initialDpi
+  /**
+   * Changes to this property nullifies [backingDeviceId].
+   */
+  override var height: Float by invalidateIdOnPropertyChangeDelegate(initialHeight)
 
-  override var shape: Shape = initialShape
+  /**
+   * Changes to this property nullifies [backingDeviceId].
+   */
+  override var chinSize: Float by invalidateIdOnPropertyChangeDelegate(initialChinSize)
+
+  /**
+   * Changes to this property nullifies [backingDeviceId].
+   */
+  override var dpi: Int by invalidateIdOnPropertyChangeDelegate(initialDpi)
+
+  /**
+   * Changes to this property nullifies [backingDeviceId].
+   */
+  override var shape: Shape by invalidateIdOnPropertyChangeDelegate(initialShape)
 
   /**
    * Defines the unit in which [width] and [height] should be considered. Modifying this property also changes [width] and [height].
@@ -310,6 +396,18 @@ internal class MutableDeviceConfig(
     }
 
   override var orientation: Orientation = initialOrientation
+
+  /**
+   * Returns a property delegate that nullifies the [backingDeviceId] whenever the property sees a different value.
+   */
+  private fun <T> invalidateIdOnPropertyChangeDelegate(initialValue: T) =
+    object : ObservableProperty<T>(initialValue) {
+      override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
+        if (newValue != oldValue) {
+          backingDeviceId = null
+        }
+      }
+    }
 }
 
 /**
@@ -322,7 +420,8 @@ internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
     height = this.height,
     dimUnit = this.dimUnit,
     dpi = this.dpi,
-    orientation = this.orientation
+    orientation = this.orientation,
+    backingDeviceId = this.backingDeviceId
   )
 
 /**
@@ -336,7 +435,8 @@ internal fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
     initialDimUnit = this.dimUnit,
     initialDpi = this.dpi,
     initialChinSize = this.chinSize,
-    initialOrientation = this.orientation
+    initialOrientation = this.orientation,
+    initialBackingDeviceId = this.backingDeviceId
   )
 
 /**

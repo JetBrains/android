@@ -77,6 +77,11 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   else {
     config.shape = Shape.Normal
   }
+
+  // Set the backing ID at the end, otherwise there's risk of deleting it by changing other properties
+  if (this.id != Configuration.CUSTOM_DEVICE_ID) {
+    config.backingDeviceId = this.id
+  }
   return config
 }
 
@@ -143,7 +148,7 @@ internal fun Collection<Device>.findOrParseFromDefinition(
   return when {
     deviceDefinition.isBlank() -> null
     deviceDefinition.startsWith(DEVICE_BY_SPEC_PREFIX) -> {
-      val deviceBySpec = DeviceConfig.toMutableDeviceConfigOrNull(deviceDefinition)?.createDeviceInstance()
+      val deviceBySpec = DeviceConfig.toMutableDeviceConfigOrNull(deviceDefinition, this)?.createDeviceInstance()
       if (deviceBySpec == null) {
         logger.warn("Unable to parse device configuration: $deviceDefinition")
       }

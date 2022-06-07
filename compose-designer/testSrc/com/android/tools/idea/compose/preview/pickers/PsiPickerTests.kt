@@ -140,6 +140,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @RunsInEdt
   @Test
   fun `updating model updates the psi correctly`() = runBlocking {
+    Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
+
     @Language("kotlin")
     val annotationWithParameters = """
       import $composableAnnotationFqName
@@ -485,7 +487,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
       PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
-    var expectedModificationsCountdown = 17
+    var expectedModificationsCountdown = 20
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -564,6 +566,24 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     model.properties["", "Orientation"].value = "portrait"
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp,orientation=portrait")""",
+      noParametersPreview.annotationText()
+    )
+
+    model.properties["", "Device"].value = "id:pixel_3"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "id:pixel_3")""",
+      noParametersPreview.annotationText()
+    )
+    model.properties["", "Orientation"].value = "landscape"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:parent=pixel_3,orientation=landscape")""",
+      noParametersPreview.annotationText()
+    )
+    assertEquals("1080", model.properties["", "Width"].value)
+    assertEquals("2160", model.properties["", "Height"].value)
+    model.properties["", "Width"].value = "2000"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2000px,height=2160px,dpi=440,orientation=landscape")""",
       noParametersPreview.annotationText()
     )
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()

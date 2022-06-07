@@ -289,6 +289,96 @@ internal class PreviewAnnotationCheckTest {
     assertFalse(result.hasIssues)
   }
 
+  @Test
+  fun testParentIdCheck() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    runWriteActionAndWait {
+      Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module)
+    }
+
+    // Provide an incorrect ID
+    var result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:parent=device_1")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(BadType::class, result.issues[0]::class)
+    assertEquals("spec:parent=pixel_5", result.proposedFix)
+
+    // Correct parent ID and orientation
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:parent=pixel_4,orientation=portrait")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(0, result.issues.size)
+
+    // Correct parent ID, orientation and unknown
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:parent=pixel_6,orientation=portrait,foo=bar")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("spec:parent=pixel_6,orientation=portrait", result.proposedFix)
+
+    // Correct parent ID, with all other parameters, parent takes priority
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(5, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals(Unknown::class, result.issues[1]::class)
+    assertEquals(Unknown::class, result.issues[2]::class)
+    assertEquals(Unknown::class, result.issues[3]::class)
+    assertEquals(Unknown::class, result.issues[4]::class)
+    assertEquals("spec:parent=pixel_4_xl,orientation=portrait", result.proposedFix)
+
+    // Width and parent ID, missing height, parent takes priority
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:width=1080px,parent=pixel_4_xl")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("spec:parent=pixel_4_xl", result.proposedFix)
+  }
+
   /**
    * Adds file with the given [fileContents] and runs [PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded] on the first Preview
    * annotation found.

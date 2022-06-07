@@ -37,6 +37,13 @@ internal enum class DeviceSpecRule(
     optionalParameters = listOf(
       LanguageParameterRule.round, LanguageParameterRule.orientation, LanguageParameterRule.chinSize, LanguageParameterRule.dpi
     )
+  ),
+  LanguageWithParentId(
+    requiredParameters = listOf(
+      LanguageParameterRule.parent
+    ),
+    optionalParameters = listOf(
+      LanguageParameterRule.orientation
+    )
   )
-  // TODO(b/220006785): Add another rule for spec:parent=<device_id>
 }

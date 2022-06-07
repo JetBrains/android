@@ -84,6 +84,7 @@ object Preview {
     internal const val PARAMETER_IS_ROUND = "isRound"
     internal const val PARAMETER_CHIN_SIZE = "chinSize"
     internal const val PARAMETER_ORIENTATION = "orientation"
+    internal const val PARAMETER_PARENT = "parent"
     // endregion
 
     internal const val DEFAULT_WIDTH_PX = 1080

@@ -29,6 +29,7 @@ import org.junit.After
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 internal class DeviceUtilsKtTest {
@@ -207,9 +208,25 @@ internal class DeviceUtilsKtTest {
     val deviceById = existingDevices.findOrParseFromDefinition("id:id1")
     val screen1 = deviceById!!.defaultHardware.screen
     assertEquals("id1", deviceById.id)
-    assertEquals(1080, screen1.xDimension)
-    assertEquals(1920, screen1.yDimension)
-    assertEquals(480, screen1.pixelDensity.dpiValue)
+    assertEquals(540, screen1.xDimension)
+    assertEquals(960, screen1.yDimension)
+    assertEquals(640, screen1.pixelDensity.dpiValue)
+    assertEquals(ScreenOrientation.PORTRAIT, deviceById.defaultState.orientation)
+
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
+    // Not supported with flag disabled
+    assertNull(existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape"))
+
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    // Device parameters should be the same as 'id1' with a different orientation
+    val deviceByParentId = existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
+    val screen2 = deviceByParentId!!.defaultHardware.screen
+    // Devices defined by 'spec' are always Custom devices
+    assertEquals("Custom", deviceByParentId.id)
+    assertEquals(540, screen2.xDimension)
+    assertEquals(960, screen2.yDimension)
+    assertEquals(640, screen2.pixelDensity.dpiValue)
+    assertEquals(ScreenOrientation.LANDSCAPE, deviceByParentId.defaultState.orientation)
   }
 }
 
@@ -221,7 +238,7 @@ private fun buildMockDevices(): List<Device> {
   var nameOrIdCount = 0
   return listOf(
     DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
-    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+    DeviceConfig(width = 540f, height = 960f, dimUnit = DimUnit.px, dpi = 640, shape = Shape.Normal),
     DeviceConfig(width = 1080f, height = 2280f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
     DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
   ).map {

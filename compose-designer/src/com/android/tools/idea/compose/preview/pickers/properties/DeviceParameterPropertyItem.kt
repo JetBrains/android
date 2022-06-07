@@ -158,10 +158,15 @@ internal class DeviceParameterPropertyItem(
 
   private fun getCurrentDeviceConfig(): MutableDeviceConfig {
     val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
-    return value?.let { currentValue ->
-      // Translate the current value, the value could either be a DeviceConfig string or a Device ID
-      DeviceConfig.toDeviceConfigOrNull(currentValue) ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-    }?.toMutableConfig() ?: defaultDeviceValues.toMutableConfig()
+    val currentValue = value ?: return defaultDeviceValues.toMutableConfig()
+
+    // Translate the current value, the value could either be a DeviceConfig string or a Device ID
+    val resolvedDeviceConfig =
+      DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices) ?:
+      availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig() ?:
+      defaultDeviceValues
+
+    return resolvedDeviceConfig.toMutableConfig()
   }
 
   /**

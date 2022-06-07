@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.annotator.check.common.BadType
 import com.android.tools.idea.compose.annotator.check.common.CheckResult
 import com.android.tools.idea.compose.annotator.check.common.CheckRule
@@ -30,6 +31,7 @@ import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
+import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevicesKey
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
@@ -120,14 +122,21 @@ internal object PreviewAnnotationCheck {
       // Check the DeviceSpec parameters in "spec:..."
       deviceParameterValue.startsWith(DEVICE_BY_SPEC_PREFIX) -> {
         val deviceSpecParams = toParameterList(deviceParameterValue.substringAfter(DEVICE_BY_SPEC_PREFIX))
-        val rule = if (deviceParameterValue.contains(DeviceSpec.PARAMETER_SHAPE) ||
-                       !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
-          DeviceSpecRule.Legacy
+
+        val rule = when {
+          !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() -> DeviceSpecRule.Legacy
+          deviceParameterValue.contains(DeviceSpec.PARAMETER_SHAPE) -> {
+            // The Legacy format is the only one with a `shape` parameter
+            DeviceSpecRule.Legacy
+          }
+          deviceParameterValue.contains(DeviceSpec.PARAMETER_PARENT + DeviceSpec.OPERATOR) -> {
+            // The `parent` parameter requires a specific rule
+            DeviceSpecRule.LanguageWithParentId
+          }
+          // All other cases should be covered by the base DeviceSpec Language rule
+          else -> DeviceSpecRule.LanguageBased
         }
-        else {
-          DeviceSpecRule.LanguageBased
-        }
-        checkDeviceSpecParams(deviceSpecParams, rule)
+        checkDeviceSpecParams(deviceSpecParams, rule, module)
       }
       // Unsupported situations are considered valid
       // TODO(b/220006785): Consider highlighting unsupported device input once we know we've covered all use cases
@@ -150,7 +159,8 @@ internal object PreviewAnnotationCheck {
    */
   private fun checkDeviceSpecParams(
     originalParams: Collection<Pair<String, String>>,
-    rule: CheckRule
+    rule: CheckRule,
+    module: Module?
   ): CheckResult {
     val issues = mutableListOf<IssueReason>()
 
@@ -181,7 +191,7 @@ internal object PreviewAnnotationCheck {
     // DataProvider for context-dependent checks
     val dataProvider = DataProvider {
       when (it) {
-        // TODO(b/220006785): Checking the `parent` parameter in the DeviceSpec requires providing the current Module
+        AvailableDevicesKey.name -> module?.let { getSdkDevices(module) } ?: emptyList<Device>()
         DeviceSpecCheckStateKey.name -> deviceSpecState
         else -> null
       }

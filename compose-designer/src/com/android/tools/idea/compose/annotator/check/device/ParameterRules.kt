@@ -77,7 +77,6 @@ internal object LegacyParameterRule {
  * @see com.android.tools.idea.compose.preview.util.device.DeviceSpecLanguage
  */
 internal object LanguageParameterRule {
-  // TODO(b/220006785): Add ParameterRule for parent. Note that such rule requires checking Sdk devices, which depends on the Module class.
 
   val width = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_WIDTH,
@@ -111,4 +110,6 @@ internal object LanguageParameterRule {
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_DPI.toString()
   ) { it.toIntOrNull() != null }
+
+  val parent = DeviceIdParameterRule(name = DeviceSpec.PARAMETER_PARENT)
 }
