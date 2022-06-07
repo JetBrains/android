@@ -156,10 +156,10 @@ public final class GradleModelSource extends GradleModelProvider {
   //methods below are copy-pasted from android core
 
   private static File getBaseDirPath(@NotNull Project project) {
-    if (project.isDefault()) {
-      return new File("");
-    }
-    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
+    VirtualFile guessedDir = ProjectUtil.guessProjectDir(project);
+    if(guessedDir == null) return new File("");
+
+    return new File(Objects.requireNonNull(guessedDir.getCanonicalPath()));
   }
 
   @Nullable
