@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.builder.model.SyncIssue.TYPE_MISSING_SDK_PACKAGE;
 import static com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET;
+import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
@@ -77,6 +78,18 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     GradleModuleModels javalib1 = modulesByModuleName.get("javalib1");
     assertNotNull(javalib1);
     assertContainsJavaModels(javalib1);
+  }
+
+  public void testFetchModelsWithBuildSrc() throws Exception {
+    loadProject(APP_WITH_BUILDSRC);
+    @NotNull GradleProjectModels models = mySyncExecutor.fetchGradleModels();
+    Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models.getModules());
+
+    // buildSrc modules are not fetched by fetchGradleModels
+    assertThat(modulesByModuleName).hasSize(1);
+    GradleModuleModels app = modulesByModuleName.get("app");
+    assertNotNull(app);
+    assertContainsAndroidModels(app);
   }
 
   // Ignored until ag/129043402 is fixed. This causes a IllegalStateException in AndroidUnitTest.java within the AndroidGradlePlugin.
@@ -142,7 +155,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   private static void assertContainsAndroidModels(@NotNull GradleModuleModels models) {
-    assertModelsPresent(models, GradleAndroidModelData.class, GradleModuleModel.class);
+    assertModelsPresent(models, GradleAndroidModelData.class, GradleModuleModel.class, ExternalProject.class);
   }
 
   private static void assertContainsJavaModels(@NotNull GradleModuleModels models) {

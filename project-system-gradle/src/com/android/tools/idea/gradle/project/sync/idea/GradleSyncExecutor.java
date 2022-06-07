@@ -206,35 +206,35 @@ public class GradleSyncExecutor {
       Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
       for (DataNode<ModuleData> moduleNode : moduleNodes) {
         DataNode<GradleModuleModel> gradleModelNode = find(moduleNode, GRADLE_MODULE_MODEL);
-        if (gradleModelNode != null) {
-          PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
-          moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
+        if (gradleModelNode == null) {
+          continue;
+        }
 
-          @NotNull Collection<DataNode<IdeSyncIssue>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
-          if (!syncIssueNodes.isEmpty()) {
-            moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, it -> it.getData())));
-          }
+        PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
+        moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
 
-          DataNode<GradleAndroidModelData> androidModelNode = find(moduleNode, ANDROID_MODEL);
-          if (androidModelNode != null) {
-            moduleModules.addModel(GradleAndroidModelData.class, androidModelNode.getData());
+        @NotNull Collection<DataNode<IdeSyncIssue>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
+        if (!syncIssueNodes.isEmpty()) {
+          moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, DataNode::getData)));
+        }
 
-            DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
-            if (ndkModelNode != null) {
-              moduleModules.addModel(NdkModuleModel.class, ndkModelNode.getData());
-            }
+        DataNode<GradleAndroidModelData> androidModelNode = find(moduleNode, ANDROID_MODEL);
+        if (androidModelNode != null) {
+          moduleModules.addModel(GradleAndroidModelData.class, androidModelNode.getData());
 
-            builder.add(moduleModules);
-          }
-
-          if (rootProjectNode != null) {
-            ExternalProject project = findExternalProjectForModule(rootProjectNode, moduleNode);
-            if (project != null) {
-              moduleModules.addModel(ExternalProject.class, project);
-              builder.add(moduleModules);
-            }
+          DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
+          if (ndkModelNode != null) {
+            moduleModules.addModel(NdkModuleModel.class, ndkModelNode.getData());
           }
         }
+
+        if (rootProjectNode != null) {
+          ExternalProject project = findExternalProjectForModule(rootProjectNode, moduleNode);
+          if (project != null) {
+            moduleModules.addModel(ExternalProject.class, project);
+          }
+        }
+        builder.add(moduleModules);
       }
     }
 
