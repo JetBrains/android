@@ -53,7 +53,6 @@ internal class AdbScreenCapScreenshotSupplier(
         "screencap -p",
         ByteArrayShellCollector(sdk < 24),
         commandTimeout = COMMAND_TIMEOUT,
-        bufferSize = 50,
       ).first()
     }
 
