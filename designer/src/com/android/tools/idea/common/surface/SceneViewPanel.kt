@@ -401,26 +401,10 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     // Invalidate the current components
     removeAll()
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
-        sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
-      }
-      else {
-        null
-      }
-
-      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
-        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
-      } else {
-        null
-      }
-
+      val toolbar = sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
+      val bottomBar = sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
       // The left bar is only added for the first panel
-      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && index == 0) {
-        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
-      } else {
-        null
-      }
-
+      val leftBar = if (index == 0) sceneView.surface.actionManager.getSceneViewLeftBar(sceneView) else null
       val rightBar = sceneView.surface.actionManager.getSceneViewRightBar(sceneView)
 
       val errorsPanel = if (sceneView.surface.shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
