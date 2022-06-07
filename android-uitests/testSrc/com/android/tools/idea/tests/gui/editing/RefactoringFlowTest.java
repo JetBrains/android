@@ -90,6 +90,7 @@ public class RefactoringFlowTest {
       .moveBetween("public class Person {","")
       .enterText("\nString name;\nint age;\n\npublic void setAge(int age) {\nthis.age = age;\n}\n");
 
+    guiTest.robot().waitForIdle();
     editor.open("/app/src/main/java/google/simpleapplication/MyActivity.java")
       .moveBetween("public class MyActivity extends Activity {", "")
       .enterText("\nPerson person;\n")
@@ -99,8 +100,8 @@ public class RefactoringFlowTest {
     editor.moveBetween("Pers", "on person");
 
     //Doing Invoking menu path twice to display refactor dialog box
-    ideFrame.invokeMenuPath("Refactor", "Rename\u2026");
-    ideFrame.invokeMenuPath("Refactor", "Rename\u2026");
+    ideFrame.invokeMenuPath("Refactor", "Rename...");
+    ideFrame.invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
@@ -150,7 +151,7 @@ public class RefactoringFlowTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveBetween("hello", "_world");
-    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename\u2026");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
@@ -206,7 +207,7 @@ public class RefactoringFlowTest {
 
     guiTest.waitForBackgroundTasks();
     paneFixture.clickPath("SimpleApplication", "app", "src", "main", "java", "google.simpleapplication", "MyActivity")
-      .invokeMenuPath("Refactor", "Rename\u2026");
+      .invokeMenuPath("Refactor", "Rename...");
 
     RenameFileDialogFixture.find(guiTest.ideFrame())
       .enterText(newFileName)
