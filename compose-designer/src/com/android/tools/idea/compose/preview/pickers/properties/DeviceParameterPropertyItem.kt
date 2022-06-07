@@ -40,6 +40,7 @@ import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackerHelp
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -156,16 +157,25 @@ internal class DeviceParameterPropertyItem(
     }
   )
 
+  private var lastValueToDevice: Pair<String, DeviceConfig>? = null
+
   private fun getCurrentDeviceConfig(): MutableDeviceConfig {
-    val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
+    ApplicationManager.getApplication().assertIsDispatchThread()
     val currentValue = value ?: return defaultDeviceValues.toMutableConfig()
+    val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
+
+    val lastValue = lastValueToDevice
+    if (lastValue != null && currentValue == lastValue.first) {
+      // No need to parse or find Device for repeated calls.
+      return lastValue.second.toMutableConfig()
+    }
 
     // Translate the current value, the value could either be a DeviceConfig string or a Device ID
-    val resolvedDeviceConfig =
-      DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices) ?:
-      availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig() ?:
-      defaultDeviceValues
+    val resolvedDeviceConfig = DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
+                               ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
+                               ?: defaultDeviceValues
 
+    lastValueToDevice = Pair(currentValue, resolvedDeviceConfig)
     return resolvedDeviceConfig.toMutableConfig()
   }
 
