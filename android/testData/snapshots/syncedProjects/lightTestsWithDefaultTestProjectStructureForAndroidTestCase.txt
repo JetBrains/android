@@ -53,8 +53,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -136,8 +136,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -226,8 +226,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -294,8 +294,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -327,8 +327,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
-            ASSEMBLE                      : :assembleDebug
-            REBUILD                       : <TEMP>::assembleDebug, <TEMP>::clean
+            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+            REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::assembleDebugUnitTest, <TEMP>::clean
             COMPILE_JAVA                  : <TEMP>::compileDebugAndroidTestSources, <TEMP>::compileDebugSources, <TEMP>::compileDebugUnitTestSources
             SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
             BUNDLE                        : :bundleDebug

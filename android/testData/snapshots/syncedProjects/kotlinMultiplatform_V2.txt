@@ -84,8 +84,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
@@ -316,8 +316,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
@@ -497,8 +497,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
@@ -708,8 +708,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
@@ -801,8 +801,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
-                ASSEMBLE                      : :module2:assembleDebug
-                REBUILD                       : :module2:assembleDebug, :module2:clean
+                ASSEMBLE                      : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest
+                REBUILD                       : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest, :module2:clean
                 COMPILE_JAVA                  : :module2:compileDebugAndroidTestSources, :module2:compileDebugSources, :module2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
@@ -963,8 +963,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
-                ASSEMBLE                      : :module2:assembleDebug
-                REBUILD                       : :module2:assembleDebug, :module2:clean
+                ASSEMBLE                      : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest
+                REBUILD                       : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest, :module2:clean
                 COMPILE_JAVA                  : :module2:compileDebugAndroidTestSources, :module2:compileDebugSources, :module2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
@@ -1258,8 +1258,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
-                ASSEMBLE                      : :module2:assembleDebug
-                REBUILD                       : :module2:assembleDebug, :module2:clean
+                ASSEMBLE                      : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest
+                REBUILD                       : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest, :module2:clean
                 COMPILE_JAVA                  : :module2:compileDebugAndroidTestSources, :module2:compileDebugSources, :module2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
@@ -1408,8 +1408,8 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
-                ASSEMBLE                      : :module2:assembleDebug
-                REBUILD                       : :module2:assembleDebug, :module2:clean
+                ASSEMBLE                      : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest
+                REBUILD                       : :module2:assembleDebug, :module2:assembleDebugAndroidTest, :module2:assembleDebugUnitTest, :module2:clean
                 COMPILE_JAVA                  : :module2:compileDebugAndroidTestSources, :module2:compileDebugSources, :module2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
@@ -1566,8 +1566,8 @@ PROJECT                       : kotlinMultiPlatform
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : :app:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:clean, <PROJECT>::module2:testClasses
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean, <PROJECT>::module2:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources, <PROJECT>::module2:compileJava, <PROJECT>::module2:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug

@@ -56,8 +56,8 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -148,8 +148,8 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -239,8 +239,8 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -316,8 +316,8 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -349,8 +349,8 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
-            ASSEMBLE                      : :assembleDebug
-            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::clean
+            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
             BUNDLE                        : :bundleDebug

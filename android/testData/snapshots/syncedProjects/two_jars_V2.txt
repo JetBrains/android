@@ -60,8 +60,8 @@ PROJECT                       : My Application
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -163,8 +163,8 @@ PROJECT                       : My Application
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -398,8 +398,8 @@ PROJECT                       : My Application
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -484,8 +484,8 @@ PROJECT                       : My Application
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
+                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -526,8 +526,8 @@ PROJECT                       : My Application
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug
-            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean, <PROJECT>::lib:testClasses
+            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean, <PROJECT>::lib:testClasses
             COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources, <PROJECT>::lib:compileJava, <PROJECT>::lib:testClasses
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug

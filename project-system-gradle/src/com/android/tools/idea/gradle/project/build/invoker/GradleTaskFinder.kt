@@ -165,10 +165,8 @@ class GradleTaskFinder {
             addTaskIfSpecified(tasks, gradlePath, mainArtifact.assembleTaskName)
 
             // Add assemble tasks for tests.
-            if (testCompileType !== TestCompileType.ALL) {
-              for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
-                addTaskIfSpecified(tasks, gradlePath, artifact.assembleTaskName)
-              }
+            for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
+              addTaskIfSpecified(tasks, gradlePath, artifact.assembleTaskName)
             }
 
             // Add assemble tasks for tested variants in test-only modules

@@ -206,7 +206,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
-      TestCompileType.ALL);
+      TestCompileType.NONE);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
@@ -230,7 +230,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
-      TestCompileType.ALL);
+      TestCompileType.NONE);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
