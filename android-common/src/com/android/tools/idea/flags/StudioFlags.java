@@ -399,11 +399,6 @@ public final class StudioFlags {
     "Enable all the various tools related to visual linting of layouts.",
     true);
 
-  public static final Flag<Boolean> NELE_VISUAL_LINT_TOGGLE_ISSUE_LAYOUTS = Flag.create(
-    NELE, "visual.lint.toggle.issue.layouts", "Checkbox to show the the layouts with issue only.",
-    "Provide a checkbox in Layout Validation Tool to allow user only show the layouts with issue detected by visual lint.",
-    false);
-
   public static final Flag<Boolean> NELE_ATF_IN_VISUAL_LINT = Flag.create(
     NELE, "visual.lint.atf", "Enable ATF integration in visual linting for layouts",
     "Enable ATF integration in visual linting of layouts.",

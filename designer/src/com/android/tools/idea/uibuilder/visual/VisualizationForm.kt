@@ -49,7 +49,6 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
-import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
@@ -277,7 +276,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     toolbarPanel.add(toolbarComponent, BorderLayout.CENTER)
     if (StudioFlags.NELE_VISUAL_LINT.get()) {
       val lintGroup = DefaultActionGroup()
-      lintGroup.add(ToggleOnlyShowLayoutWithIssuesAction(surface))
       lintGroup.add(IssuePanelToggleAction(surface))
       val lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
       lintToolbar.setTargetComponent(surface)

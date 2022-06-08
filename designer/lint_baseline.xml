@@ -1077,32 +1077,8 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/visual/visuallint/ToggleOnlyShowLayoutWithIssuesAction.kt"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/visuallint/ToggleOnlyShowLayoutWithIssuesAction.kt"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/visuallint/ToggleOnlyShowLayoutWithIssuesAction.kt"
-            line="43"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/visuallint/ToggleOnlyShowLayoutWithIssuesAction.kt"
-            line="43"/>
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
+            line="581"/>
     </issue>
 
     <issue
@@ -1110,15 +1086,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="583"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="583"/>
+            line="581"/>
     </issue>
 
     <issue
