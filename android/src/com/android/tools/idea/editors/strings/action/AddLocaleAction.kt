@@ -38,19 +38,19 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
         description = null,
         icon = StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE) {
   constructor() : this(StringResourceWriter.INSTANCE)
-  override fun doUpdate(e: AnActionEvent): Boolean =
-      e.panel.table.model.keys.mapNotNull { it.directory }.isNotEmpty()
+  override fun doUpdate(event: AnActionEvent): Boolean =
+      event.panel.table.model.keys.mapNotNull { it.directory }.isNotEmpty()
 
-  override fun actionPerformed(e: AnActionEvent) {
-    val data: StringResourceData = checkNotNull(e.panel.table.data)
+  override fun actionPerformed(event: AnActionEvent) {
+    val data: StringResourceData = checkNotNull(event.panel.table.data)
 
     JBPopupFactory.getInstance()
         .createPopupChooserBuilder(getUnusedLocales(data.localeSet))
         .setItemChosenCallback {
-          val key = findResourceKey(data, e.panel.facet)
+          val key = findResourceKey(data, event.panel.facet)
           if (stringResourceWriter.add(
-              e.requiredProject, key, data.getStringResource(key).defaultValueAsString, it)) {
-            e.panel.reloadData()
+              event.requiredProject, key, data.getStringResource(key).defaultValueAsString, it)) {
+            event.panel.reloadData()
           }
         }
         .setRenderer(
@@ -59,7 +59,7 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
               label.text = Locale.getLocaleLabel(value, /* brief= */ false)
             })
         .createPopup()
-        .showUnderneathOf(e.inputEvent.component)
+        .showUnderneathOf(event.inputEvent.component)
   }
 
   companion object {

@@ -60,9 +60,9 @@ class FilterKeysAction : ComboBoxAction() {
 
     group.add(
       object : PanelAction("Filter By Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
-          override fun doUpdate(e: AnActionEvent): Boolean = true
+          override fun doUpdate(event: AnActionEvent): Boolean = true
 
-          override fun actionPerformed(e: AnActionEvent) {
+          override fun actionPerformed(event: AnActionEvent) {
             val textField = JTextField()
             val dialogBuilder =
                 DialogBuilder().apply {
@@ -73,7 +73,7 @@ class FilterKeysAction : ComboBoxAction() {
             if (dialogBuilder.showAndGet()) {
               val filterString = textField.text
               if (filterString.isNotEmpty()) {
-                e.panel.table.rowFilter = TextRowFilter(filterString)
+                event.panel.table.rowFilter = TextRowFilter(filterString)
               }
             }
           }
@@ -109,9 +109,9 @@ class FilterKeysAction : ComboBoxAction() {
         rowFilterSupplier: () -> StringResourceTableRowFilter?
     ) =
         object : PanelAction(text, description, icon) {
-          override fun doUpdate(e: AnActionEvent): Boolean = true
-          override fun actionPerformed(e: AnActionEvent) {
-            e.panel.table.rowFilter = rowFilterSupplier.invoke()
+          override fun doUpdate(event: AnActionEvent): Boolean = true
+          override fun actionPerformed(event: AnActionEvent) {
+            event.panel.table.rowFilter = rowFilterSupplier.invoke()
           }
         }
   }

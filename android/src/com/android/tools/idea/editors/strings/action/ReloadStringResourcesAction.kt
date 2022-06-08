@@ -17,12 +17,11 @@ package com.android.tools.idea.editors.strings.action
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.command.WriteCommandAction
 
 /** Action that reloads string resources into the panel. */
 class ReloadStringResourcesAction : PanelAction("Reload string resources", null, AllIcons.Actions.Refresh) {
 
-  override fun doUpdate(e: AnActionEvent): Boolean = true
+  override fun doUpdate(event: AnActionEvent): Boolean = true
 
-  override fun actionPerformed(e: AnActionEvent) = e.panel.reloadData()
+  override fun actionPerformed(event: AnActionEvent) = event.panel.reloadData()
 }

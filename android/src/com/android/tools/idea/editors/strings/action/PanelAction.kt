@@ -57,5 +57,5 @@ abstract class PanelAction(
    *
    * @return whether or not the action should be enabled
    */
-  protected abstract fun doUpdate(e: AnActionEvent): Boolean
+  protected abstract fun doUpdate(event: AnActionEvent): Boolean
 }

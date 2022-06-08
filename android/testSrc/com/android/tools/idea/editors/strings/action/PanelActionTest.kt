@@ -133,11 +133,11 @@ class PanelActionTest {
     var doUpdateInvoked = false
       private set
 
-    override fun doUpdate(e: AnActionEvent): Boolean =
+    override fun doUpdate(event: AnActionEvent): Boolean =
         doUpdateResult.also { doUpdateInvoked = true }
 
-    override fun actionPerformed(e: AnActionEvent) {
-      assertThat(e.panel).isSameAs(stringResourceEditor.panel)
+    override fun actionPerformed(event: AnActionEvent) {
+      assertThat(event.panel).isSameAs(stringResourceEditor.panel)
     }
   }
 }

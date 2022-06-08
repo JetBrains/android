@@ -27,17 +27,17 @@ class AddKeyAction
 internal constructor(private val stringResourceWriter: StringResourceWriter) :
     PanelAction("Add Key", description = null, AllIcons.General.Add) {
   constructor() : this(StringResourceWriter.INSTANCE)
-  override fun doUpdate(e: AnActionEvent): Boolean = e.panel.table.data != null
+  override fun doUpdate(event: AnActionEvent): Boolean = event.panel.table.data != null
 
-  override fun actionPerformed(e: AnActionEvent) {
+  override fun actionPerformed(event: AnActionEvent) {
     val data: StringResourceData =
-        requireNotNull(e.panel.table.data) {
+        requireNotNull(event.panel.table.data) {
           "Panel's StringResourceTable must contain non-null StringResourceData!"
         }
-    val dialog = NewStringKeyDialog(e.panel.facet, data.keys.toSet())
+    val dialog = NewStringKeyDialog(event.panel.facet, data.keys.toSet())
     if (dialog.showAndGet() &&
-        stringResourceWriter.add(e.requiredProject, dialog.key, dialog.defaultValue)) {
-      e.panel.reloadData()
+        stringResourceWriter.add(event.requiredProject, dialog.key, dialog.defaultValue)) {
+      event.panel.reloadData()
     }
   }
 }
