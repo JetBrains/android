@@ -50,17 +50,17 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                REBUILD                       : :assembleDebug, :clean
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
+                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -68,7 +68,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -76,7 +76,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
+                REBUILD                       : :assembleDebug, :clean
                 COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -133,17 +133,17 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         ORDER_ENTRY                   : LightSyncBasedTestsWithDefaultTestProjectStructureTest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                REBUILD                       : :assembleDebug, :clean
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
+                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -151,7 +151,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -159,7 +159,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
+                REBUILD                       : :assembleDebug, :clean
                 COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -223,17 +223,17 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                REBUILD                       : :assembleDebug, :clean
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
+                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -241,7 +241,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -249,7 +249,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
+                REBUILD                       : :assembleDebug, :clean
                 COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
@@ -291,17 +291,17 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         ORDER_ENTRY                   : LightSyncBasedTestsWithDefaultTestProjectStructureTest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
-                COMPILE_JAVA                  : :compileDebugUnitTestSources, :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                REBUILD                       : :assembleDebug, :clean
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
+                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugAndroidTest
+                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
                 COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -309,7 +309,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :clean, :assembleDebug, :assembleDebugUnitTest
+                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugUnitTestSources
                 SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
@@ -317,24 +317,24 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :clean, :assembleDebug
+                REBUILD                       : :assembleDebug, :clean
                 COMPILE_JAVA                  : :compileDebugSources
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
-            CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2
+            CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
             ASSEMBLE                      : :assembleDebug
-            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug
-            COMPILE_JAVA                  : <PROJECT>::compileDebugUnitTestSources, <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::clean
+            COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2
             ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources
             SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::ideAndroidTestSetupTask1, <PROJECT>::ideAndroidTestSetupTask2
             BUNDLE                        : :bundleDebug
@@ -342,7 +342,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::generateDebugSources, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
             ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::generateDebugSources, <PROJECT>::ideUnitTestSetupTask1, <PROJECT>::ideUnitTestSetupTask2
             BUNDLE                        : :bundleDebug
@@ -350,7 +350,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::generateDebugSources
             ASSEMBLE                      : :assembleDebug
-            REBUILD                       : <PROJECT>::clean, <PROJECT>::assembleDebug
+            REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugSources
             SOURCE_GEN                    : <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug

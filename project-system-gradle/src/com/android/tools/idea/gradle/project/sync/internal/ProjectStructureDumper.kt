@@ -209,7 +209,7 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
           fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
 
           fun Set<String>.dumpAs(name: String) {
-            prop(name) { this.takeUnless { it.isEmpty() }?.joinToString(", ") }
+            prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
           }
 
           getTasks().dumpAs(buildMode.toString())
