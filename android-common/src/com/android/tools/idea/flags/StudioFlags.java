@@ -678,7 +678,7 @@ public final class StudioFlags {
     "logcat.is.filter",
     "Enable Logcat 'is:...' filter",
     "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
-    false
+    true
   );
   //endregion
 
