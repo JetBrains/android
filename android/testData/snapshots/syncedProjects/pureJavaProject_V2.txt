@@ -23,15 +23,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : project.main
         ExternalModuleGroup           :
@@ -57,15 +61,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : project.test
         ExternalModuleGroup           :
@@ -96,15 +104,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     LIBRARY_TABLE
         LIBRARY                       : Gradle: junit:junit:4.12
@@ -114,13 +126,17 @@ PROJECT                       : project
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             ASSEMBLE                      : :assemble, :testClasses
+            REBUILD                       : <PROJECT>::assemble, <PROJECT>::clean, <PROJECT>::testClasses
             COMPILE_JAVA                  : <PROJECT>::compileJava, <PROJECT>::testClasses
         TEST_COMPILE_MODE             : Android tests
             ASSEMBLE                      : :assemble
+            REBUILD                       : <PROJECT>::assemble, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileJava
         TEST_COMPILE_MODE             : Unit tests
             ASSEMBLE                      : :assemble, :testClasses
+            REBUILD                       : <PROJECT>::assemble, <PROJECT>::clean, <PROJECT>::testClasses
             COMPILE_JAVA                  : <PROJECT>::compileJava, <PROJECT>::testClasses
         TEST_COMPILE_MODE             : None
             ASSEMBLE                      : :assemble
+            REBUILD                       : <PROJECT>::assemble, <PROJECT>::clean
             COMPILE_JAVA                  : <PROJECT>::compileJava

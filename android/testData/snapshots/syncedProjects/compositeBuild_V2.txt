@@ -2616,15 +2616,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest3
@@ -2650,15 +2654,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest3
@@ -2685,15 +2693,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite2
         ExternalModuleGroup           : com.test.composite2
@@ -2721,15 +2733,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite2.main
         ExternalModuleGroup           : com.test.composite2
@@ -2755,15 +2771,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite2.test
         ExternalModuleGroup           : com.test.composite2
@@ -2790,15 +2810,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite4
         ExternalModuleGroup           : com.test.composite4
@@ -2826,15 +2850,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite4.main
         ExternalModuleGroup           : com.test.composite4
@@ -2860,15 +2888,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : composite4.test
         ExternalModuleGroup           : com.test.composite4
@@ -2895,15 +2927,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : compositeNest
         ExternalModuleGroup           : com.test.compositeNest1
@@ -2931,15 +2967,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest1
@@ -2965,15 +3005,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest1
@@ -3000,15 +3044,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
                 COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
                 COMPILE_JAVA                  : :compileJava
     MODULE                        : project
         ExternalModuleGroup           :
@@ -4515,7 +4563,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
@@ -4523,7 +4571,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
@@ -4531,7 +4579,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
@@ -4539,7 +4587,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug

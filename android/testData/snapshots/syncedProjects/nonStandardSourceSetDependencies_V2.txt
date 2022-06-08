@@ -1121,15 +1121,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.main
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -1208,15 +1212,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.test
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -1296,15 +1304,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary.testEnv
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -1376,15 +1388,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean, :javaLibrary:testClasses
                 COMPILE_JAVA                  : :javaLibrary:compileJava, :javaLibrary:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :javaLibrary:assemble
+                REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP
@@ -1867,15 +1883,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -1950,15 +1970,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -2041,15 +2065,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -2124,15 +2152,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
     MODULE                        : NonStandardSourceSetDependencies.network-kmm.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
@@ -2216,15 +2248,19 @@ PROJECT                       : NonStandardSourceSetDependencies
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean, :network-kmm:testClasses
                 COMPILE_JAVA                  : :network-kmm:compileJava, :network-kmm:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :network-kmm:assemble
+                REBUILD                       : :network-kmm:assemble, :network-kmm:clean
                 COMPILE_JAVA                  : :network-kmm:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
@@ -2379,7 +2415,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::lib:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean, <PROJECT>::network-kmm:assemble, <PROJECT>::network-kmm:clean, <PROJECT>::network-kmm:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::network-kmm:compileJava, <PROJECT>::network-kmm:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -2387,7 +2423,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean, <PROJECT>::network-kmm:assemble, <PROJECT>::network-kmm:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::network-kmm:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -2395,7 +2431,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean, <PROJECT>::network-kmm:assemble, <PROJECT>::network-kmm:clean, <PROJECT>::network-kmm:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::network-kmm:compileJava, <PROJECT>::network-kmm:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -2403,7 +2439,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::lib:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean, <PROJECT>::network-kmm:assemble, <PROJECT>::network-kmm:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugSources, <PROJECT>::network-kmm:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug

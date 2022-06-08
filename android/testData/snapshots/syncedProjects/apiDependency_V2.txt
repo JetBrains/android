@@ -599,15 +599,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
     MODULE                        : project.jlib.main
         ExternalModuleGroup           : project
@@ -633,15 +637,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
     MODULE                        : project.jlib.test
         ExternalModuleGroup           : project
@@ -670,15 +678,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
+                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
                 COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
                 COMPILE_JAVA                  : :jlib:compileJava
     MODULE                        : project.jlib0
         ExternalModuleGroup           : project
@@ -706,15 +718,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
     MODULE                        : project.jlib0.main
         ExternalModuleGroup           : project
@@ -741,15 +757,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
     MODULE                        : project.jlib0.test
         ExternalModuleGroup           : project
@@ -779,15 +799,19 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : Android tests
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
             TEST_COMPILE_MODE             : Unit tests
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
+                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
                 COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
             TEST_COMPILE_MODE             : None
                 ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
                 COMPILE_JAVA                  : :jlib0:compileJava
     MODULE                        : project.lib
         LINKED_ANDROID_MODULE_GROUP
@@ -1407,7 +1431,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : :app:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:clean, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:assemble, <PROJECT>::jlib:clean, <PROJECT>::jlib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -1415,7 +1439,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:clean, <PROJECT>::jlib:assemble, <PROJECT>::jlib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -1423,7 +1447,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:clean, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:assemble, <PROJECT>::jlib:clean, <PROJECT>::jlib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
@@ -1431,7 +1455,7 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : :app:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:clean, <PROJECT>::jlib:assemble, <PROJECT>::jlib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib:compileJava, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug

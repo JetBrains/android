@@ -225,6 +225,7 @@ class GradleTaskFinder {
     fun getGradleTaskName(buildMode: BuildMode): String? {
       return when (buildMode) {
         BuildMode.ASSEMBLE -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
+        BuildMode.REBUILD -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
         BuildMode.COMPILE_JAVA -> JavaPlugin.COMPILE_JAVA_TASK_NAME
         else -> null
       }
