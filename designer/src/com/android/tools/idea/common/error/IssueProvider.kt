@@ -34,7 +34,7 @@ abstract class IssueProvider {
   }
 }
 
-interface IssueProviderListener {
+fun interface IssueProviderListener {
 
   companion object {
     @Topic.ProjectLevel

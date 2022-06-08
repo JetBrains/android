@@ -51,7 +51,8 @@
 
     <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.common.error.IssuePanelService" />
+    <projectService serviceImplementation="com.android.tools.idea.common.error.IssuePanelService"/>
+    <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
