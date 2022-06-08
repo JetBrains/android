@@ -17,8 +17,6 @@ package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbLibSession
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.logcat.LogCatMessage
-import com.android.ddmlib.IDevice
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
@@ -32,6 +30,7 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
+import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatSplitterActions
@@ -284,6 +283,7 @@ internal class LogcatMainPanel(
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
       add(ToggleFilterAction(this@LogcatMainPanel, logcatFilterParser))
+      add(CreateScratchFileAction())
       add(Separator.create())
       actions.forEach { add(it) }
       add(Separator.create())
@@ -539,7 +539,7 @@ internal class LogcatMainPanel(
     var filterHint: FilterHint? = null
     document.processRangeMarkersOverlappingWith(offset, offset) {
       filterHint = it.getUserData(LOGCAT_FILTER_HINT_KEY)
-      false
+      filterHint == null
     }
     return filterHint?.getFilter()
   }

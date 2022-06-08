@@ -66,7 +66,7 @@ private fun getFilterHintTerm(e: AnActionEvent): String? {
   var result: String? = null
   editor.document.processRangeMarkersOverlappingWith(offset, offset) {
     result = it.getUserData(LOGCAT_FILTER_HINT_KEY)?.getFilter()
-    false
+    result == null
   }
   return result
 }

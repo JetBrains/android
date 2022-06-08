@@ -41,6 +41,7 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
         textAccumulator.accumulate(message.message + '\n')
         continue
       }
+      val start = textAccumulator.getTextLength()
       val header = message.header
       val tag = header.tag
       val appName = header.getAppName()
@@ -61,6 +62,9 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       textAccumulator.accumulate(
         text = " ${message.message.replace("\n", newline)}\n",
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
+
+      val end = textAccumulator.getTextLength()
+      textAccumulator.addMessageRange(start, end, message)
 
       previousTag = tag
       previousPid = header.pid

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
 internal val LOGCAT_FILTER_HINT_KEY = Key.create<TextAccumulator.FilterHint>("LogcatHint")
+internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
@@ -36,7 +38,7 @@ internal class DocumentAppender(project: Project, private val document: Document
    * they are valid.
    */
   @VisibleForTesting
-  internal val filterHintRanges = ArrayDeque<RangeMarker>()
+  internal val ranges = ArrayDeque<RangeMarker>()
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
@@ -64,14 +66,22 @@ internal class DocumentAppender(project: Project, private val document: Document
     }
     for (range in buffer.filterHintRanges) {
       range.applyRange(offset) { start, end, hint ->
-        filterHintRanges.add(document.createRangeMarker(start, end).apply {
+        ranges.add(document.createRangeMarker(start, end).apply {
           putUserData(LOGCAT_FILTER_HINT_KEY, hint)
         })
       }
     }
 
-    while (!filterHintRanges.isEmpty() && !filterHintRanges.first().isReallyValid()) {
-      filterHintRanges.removeFirst()
+    for (range in buffer.messageRanges) {
+      range.applyRange(offset) { start, end, message ->
+        ranges.add(document.createRangeMarker(start, end).apply {
+          putUserData(LOGCAT_MESSAGE_KEY, message)
+        })
+      }
+    }
+
+    while (!ranges.isEmpty() && !ranges.first().isReallyValid()) {
+      ranges.removeFirst()
     }
   }
 

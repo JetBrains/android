@@ -308,7 +308,7 @@ class DocumentAppenderTest {
       getRangeForText("efgh", Tag("efgh", 4)),
       getRangeForText("ijkl", Tag("ijkl", 4)),
     )
-    assertThat(documentAppender.filterHintRanges).containsExactlyElementsIn(rangeMarkers)
+    assertThat(documentAppender.ranges).containsExactlyElementsIn(rangeMarkers)
   }
 
   // There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size.
@@ -339,7 +339,7 @@ class DocumentAppenderTest {
       getRangeForText("efgh", Tag("efgh", 4)),
       getRangeForText("ijkl", Tag("ijkl", 4)),
     )
-    assertThat(documentAppender.filterHintRanges).containsExactlyElementsIn(rangeMarkers)
+    assertThat(documentAppender.ranges).containsExactlyElementsIn(rangeMarkers)
   }
 
   private fun <T> getRangeForText(text: String, data: T): TextAccumulator.Range<T>? {

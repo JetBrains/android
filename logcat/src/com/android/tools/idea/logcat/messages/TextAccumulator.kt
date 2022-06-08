@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 
@@ -30,6 +31,7 @@ internal class TextAccumulator {
   val textAttributesRanges = mutableListOf<Range<TextAttributes>>()
   val textAttributesKeyRanges = mutableListOf<Range<TextAttributesKey>>()
   val filterHintRanges = mutableListOf<Range<FilterHint>>()
+  val messageRanges = mutableListOf<Range<LogcatMessage>>()
 
   fun accumulate(
     text: String,
@@ -50,6 +52,12 @@ internal class TextAccumulator {
       filterHintRanges.add(Range(start, start + filterHint.length, filterHint))
     }
     return this
+  }
+
+  fun getTextLength() = stringBuilder.length
+
+  fun addMessageRange(start: Int, end: Int, message: LogcatMessage) {
+    messageRanges.add(Range(start, end, message))
   }
 
   internal data class Range<T>(val start: Int, val end: Int, val data: T)
