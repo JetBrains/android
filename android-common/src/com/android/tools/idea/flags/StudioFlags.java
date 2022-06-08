@@ -1380,7 +1380,7 @@ public final class StudioFlags {
       "insights.gutter",
       "Gutter Support",
       "Use gutter icons rather than code highlight to display insights in the editor",
-      false);
+      true);
 
   public static final Flag<Boolean> NEW_CRASHLYTICS_API_ENABLED =
     Flag.create(
