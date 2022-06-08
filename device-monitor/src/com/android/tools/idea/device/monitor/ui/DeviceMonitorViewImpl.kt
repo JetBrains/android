@@ -28,11 +28,16 @@ import com.android.tools.idea.device.monitor.ProcessTreeNode
 import com.android.tools.idea.device.monitor.processes.Device
 import com.android.tools.idea.device.monitor.processes.DeviceListService
 import com.android.tools.idea.device.monitor.processes.DeviceRenderer
+import com.android.tools.idea.device.monitor.ui.menu.item.ForceStopMenuItem
+import com.android.tools.idea.device.monitor.ui.menu.item.KillMenuItem
+import com.android.tools.idea.device.monitor.ui.menu.item.MenuContext
+import com.android.tools.idea.device.monitor.ui.menu.item.RefreshMenuItem
 import com.google.common.util.concurrent.FutureCallback
-import com.intellij.icons.AllIcons
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -44,8 +49,6 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
-import java.util.function.Predicate
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeWillExpandListener
@@ -58,7 +61,7 @@ class DeviceMonitorViewImpl(
   project: Project,
   rendererFactory: DeviceNameRendererFactory,
   model: DeviceMonitorModel
-) : DeviceMonitorView {
+) : DeviceMonitorView, DeviceMonitorActionsListener {
   private val myListeners: MutableList<DeviceMonitorViewListener> = ArrayList()
   private val myProgressListeners: MutableList<DeviceMonitorProgressListener> = ArrayList()
   private val myDeviceRenderer: DeviceRenderer
@@ -66,7 +69,6 @@ class DeviceMonitorViewImpl(
 
   @get:TestOnly
   val loadingPanel: JBLoadingPanel
-  private var myTreePopupMenu: ComponentPopupMenu? = null
   private var myTreeLoadingCount = 0
 
   init {
@@ -148,6 +150,25 @@ class DeviceMonitorViewImpl(
     reportMessage(message)
   }
 
+  override fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
+    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.refreshInvoked() })
+  }
+
+  override fun killNodes(treeNodes: List<ProcessTreeNode>) {
+    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.killNodesInvoked(treeNodes) })
+  }
+
+  override fun forceStopNodes(treeNodes: List<ProcessTreeNode>) {
+    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.forceStopNodesInvoked(treeNodes) })
+  }
+
+  override val selectedNodes: List<ProcessTreeNode>?
+    get() {
+      val paths = myPanel.tree.selectionPaths ?: return null
+      val nodes = paths.mapNotNull { path -> ProcessTreeNode.fromNode(path.lastPathComponent) }.toList()
+      return nodes.ifEmpty { null }
+    }
+
   private fun setupPanel() {
     myPanel.component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
     loadingPanel.add(myPanel.component, BorderLayout.CENTER)
@@ -173,31 +194,36 @@ class DeviceMonitorViewImpl(
       override fun treeWillCollapse(event: TreeExpansionEvent) {
       }
     })
+
     createTreePopupMenu()
+    createToolbar()
     loadingPanel.setLoadingText("Initializing ADB")
     loadingPanel.startLoading()
   }
 
   private fun createTreePopupMenu() {
-    myTreePopupMenu = ComponentPopupMenu(myPanel.tree).apply {
-      addItem(KillMenuItem())
-      addItem(ForceStopMenuItem())
-      addSeparator()
-      addItem(RefreshMenuItem())
+    ComponentPopupMenu(myPanel.tree).apply {
+      addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       install()
     }
   }
 
-  private fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
-    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.refreshInvoked() })
+  private fun createToolbar() {
+    createToolbarSubSection(DefaultActionGroup().apply {
+      add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action) }, BorderLayout.WEST)
+
+    createToolbarSubSection(DefaultActionGroup().apply {
+      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }, BorderLayout.EAST)
   }
 
-  private fun killNodes(treeNodes: List<ProcessTreeNode>) {
-    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.killNodesInvoked(treeNodes) })
-  }
-
-  private fun forceStopNodes(treeNodes: List<ProcessTreeNode>) {
-    myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.forceStopNodesInvoked(treeNodes) })
+  private fun createToolbarSubSection(group: DefaultActionGroup, layoutPosition: String) {
+    val actionManager = ActionManager.getInstance()
+    val actionToolbar = actionManager.createActionToolbar("Device Monitor Toolbar", group, true).apply {
+      targetComponent = myPanel.tree
+    }
+    myPanel.toolbarPanel.add(actionToolbar.component, layoutPosition)
   }
 
   override fun startRefresh(text: String) {
@@ -329,168 +355,6 @@ class DeviceMonitorViewImpl(
 
     override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {
       setRootFolder(newTreeModel, newTreeSelectionModel)
-    }
-  }
-
-  /**
-   * A popup menu item that works for both single and multi-element selections.
-   */
-  private abstract inner class TreeMenuItem : PopupMenuItem {
-    override val text: String
-      get() {
-        var nodes = selectedNodes
-        if (nodes == null) {
-          nodes = emptyList<ProcessTreeNode>()
-        }
-        return getText(nodes)
-      }
-
-    abstract fun getText(nodes: List<ProcessTreeNode>): String
-
-    override val icon: Icon?
-      get() {
-        return null
-      }
-
-    override val isEnabled: Boolean
-      get() {
-        val nodes = selectedNodes ?: return false
-        return isEnabled(nodes)
-      }
-
-    open fun isEnabled(nodes: List<ProcessTreeNode>): Boolean {
-      return nodes.stream().anyMatch(Predicate { node: ProcessTreeNode -> this.isEnabled(node) })
-    }
-
-    override val isVisible: Boolean
-      get() {
-        val nodes = selectedNodes ?: return false
-        return isVisible(nodes)
-      }
-
-    open fun isVisible(nodes: List<ProcessTreeNode>): Boolean {
-      return nodes.stream().anyMatch { node: ProcessTreeNode -> this.isVisible(node) }
-    }
-
-    override fun run() {
-      var nodes = selectedNodes ?: return
-      nodes = nodes.filter { node: ProcessTreeNode -> this.isEnabled(node) }.toList()
-      if (nodes.isNotEmpty()) {
-        run(nodes)
-      }
-    }
-
-    private val selectedNodes: List<ProcessTreeNode>?
-      get() {
-        val paths = myPanel.tree.selectionPaths ?: return null
-        val nodes = paths.mapNotNull { path -> ProcessTreeNode.fromNode(path.lastPathComponent) }.toList()
-        return nodes.ifEmpty { null }
-      }
-
-    open fun isVisible(node: ProcessTreeNode): Boolean {
-      return true
-    }
-
-    fun isEnabled(node: ProcessTreeNode): Boolean {
-      return isVisible(node)
-    }
-
-    abstract fun run(nodes: List<ProcessTreeNode>)
-  }
-
-  /**
-   * A [TreeMenuItem] that is active only for single element selections
-   */
-  private abstract inner class SingleSelectionTreeMenuItem : TreeMenuItem() {
-    override fun isEnabled(nodes: List<ProcessTreeNode>): Boolean {
-      return super.isEnabled(nodes) && nodes.size == 1
-    }
-
-    override fun isVisible(nodes: List<ProcessTreeNode>): Boolean {
-      return super.isVisible(nodes) && nodes.size == 1
-    }
-
-    override fun run(nodes: List<ProcessTreeNode>) {
-      if (nodes.size == 1) {
-        run(nodes[0])
-      }
-    }
-
-    abstract fun run(node: ProcessTreeNode)
-  }
-
-  private inner class RefreshMenuItem : TreeMenuItem() {
-    override fun getText(nodes: List<ProcessTreeNode>): String {
-      return "Refresh"
-    }
-
-    override val icon: Icon
-      get() {
-        return AllIcons.Actions.Refresh
-      }
-
-    override val shortcutId: String
-      get() {
-        // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-        return "Refresh"
-      }
-
-    override fun isVisible(node: ProcessTreeNode): Boolean {
-      return true
-    }
-
-    override fun run(nodes: List<ProcessTreeNode>) {
-      refreshNodes(nodes)
-    }
-  }
-
-  private inner class KillMenuItem : TreeMenuItem() {
-    override fun getText(nodes: List<ProcessTreeNode>): String {
-      return "Kill process"
-    }
-
-    override val icon: Icon
-      get() {
-        return AllIcons.Debugger.KillProcess
-      }
-
-    override val shortcutId: String
-      get() {
-        // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-        return "KillProcess"
-      }
-
-    override fun isVisible(node: ProcessTreeNode): Boolean {
-      return true
-    }
-
-    override fun run(nodes: List<ProcessTreeNode>) {
-      killNodes(nodes)
-    }
-  }
-
-  private inner class ForceStopMenuItem : TreeMenuItem() {
-    override fun getText(nodes: List<ProcessTreeNode>): String {
-      return "Force stop process"
-    }
-
-    override val icon: Icon
-      get() {
-        return AllIcons.Debugger.KillProcess
-      }
-
-    override val shortcutId: String
-      get() {
-        // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-        return "ForceStopProcess"
-      }
-
-    override fun isVisible(node: ProcessTreeNode): Boolean {
-      return true
-    }
-
-    override fun run(nodes: List<ProcessTreeNode>) {
-      forceStopNodes(nodes)
     }
   }
 

@@ -310,23 +310,14 @@ class DeviceMonitorController(
   private fun refreshProcessList(deviceNode: DeviceTreeNode, processList: List<ProcessInfo>) {
     ApplicationManagerEx.getApplicationEx().assertIsDispatchThread()
 
-    val treeModel = getTreeModel()
-    val treeSelectionModel = getTreeSelectionModel()
-    if (treeModel == null || treeSelectionModel == null) {
-      return
-    }
+    val treeModel = getTreeModel() ?: return
     val activeDevice = model.activeDevice
     if (activeDevice != deviceNode.device) {
       return
     }
-    // Save selection
-    val oldSelections = treeSelectionModel.selectionPaths
 
     // Sort new entries according to presentation sort order
     updateChildrenNodes(treeModel, deviceNode, processList.sortedWith(ProcessInfoNameComparator))
-
-    // Restore selection
-    restoreTreeSelection(treeSelectionModel, oldSelections, deviceNode)
   }
 
   private fun updateChildrenNodes(
@@ -373,42 +364,6 @@ class DeviceMonitorController(
     view.expandNode(parentNode)
     thisLogger().info("${parentNode.device}: Process list updated to ${newEntries.size} processes")
     return addedNodes
-  }
-
-  private fun restoreTreeSelection(
-    treeSelectionModel: DefaultTreeSelectionModel,
-    oldSelections: Array<TreePath>,
-    parentNode: DefaultMutableTreeNode
-  ) {
-    val newSelections: MutableSet<TreePath> = HashSet()
-    val parentPath = TreePath(parentNode.path)
-    for (oldSelection in oldSelections) {
-      restorePathSelection(treeSelectionModel, parentPath, oldSelection, newSelections)
-    }
-    val newSelectionArray = ArrayUtil.toObjectArray(ArrayList(newSelections), TreePath::class.java)
-    treeSelectionModel.addSelectionPaths(newSelectionArray)
-  }
-
-  private fun restorePathSelection(
-    treeSelectionModel: DefaultTreeSelectionModel,
-    parentPath: TreePath,
-    oldPath: TreePath,
-    selections: MutableSet<TreePath>
-  ) {
-    if (treeSelectionModel.isPathSelected(oldPath)) {
-      return
-    }
-    if (parentPath == oldPath) {
-      return
-    }
-    if (!parentPath.isDescendant(oldPath)) {
-      return
-    }
-    val node = parentPath.lastPathComponent as TreeNode
-    val existingChild = node.childrenSequence.firstOrNull { it == oldPath.lastPathComponent }
-    if (existingChild == null) {
-      selections.add(parentPath)
-    }
   }
 
   object ProcessInfoNameComparator : Comparator<ProcessInfo?> by nullsFirst(ProcessInfoNonNullComparator()) {

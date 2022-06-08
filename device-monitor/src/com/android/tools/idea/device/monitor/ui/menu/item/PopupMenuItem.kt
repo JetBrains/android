@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.monitor.ui
+package com.android.tools.idea.device.monitor.ui.menu.item
 
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Shortcut
 import java.lang.Runnable
 import javax.swing.Icon
@@ -32,9 +33,12 @@ interface PopupMenuItem : Runnable {
   val isVisible: Boolean
     get() = true
 
+  val action: AnAction
+
   val shortcutId: String?
     get() = null
 
   val shortcuts: Array<Shortcut>?
     get() = null
+
 }

@@ -17,9 +17,6 @@ package com.android.tools.idea.device.monitor.ui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.device.monitor.processes.Device;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LoadingNode;
@@ -27,7 +24,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import javax.swing.Icon;
@@ -56,10 +52,6 @@ public class DeviceMonitorPanel {
 
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     myErrorText.setForeground(UIUtil.getInactiveTextColor());
-
-    // Disable toolbar until implementation is complete, as the "Device Explorer"
-    // feature is enabled by default.
-    //createToolbar();
   }
 
   @NotNull
@@ -71,6 +63,11 @@ public class DeviceMonitorPanel {
   public JComboBox<Device> getDeviceCombo() {
     //noinspection unchecked
     return myDeviceCombo;
+  }
+
+  @NotNull
+  public JPanel getToolbarPanel() {
+    return myToolbarPanel;
   }
 
   @NotNull
@@ -98,6 +95,7 @@ public class DeviceMonitorPanel {
     myErrorText.setForeground(color);
     myErrorText.setIcon(icon);
     myDeviceCombo.setVisible(showDeviceList);
+    myToolbarPanel.setVisible(showDeviceList);
     myColumnTreePane.setVisible(false);
     // Note: In addition to having the label centered in the panel, we want the text
     // to wrap ("html") and the wrapped lines to be centered as well ("text-align").
@@ -110,24 +108,13 @@ public class DeviceMonitorPanel {
   public void showTree() {
     myErrorPanel.setVisible(false);
     myDeviceCombo.setVisible(true);
+    myToolbarPanel.setVisible(true);
     myColumnTreePane.setVisible(true);
     myErrorText.setText("");
   }
 
   public void setCancelActionListener(@Nullable ActionListener cancelActionListener) {
     myProgressPanel.setCancelActionListener(cancelActionListener);
-  }
-
-  @SuppressWarnings("unused")
-  private void createToolbar() {
-    final ActionManager actionManager = ActionManager.getInstance();
-    ActionToolbar actionToolbar = actionManager.createActionToolbar("Device Explorer Toolbar",
-                                                                    (DefaultActionGroup)actionManager
-                                                                      .getAction("Android.DeviceExplorer.ActionsToolbar"),
-                                                                    true);
-
-    actionToolbar.setTargetComponent(myTree);
-    myToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
   }
 
   private void createUIComponents() {
