@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -162,5 +163,29 @@ internal class EmbeddedCompilerClientImplTest {
     }
     assertEquals(230L, result)
     assertEquals(attempts - 1, executedRetries)
+  }
+
+  /**
+   * Verifies that the compileRequest fails correctly when passing a qualifier call with no receiver like `Test.`.
+   * This is a regression test to verify that compileRequest does not break and handles that case correctly.
+   */
+  @Test
+  fun `check dot qualifier error`() {
+    val file = projectRule.fixture.addFileToProject(
+      "src/com/test/Source.kt",
+      """
+        object Test {
+          fun method() {}
+        }
+
+        fun testMethod() {
+          Test.
+        }
+      """.trimIndent())
+    val outputDirectory = Files.createTempDirectory("out")
+    runBlocking {
+      val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+      assertTrue((result as CompilationResult.RequestException)?.e?.cause is LiveEditUpdateException)
+    }
   }
 }

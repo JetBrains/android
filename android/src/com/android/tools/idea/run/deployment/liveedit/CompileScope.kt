@@ -73,16 +73,17 @@ private fun handleCompilerErrors(e: Throwable) {
       throw cause
     }
 
-    var message = cause.message!!
-    if (message.contains("Back-end (JVM) Internal error: Couldn't inline method call")) {
-      // We currently don't support inline function calls to another source code file.
+    cause.message?.let { message ->
+      if (message.contains("Back-end (JVM) Internal error: Couldn't inline method call")) {
+        // We currently don't support inline function calls to another source code file.
 
-      var nameStart = message.indexOf("Couldn't inline method call: CALL '") + "Couldn't inline method call: CALL '".length
-      var nameEnd = message.indexOf("'", nameStart)
-      var name = message.substring(nameStart, nameEnd)
+        val nameStart = message.indexOf("Couldn't inline method call: CALL '") + "Couldn't inline method call: CALL '".length
+        val nameEnd = message.indexOf("'", nameStart)
+        val name = message.substring(nameStart, nameEnd)
 
-      throw LiveEditUpdateException.inlineFailure("Unable to update function that references" +
-                                               " an inline function from another source file: $name")
+        throw LiveEditUpdateException.inlineFailure("Unable to update function that references" +
+                                                    " an inline function from another source file: $name")
+      }
     }
   }
   throw LiveEditUpdateException.compilationError(e.message ?: "No error message", null, e)
