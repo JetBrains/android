@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.compose.preview.actions.internal
 
-import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Internal action that forces the stopping of all the [FastPreviewManager] daemons.
+ * Action that simulates that the preview has been automatically disabled because of an error.
  */
 @Suppress("ComponentNotRegistered") // Registered in compose-designer.xml
-class ForcePreviewDaemonStop : AnAction("Force Preview Daemon Stop") {
+class SimulateFastPreviewAutoDisable : AnAction(
+  "Simulate Fast Preview Auto-Disable"
+) {
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
+    val fastPreviewManager = project.fastPreviewManager
+
+    e.presentation.isEnabledAndVisible = fastPreviewManager.isEnabled
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    FastPreviewManager.getInstance(project).stopAllDaemons()
+    val fastPreviewManager = project.fastPreviewManager
+
+    fastPreviewManager.disable(DisableReason("Auto-Disabled", "Preview has been automatically disabled"))
   }
 }
