@@ -26,7 +26,7 @@ import java.awt.Insets
 internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compareBy({ it.y }, { it.x }))
 
 /**
- * Class that provides an interface for content that can be positioned on the [DesignSurface]
+ * Class that provides an interface for content that can be positioned on the [com.android.tools.idea.common.surface.DesignSurface]
  */
 abstract class PositionableContent {
   val contentSize: Dimension
@@ -78,9 +78,9 @@ interface SurfaceLayoutManager {
    * @see [getRequiredSize]
    */
   fun getPreferredSize(content: Collection<PositionableContent>,
-                       availableWidth: Int,
-                       availableHeight: Int,
-                       dimension: Dimension?): Dimension
+                       @SwingCoordinate availableWidth: Int,
+                       @SwingCoordinate availableHeight: Int,
+                       @SwingCoordinate dimension: Dimension?): Dimension
 
   /**
    * Get the total content size of the given [PositionableContent]s when available display size is [availableWidth] x [availableHeight].
@@ -94,9 +94,9 @@ interface SurfaceLayoutManager {
    * @see [getPreferredSize]
    */
   fun getRequiredSize(content: Collection<PositionableContent>,
-                      availableWidth: Int,
-                      availableHeight: Int,
-                      dimension: Dimension?): Dimension
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int,
+                      @SwingCoordinate dimension: Dimension?): Dimension
 
   /**
    * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
@@ -108,5 +108,8 @@ interface SurfaceLayoutManager {
    * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing
    * the [PositionableContent].
    */
-  fun layout(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean = false)
+  fun layout(content: Collection<PositionableContent>,
+             @SwingCoordinate availableWidth: Int,
+             @SwingCoordinate availableHeight: Int,
+             keepPreviousPadding: Boolean = false)
 }

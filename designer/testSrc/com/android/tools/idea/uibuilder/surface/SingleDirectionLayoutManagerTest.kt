@@ -32,8 +32,8 @@ private class ForcedDirectoryLayoutManager(@SwingCoordinate private val horizont
                                                                                                               verticalViewDelta,
                                                                                                               startBorderAlignment) {
   override fun isVertical(content: Collection<PositionableContent>,
-                          availableWidth: Int,
-                          availableHeight: Int): Boolean = forceVertical
+                          @SwingCoordinate availableWidth: Int,
+                          @SwingCoordinate availableHeight: Int): Boolean = forceVertical
 }
 
 class SingleDirectionLayoutManagerTest : LayoutTestCase() {

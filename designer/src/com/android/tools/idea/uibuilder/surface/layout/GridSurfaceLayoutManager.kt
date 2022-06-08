@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.tools.adtui.common.SwingCoordinate
 import java.awt.Dimension
 import kotlin.math.max
 
@@ -27,10 +28,10 @@ import kotlin.math.max
  * The [horizontalViewDelta] and [verticalViewDelta] are the gaps between different [PositionableContent]s.
  * The [centralizeContent] decides if the content should be placed at the center when the content is smaller then the surface size.
  */
-open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
-                                    private val verticalPadding: Int,
-                                    private val horizontalViewDelta: Int,
-                                    private val verticalViewDelta: Int,
+open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
+                                    @SwingCoordinate private val verticalPadding: Int,
+                                    @SwingCoordinate private val horizontalViewDelta: Int,
+                                    @SwingCoordinate private val verticalViewDelta: Int,
                                     private val centralizeContent: Boolean = true)
   : SurfaceLayoutManager {
 
@@ -38,15 +39,16 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
   private var previousVerticalPadding = 0
 
   override fun getPreferredSize(content: Collection<PositionableContent>,
-                                availableWidth: Int,
-                                availableHeight: Int,
-                                dimension: Dimension?) =
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate availableHeight: Int,
+                                @SwingCoordinate dimension: Dimension?) =
     getSize(content, PositionableContent::contentSize, availableWidth, dimension)
 
   override fun getRequiredSize(content: Collection<PositionableContent>,
-                               availableWidth: Int,
-                               availableHeight: Int,
-                               dimension: Dimension?) = getSize(content, PositionableContent::scaledContentSize, availableWidth, dimension)
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int,
+                               @SwingCoordinate dimension: Dimension?) =
+    getSize(content, PositionableContent::scaledContentSize, availableWidth, dimension)
 
   private fun getSize(content: Collection<PositionableContent>,
                       sizeFunc: PositionableContent.() -> Dimension,
@@ -79,8 +81,8 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
    * The [widthFunc] is for getting the preferred widths of [PositionableContent]s when filling the horizontal spaces.
    */
   protected open fun layoutGrid(content: Collection<PositionableContent>,
-                                availableWidth: Int,
-                                widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
     val visibleContent = content.filter { it.isVisible }
     if (visibleContent.isEmpty()) {
       return listOf(emptyList())
@@ -109,7 +111,10 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     return gridList
   }
 
-  override fun layout(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
+  override fun layout(content: Collection<PositionableContent>,
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int,
+                      keepPreviousPadding: Boolean) {
     if (content.isEmpty()) {
       return
     }
