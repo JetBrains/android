@@ -96,7 +96,6 @@ public class DeviceTest {
     // Build the server and configure it to use the default ADB command handlers.
     FakeAdbServer.Builder builder = new FakeAdbServer.Builder();
     myAdbServer = builder.installDefaultCommandHandlers()
-      .addDeviceHandler(new JdwpCommandHandler())
       .addDeviceHandler(
         getShellHandler(
           Pattern.compile("^uid.*"), ImmutableMap.of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))

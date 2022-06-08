@@ -54,7 +54,6 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       // This test needs to query the device for ABIs, so we need some expanded functionality for the
       // getprop command handler:
       .addDeviceHandler(new GetAbiListPropCommandHandler(Arrays.asList("x86_64")))
-      .addDeviceHandler(new JdwpCommandHandler())
       .build();
 
     DeviceState device = fakeAdbServer.connectDevice(

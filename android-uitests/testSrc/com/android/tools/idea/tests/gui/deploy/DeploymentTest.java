@@ -123,7 +123,6 @@ public class DeploymentTest {
     myAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
       .addDeviceHandler(myHandler)
-      .addDeviceHandler(new JdwpCommandHandler())
       .build();
 
     // Start server execution.

@@ -83,8 +83,6 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     FakeAdbServer.Builder builder = new FakeAdbServer.Builder();
     builder.installDefaultCommandHandlers();
 
-    // Add the debug commands handler
-    builder.addDeviceHandler(new JdwpCommandHandler());
     myServer = builder.build();
     myServer.start();
 

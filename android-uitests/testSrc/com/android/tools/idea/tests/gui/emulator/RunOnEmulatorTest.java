@@ -19,7 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.CommandHandler;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -50,6 +49,11 @@ public class RunOnEmulatorTest {
   private FakeAdbServer fakeAdbServer;
 
   private static final String APP_NAME = "app";
+
+  private static int PID = 1234;
+
+  private static String PACKAGE_NAME = "google.simpleapplication";
+
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
@@ -60,8 +64,8 @@ public class RunOnEmulatorTest {
 
     FakeAdbServer.Builder fakeAdbBuilder = new FakeAdbServer.Builder();
     fakeAdbBuilder.installDefaultCommandHandlers()
-      .addDeviceHandler(new LsCommandHandler())
-      .addDeviceHandler(new JdwpCommandHandler());
+      .addDeviceHandler(new PsCommandHandler())
+      .addDeviceHandler(new LsCommandHandler());
 
     fakeAdbServer = fakeAdbBuilder.build();
 
@@ -75,7 +79,7 @@ public class RunOnEmulatorTest {
     ).get();
     fakeDevice.setActivityManager((args, serviceOutput) -> {
       if ("start".equals(args.get(0))) {
-        fakeDevice.startClient(1234, 1235, "google.simpleapplication", false);
+        fakeDevice.startClient(PID, 1235, PACKAGE_NAME, false);
         serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
       }
     });
@@ -124,6 +128,27 @@ public class RunOnEmulatorTest {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
     fakeAdbServer.close();
+  }
+
+  private static class PsCommandHandler extends SimpleShellHandler {
+
+      public PsCommandHandler() {
+        super("ps");
+      }
+
+      @Override
+      public void execute(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
+        try {
+          OutputStream output = responseSocket.getOutputStream();
+
+          CommandHandler.writeOkay(output);
+          CommandHandler.writeString(output, String.format("%s %s", PID, PACKAGE_NAME));
+        }
+        catch (IOException ignored) {
+          // Unable to send anything back to client. Can't do anything, so swallow the exception
+          // and continue on...
+        }
+      }
   }
 
   private static class LsCommandHandler extends SimpleShellHandler {

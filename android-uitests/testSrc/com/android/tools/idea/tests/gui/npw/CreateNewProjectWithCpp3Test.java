@@ -45,8 +45,7 @@ public class CreateNewProjectWithCpp3Test {
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
-    adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new JdwpCommandHandler());
+    adbBuilder.installDefaultCommandHandlers();
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(

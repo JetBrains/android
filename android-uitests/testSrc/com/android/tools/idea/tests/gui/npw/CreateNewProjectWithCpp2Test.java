@@ -20,7 +20,6 @@ import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createN
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -45,8 +44,7 @@ public class CreateNewProjectWithCpp2Test {
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
-    adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new JdwpCommandHandler());
+    adbBuilder.installDefaultCommandHandlers();
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(

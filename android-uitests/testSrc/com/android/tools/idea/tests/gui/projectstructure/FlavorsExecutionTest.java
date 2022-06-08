@@ -61,8 +61,7 @@ public class FlavorsExecutionTest {
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new LogcatCommandHandler())
-              .addDeviceHandler(new JdwpCommandHandler());
+              .addDeviceHandler(new LogcatCommandHandler());
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(
