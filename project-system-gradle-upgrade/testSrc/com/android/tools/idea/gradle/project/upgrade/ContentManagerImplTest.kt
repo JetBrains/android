@@ -31,11 +31,13 @@ import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProc
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.Severity
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.StatusMessage
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AllDone
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Blocked
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loading
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ProjectFilesNotCleanWarning
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
@@ -74,7 +76,7 @@ class ContentManagerImplTest {
 
   val project by lazy { projectRule.project }
 
-  private val uiStates: MutableList<ToolWindowModel.UIState> = ArrayList()
+  private val uiStates: MutableList<UIState> = ArrayList()
 
   private var syncRequest: GradleSyncInvoker.Request? = null
 
