@@ -161,6 +161,7 @@ class BasicCompileTest {
   private fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
     LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
+    LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = false
     val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
     AndroidLiveEditCodeGenerator(myProject).compile(
       listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function)), output)

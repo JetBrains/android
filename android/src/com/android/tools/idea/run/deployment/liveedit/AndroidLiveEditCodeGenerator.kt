@@ -160,13 +160,15 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       // When the edit event was contained in a function
       is KtNamedFunction -> {
         val targetFunction = input.element as KtNamedFunction
-        var group = getGroupKey(compilerOutput, targetFunction)
+        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+          getGroupKey(compilerOutput, targetFunction) else null
         return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
       }
 
       is KtFunction -> {
         val targetFunction = input.element as KtFunction
-        var group = getGroupKey(compilerOutput, targetFunction, input.parentGroups)
+        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+            getGroupKey(compilerOutput, targetFunction, input.parentGroups) else null
         return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
       }
 

@@ -43,10 +43,13 @@ internal fun computeGroups(reader: ClassReader): Pair<String?, List<InvalidateGr
   var totalGroups = visitor.keys.size
 
   if (totalGroups != visitor.startOffsets.size) {
-    print("Invalid startOffSet size")
+    throw LiveEditUpdateException.noInvalidateGroup("Invalid startOffset count:" +
+                                                    "totalGroups=$totalGroups totalStartOffsets=${visitor.startOffsets.size}")
   }
+  
   if (totalGroups != visitor.endOffsets.size) {
-    print("Invalid endOffSet size")
+    throw LiveEditUpdateException.noInvalidateGroup("Invalid endOffset count:" +
+                                                    "totalGroups=$totalGroups totalStartOffsets=${visitor.endOffsets.size}")
   }
 
   var groups = ArrayList<InvalidateGroupEntry>(totalGroups)

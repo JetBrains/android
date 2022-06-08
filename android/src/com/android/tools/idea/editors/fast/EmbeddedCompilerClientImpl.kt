@@ -55,6 +55,7 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.COMPILATION_ERROR -> true
     LiveEditUpdateException.Error.UNABLE_TO_INLINE,
     LiveEditUpdateException.Error.INTERNAL_ERROR,
+    LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 
