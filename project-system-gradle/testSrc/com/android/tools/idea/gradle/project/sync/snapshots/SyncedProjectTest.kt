@@ -170,6 +170,9 @@ abstract class SyncedProjectTest(
   fun testTransitiveDependencies() = testProject(TestProject.TRANSITIVE_DEPENDENCIES)
 
   @Test
+  fun testTransitiveDependenciesNoTargetSdkInLibs() = testProject(TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS)
+
+  @Test
   fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
 
   @Test

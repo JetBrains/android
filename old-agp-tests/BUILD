@@ -117,6 +117,7 @@ maven_repository(
         "@maven//:com.google.code.gson.gson_2.8.0",
         "@maven//:com.google.dagger.dagger_2.6",
         "@maven//:com.google.guava.guava_19.0",
+        "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.guava.guava_28.1-jre",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",

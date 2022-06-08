@@ -103,6 +103,19 @@ enum class TestProject(
   MAIN_IN_ROOT(TestProjectToSnapshotPaths.MAIN_IN_ROOT),
   NESTED_MODULE(TestProjectToSnapshotPaths.NESTED_MODULE),
   TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES),
+  TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS(
+    TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES,
+    testName = "_no_target_sdk_in_libs",
+    patch = { projectRootPath ->
+      fun patch(content: String): String {
+        return content
+          .replace("targetSdkVersion", "// targetSdkVersion")
+      }
+
+      projectRootPath.resolve("library1").resolve("build.gradle").replaceContent(::patch)
+      projectRootPath.resolve("library2").resolve("build.gradle").replaceContent(::patch)
+    }
+  ),
   KOTLIN_GRADLE_DSL(TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL),
   NEW_SYNC_KOTLIN_TEST(TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST),
   TWO_JARS(TestProjectToSnapshotPaths.TWO_JARS),
@@ -117,12 +130,22 @@ enum class TestProject(
   val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 }
 
+private fun File.replaceContent(change: (String) -> String) {
+  writeText(
+    readText().let {
+      val result = change(it)
+      if (it == result) error("No replacements made")
+      result
+    }
+  )
+}
+
 private fun truncateForV2(settingsFile: File) {
   val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
   Truth.assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
   settingsFile.writeText(patchedText)
 }
-  
+
 private fun AgpVersionSoftwareEnvironmentDescriptor.updateProjectJdk(projectRoot: File) {
   val jdk = IdeSdks.getInstance().jdk ?: error("${SyncedProjectTest::class} requires a valid JDK")
   val miscXml = projectRoot.resolve(".idea").resolve("misc.xml")

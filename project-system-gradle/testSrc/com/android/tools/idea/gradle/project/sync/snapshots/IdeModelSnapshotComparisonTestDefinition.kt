@@ -55,7 +55,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
   override val testProject: TestProject,
   val skipV1toV2Comparison: Boolean = false,
   val v1toV2PropertiesToSkip: Set<String> = emptySet(),
-  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = {  it >= AGP_41 },
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
 ) : TestDef {
 
@@ -66,6 +66,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS,
         skipV1toV2Comparison = true,
         isCompatibleWith = { it.modelVersion == ModelVersion.V2 }),
+      IdeModelSnapshotComparisonTestDefinition(
+        TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
+          isCompatibleWith = { it >= AGP_35 }
+      ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.WITH_GRADLE_METADATA),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
@@ -108,7 +112,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
   override fun toString(): String = testProject.projectName
 
   override fun isCompatible(): Boolean {
-    return isCompatibleWith(agpVersion) && agpVersion >= AGP_41
+    return isCompatibleWith(agpVersion)
   }
 
   override fun runTest(root: File, project: Project) {
@@ -118,7 +122,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         project,
         kotlinModels = { CapturePlatformModelsProjectResolverExtension.getKotlinModel(it) },
         kaptModels = { CapturePlatformModelsProjectResolverExtension.getKaptModel(it) },
-        externalProjects = { CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) }
+        externalProjects = { if (agpVersion >= AGP_41) CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) else null }
       )
     }
     v2snapshots.assertIsEqualToSnapshot(dump)
