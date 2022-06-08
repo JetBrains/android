@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.run
 
-import com.android.ddmlib.IDevice
 import com.intellij.util.messages.Topic
 
 /**
  * Listener of events requesting that Logcat panels for a specific device should be cleared.
  */
 fun interface ClearLogcatListener {
-  fun clearLogcat(device: IDevice)
+  fun clearLogcat(serialNumber: String)
 
   companion object {
     @JvmField

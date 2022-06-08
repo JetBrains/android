@@ -260,7 +260,7 @@ internal class LogcatMainPanel(
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
 
     project.messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
-      if (connectedDevice.get()?.serialNumber == it.serialNumber) {
+      if (connectedDevice.get()?.serialNumber == it) {
         clearMessageView()
       }
     })

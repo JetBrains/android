@@ -378,7 +378,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device)
+    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -403,7 +403,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2)
+    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2.serialNumber)
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }

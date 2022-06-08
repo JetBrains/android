@@ -30,14 +30,13 @@
  */
 package com.android.tools.idea.run
 
-import com.android.ddmlib.IDevice
 import com.intellij.util.messages.Topic
 
 /**
  * Listener of events requesting that Logcat panels for a specific device be shown.
  */
 fun interface ShowLogcatListener {
-  fun showLogcat(device: IDevice, applicationId: String?)
+  fun showLogcat(serialNumber: String, applicationId: String?)
 
   companion object {
     @JvmField

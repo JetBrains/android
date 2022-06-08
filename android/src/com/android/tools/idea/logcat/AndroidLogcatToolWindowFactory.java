@@ -51,8 +51,10 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
 import java.awt.EventQueue;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -72,7 +74,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
   public void init(@NotNull ToolWindow toolWindow) {
     Project project = ((ToolWindowEx)toolWindow).getProject();
     project.getMessageBus().connect(project)
-      .subscribe(ShowLogcatListener.TOPIC, (device, applicationId) -> showLogcat(toolWindow, device, applicationId));
+      .subscribe(ShowLogcatListener.TOPIC, (serialNumber, applicationId) -> showLogcat(toolWindow, serialNumber, applicationId));
   }
 
   @Override
@@ -129,7 +131,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-        Logger.getInstance(AndroidLogcatToolWindowFactory.class).info("Successfully obtained debug bridge");
+        thisLogger().info("Successfully obtained debug bridge");
         logcatPanel.stopLoading();
       }
 
@@ -137,12 +139,41 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       public void onFailure(@NotNull Throwable t) {
         logcatPanel.stopLoading();
 
-        Logger.getInstance(AndroidLogcatToolWindowFactory.class).info("Unable to obtain debug bridge", t);
+        thisLogger().info("Unable to obtain debug bridge", t);
         Messages.showErrorDialog(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), "ADB Connection Error");
       }
     }, EdtExecutorService.getInstance());
   }
 
+  private void showLogcat(
+    @NotNull ToolWindow toolWindow,
+    @NotNull String serialNumber,
+    @Nullable String applicationId) {
+
+    final File adb = AndroidSdkUtils.getAdb(toolWindow.getProject());
+    if (adb == null) {
+      thisLogger().warn("Failed to show Logcat for device: adb not found");
+      return;
+    }
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
+
+    Futures.addCallback(future, new FutureCallback<>() {
+      @Override
+      public void onSuccess(AndroidDebugBridge bridge) {
+        Optional<IDevice> device = Arrays.stream(bridge.getDevices()).findFirst();
+        if (device.isEmpty()) {
+          thisLogger().info("Device not found: " + serialNumber);
+          return;
+        }
+        showLogcat(toolWindow, device.get(), applicationId);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        thisLogger().warn("Failed to show Logcat for device " + serialNumber, t);
+      }
+    }, EdtExecutorService.getInstance());
+  }
   private void showLogcat(
     @NotNull ToolWindow toolWindow,
     @NotNull IDevice device,
@@ -276,5 +307,10 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       }
       return newPlatform;
     }
+  }
+
+  @NotNull
+  private Logger thisLogger() {
+    return Logger.getInstance(AndroidLogcatToolWindowFactory.class);
   }
 }

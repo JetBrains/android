@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.IDevice
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
@@ -24,8 +23,6 @@ import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getIns
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
-import com.android.tools.idea.logcat.service.LogcatService
-import com.android.tools.idea.logcat.service.LogcatServiceImpl
 import com.android.tools.idea.run.ShowLogcatListener
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
@@ -54,12 +51,12 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(project)
-      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, _ -> showLogcat(toolWindow, device) })
+      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { serialNumber, _ -> showLogcat(toolWindow, serialNumber) })
 
     ProcessNameMonitor.getInstance(project).start()
   }
 
-  private fun showLogcat(toolWindow: ToolWindowEx, device: IDevice) {
+  private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {
     EventQueue.invokeLater {
       toolWindow.activate {
         val contentManager = toolWindow.contentManager
@@ -67,7 +64,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         for (i in 0 until count) {
           val content = contentManager.getContent(i)
           content?.findLogcatPresenters()?.forEach {
-            if (it.getConnectedDevice()?.serialNumber == device.serialNumber) {
+            if (it.getConnectedDevice()?.serialNumber == serialNumber) {
               contentManager.setSelectedContent(content, true)
               return@activate
             }
@@ -75,7 +72,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         }
         // TODO(aalbert): Getting a pretty name for a device is complicated since it requires fetching properties from device. Use serial
         //  number as a tab name for now.
-        createNewTab(toolWindow, device.serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(device.serialNumber)
+        createNewTab(toolWindow, serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(serialNumber)
       }
     }
   }

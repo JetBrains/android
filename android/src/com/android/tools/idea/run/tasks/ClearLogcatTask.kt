@@ -31,7 +31,7 @@ class ClearLogcatTask(private val project: Project) : LaunchTask {
   override fun getId(): String = ID
 
   override fun run(launchContext: LaunchContext): LaunchResult {
-    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(launchContext.device)
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(launchContext.device.serialNumber)
     return LaunchResult.success()
   }
 }
