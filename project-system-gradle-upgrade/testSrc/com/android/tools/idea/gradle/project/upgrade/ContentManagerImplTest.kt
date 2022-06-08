@@ -332,6 +332,18 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testToolWindowViewAllDoneDetailsPanel() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = ToolWindowModel(project, { currentAgpVersion }, currentAgpVersion)
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Nothing to do</b>")
+    assertThat(detailsPanelContent.text).contains("up-to-date")
+  }
+
+  @Test
   fun testToolWindowViewMandatoryCodependentDetailsPanel() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManagerImpl(project)
@@ -354,6 +366,19 @@ class ContentManagerImplTest {
     view.tree.selectionPath = view.tree.getPathForRow(1)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
+    assertThat(detailsPanelContent.text).doesNotContain("This step is blocked")
+  }
+
+  @Test
+  fun testToolWindowViewClasspathProcessorBlockedDetailsPanel() {
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    view.tree.selectionPath = view.tree.getPathForRow(1)
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
+    assertThat(detailsPanelContent.text).contains("This step is blocked")
   }
 
   @Test

@@ -674,22 +674,40 @@ class ContentManagerImpl(val project: Project): ContentManager {
   class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
     private val myListeners = ListenerManager()
 
-    val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null).apply {
-      model = this@View.model.treeModel
-      isRootVisible = false
-      selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-      addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
-      addTreeSelectionListener { e -> refreshDetailsPanel() }
-      background = primaryContentBackground
-      isOpaque = true
-      isEnabled = !this@View.model.uiState.get().showLoadingState
-      myListeners.listen(this@View.model.uiState) { uiState ->
-        isEnabled = !uiState.showLoadingState
-        treePanel.isVisible = uiState.showTree
-        if (!uiState.showTree) {
-          selectionModel.clearSelection()
-          refreshDetailsPanel()
+    val treePanel = JBPanel<JBPanel<*>>(BorderLayout())
+
+    val detailsPanel = JBPanel<JBPanel<*>>().apply {
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      border = JBUI.Borders.empty(20)
+      myListeners.listen(this@View.model.uiState) { refreshDetailsPanel() }
+    }
+
+    val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null)
+
+    init {
+      treePanel.apply {
+        add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), BorderLayout.WEST)
+        add(JSeparator(SwingConstants.VERTICAL), BorderLayout.CENTER)
+      }
+
+      tree.apply {
+        model = this@View.model.treeModel
+        isRootVisible = false
+        selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+        addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
+        addTreeSelectionListener { e -> refreshDetailsPanel() }
+        background = primaryContentBackground
+        isOpaque = true
+        fun update(uiState: ToolWindowModel.UIState) {
+          isEnabled = !uiState.showLoadingState
+          treePanel.isVisible = uiState.showTree
+          if (!uiState.showTree) {
+            selectionModel.clearSelection()
+            refreshDetailsPanel()
+          }
         }
+        update(this@View.model.uiState.get())
+        myListeners.listen(this@View.model.uiState, ::update)
       }
     }
 
@@ -816,17 +834,6 @@ class ContentManagerImpl(val project: Project): ContentManager {
         update(this@View.model.uiState.get())
         myListeners.listen(this@View.model.uiState, ::update)
       }
-
-    val detailsPanel = JBPanel<JBPanel<*>>().apply {
-      layout = VerticalLayout(0, SwingConstants.LEFT)
-      border = JBUI.Borders.empty(20)
-      myListeners.listen(this@View.model.uiState) { refreshDetailsPanel() }
-    }
-
-    val treePanel = JBPanel<JBPanel<*>>(BorderLayout()).apply {
-      add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), BorderLayout.WEST)
-      add(JSeparator(SwingConstants.VERTICAL), BorderLayout.CENTER)
-    }
 
     val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
       val controlsPanel = makeTopComponent()
