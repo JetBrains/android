@@ -74,3 +74,5 @@ class TestNode(private val name: String = "", parentDescriptor: NodeDescriptor<D
     children.add(node)
   }
 }
+
+class TestIssueNode(issue: Issue) : IssueNode(null, issue, null)
