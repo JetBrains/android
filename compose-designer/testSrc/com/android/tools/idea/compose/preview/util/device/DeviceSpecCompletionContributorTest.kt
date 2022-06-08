@@ -78,6 +78,15 @@ internal class DeviceSpecCompletionContributorTest {
   }
 
   @Test
+  fun providedOrientationValues() {
+    fixture.completeDeviceSpec("spec:orientation=$caret")
+
+    assertEquals(2, fixture.lookupElementStrings!!.size)
+    assertEquals("landscape", fixture.lookupElementStrings!![0])
+    assertEquals("portrait", fixture.lookupElementStrings!![1])
+  }
+
+  @Test
   fun nothingProvided() {
     // Currently, not supported in name
     fixture.completeDeviceSpec("name:Nexus 7$caret")
@@ -134,19 +143,21 @@ internal class DeviceSpecCompletionContributorTest {
   @Test
   fun parameterCompletion() {
     fixture.completeDeviceSpec("spec:$caret")
+    assertEquals(6, fixture.lookupElementStrings!!.size)
+    assertEquals("chinSize", fixture.lookupElementStrings!![0])
+    assertEquals("dpi", fixture.lookupElementStrings!![1])
+    assertEquals("height", fixture.lookupElementStrings!![2])
+    assertEquals("isRound", fixture.lookupElementStrings!![3])
+    assertEquals("orientation", fixture.lookupElementStrings!![4])
+    assertEquals("width", fixture.lookupElementStrings!![5])
+
+    fixture.completeDeviceSpec("spec:width=1080px,$caret")
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("chinSize", fixture.lookupElementStrings!![0])
     assertEquals("dpi", fixture.lookupElementStrings!![1])
     assertEquals("height", fixture.lookupElementStrings!![2])
     assertEquals("isRound", fixture.lookupElementStrings!![3])
-    assertEquals("width", fixture.lookupElementStrings!![4])
-
-    fixture.completeDeviceSpec("spec:width=1080px,$caret")
-    assertEquals(4, fixture.lookupElementStrings!!.size)
-    assertEquals("chinSize", fixture.lookupElementStrings!![0])
-    assertEquals("dpi", fixture.lookupElementStrings!![1])
-    assertEquals("height", fixture.lookupElementStrings!![2])
-    assertEquals("isRound", fixture.lookupElementStrings!![3])
+    assertEquals("orientation", fixture.lookupElementStrings!![4])
 
     fixture.completeDeviceSpec("spec:width=1080px,heigh$caret")
     fixture.checkResult("spec:width=1080px,height=1920px")

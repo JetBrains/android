@@ -20,6 +20,7 @@ import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
@@ -79,6 +80,16 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
     )
     extend(
       CompletionType.BASIC,
+      // Completion for `orientation=<portrait/landscape>`
+      PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
+        .afterLeafSkipping(
+          PlatformPatterns.psiElement(DeviceSpecTypes.EQUALS),
+          PlatformPatterns.psiElement(DeviceSpecTypes.ORIENTATION_KEYWORD)
+        ),
+      OrientationValueProvider
+    )
+    extend(
+      CompletionType.BASIC,
       // Completion for spec/id prefix.
       PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T) // String token
         // The initial prefix for the device definition is always the first element of the file, and it's always within PsiErrorElement
@@ -125,6 +136,7 @@ private val parametersToDefaultValues: Map<String, String> by lazy {
     DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
     DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
     DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
+    DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name
   )
 }
 
@@ -170,9 +182,10 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
       result.addLookupElement(lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId, tailText = " Default Device")
     }
 
+    val unitName = DeviceSpec.DEFAULT_UNIT.name
     result.addLookupElement(
       lookupString = DEVICE_BY_SPEC_PREFIX,
-      tailText = "width=px,height=px,dpi=int,isRound=boolean,chinSize=px",
+      tailText = "width=$unitName,height=$unitName,dpi=int,isRound=boolean,chinSize=$unitName,orientation=portrait/landscape",
       format = baseDeviceSpecTemplate
     )
     result.addLookupElement(lookupString = ReferencePhoneConfig.deviceSpec(), tailText = " Reference Phone")
@@ -208,6 +221,19 @@ private object MissingParameterProvider : CompletionProvider<CompletionParameter
       else {
         result.addLookupElement(lookupString = it.key, format = createCommonFormat(it.value))
       }
+    }
+  }
+}
+
+/**
+ * Provides the possible orientation values for the Orientation parameter.
+ *
+ * I.e: provides "portrait,landscape" for `orientation=$caret`
+ */
+private object OrientationValueProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    Orientation.values().forEach {
+      result.addLookupElement(lookupString = it.name)
     }
   }
 }
