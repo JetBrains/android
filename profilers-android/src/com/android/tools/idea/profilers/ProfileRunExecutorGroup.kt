@@ -53,7 +53,7 @@ class ProfileRunExecutorGroup : DefaultExecutorGroup<ProfileRunExecutorGroup.Set
     override fun isApplicable(project: Project) = true
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
       ProfilerState.ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
-      ProfilerState.ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with full data"
+      ProfilerState.ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data"
       else -> "Profile '$configurationName'"
     }
   }

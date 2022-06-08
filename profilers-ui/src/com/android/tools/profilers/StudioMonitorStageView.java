@@ -260,14 +260,13 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       case DEBUGGABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_DEBUGGABLE_MESSAGE,
-                                     "Timing data from debuggable processes will deviate significantly from real" +
-                                     " world performance. A profileable process may be more suitable.",
-                                     SupportLevel.DOC_LINK,
-                                     ProfilerColors.NOTIFICATION_BACKGROUND);
+                                     "Profiling with complete data. This does not represent app performance in production." +
+                                     " Consider profiling with low overhead.",
+                                     SupportLevel.DOC_LINK);
       case PROFILEABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_PROFILEABLE_MESSAGE,
-                                     "Only CPU and Memory profilers are enabled for profileable processes.",
+                                     "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
                                      SupportLevel.DOC_LINK);
     }
     return new JPanel();
