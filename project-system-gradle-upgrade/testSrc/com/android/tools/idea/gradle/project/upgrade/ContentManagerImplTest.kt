@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Upg
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
@@ -73,6 +74,9 @@ class ContentManagerImplTest {
 
   @get:Rule
   val ignoreTests = IgnoreTestRule()
+
+  @get:Rule
+  val expect = Expect.createAndEnableStackTrace()
 
   val project by lazy { projectRule.project }
 
@@ -833,6 +837,46 @@ class ContentManagerImplTest {
     model.uiState.set(UpgradeSyncSucceeded)
     assertThat(view.revertButtonVisible()).isTrue()
     assertThat(view.localHistoryLinkVisible()).isTrue()
+  }
+
+  @Test
+  fun testUIStateEquality() {
+    fun UIState.hash(): Int = when (this) {
+      // This is written out so that it fails to compile if a new UIState is added without updating this test.
+      AllDone, Blocked,
+      is CaughtException,
+      is InvalidVersionError,
+      Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      is UpgradeSyncFailed,
+      UpgradeSyncSucceeded ->
+        this.hashCode()
+    }
+
+    val stateList = listOf(
+      AllDone, Blocked,
+      CaughtException(StatusMessage(Severity.ERROR, "one")), CaughtException(StatusMessage(Severity.ERROR, "two")),
+      InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
+      Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      UpgradeSyncFailed("one"), UpgradeSyncFailed("two"),
+      UpgradeSyncSucceeded
+    )
+
+    val unexpectedlyEqualHashes = mutableListOf<Pair<UIState, UIState>>()
+    stateList.forEachIndexed { i, statei ->
+      stateList.forEachIndexed { j, statej ->
+        if (i == j) {
+          expect.that(statei == statej)
+          expect.that(statei.hash() == statej.hash())
+        }
+        else {
+          expect.that(statei != statej)
+          if (statei.hash() == statej.hash()) unexpectedlyEqualHashes.add(statei to statej)
+        }
+      }
+    }
+    // We have some functionally identical UIStates, which we can distinguish for .equals() on the basis of their class identity, but
+    // have the same behaviour (given the same input error messages) and hence the same hash code.
+    expect.that(unexpectedlyEqualHashes).hasSize(6)
   }
 
   fun treeString(tree: CheckboxTree): String {
