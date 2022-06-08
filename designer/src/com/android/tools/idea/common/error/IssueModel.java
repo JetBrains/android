@@ -20,6 +20,7 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Model to centralize every issue that should be used in the Layout Editor
@@ -66,21 +68,25 @@ public class IssueModel implements Disposable {
    * @param issueNumberLimit maximum number of issues to be handled by this model. If the number of issues exceeds this number, it will be
    *                         truncated to <code>issueNumberLimit</code> and a new {@link TooManyIssuesIssue} added.
    */
-  @VisibleForTesting
-  IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor, int issueNumberLimit) {
+  private IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor, int issueNumberLimit) {
     Disposer.register(parentDisposable, this);
     myProject = project;
     myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
     myIssueNumberLimit = issueNumberLimit;
   }
 
-  @VisibleForTesting
-  IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor) {
-    this(parentDisposable, project, listenerExecutor, MAX_ISSUE_NUMBER_LIMIT);
+  public IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project) {
+    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command), MAX_ISSUE_NUMBER_LIMIT);
   }
 
-  public IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project) {
-    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command));
+  @TestOnly
+  public static IssueModel createForTesting(@NotNull Disposable parentDisposable, @NotNull Project project, int issueNumberLimit) {
+    return new IssueModel(parentDisposable, project, MoreExecutors.directExecutor(), issueNumberLimit);
+  }
+
+  @TestOnly
+  public static IssueModel createForTesting(@NotNull Disposable parentDisposable, @NotNull Project project) {
+    return new IssueModel(parentDisposable, project, MoreExecutors.directExecutor(), MAX_ISSUE_NUMBER_LIMIT);
   }
 
   @Nullable

@@ -52,7 +52,7 @@ public class IssueModelTest {
 
   @Before
   public void setUp() throws Exception {
-    myIssueModel = new IssueModel(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), MoreExecutors.directExecutor());
+    myIssueModel = IssueModel.createForTesting(myProjectRule.getTestRootDisposable(), myProjectRule.getProject());
   }
 
   @Test
@@ -192,7 +192,7 @@ public class IssueModelTest {
   @Test
   public void limitMaxNumberOfIssues() {
     IssueModel limitedIssueModel =
-      new IssueModel(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), MoreExecutors.directExecutor(), 5);
+      IssueModel.createForTesting(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), 5);
     assertFalse(limitedIssueModel.hasIssues());
     limitedIssueModel.addIssueProvider(new RenderIssueProvider(
       null,

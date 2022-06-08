@@ -66,7 +66,7 @@ class ComposePreviewIssuePanelAction(
         (it.source as? NlIssueSource)?.model == model
       }.getIssueTypeIcon()
     e.presentation.icon = icon
-    e.presentation.isVisible = icon != null
+    e.presentation.isEnabledAndVisible = icon != null
   }
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(state, true)

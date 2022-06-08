@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.EmptyAction.MyDelegatingAction
 import com.intellij.openapi.actionSystem.Presentation
@@ -51,19 +52,29 @@ internal fun List<AnAction>.visibleOnlyInComposeStaticPreview(): ActionGroup = C
  */
 internal fun AnAction.visibleOnlyInComposeStaticPreview(): ActionGroup = listOf(this).visibleOnlyInComposeStaticPreview()
 
-fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
-  map { RefreshingAndRenderErrorsActionWrapper(it, sceneView) }
+/**
+ * The given disables the actions if a surface is refreshing.
+ */
+fun List<AnAction>.disabledIfRefreshing(): List<AnAction> =
+  map { EnableUnderConditionWrapper(it) { context -> !isAnyPreviewRefreshing(context) } }
 
 /**
- * Wrapper that disables a given action if previews are refreshing.
+ * The given disables the actions if a12 surface is refreshing or if the [sceneView] contains errors.
  */
-private class RefreshingAndRenderErrorsActionWrapper(delegate: AnAction, private val sceneView: SceneView)
+fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
+  map { EnableUnderConditionWrapper(it) { context -> !(isAnyPreviewRefreshing(context) || sceneView.hasRenderErrors()) } }
+
+/**
+ * Wrapper that delegates whether the given action is enabled or not to the passed condition.
+ * If [isEnabled] returns true, the `delegate` action will be shown as disabled.
+ */
+private class EnableUnderConditionWrapper(delegate: AnAction, private val isEnabled: (context: DataContext) -> Boolean)
   : MyDelegatingAction(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     val delegateEnabledStatus = e.presentation.isEnabled
-    e.presentation.isEnabled = delegateEnabledStatus && !(isAnyPreviewRefreshing(e.dataContext) || sceneView.hasRenderErrors())
+    e.presentation.isEnabled = delegateEnabledStatus && isEnabled(e.dataContext)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

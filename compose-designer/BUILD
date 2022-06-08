@@ -102,6 +102,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )
 

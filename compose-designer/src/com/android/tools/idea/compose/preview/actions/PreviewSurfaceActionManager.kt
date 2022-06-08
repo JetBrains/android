@@ -75,13 +75,15 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface<La
           },
           EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
+        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview() +
+        listOfNotNull(
           StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled {
             ComposePreviewIssuePanelAction(
               modelProvider = { sceneView.scene.sceneManager.model },
               issueModelProvider = { sceneView.surface.issueModel }
             )
           }
-        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
+        ).disabledIfRefreshing().visibleOnlyInComposeStaticPreview(),
       ),
       true,
       false
