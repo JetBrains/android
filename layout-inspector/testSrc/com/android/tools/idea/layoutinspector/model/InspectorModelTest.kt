@@ -479,6 +479,82 @@ class InspectorModelTest {
     assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
   }
 
+  @Test
+  fun testHighlightCountDownDoNotStop() {
+    val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+    var stop = false
+    var countdownStopped = false
+
+    val model = model(scheduler = scheduler) {
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+          compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+        }
+      }
+    }
+    // In this test do not spend time refreshingImages. We want to focus on the recomposition countdown logic:
+    model.windows.values.filterIsInstance<FakeAndroidWindow>().forEach { it.refreshImages = null }
+
+    // Generate an update with a new number for the composeCount of COMPOSE2
+    fun window1(count: Int) = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = count, composeSkips = 0)
+      }
+    }
+
+    // Check that we are never in a state where neither thread can advance
+    val compose2 = model[COMPOSE2] as ComposeViewNode
+    val lock = Object()
+    fun check() {
+      synchronized(lock) {
+        val running = ViewNode.readAccess {
+          model.maxHighlight > 0f || compose2.recompositions.highlightCount < DECREASE_BREAK_OFF
+        }
+        if (!running) {
+          stop = true
+          countdownStopped = true
+        }
+      }
+    }
+
+    // Start a thread that constantly runs the scheduler to decrease the highlight count in COMPOSE2
+    val thread1 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (model.maxHighlight > 0f) {
+          virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+        } else {
+          check()
+        }
+      }
+    }.apply { start() }
+
+    // Start a thread that constantly runs an update to increase the highlight count of COMPOSE2
+    var count = 0
+    val thread2 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (compose2.recompositions.highlightCount < DECREASE_BREAK_OFF) {
+          model.update(window1(++count), listOf(ROOT), 0)
+        } else {
+          check()
+        }
+      }
+    }.apply { start() }
+
+    // Run the 2 threads for 2 seconds:
+    Thread.sleep(2000)
+
+    // Stop both threads
+    stop = true
+    thread1.join(1000)
+    thread2.join(1000)
+
+    // At no time should both threads be waiting for each other:
+    assertThat(countdownStopped).isFalse()
+  }
+
   private fun children(view: ViewNode): List<ViewNode> =
     ViewNode.readAccess { view.children }
 

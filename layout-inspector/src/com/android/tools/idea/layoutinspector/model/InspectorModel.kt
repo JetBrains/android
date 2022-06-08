@@ -202,10 +202,14 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
   }
 
   fun resetRecompositionCounts() {
+    resetRecompositionCounters()
+    updatePropertiesPanel()
+  }
+
+  private fun resetRecompositionCounters() {
     maxRecomposition.reset()
     maxHighlight = 0f
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
-    updatePropertiesPanel()
   }
 
   fun updatePropertiesPanel() {
@@ -222,6 +226,10 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
    * them.
    */
   fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int) {
+    if (windows.isEmpty()) {
+      // Reset the recomposition counters if this is a new connection:
+      resetRecompositionCounters()
+    }
     var structuralChange: Boolean = windows.keys.retainAll(allIds)
     val oldWindow = windows[newWindow?.id]
     updating = true
@@ -280,16 +288,16 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
   }
 
   private fun decreaseHighlights() {
-    val max = ViewNode.writeAccess {
-      root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull { it.recompositions.decreaseHighlights() }
+    ViewNode.writeAccess {
+      val max = root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull { it.recompositions.decreaseHighlights() } ?: 0f
+      if (max != 0f) {
+        scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
+      } else {
+        maxHighlight = 0f
+      }
     }
     windows.values.forEach { window ->
       modificationListeners.forEach { it(window, window, false) }
-    }
-    if (max != 0f) {
-      scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
-    } else {
-      maxHighlight = 0f
     }
   }
 
