@@ -70,6 +70,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private BrowserLink myLogcatLearnMoreBrowserLink;
 
   private JCheckBox myEnableDeviceMirroringCheckBox;
+
+  private JCheckBox myEnableParallelSync;
+
   private Runnable myRestartCallback;
 
   @SuppressWarnings("unused") // called by IDE
@@ -85,6 +88,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
+
+    myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
     qualityLabels.put(0, new JLabel("Fastest"));
@@ -130,6 +135,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
+           mySettings.ENABLE_PARALLEL_SYNC != enableParallelSync() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
@@ -144,6 +150,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
+    mySettings.ENABLE_PARALLEL_SYNC = enableParallelSync();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
@@ -221,6 +228,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @TestOnly
   void setTraceProfileLocation(@NotNull String value) {
     myTraceProfilePathField.setText(value);
+  }
+
+  boolean enableParallelSync() {
+    return myEnableParallelSync.isSelected();
+  }
+
+  @TestOnly
+  void setEnableParallelSync(boolean value) {
+    myEnableParallelSync.setSelected(value);
   }
 
   private void initTraceComponents() {
@@ -308,6 +324,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
+    myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());

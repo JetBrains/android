@@ -1286,6 +1286,10 @@
     <option name="new" hit="Enable new Logcat tool window" />
     <option name="tool" hit="Enable new Logcat tool window" />
     <option name="window" hit="Enable new Logcat tool window" />
+    <option name="enable" hit="Enable parallel Gradle Sync" />
+    <option name="gradle" hit="Enable parallel Gradle Sync" />
+    <option name="parallel" hit="Enable parallel Gradle Sync" />
+    <option name="sync" hit="Enable parallel Gradle Sync" />
     <option name="experimental" hit="Experimental" />
     <option name="gradle" hit="Gradle" />
     <option name="compose" hit="Jetpack Compose" />

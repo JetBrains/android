@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
@@ -24,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
-import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
@@ -40,7 +40,8 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
   }
   val projectResolutionMode = settings.getRequestedSyncMode()
 
-  val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()
+  val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get() &&
+                     GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
 
   val studioFlags = GradleSyncStudioFlags(
