@@ -347,7 +347,12 @@ class FastPreviewManager private constructor(
    * [compileRequest] will start the daemon on the first request.
    */
   fun preStartDaemon(module: Module) = scope.launch {
-    daemonRegistry.getOrCreateDaemon(moduleRuntimeVersionLocator(module).toString())
+    try {
+      daemonRegistry.getOrCreateDaemon(moduleRuntimeVersionLocator(module).toString())
+    } catch(t: Throwable) {
+      FastPreviewTrackerManager.getInstance(project).daemonStartFailed()
+      throw t
+    }
   }
 
   /**
@@ -359,11 +364,14 @@ class FastPreviewManager private constructor(
    * If the compilation request is not successful and [allowAutoDisable] is true, the [FastPreviewManager] will disable
    * itself until [enable] is called again. This is to prevent code that can not be compiled using this service being
    * retried over and over. The user will have the option to re-enable it via a notification.
+   *
+   * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
-                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> = compilingMutex.withLock {
+                             indicator: ProgressIndicator = EmptyProgressIndicator(),
+                             tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
     val requestId = createCompileRequestId(files, module)
     val (isRunning: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
@@ -416,10 +424,12 @@ class FastPreviewManager private constructor(
       throw t
     }
     catch (t: Throwable) {
+      tracker.daemonStartFailed()
       // Catch for daemon start general failures
       CompilationResult.DaemonStartFailure(t)
     }
-    val durationString = Duration.ofMillis(System.currentTimeMillis() - startTime).toDisplayString()
+    val durationMs = System.currentTimeMillis() - startTime
+    val durationString = Duration.ofMillis(durationMs).toDisplayString()
     log.info("Compiled in $durationString (result=$result, id=$requestId)")
     if (result.isError && allowAutoDisable) {
       val reason = when (result) {
@@ -465,6 +475,12 @@ class FastPreviewManager private constructor(
       }
       try {
         project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationComplete(result, files)
+        if (result == CompilationResult.Success) {
+          tracker.compilationSucceeded(durationMs, files.size)
+        }
+        else {
+          tracker.compilationFailed(durationMs, files.size)
+        }
       }
       catch (_: Throwable) {
       }
@@ -477,8 +493,9 @@ class FastPreviewManager private constructor(
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(file: PsiFile,
                              module: Module,
-                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
-    compileRequest(listOf(file), module, indicator)
+                             indicator: ProgressIndicator = EmptyProgressIndicator(),
+                             tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> =
+    compileRequest(listOf(file), module, indicator, tracker)
 
   /**
    * Adds a [CompileListener] that will be notified when this manager has completed a build.
@@ -504,12 +521,19 @@ class FastPreviewManager private constructor(
       disableForThisSession = true
     }
     else LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = false
+
+    val tracker = FastPreviewTrackerManager.getInstance(project)
+    if (reason == ManualDisabledReason)
+      tracker.userDisabled()
+    else
+      tracker.autoDisabled()
   }
 
   /** Enables the Fast Preview. */
   fun enable() {
     disableReason = null
     disableForThisSession = false
+    FastPreviewTrackerManager.getInstance(project).userEnabled()
     LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 

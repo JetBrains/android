@@ -28,6 +28,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -38,6 +39,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -73,6 +75,13 @@ internal class FastPreviewManagerTest {
   val chainRule: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(FastPreviewRule())
+
+  private val testTracker = TestFastPreviewTrackerManager()
+
+  @Before
+  fun setUp() {
+    projectRule.project.replaceService(FastPreviewTrackerManager::class.java, testTracker, projectRule.testRootDisposable)
+  }
 
   @Test
   fun `pre-start daemon`() {
@@ -137,6 +146,12 @@ internal class FastPreviewManagerTest {
 
     latch.await() // Wait for the 10 requests to complete
     assertEquals("Only one compilation was expected for the 10 identical requests", 1, blockingDaemon.requestReceived)
+    assertEquals(
+      """
+        compilationSucceeded: files=1
+     """.trimIndent(),
+      testTracker.logOutput()
+    )
   }
 
   @Test
@@ -382,6 +397,14 @@ internal class FastPreviewManagerTest {
       assertTrue(LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled)
       assertNull(manager.disableReason)
     }
+    assertEquals(
+      """
+        autoDisabled
+        compilationFailed: files=1
+        userEnabled
+     """.trimIndent(),
+      testTracker.logOutput()
+    )
   }
 
   @Test
@@ -438,6 +461,13 @@ internal class FastPreviewManagerTest {
       assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
       assertNull(manager.disableReason)
     }
+    assertEquals(
+      """
+        compilationFailed: files=1
+        compilationFailed: files=1
+     """.trimIndent(),
+      testTracker.logOutput()
+    )
   }
 
   // Regression test for http://b/222838793

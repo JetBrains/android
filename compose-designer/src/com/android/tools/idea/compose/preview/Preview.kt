@@ -58,6 +58,7 @@ import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewSurface
+import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
@@ -1282,12 +1283,39 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val launcher = fastPreviewCompilationLauncher ?: UniqueTaskCoroutineLauncher(this, "Compilation Launcher").also {
       fastPreviewCompilationLauncher = it
     }
+
+    // We delay the reporting of compilationSucceded until we have the amount of time the refresh took.
+    val delegateRequestTracker = FastPreviewTrackerManager.getInstance(project).trackRequest()
+    val requestTracker = object: FastPreviewTrackerManager.Request by delegateRequestTracker {
+      private var compilationDurationMs: Long = -1
+      private var compiledFiles: Int = -1
+      override fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long) {
+        this.compilationDurationMs = compilationDurationMs
+        this.compiledFiles = compiledFiles
+      }
+
+      fun refreshSucceeded(refreshTimeMs: Long) {
+        delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles, refreshTimeMs)
+      }
+
+      fun refreshFailed() {
+        delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles)
+      }
+    }
     launcher.launch {
       if (!currentStatus.hasSyntaxErrors) {
         psiFilePointer.element?.let {
-          result = fastCompile(this@ComposePreviewRepresentation, it)
+          result = fastCompile(this@ComposePreviewRepresentation, it, requestTracker = requestTracker)
           if (result is CompilationResult.Success) {
-            forceRefresh()
+            val refreshStartMs = System.currentTimeMillis()
+            forceRefresh()?.invokeOnCompletion { throwable ->
+              if (throwable == null) {
+                requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
+              }
+              else {
+                requestTracker.refreshFailed()
+              }
+            }
           }
         }
       }

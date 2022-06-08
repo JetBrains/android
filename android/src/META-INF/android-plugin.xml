@@ -531,6 +531,8 @@
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.ndk.NativeWorkspaceService" />
+    <projectService serviceInterface="com.android.tools.idea.editors.fast.FastPreviewTrackerManager"
+                    serviceImplementation="com.android.tools.idea.editors.fast.FastPreviewTrackerManagerImpl"/>
 
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
                    serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />

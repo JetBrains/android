@@ -51,7 +51,8 @@ private suspend fun PsiFile.saveIfNeeded() {
  */
 suspend fun fastCompile(parentDisposable: Disposable,
                         file: PsiFile,
-                        fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project)): CompilationResult = coroutineScope {
+                        fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project),
+                        requestTracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(file.project).trackRequest()): CompilationResult = coroutineScope {
   val contextModule = file.module ?: throw Throwable("No module")
   val project = file.project
 
