@@ -24,11 +24,13 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 
 enum class VisualLintErrorType(private val ignoredAttributeName: String) {
+  BUTTON_SIZE("ButtonSize"),
   BOUNDS("Bounds"),
   BOTTOM_NAV("BottomNav"),
   BOTTOM_APP_BAR("ButtonAppBar"),
@@ -56,7 +58,8 @@ enum class VisualLintErrorType(private val ignoredAttributeName: String) {
   }
 }
 
-private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, OverlapAnalyzer, LongTextAnalyzer)
+private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer,
+                                    OverlapAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
 
 /**
  * Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.

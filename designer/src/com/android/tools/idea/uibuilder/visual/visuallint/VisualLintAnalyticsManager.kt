@@ -27,6 +27,7 @@ import com.google.wireless.android.sdk.stats.VisualLintEvent
 class VisualLintAnalyticsManager(val surface: DesignSurface<*>?) {
   private fun track(issueType: VisualLintErrorType, issueEvent: VisualLintEvent.IssueEvent) {
     val metricsIssueType = when (issueType) {
+      // TODO(b/235356116): update after studio_stats.proto is updated
       VisualLintErrorType.BOUNDS -> VisualLintEvent.IssueType.BOUNDS
       VisualLintErrorType.BOTTOM_NAV -> VisualLintEvent.IssueType.BOTTOM_NAV
       VisualLintErrorType.BOTTOM_APP_BAR -> VisualLintEvent.IssueType.BOTTOM_APP_BAR
@@ -34,6 +35,7 @@ class VisualLintAnalyticsManager(val surface: DesignSurface<*>?) {
       VisualLintErrorType.LONG_TEXT -> VisualLintEvent.IssueType.LONG_TEXT
       VisualLintErrorType.ATF -> VisualLintEvent.IssueType.ATF
       VisualLintErrorType.LOCALE_TEXT -> VisualLintEvent.IssueType.LOCALE_TEXT
+      else ->  VisualLintEvent.IssueType.UNKNOWN_TYPE
     }
     CommonUsageTracker.getInstance(surface).logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.VISUAL_LINT) {
       val builder = VisualLintEvent.newBuilder()
