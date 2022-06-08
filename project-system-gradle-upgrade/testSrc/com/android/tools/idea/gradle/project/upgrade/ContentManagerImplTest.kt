@@ -673,7 +673,7 @@ class ContentManagerImplTest {
 
     syncRequest = null
     toolWindowModel.runRevert()
-    // Need to commit so that pending changes from vcs are propagated to psi.
+    // Need to commit so that pending changes from Vfs are propagated to Psi.
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")

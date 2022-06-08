@@ -64,7 +64,6 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -901,7 +900,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
         uiState is ToolWindowModel.UIState.CaughtException -> {
           val sb = StringBuilder()
           sb.append("<div><b>Caught exception</b></div>")
-          sb.append("<p>Something went wrong (an internal exception occured).  ")
+          sb.append("<p>Something went wrong (an internal exception occurred).  ")
           sb.append("You should revert to a known-good state before doing anything else.</p>")
           sb.append("<p>The status message is:<br/>")
           sb.append(uiState.statusMessage.text)
