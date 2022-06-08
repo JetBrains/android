@@ -1,3 +1,5 @@
+load("//tools/base/bazel:coverage.bzl", "coverage_java_test")
+
 """A macro for running @OldAgpTests using OldAgpSuite."""
 
 def old_agp_test(
@@ -40,7 +42,7 @@ def old_agp_test(
     data.extend(maven_deps)
 
     name = "%s_gradle_%s_agp_%s" % (name, gradle_version, agp_version)
-    native.java_test(
+    coverage_java_test(
         name = name,
         runtime_deps = [
             "%s_testlib" % iml_module,
