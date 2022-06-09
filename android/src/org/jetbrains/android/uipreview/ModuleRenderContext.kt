@@ -21,7 +21,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.application.runReadAction
-import org.jetbrains.kotlin.base.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 import java.util.function.Supplier
 
 /**

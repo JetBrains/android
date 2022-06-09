@@ -43,7 +43,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.time.withTimeout
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.base.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 import java.io.File
 import java.time.Duration
 

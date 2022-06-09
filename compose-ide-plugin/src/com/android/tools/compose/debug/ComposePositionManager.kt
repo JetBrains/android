@@ -31,7 +31,7 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.jetbrains.kotlin.base.util.KOTLIN_FILE_TYPES
+import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
 import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils

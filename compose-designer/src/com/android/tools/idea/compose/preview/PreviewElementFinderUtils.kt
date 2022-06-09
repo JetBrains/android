@@ -34,7 +34,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
-import org.jetbrains.kotlin.base.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation

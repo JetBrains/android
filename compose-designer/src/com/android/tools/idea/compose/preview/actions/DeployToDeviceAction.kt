@@ -38,7 +38,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
-import org.jetbrains.kotlin.base.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Action to deploy a @Composable to the device.
