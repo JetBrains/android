@@ -342,10 +342,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     LaunchOptions.Builder launchOptions = getLaunchOptions().setDebug(isDebugging);
 
-    if (executor instanceof LaunchOptionsProvider) {
-      launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
-    }
-
     ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
     LaunchTasksProvider launchTasksProvider =
