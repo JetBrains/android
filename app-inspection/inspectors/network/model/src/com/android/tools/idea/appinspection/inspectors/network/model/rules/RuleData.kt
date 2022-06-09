@@ -22,6 +22,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
+import org.jetbrains.annotations.TestOnly
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
@@ -42,6 +43,9 @@ class RuleData(
       count += 1
       return count
     }
+
+    @TestOnly
+    fun getLatestId() = count
   }
 
   /**
@@ -260,6 +264,7 @@ class RuleData(
   val bodyRuleTableModel = BodyRulesTableModel()
 
   fun toProto(): InterceptRule = InterceptRule.newBuilder().apply {
+    enabled = isActive
     criteria = this@RuleData.criteria.toProto()
     if (statusCodeRuleData.isActive) {
       addTransformation(statusCodeRuleData.toProto())

@@ -30,6 +30,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
+import javax.swing.event.TableModelEvent
 
 class RulesTableView(
   private val client: NetworkInspectorClient,
@@ -41,14 +42,23 @@ class RulesTableView(
 
   val tableModel = RulesTableModel()
   val table = TableView(tableModel)
-  private var orderedRules = listOf<Int>()
 
   init {
     val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
-      tableModel.addRow(createRuleDataWithListener())
+      val id = RuleData.newId()
+      val ruleData = createRuleDataWithListener(id)
+      tableModel.addRow(ruleData)
       val selectedRow = tableModel.rowCount - 1
       table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
       model.detailContent = NetworkInspectorModel.DetailContent.RULE
+      scope.launch {
+        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+          interceptRuleAddedBuilder.apply {
+            ruleId = id
+            rule = ruleData.toProto()
+          }
+        }.build())
+      }
       usageTracker.trackRuleCreated()
     }.setRemoveAction {
       val index = table.selectedRow
@@ -59,13 +69,11 @@ class RulesTableView(
       tableModel.removeRow(table.convertRowIndexToModel(index))
       model.setSelectedRule(null)
       scope.launch {
-        if (ruleData.isActive) {
-          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-            interceptRuleRemovedBuilder.apply {
-              ruleId = ruleData.id
-            }
-          }.build())
-        }
+        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+          interceptRuleRemovedBuilder.apply {
+            ruleId = ruleData.id
+          }
+        }.build())
       }
     }
     component = decorator.createPanel()
@@ -77,8 +85,12 @@ class RulesTableView(
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
     }
-    tableModel.addTableModelListener {
-      reorderRules()
+    tableModel.addTableModelListener {event ->
+      // The event is generated as a result of a move up or down action when the
+      // following conditions are true.
+      if (event.type == TableModelEvent.UPDATE && event.lastRow != event.firstRow) {
+        reorderRules()
+      }
     }
     table.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
@@ -95,14 +107,13 @@ class RulesTableView(
     }
   }
 
-  private fun createRuleDataWithListener(): RuleData {
-    val id = RuleData.newId()
+  private fun createRuleDataWithListener(id: Int): RuleData {
     return RuleData(id, "New Rule", true, object : RuleDataListener {
       override fun onRuleDataChanged(ruleData: RuleData) {
         if (ruleData.isActive) {
           scope.launch {
             client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-              interceptRuleAddedBuilder.apply {
+              interceptRuleUpdatedBuilder.apply {
                 ruleId = id
                 rule = ruleData.toProto()
               }
@@ -121,16 +132,9 @@ class RulesTableView(
       override fun onRuleIsActiveChanged(ruleData: RuleData) {
         scope.launch {
           client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-            if (ruleData.isActive) {
-              interceptRuleAddedBuilder.apply {
-                ruleId = ruleData.id
-                rule = ruleData.toProto()
-              }
-            }
-            else {
-              interceptRuleRemovedBuilder.apply {
-                ruleId = ruleData.id
-              }
+            interceptRuleUpdatedBuilder.apply {
+              ruleId = ruleData.id
+              rule = ruleData.toProto()
             }
           }.build())
         }
@@ -139,14 +143,10 @@ class RulesTableView(
   }
 
   private fun reorderRules() {
-    val newOrderedRules = tableModel.items.filter { it.isActive }.map { it.id }
-    if (newOrderedRules != orderedRules) {
-      orderedRules = newOrderedRules
-      scope.launch {
-        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-          reorderInterceptRulesBuilder.addAllRuleId(orderedRules)
-        }.build())
-      }
+    scope.launch {
+      client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+        reorderInterceptRulesBuilder.addAllRuleId(tableModel.items.map { it.id })
+      }.build())
     }
   }
 }
