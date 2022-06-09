@@ -69,6 +69,7 @@ import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.TextComponentEmptyText
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.util.IconUtil
@@ -223,7 +224,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     searchField = SearchTextField()
     searchField.textEditor.putClientProperty("JTextField.Search.Gap", JBUI.scale(3))
     searchField.textEditor.putClientProperty("JTextField.Search.GapEmptyText", JBUI.scale(-1))
-    searchField.textEditor.putClientProperty("StatusVisibleFunction", SearchFieldStatusTextVisibility.isVisibleFunction)
+    searchField.textEditor.putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, SearchFieldStatusTextVisibility.isVisibleFunction)
     searchField.textEditor.emptyText.text = "Search existing destinations"
     result.add(searchField)
 
