@@ -3,12 +3,12 @@ package com.android.tools.idea;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,18 +46,10 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
   }
 
 
-  private void setupApplication(String fullVersion, boolean eap) {
-    MockApplication application = new MockApplication(disposable) {
-      @Override
-      public boolean isEAP() {
-        return eap;
-      }
-    };
+  private void setupApplication(String fullVersion) {
     ApplicationInfo mock = Mockito.mock(ApplicationInfo.class);
-    application.registerService(ApplicationInfo.class, mock);
-
     Mockito.when(mock.getFullVersion()).thenReturn(fullVersion);
-    ApplicationManager.setApplication(application, disposable);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ApplicationInfo.class, mock, disposable);
   }
 
   /**
@@ -67,18 +59,16 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
    */
   @Test
   public void testChangeDefaultChannel() {
-    for (boolean eap : new boolean[]{false, true}) {
-      setupApplication("Android Studio Bumblebee | 2021.1.1 Patch 3", eap);
-      assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.RELEASE);
+    setupApplication("Android Studio Bumblebee | 2021.1.1 Patch 3");
+    assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.RELEASE);
 
-      setupApplication("Android Studio Chipmunk  | 2021.2.1 Beta 4", eap);
-      assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.BETA);
+    setupApplication("Android Studio Chipmunk  | 2021.2.1 Beta 4");
+    assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.BETA);
 
-      setupApplication("Android Studio Chipmunk  | 2021.2.1 RC 1", eap);
-      assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.BETA);
+    setupApplication("Android Studio Chipmunk  | 2021.2.1 RC 1");
+    assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.BETA);
 
-      setupApplication("Android Studio Dolphin   | 2021.3.1 Canary 9", eap);
-      assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.EAP);
-    }
+    setupApplication("Android Studio Dolphin   | 2021.3.1 Canary 9");
+    assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.EAP);
   }
 }
