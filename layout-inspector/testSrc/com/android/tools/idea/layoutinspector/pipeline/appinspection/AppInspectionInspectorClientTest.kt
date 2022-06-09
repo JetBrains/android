@@ -147,7 +147,15 @@ class AppInspectionInspectorClientTest {
     // Validate all the progress events happen in order. Note that those generated on the device side are synthetic, since we're not
     // using the real agent in this test.
     // TODO(b/203712328): Because of a problem with the test framework, this test will pass even without the fix included in the same commit
+
+    val modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     val inOrder = inOrder(monitor)
     inOrder.verify(monitor).updateProgress(AttachErrorState.ADB_PING)

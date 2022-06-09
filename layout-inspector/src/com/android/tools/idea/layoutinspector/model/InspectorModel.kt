@@ -225,7 +225,7 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
    * This removes drawChildren from all existing [ViewNode]s. [AndroidWindow.refreshImages] must be called on newWindow after to regenerate
    * them.
    */
-  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int) {
+  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int, notifyUpdateCompleted: () -> Unit = {}) {
     if (windows.isEmpty()) {
       // Reset the recomposition counters if this is a new connection:
       resetRecompositionCounters()
@@ -280,6 +280,8 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
         }
       }
       root.calculateTransitiveBounds()
+
+      notifyUpdateCompleted()
       modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
     }
     finally {

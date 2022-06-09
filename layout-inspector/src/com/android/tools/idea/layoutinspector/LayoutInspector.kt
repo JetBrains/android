@@ -126,13 +126,14 @@ class LayoutInspector private constructor(
           latestLoadTime.set(time)
           // If we've disconnected, don't continue with the update.
           if (currentClient.state <= InspectorClient.State.CONNECTED) {
-            layoutInspectorModel.update(data.window, allIds, data.generation)
+            layoutInspectorModel.update(data.window, allIds, data.generation) {
+              currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
+            }
           }
           // Check one more time to see if we've disconnected.
           if (currentClient.state > InspectorClient.State.CONNECTED) {
             layoutInspectorModel.clear()
           }
-          currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
         }
       }
     }
