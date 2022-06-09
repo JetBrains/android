@@ -33,7 +33,7 @@ enum class VisualLintErrorType(private val ignoredAttributeName: String) {
   BUTTON_SIZE("ButtonSize"),
   BOUNDS("Bounds"),
   BOTTOM_NAV("BottomNav"),
-  BOTTOM_APP_BAR("ButtonAppBar"),
+  BOTTOM_APP_BAR("BottomAppBar"),
   OVERLAP("Overlap"),
   LONG_TEXT("LongText"),
   ATF("AccessibilityTestFramework"),
