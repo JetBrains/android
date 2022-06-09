@@ -102,7 +102,11 @@ class EmbeddedCompilerClientImpl(
     get() = daemonLock.holdsLock(this)
 
 
-  private fun compileKtFiles(inputs: List<KtFile>, outputDirectory: Path, indicator: ProgressIndicator) {
+  /**
+   * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
+   * will be updated in the given [ProgressIndicator].
+   */
+  private fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
     // Retry is a temporary workaround for b/224875189
@@ -125,7 +129,9 @@ class EmbeddedCompilerClientImpl(
            * 1) Created once per project and reused on every edit
            * 2) If a real gradle build is invoked, clear all the entries there.
            */
-          backendCodeGen(project, resolution, bindingContext, inputs, null,
+          backendCodeGen(project, resolution, bindingContext, inputs,
+                         module,
+                         null,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
         catch (e: LiveEditUpdateException) {
@@ -145,7 +151,7 @@ class EmbeddedCompilerClientImpl(
           // We will need to start using the binding context from the new analysis for code gen.
           val newBindingContext = newAnalysisResult.bindingContext
 
-          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, null,
+          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, module,null,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
       }
@@ -184,7 +190,7 @@ class EmbeddedCompilerClientImpl(
       }
 
       try {
-        compileKtFiles(inputs, outputDirectory = outputDirectory, compilationIndicator)
+        compileKtFiles(inputs, module, outputDirectory = outputDirectory, compilationIndicator)
         result.complete(CompilationResult.Success)
       }
       catch (t: CancellationException) {

@@ -108,7 +108,9 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       ProgressManager.checkCanceled()
       var generationState : GenerationState? = null
       try {
-        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles, inlineCandidates,
+        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                         inputFiles.first().module!!,
+                                                         inlineCandidates,
                                                          AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
                                          "codegen")
       } catch (e : LiveEditUpdateException) {
@@ -127,7 +129,8 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
           // We will need to start using the binding context from the new analysis for code gen.
           bindingContext = newAnalysisResult.bindingContext
 
-          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles, inlineCandidates,
+          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                           inputFiles.first().module!!, inlineCandidates,
                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
                                            "codegen_inline")
         } else {

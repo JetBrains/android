@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
@@ -36,7 +37,6 @@ import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -116,8 +116,12 @@ interface CompileScope {
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
-                     inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState
+  fun backendCodeGen(project: Project, resolution: ResolutionFacade,
+                     bindingContext: BindingContext,
+                     input: List<KtFile>,
+                     module: Module,
+                     inlineClassRequest : Set<SourceInlineCandidate>?,
+                     langVersion: LanguageVersionSettings): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -167,12 +171,13 @@ private object CompileScopeImpl : CompileScope {
   }
 
   override fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
+                              module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState {
 
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
 
-    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, input[0].module!!.name)
+    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, module.name)
 
     val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
     if (useComposeIR) {
