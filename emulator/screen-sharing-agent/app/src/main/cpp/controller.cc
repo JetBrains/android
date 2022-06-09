@@ -187,7 +187,7 @@ void Controller::Run() {
 }
 
 void Controller::ProcessMessage(const ControlMessage& message) {
-  switch (message.get_type()) {
+  switch (message.type()) {
     case MotionEventMessage::TYPE:
       ProcessMotionEvent((const MotionEventMessage&) message);
       break;
@@ -217,7 +217,7 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       break;
 
     default:
-      Log::E("Unexpected message type %d", message.get_type());
+      Log::E("Unexpected message type %d", message.type());
       break;
   }
 }
@@ -225,8 +225,8 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   int64_t now = UptimeMillis();
   MotionEvent event(jni_);
-  event.display_id = message.get_display_id();
-  int32_t action = message.get_action();
+  event.display_id = message.display_id();
+  int32_t action = message.action();
   event.action = action;
   event.event_time_millis = now;
   if (action == AMOTION_EVENT_ACTION_DOWN) {
@@ -243,7 +243,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
   DisplayInfo display_info = Agent::GetDisplayInfo();
 
-  for (auto& pointer : message.get_pointers()) {
+  for (auto& pointer : message.pointers()) {
     JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
     pointer_helper_->SetPointerId(properties, pointer.pointer_id);
     JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
@@ -260,7 +260,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
   // They have to be converted to a sequence of pointer-specific events.
   if (action == AMOTION_EVENT_ACTION_DOWN) {
-    for (int i = 1; event.pointer_count = i, i < message.get_pointers().size(); i++) {
+    for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
       InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
       event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
     }
@@ -288,10 +288,10 @@ void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
   KeyEvent event(jni_);
   event.down_time_millis = now;
   event.event_time_millis = now;
-  int32_t action = message.get_action();
+  int32_t action = message.action();
   event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
-  event.code = message.get_keycode();
-  event.meta_state = message.get_meta_state();
+  event.code = message.keycode();
+  event.meta_state = message.meta_state();
   event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
   JObject key_event = event.ToJava();
   InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
@@ -303,7 +303,7 @@ void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
 }
 
 void Controller::ProcessTextInput(const TextInputMessage& message) {
-  const u16string& text = message.get_text();
+  const u16string& text = message.text();
   for (uint16_t c: text) {
     JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
     if (event_array.IsNull()) {
@@ -319,7 +319,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
 }
 
 void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message) {
-  int orientation = message.get_orientation();
+  int orientation = message.orientation();
   if (orientation < 0 || orientation >= 4) {
     Log::E("An attempt to set an invalid device orientation: %d", orientation);
     return;
@@ -328,27 +328,27 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
-  if (message.get_width() <= 0 || message.get_height() <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", message.get_width(), message.get_height());
+  if (message.width() <= 0 || message.height() <= 0) {
+    Log::E("An attempt to set an invalid video resolution: %dx%d", message.width(), message.height());
     return;
   }
-  Agent::SetMaxVideoResolution(Size(message.get_width(), message.get_height()));
+  Agent::SetMaxVideoResolution(Size(message.width(), message.height()));
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
   {
     scoped_lock lock(clipboard_mutex_);
-    if (message.get_text() != last_clipboard_text_) {
-      last_clipboard_text_ = message.get_text();
+    if (message.text() != last_clipboard_text_) {
+      last_clipboard_text_ = message.text();
       setting_clipboard_ = true;
     }
     clipboard_manager_ = ClipboardManager::GetInstance(jni_);
     if (setting_clipboard_) {
-      clipboard_manager_->SetText(jni_, message.get_text());
+      clipboard_manager_->SetText(jni_, message.text());
     }
     setting_clipboard_ = false;
     bool was_stopped = max_synced_clipboard_length_ == 0;
-    max_synced_clipboard_length_ = message.get_max_synced_length();
+    max_synced_clipboard_length_ = message.max_synced_length();
     if (was_stopped) {
       clipboard_manager_->AddClipboardListener(&clipboard_listener_);
     }

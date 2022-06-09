@@ -33,9 +33,7 @@ class ControlMessage {
 public:
   virtual ~ControlMessage() {}
 
-  int32_t get_type() const {
-    return type_;
-  }
+  int32_t type() const { return type_; }
 
   virtual void Serialize(Base128OutputStream& stream) const;
   static std::unique_ptr<ControlMessage> Deserialize(Base128InputStream& stream);
@@ -78,13 +76,13 @@ public:
   virtual ~MotionEventMessage() {};
 
   // The touches, one for each finger. The pointers are ordered according to their ids.
-  const std::vector<Pointer>& get_pointers() const { return pointers_; }
+  const std::vector<Pointer>& pointers() const { return pointers_; }
 
   // The action. See android.view.MotionEvent.action.
-  int32_t get_action() const { return action_; }
+  int32_t action() const { return action_; }
 
   // The display device where the mouse event occurred. Zero indicates the main display.
-  int32_t get_display_id() const { return display_id_; }
+  int32_t display_id() const { return display_id_; }
 
   static constexpr int TYPE = 1;
 
@@ -114,12 +112,12 @@ public:
   virtual ~KeyEventMessage() {};
 
   // AKEY_EVENT_ACTION_DOWN, AKEY_EVENT_ACTION_UP or ACTION_DOWN_AND_UP.
-  int32_t get_action() const { return action_; }
+  int32_t action() const { return action_; }
 
   // The code of the pressed or released key. */
-  int32_t get_keycode() const { return keycode_; }
+  int32_t keycode() const { return keycode_; }
 
-  int32_t get_meta_state() const { return meta_state_; }
+  int32_t meta_state() const { return meta_state_; }
 
   static constexpr int TYPE = 2;
 
@@ -146,7 +144,7 @@ public:
   }
   virtual ~TextInputMessage() {};
 
-  const std::u16string& get_text() const { return text_; }
+  const std::u16string& text() const { return text_; }
 
   static constexpr int TYPE = 3;
 
@@ -169,7 +167,7 @@ public:
   }
   virtual ~SetDeviceOrientationMessage() {};
 
-  uint32_t get_orientation() const { return orientation_; }
+  uint32_t orientation() const { return orientation_; }
 
   static constexpr int TYPE = 4;
 
@@ -193,8 +191,8 @@ public:
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
-  uint32_t get_width() const { return width_; }
-  uint32_t get_height() const { return height_; }
+  uint32_t width() const { return width_; }
+  uint32_t height() const { return height_; }
 
   static constexpr int TYPE = 5;
 
@@ -219,8 +217,8 @@ public:
   }
   virtual ~StartClipboardSyncMessage() {};
 
-  const std::string& get_text() const { return text_; }
-  int get_max_synced_length() const { return max_synced_length_; }
+  const std::string& text() const { return text_; }
+  int max_synced_length() const { return max_synced_length_; }
 
   static constexpr int TYPE = 6;
 
@@ -266,7 +264,7 @@ public:
   }
   virtual ~ClipboardChangedMessage() {};
 
-  const std::string& get_text() const { return text_; }
+  const std::string& text() const { return text_; }
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
