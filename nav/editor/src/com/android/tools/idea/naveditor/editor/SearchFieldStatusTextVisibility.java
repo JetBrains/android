@@ -16,8 +16,8 @@
 package com.android.tools.idea.naveditor.editor;
 
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.BooleanFunction;
+import java.util.function.Predicate;
 
 public class SearchFieldStatusTextVisibility {
-  static BooleanFunction<JBTextField> isVisibleFunction = field -> field.getText().isEmpty();
+  static Predicate<JBTextField> isVisibleFunction = field -> field.getText().isEmpty();
 }
