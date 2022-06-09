@@ -37,6 +37,8 @@ private const val DEFAULT_WINDOW_WIDTH = 500
  * Handle the editor change event and response it to the content.
  */
 interface VisualizationEditorChangeHandler {
+
+  val visualizationContent: VisualizationContent?
   fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow)
   fun onFileClose(source: FileEditorManager, toolWindow: ToolWindow, file: VirtualFile)
 }
@@ -47,6 +49,8 @@ interface VisualizationEditorChangeHandler {
 class SyncVisualizationEditorChangeHandler(private val contentProvider: VisualizationContentProvider) : VisualizationEditorChangeHandler {
 
   private var toolWindowContent: VisualizationContent? = null
+  override val visualizationContent: VisualizationContent?
+    get() = toolWindowContent
 
   override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
     if (toolWindow.isDisposed) {

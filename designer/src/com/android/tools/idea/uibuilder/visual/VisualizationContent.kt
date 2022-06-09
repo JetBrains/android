@@ -23,6 +23,7 @@ import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
@@ -35,6 +36,12 @@ import com.intellij.openapi.wm.ToolWindow
  * The content which is added into ToolWindow of Visualization.
  */
 interface VisualizationContent : Disposable {
+
+  companion object {
+    @JvmField
+    val VISUALIZATION_CONTENT = DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
+  }
+
   /**
    * Specifies the next editor the preview should be shown for.
    * The update of the preview may be delayed.
@@ -46,6 +53,16 @@ interface VisualizationContent : Disposable {
    * Called when a file editor was closed.
    */
   fun fileClosed(editorManager: FileEditorManager, file: VirtualFile)
+
+  /**
+   * Get the current selected [ConfigurationSet]
+   */
+  fun getConfigurationSet(): ConfigurationSet
+
+  /**
+   * Change the displayed [ConfigurationSet]
+   */
+  fun setConfigurationSet(configurationSet: ConfigurationSet)
 
   /**
    * Enables updates for this content.
@@ -76,6 +93,9 @@ object VisualizationFormProvider : VisualizationContentProvider {
       }
       if (DESIGN_SURFACE.`is`(dataId)) {
         return@addDataProvider visualizationForm.surface
+      }
+      if (VisualizationContent.VISUALIZATION_CONTENT.`is`(dataId)) {
+        return@addDataProvider visualizationForm
       }
       null
     }

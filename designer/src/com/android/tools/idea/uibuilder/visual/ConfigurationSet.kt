@@ -87,6 +87,9 @@ interface ConfigurationSet {
     override fun createModelsProvider(listener: ConfigurationSetListener) = LargeFontModelsProvider
   }
 
+  /**
+   * This is also known as "Reference Device".
+   */
   object WindowSizeDevices : ConfigurationSet {
     override val id = "windowSizeDevices"
     override val name = "Reference Devices"

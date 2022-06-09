@@ -461,6 +461,13 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     }
   }
 
+  override fun getConfigurationSet(): ConfigurationSet = myCurrentConfigurationSet
+
+  override fun setConfigurationSet(configurationSet: ConfigurationSet) {
+    // TODO: We should avoid calling the callback function actively. ConfigurationSetListener needs to be refactored.
+    onSelectedConfigurationSetChanged(configurationSet)
+  }
+
   private fun setNoActiveModel() {
     myCancelPendingModelLoad.set(true)
     editor = null

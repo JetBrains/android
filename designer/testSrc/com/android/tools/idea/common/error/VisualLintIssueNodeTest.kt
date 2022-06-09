@@ -21,13 +21,20 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.visual.ConfigurationSet
+import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
+import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
+import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.assertInstanceOf
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -38,7 +45,7 @@ class VisualLintIssueNodeTest {
 
   @RunsInEdt
   @Test
-  fun testHasNavigatable() {
+  fun testNavigatable() {
     val model = NlModelBuilderUtil.model(
       rule.projectRule,
       "layout",
@@ -59,12 +66,26 @@ class VisualLintIssueNodeTest {
 
     val issue = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
-    assertNotNull(node.getNavigatable())
+    val navigation = node.getNavigatable()
+    assertNotNull(navigation)
+
+    // This navigation should open Validation Tool and set configuration set to ConfigurationSet.WindowSizeDevices
+    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
+    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
+    toolWindow.isAvailable = true
+
+    val content = VisualizationToolWindowFactory.getVisualizationContent(rule.project)!!
+    content.setConfigurationSet(ConfigurationSet.LargeFont)
+
+    navigation.navigate(false)
+    assertEquals(ConfigurationSet.WindowSizeDevices, content.getConfigurationSet())
   }
 
   @RunsInEdt
   @Test
-  fun testNoNavigatableWhenSuppressed() {
+  fun testNotNavigateToComponentWhenSuppressed() {
     val errorType = VisualLintErrorType.BOUNDS
     val model = NlModelBuilderUtil.model(
       rule.projectRule,
@@ -84,7 +105,7 @@ class VisualLintIssueNodeTest {
 
     val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
-    assertNull(node.getNavigatable())
+    assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
 }
 

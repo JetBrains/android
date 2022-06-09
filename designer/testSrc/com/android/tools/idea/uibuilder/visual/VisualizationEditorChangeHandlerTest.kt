@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -25,11 +28,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.TestDataProvider
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -86,14 +93,36 @@ class VisualizationEditorChangeHandlerTest {
   }
 }
 
-private object TestVisualizationContentProvider : VisualizationContentProvider {
-  override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationContent = TestVisualizationContent()
+object TestVisualizationContentProvider : VisualizationContentProvider {
+  override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationContent {
+    val panel = object : JComponent(), VisualizationContent by TestVisualizationContent() { }
+    with(toolWindow.contentManager) {
+      val content = factory.createContent(panel, "Test Validation Tool", true)
+      addDataProvider { if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else null }
+      val context = (DataManager.getInstance() as HeadlessDataManager).dataContext
+      (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
+        if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else context.getData(it)
+      }
+
+      addContent(content)
+    }
+    return panel
+  }
 }
 
-private class TestVisualizationContent : VisualizationContent {
+class TestVisualizationContent : VisualizationContent {
+
+  private var currentConfigurationSet: ConfigurationSet = ConfigurationSet.WindowSizeDevices
+
   override fun setNextEditor(editor: FileEditor): Boolean = getFolderType(editor.file) == ResourceFolderType.LAYOUT
 
   override fun fileClosed(editorManager: FileEditorManager, file: VirtualFile) = Unit
+
+  override fun getConfigurationSet(): ConfigurationSet = currentConfigurationSet
+
+  override fun setConfigurationSet(configurationSet: ConfigurationSet) {
+    currentConfigurationSet = configurationSet
+  }
 
   override fun activate() = Unit
 
