@@ -15,8 +15,11 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
@@ -94,6 +97,7 @@ class BuildAnalyzerComboBoxView(
 
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
+    controlsPanel.add(createToolbar())
     add(controlsPanel, BorderLayout.NORTH)
     add(pagesPanel, BorderLayout.CENTER)
   }
@@ -117,4 +121,12 @@ class BuildAnalyzerComboBoxView(
   }
 
   override fun dispose() = Unit
+
+  private fun createToolbar(): JComponent {
+    val group = DefaultActionGroup()
+    group.add(BuildAnalyzerPropertiesAction())
+    val actionManager = ActionManager.getInstance()
+    return JBUI.Panels.simplePanel(actionManager.createActionToolbar("BuildAnalyzerToolbar", group, true).component)
+  }
 }
+

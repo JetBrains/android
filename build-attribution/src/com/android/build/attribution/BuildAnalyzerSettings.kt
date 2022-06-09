@@ -51,10 +51,14 @@ class BuildAnalyzerConfigurableProvider(val project: Project) : ConfigurableProv
   override fun createConfigurable(): Configurable {
     return BuildAnalyzerConfigurable(project)
   }
+
+  companion object {
+    const val DISPLAY_NAME = "Build Analyzer"
+  }
 }
 
 private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableConfigurable(
-  displayName = "Build Analyzer",
+  displayName = BuildAnalyzerConfigurableProvider.DISPLAY_NAME,
   helpTopic = "build.analyzer"
 ){
   private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
