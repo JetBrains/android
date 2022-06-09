@@ -25,18 +25,28 @@ import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-class VisualLintIssueProvider : IssueProvider() {
+class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), Disposable {
   private val issues = VisualLintIssues()
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
     issueListBuilder.addAll(issues.list)
+  }
+
+  override fun dispose() {
+    clear()
   }
 
   private fun addIssue(errorType: VisualLintErrorType, issue: Issue) = this.issues.add(errorType, issue)

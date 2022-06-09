@@ -20,15 +20,25 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderAsyncActionExecutor
-import com.android.tools.idea.rendering.RenderExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import java.util.concurrent.CompletableFuture
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.lang.IllegalArgumentException
 
@@ -36,17 +46,20 @@ import java.lang.IllegalArgumentException
  * Service that runs visual lints
  */
 @Service
-class VisualLintService {
+class VisualLintService(project: Project) {
 
   companion object {
     @JvmStatic
-    fun getInstance(): VisualLintService {
-      return ApplicationManager.getApplication().getService(VisualLintService::class.java)
+    fun getInstance(project: Project): VisualLintService {
+      return project.getService(VisualLintService::class.java)
     }
   }
 
   /** Default issue provider for Visual Lint Service. */
-  val issueProvider = VisualLintIssueProvider()
+  val issueProvider = VisualLintIssueProvider(project)
+
+  private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
+                                      OverlapAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
 
   fun removeIssues(surface: DesignSurface<*>) {
     surface.issueModel.removeIssueProvider(issueProvider)
@@ -79,13 +92,30 @@ class VisualLintService {
         }
 
         updateHierarchy(result, model)
-        analyzeAfterModelUpdate(result, model, issueProvider, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
+        analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
 
         return@thenComposeAsync CompletableFuture.completedFuture(null)
       }, AppExecutorUtil.getAppExecutorService()).thenAccept {
         // TODO: This might be triggered too frequently (4 times).
         issueModel.updateErrorsList()
       }
+    }
+  }
+
+  /**
+   * Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
+   */
+  fun analyzeAfterModelUpdate(result: RenderResult,
+                              model: NlModel,
+                              baseConfigIssues: VisualLintBaseConfigIssues,
+                              analyticsManager: VisualLintAnalyticsManager) {
+    basicAnalyzers.forEach {
+      val issues = it.analyze(result, model, analyticsManager)
+      issueProvider.addAllIssues(it.type, issues)
+    }
+    LocaleAnalyzer(baseConfigIssues).let { issueProvider.addAllIssues(it.type, it.analyze(result, model, analyticsManager)) }
+    if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
+      AtfAnalyzer.analyze(result, model, issueProvider)
     }
   }
 }

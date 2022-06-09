@@ -91,7 +91,7 @@ class AtfAnalyzerTest {
     RenderTestUtil.withRenderTask(facet, file, configuration, true) { task: RenderTask ->
       task.setDecorations(false)
       try {
-        val issueProvider = VisualLintIssueProvider()
+        val issueProvider = VisualLintIssueProvider(projectRule.testRootDisposable)
         val result = task.render().get()
         NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
         AtfAnalyzer.analyze(result, nlModel, issueProvider)

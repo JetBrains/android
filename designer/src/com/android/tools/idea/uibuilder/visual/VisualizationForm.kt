@@ -53,7 +53,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsMan
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -140,7 +139,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  private val myLintIssueProvider = VisualLintIssueProvider()
+  private val myLintIssueProvider = VisualLintService.getInstance(project).issueProvider
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
   private val myVisualLintAnalyticsManager: VisualLintAnalyticsManager
@@ -586,7 +585,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
             val result = manager.renderResult
             if (result != null) {
               ApplicationManager.getApplication().executeOnPooledThread {
-                analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues, myVisualLintAnalyticsManager)
+                VisualLintService.getInstance(project)
+                  .analyzeAfterModelUpdate(result, model, myBaseConfigIssues, myVisualLintAnalyticsManager)
                 if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
                   updateVisualLintIssues(model.file, myLintIssueProvider)
                 }
@@ -652,7 +652,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     analyticsManager.trackVisualizationToolWindow(true)
     surface.issueModel.addIssueProvider(myLintIssueProvider)
     FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface()?.let {
-      VisualLintService.getInstance().removeIssues(it)
+      VisualLintService.getInstance(project).removeIssues(it)
     }
   }
 

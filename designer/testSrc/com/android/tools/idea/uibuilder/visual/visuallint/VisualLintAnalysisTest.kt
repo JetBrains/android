@@ -71,27 +71,27 @@ class VisualLintAnalysisTest {
     val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
-    val filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout)
-    val issueProvider = VisualLintIssueProvider()
+    val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
+    val filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
 
     val phoneConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_phone")
     phoneConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, phoneConfiguration, issueProvider)
+    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
 
     val foldableConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_foldable")
     foldableConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, foldableConfiguration, issueProvider)
+    analyzeFile(facet, filesToAnalyze, foldableConfiguration)
 
     val tabletConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_tablet")
     tabletConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, tabletConfiguration, issueProvider)
+    analyzeFile(facet, filesToAnalyze, tabletConfiguration)
 
     val desktopConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_desktop")
     desktopConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, desktopConfiguration, issueProvider)
+    analyzeFile(facet, filesToAnalyze, desktopConfiguration)
 
-    val issues = issueProvider.getIssues()
-    assertEquals(4, issues.size)
+    val issues = VisualLintService.getInstance(projectRule.project).issueProvider.getIssues()
+    assertEquals(6, issues.size)
 
     issues.forEach {
       assertEquals("Visual Lint Issue", it.category)
@@ -136,6 +136,24 @@ class VisualLintAnalysisTest {
             it.description)
           assertNull(it.hyperlinkListener)
         }
+        VisualLintErrorType.BUTTON_SIZE -> {
+          assertEquals(4, it.models.size)
+          assertEquals("The button Button (id: button) is too wide", it.summary)
+          assertEquals(
+            "The button Button is wider than 320dp in 4 preview configurations." +
+            "<BR/>Material Design recommends buttons to be no wider than 320dp",
+            it.description)
+          assertNull(it.hyperlinkListener)
+        }
+        VisualLintErrorType.TEXT_FIELD_SIZE -> {
+          assertEquals(3, it.models.size)
+          assertEquals("The text field EditText (id: text_field) is too wide", it.summary)
+          assertEquals(
+            "The text field EditText is wider than 488dp in 3 preview configurations." +
+            "<BR/>Material Design recommends text fields to be no wider than 488dp",
+            it.description)
+          assertNull(it.hyperlinkListener)
+        }
         else -> fail("Unexpected visual lint error")
       }
     }
@@ -146,7 +164,6 @@ class VisualLintAnalysisTest {
     facet: AndroidFacet,
     files: List<VirtualFile>,
     configuration: Configuration,
-    issueProvider: VisualLintIssueProvider
   ) {
     files.forEach { file ->
       val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
@@ -156,7 +173,8 @@ class VisualLintAnalysisTest {
         task.setDecorations(false)
         try {
           val result = task.render().get()
-          analyzeAfterModelUpdate(result, nlModel, issueProvider, VisualLintBaseConfigIssues(), myAnalyticsManager)
+          VisualLintService.getInstance(projectRule.project)
+            .analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues(), myAnalyticsManager)
         }
         catch (ex: Exception) {
           throw RuntimeException(ex)
