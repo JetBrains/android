@@ -267,7 +267,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -590,7 +592,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -794,6 +798,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -1003,6 +1008,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

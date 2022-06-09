@@ -297,11 +297,17 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         ORDER_ENTRY                   : compositeNest.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.androidTest
         BUILD_TASKS
@@ -688,11 +694,17 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         ORDER_ENTRY                   : compositeNest.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.unitTest
         BUILD_TASKS
@@ -988,9 +1000,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.androidTest
         BUILD_TASKS
@@ -1353,9 +1369,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.unitTest
         BUILD_TASKS
@@ -1679,9 +1699,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.androidTest
         BUILD_TASKS
@@ -2066,9 +2090,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.unitTest
         BUILD_TASKS
@@ -2308,7 +2336,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.androidTest
         BUILD_TASKS
@@ -2562,7 +2592,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.unitTest
         BUILD_TASKS
@@ -3354,12 +3386,19 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         ORDER_ENTRY                   : compositeNest.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.androidTest
         BUILD_TASKS
@@ -3747,12 +3786,19 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
+            Scope                         : Test
         ORDER_ENTRY                   : composite4.main
+            Scope                         : Test
         ORDER_ENTRY                   : compositeNest.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.unitTest
         BUILD_TASKS
@@ -4048,6 +4094,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.lib.androidTest
         BUILD_TASKS
@@ -4407,6 +4454,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.lib.unitTest
         BUILD_TASKS

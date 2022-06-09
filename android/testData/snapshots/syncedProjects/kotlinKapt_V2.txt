@@ -315,7 +315,9 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : MainActivity.javaLib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/MainActivity.app.androidTest
         BUILD_TASKS
@@ -698,7 +700,9 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : MainActivity.javaLib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/MainActivity.app.unitTest
         BUILD_TASKS
@@ -1235,6 +1239,7 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -1593,6 +1598,7 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

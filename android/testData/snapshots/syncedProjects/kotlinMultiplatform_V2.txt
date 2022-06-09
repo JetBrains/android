@@ -309,8 +309,11 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.androidTest
         BUILD_TASKS
@@ -701,8 +704,11 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.unitTest
         BUILD_TASKS
@@ -956,8 +962,11 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.androidTest
         BUILD_TASKS
@@ -1119,6 +1128,7 @@ PROJECT                       : kotlinMultiPlatform
             VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
@@ -1401,8 +1411,11 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.unitTest
         BUILD_TASKS

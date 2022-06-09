@@ -162,7 +162,9 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -332,7 +334,9 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -510,6 +514,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
@@ -678,6 +683,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2

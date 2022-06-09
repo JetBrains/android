@@ -177,7 +177,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -481,7 +483,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -759,7 +763,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources
@@ -923,7 +929,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources
@@ -1097,7 +1105,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature2:generateDebugSources
@@ -1261,7 +1271,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature2:generateDebugSources
@@ -1461,7 +1473,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -1749,7 +1763,9 @@ PROJECT                       : AS36_noiml
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+            Scope                         : Test
         ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]

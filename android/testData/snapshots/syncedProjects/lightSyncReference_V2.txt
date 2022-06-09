@@ -201,7 +201,9 @@ PROJECT                       : reference
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/reference.androidlibrary.androidTest
         BUILD_TASKS
@@ -367,7 +369,9 @@ PROJECT                       : reference
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/reference.androidlibrary.unitTest
         BUILD_TASKS
@@ -579,7 +583,9 @@ PROJECT                       : reference
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/reference.app.androidTest
         BUILD_TASKS
@@ -763,7 +769,9 @@ PROJECT                       : reference
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/reference.app.unitTest
         BUILD_TASKS

@@ -253,10 +253,15 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.javalib1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.javalib2.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.androidTest
         BUILD_TASKS
@@ -553,10 +558,15 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.javalib1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.javalib2.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.unitTest
         BUILD_TASKS
@@ -1068,6 +1078,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.library1.androidTest
         BUILD_TASKS
@@ -1327,6 +1338,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.library1.unitTest
         BUILD_TASKS
@@ -1564,7 +1576,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.library2.androidTest
         BUILD_TASKS
@@ -1831,7 +1845,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.library1.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.library2.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.library2.unitTest
         BUILD_TASKS

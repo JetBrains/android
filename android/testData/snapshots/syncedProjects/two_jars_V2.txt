@@ -157,7 +157,9 @@ PROJECT                       : My Application
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
             Scope                         : Test
         ORDER_ENTRY                   : My_Application.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : My_Application.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/My_Application.androidTest
         BUILD_TASKS
@@ -480,7 +482,9 @@ PROJECT                       : My Application
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
             Scope                         : Test
         ORDER_ENTRY                   : My_Application.lib.main
+            Scope                         : Test
         ORDER_ENTRY                   : My_Application.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources

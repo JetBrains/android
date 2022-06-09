@@ -161,7 +161,9 @@ PROJECT                       : reference
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
@@ -315,7 +317,9 @@ PROJECT                       : reference
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
@@ -487,7 +491,9 @@ PROJECT                       : reference
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -657,7 +663,9 @@ PROJECT                       : reference
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2

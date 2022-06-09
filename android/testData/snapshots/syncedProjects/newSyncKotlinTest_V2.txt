@@ -333,7 +333,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.contentLib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.androidTest
         BUILD_TASKS
@@ -744,7 +746,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.contentLib.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.app.unitTest
         BUILD_TASKS
@@ -1064,6 +1068,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.awesomeandroidlibrary.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.androidTest
         BUILD_TASKS
@@ -1427,6 +1432,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.awesomeandroidlibrary.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.awesomeandroidlibrary.unitTest
         BUILD_TASKS

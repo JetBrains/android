@@ -49,7 +49,9 @@ import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.DependencyScope
+import com.intellij.openapi.roots.DependencyScope.COMPILE
 import com.intellij.openapi.roots.ExcludeFolder
+import com.intellij.openapi.roots.ExportableOrderEntry
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
@@ -259,7 +261,16 @@ private fun ProjectDumper.dump(orderEntry: OrderEntry) {
   when (orderEntry) {
     is JdkOrderEntry -> dumpJdk(orderEntry)
     is LibraryOrderEntry -> dumpLibrary(orderEntry)
-    else -> head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
+    else -> {
+      head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
+      val exportable = orderEntry as? ExportableOrderEntry
+      if (exportable != null) {
+        nest {
+          prop("Scope") { exportable.scope.takeIf { it != COMPILE }?.toString() }
+          prop("IsExported") { exportable.isExported.takeIf { it }?.toString() }
+        }
+      }
+    }
   }
 }
 
@@ -282,7 +293,7 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
   nest {
     prop("LibraryLevel") { library.libraryLevel.takeUnless { it == "project" } }
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
-    prop("Scope") { library.scope.takeIf {it != DependencyScope.COMPILE}?.toString () }
+    prop("Scope") { library.scope.takeIf {it != COMPILE }?.toString () }
     prop("IsExported") { library.isExported.takeIf{ it}?.toString() }
     if (library.libraryLevel != "project" ) {
       library.library?.let { dump(it) }

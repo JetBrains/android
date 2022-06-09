@@ -311,7 +311,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
@@ -663,7 +665,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
@@ -843,6 +847,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.dyn_feature.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
@@ -1005,6 +1010,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.dyn_feature.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
@@ -1351,7 +1357,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.jav.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -1603,7 +1611,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.jav.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -1773,6 +1783,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested1.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
@@ -1942,6 +1953,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested1.deep.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
@@ -2100,6 +2112,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested1.deep.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
@@ -2258,6 +2271,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested1.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
@@ -2449,6 +2463,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
@@ -2618,6 +2633,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.deep.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
@@ -2776,6 +2792,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.deep.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
@@ -3076,6 +3093,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
@@ -3234,6 +3252,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
@@ -3325,6 +3344,7 @@ PROJECT                       : project
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.nested2.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources

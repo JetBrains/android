@@ -267,6 +267,7 @@ PROJECT                       : application
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : application.app.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/application.app.androidTest
         BUILD_TASKS
@@ -549,6 +550,7 @@ PROJECT                       : application
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : application.app.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/application.app.unitTest
         BUILD_TASKS

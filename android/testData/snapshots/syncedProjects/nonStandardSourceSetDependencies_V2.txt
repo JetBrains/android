@@ -239,9 +239,13 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -481,9 +485,13 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -743,8 +751,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:generateDebugSources
@@ -1040,8 +1051,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:generateDebugSources
@@ -1610,6 +1624,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -1832,6 +1847,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -2062,6 +2078,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses
@@ -2242,9 +2259,13 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonTest
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :network-kmm:assemble, :network-kmm:testClasses

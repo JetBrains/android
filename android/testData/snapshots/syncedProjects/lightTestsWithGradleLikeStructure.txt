@@ -145,6 +145,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
@@ -313,6 +314,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2

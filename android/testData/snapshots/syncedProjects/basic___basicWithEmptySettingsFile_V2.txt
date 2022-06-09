@@ -213,6 +213,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.main
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/project.androidTest
         BUILD_TASKS
@@ -481,6 +482,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.main
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
