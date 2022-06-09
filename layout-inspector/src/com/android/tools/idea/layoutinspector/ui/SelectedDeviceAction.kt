@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import icons.StudioIcons
 import javax.swing.JComponent
 
@@ -40,8 +41,8 @@ class SelectDeviceAction(
   private val deviceModel: DeviceModel,
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val createDeviceLabel: (DeviceDescriptor) -> String = Companion::createDefaultDeviceLabel,
-  private val stopPresentation: StopPresentation = StopPresentation(),
-  private val onStopAction: ((ProcessDescriptor) -> Unit)? = null,
+  private val detachPresentation: DetachPresentation = DetachPresentation(),
+  private val onDetachAction: ((ProcessDescriptor) -> Unit)? = null,
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> }
 ) :
   DropDownAction(
@@ -91,29 +92,32 @@ class SelectDeviceAction(
       add(NO_DEVICE_ACTION)
     }
 
-    // For consistency, always add a stop action, but only enable it if there's a current process
-    // that can actually be stopped.
-    val stopInspectionAction = object : AnAction(stopPresentation.text,
-                                                 stopPresentation.desc,
-                                                 StudioIcons.Shell.Toolbar.STOP) {
+    // For consistency, always add a detach action, but only enable it if there's a current process
+    // that can actually be detached.
+    val detachInspectionAction = object : AnAction(detachPresentation.text,
+                                                   detachPresentation.desc,
+                                                   StudioIcons.Shell.Toolbar.STOP) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = (deviceModel.selectedProcess?.isRunning == true)
       }
 
       override fun actionPerformed(e: AnActionEvent) {
-        onStopAction?.invoke(deviceModel.selectedProcess!!)
+        onDetachAction?.invoke(deviceModel.selectedProcess!!)
       }
     }
-    add(stopInspectionAction)
+    add(detachInspectionAction)
 
     return true
   }
 
   override fun displayTextInToolbar() = true
 
-  class StopPresentation(val text: String = "Stop Inspector",
-                         val desc: String = "Stop all inspector running on the selected device.")
+  class DetachPresentation(val text: String = "Detach Inspector",
+                           val desc: String = "Detach the inspector from the process being inspected.")
 
+  /**
+   * A device which the user can select.
+   */
   private inner class DeviceAction(
     private val device: DeviceDescriptor,
   ) : ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
@@ -121,6 +125,10 @@ class SelectDeviceAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      // restore the icon after the Action was de-selected
+      if (!Toggleable.isSelected(event.presentation)) {
+        event.presentation.icon = device.toIcon()
+      }
       customDeviceAttribution(device, event)
     }
 

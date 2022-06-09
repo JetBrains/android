@@ -99,7 +99,7 @@ class SelectDeviceActionTest {
     val children = selectDeviceAction.getChildren(null)
     Truth.assertThat(children).hasLength(2)
     Truth.assertThat(children[0].templateText).isEqualTo("No devices detected")
-    Truth.assertThat(children[1].templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(children[1].templateText).isEqualTo("Detach Inspector")
   }
 
   @Test
@@ -123,7 +123,7 @@ class SelectDeviceActionTest {
     // Virtual devices hide the manufacturer
     Truth.assertThat(children[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
     // Stop button
-    Truth.assertThat(children[2].templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(children[2].templateText).isEqualTo("Detach Inspector")
   }
 
   @Test
@@ -165,7 +165,7 @@ class SelectDeviceActionTest {
     Truth.assertThat(selectDeviceAction.childrenCount).isEqualTo(2)
     val children1 = selectDeviceAction.getChildren(null)
     Truth.assertThat(children1[0].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
-    Truth.assertThat(children1[1].templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(children1[1].templateText).isEqualTo("Detach Inspector")
 
     testNotifier.removeDevice(fakeStream.device.toDeviceDescriptor())
 
@@ -173,7 +173,7 @@ class SelectDeviceActionTest {
     Truth.assertThat(selectDeviceAction.childrenCount).isEqualTo(2)
     val children2 = selectDeviceAction.getChildren(null)
     Truth.assertThat(children2[0].templateText).isEqualTo("No devices detected")
-    Truth.assertThat(children2[1].templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(children2[1].templateText).isEqualTo("Detach Inspector")
   }
 
   @Test
@@ -182,7 +182,7 @@ class SelectDeviceActionTest {
     val model = ProcessesModel(testNotifier) { it.name == "B" }
     val deviceModel = DeviceModel(model)
     val callbackFiredLatch = CountDownLatch(1)
-    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onStopAction = {
+    val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
       callbackFiredLatch.countDown()
     })
 
@@ -198,7 +198,7 @@ class SelectDeviceActionTest {
     Truth.assertThat(device.templateText).isEqualTo("FakeDevice")
 
     val stop = children[1]
-    Truth.assertThat(stop.templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(stop.templateText).isEqualTo("Detach Inspector")
 
     stop.actionPerformed(createFakeEvent())
     callbackFiredLatch.await()
