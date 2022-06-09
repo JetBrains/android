@@ -274,7 +274,7 @@ public class RenderTask {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
           this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
-      if (ResourceIdManager.get(module).finalIdsUsed()) {
+      if (ResourceIdManager.get(module).getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);

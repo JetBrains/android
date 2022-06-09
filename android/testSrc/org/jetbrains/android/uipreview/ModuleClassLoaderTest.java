@@ -30,9 +30,11 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.TestResourceIdManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -61,6 +63,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
@@ -69,8 +72,18 @@ import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
+
+  private TestResourceIdManager testResourceIdManager;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    testResourceIdManager = TestResourceIdManager.Companion.getManager(myModule);
+  }
+
   @Override
   protected void tearDown() throws Exception {
+    testResourceIdManager.resetFinalIdsUsed();
     super.tearDown();
     StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride();
     LiveEditApplicationConfiguration.Companion.getInstance().resetDefault();
@@ -287,7 +300,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  public void testLibRClass() throws Exception {
+  private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
+    testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
+
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),
@@ -315,8 +330,40 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
-    loader.loadClass("p1.p2.R");
+    try {
+      assertNotNull(loader.loadClass("p1.p2.R"));
+      if (finalIdsUsed) {
+        fail("When final IDs are used, resource classes should not be loaded from light classes in LibraryResourceClassLoader.");
+      }
+    }
+    catch (ClassNotFoundException e) {
+      if (!finalIdsUsed) {
+        fail("When final IDs are not used, resource classes should be found even if there is no backing compiled classes.");
+      }
+    }
+
+    // Make sure there is a compiled R class in the output directory, to be used when final IDs are used.
+    Path moduleCompileOutputPath =
+      GradleClassFinderUtil.getModuleCompileOutputs(myModule,false).collect(Collectors.toList()).get(0).toPath();
+    Files.createDirectories(moduleCompileOutputPath);
+    Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
+    Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
+    FileUtil.writeToFile(rSrcFile.toFile(), "package com.google.example; public class R { }");
+    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    javac.run(null, System.out, System.err, rSrcFile.toString());
+
+    // Now, the class should be found, regardless of final IDs being used or not.
+    assertNotNull(loader.loadClass("p1.p2.R"));
     ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  // Regression test for b/233862429
+  public void testLibRClassFinalIds() throws Exception {
+    doTestLibRClass(true);
+  }
+
+  public void testLibRClassNoFinalIds() throws Exception {
+    doTestLibRClass(false);
   }
 
   // Regression test for b/162056408

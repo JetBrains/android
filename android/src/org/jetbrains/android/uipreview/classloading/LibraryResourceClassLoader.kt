@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.ResourceIdManager.Companion.get
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
 import com.android.tools.idea.util.toVirtualFile
@@ -99,7 +98,7 @@ private fun ExternalAndroidLibrary.registerLibraryResources(
 private fun registerResources(module: Module) {
   val androidFacet: AndroidFacet = AndroidFacet.getInstance(module) ?: return
   val repositoryManager = ResourceRepositoryManager.getInstance(androidFacet)
-  val idManager = get(module)
+  val idManager = ResourceIdManager.get(module)
   val classRegistry = ResourceClassRegistry.get(module.project)
 
   // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
@@ -122,11 +121,11 @@ private fun registerResources(module: Module) {
                                  },
                                  repositoryManager.namespace)
       }
-  }
 
-  module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
-    .filter { it.hasResources }
-    .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
+    module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+      .filter { it.hasResources }
+      .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
+  }
 }
 
 // matches foo.bar.R or foo.bar.R$baz

@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
@@ -53,6 +54,8 @@ class VisualLintAnalysisTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
+  private lateinit var resourceIdManger: TestResourceIdManager
+
   @Before
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
@@ -68,6 +71,7 @@ class VisualLintAnalysisTest {
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }
+    resourceIdManger.resetFinalIdsUsed()
   }
 
   @Test
@@ -76,6 +80,10 @@ class VisualLintAnalysisTest {
     projectRule.requestSyncAndWait()
 
     val module = projectRule.getModule("app")
+    // Disable final IDs for this test, so it can use light classes to resolve resources.
+    // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and LibraryResourceClassLoaderTest.
+    resourceIdManger = TestResourceIdManager.getManager(module)
+    resourceIdManger.setFinalIdsUsed(false)
     val facet = AndroidFacet.getInstance(module)!!
     val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!

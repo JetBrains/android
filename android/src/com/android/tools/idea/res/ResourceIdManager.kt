@@ -49,15 +49,53 @@ private const val FIRST_PACKAGE_ID: Byte = 0x02
 /**
  * Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt.
  */
-class ResourceIdManager private constructor(val module: Module) : ResourceClassGenerator.NumericIdProvider {
+internal interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
+  /**
+   * Whether R classes with final ids are used for compiling custom views.
+   */
+  val finalIdsUsed: Boolean
 
-  private val facet = AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
-  private var generationCounter = 1L
+  fun getCompiledId(resource: ResourceReference): Int?
+
+  fun findById(id: Int): ResourceReference?
+
+  fun loadCompiledIds(klass: Class<*>)
+
+  /**
+   * Resets the currently loaded compiled ids. Call this method before start loading new compiled ids via [loadCompiledIds].
+   */
+  fun resetCompiledIds()
+
+  fun resetDynamicIds()
 
   companion object {
     @JvmStatic
     fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
   }
+}
+
+class TestResourceIdManager private constructor(module: Module) : ResourceIdManagerImpl(module) {
+  private var _finalIdsUsed = true
+  override val finalIdsUsed: Boolean
+    get() = _finalIdsUsed
+
+  fun setFinalIdsUsed(finalIdsUsed: Boolean) {
+    _finalIdsUsed = finalIdsUsed
+  }
+
+  fun resetFinalIdsUsed() {
+    _finalIdsUsed = true
+  }
+
+  companion object {
+    fun getManager(module: Module) = module.getService(ResourceIdManager::class.java) as TestResourceIdManager
+  }
+}
+
+open class ResourceIdManagerImpl protected constructor(val module: Module) : ResourceIdManager {
+
+  private val facet = AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
+  private var generationCounter = 1L
 
   /**
    * Class for generating dynamic ids with the given byte as the "package id" part of the 32-bit resource id.
@@ -66,7 +104,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * assigned sequentially, starting with the highest possible value and going down. This should mean they won't conflict with
    * [compiledIds] assigned by real aapt in a normal-size project (although there is no mechanism to check that).
    */
-  class IdProvider(private val packageByte: Byte) {
+  private class IdProvider(private val packageByte: Byte) {
     private val counters: ShortArray = ShortArray(ResourceType.values().size) { 0xffff.toShort() }
 
     fun getNext(type: ResourceType): Int {
@@ -120,18 +158,14 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   @GuardedBy("this")
   private var frameworkIds: SingleNamespaceIdMapping = loadFrameworkIds()
 
-  /**
-   * Whether R classes with final ids are used for compiling custom views.
-   */
-  val finalIdsUsed: Boolean
-    @JvmName("finalIdsUsed")
+  override val finalIdsUsed: Boolean
     get() {
       return facet.configuration.isAppOrFeature
              && ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED
     }
 
   @Synchronized
-  fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
+  override fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
 
   /**
    * Returns the compiled id of the given resource, if known.
@@ -140,7 +174,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * read from [com.android.internal.R].
    */
   @Synchronized
-  fun getCompiledId(resource: ResourceReference): Int? {
+  override fun getCompiledId(resource: ResourceReference): Int? {
     val knownIds = when (resource.namespace) {
       ResourceNamespace.ANDROID -> frameworkIds
       ResourceNamespace.RES_AUTO -> compiledIds
@@ -177,7 +211,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   }
 
   @Synchronized
-  fun resetDynamicIds() {
+  override fun resetDynamicIds() {
     generationCounter++
     resetProviders()
     dynamicToIdMap.clear()
@@ -188,7 +222,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   override fun getGeneration(): Long = generationCounter
 
   @Synchronized
-  fun loadCompiledIds(klass: Class<*>) {
+  override fun loadCompiledIds(klass: Class<*>) {
     if (compiledIds == null) {
       compiledIds = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
     }
@@ -308,17 +342,14 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     }
   }
 
-  /**
-   * Resets the currently loaded compiled ids. Call this method before start loading new compiled ids via [loadCompiledIds].
-   */
-  fun resetCompiledIds() {
+  override fun resetCompiledIds() {
     compiledIds = null
   }
 
   /**
    * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
    */
-  class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
+  private class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
     var toIdMap = EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType::class.java)
     var fromIdMap = TIntObjectHashMap<Pair<ResourceType, String>>()
 

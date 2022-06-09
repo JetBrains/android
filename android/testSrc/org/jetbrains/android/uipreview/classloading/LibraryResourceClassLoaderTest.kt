@@ -16,10 +16,12 @@
 package org.jetbrains.android.uipreview.classloading
 
 import com.android.SdkConstants
+import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.fail
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -38,8 +40,13 @@ class LibraryResourceClassLoaderTest {
     }
   }
 
+  private lateinit var resourceIdManger: TestResourceIdManager
+
   @Before
   fun setup() {
+    resourceIdManger = TestResourceIdManager.getManager(androidProjectRule.module)
+    resourceIdManger.setFinalIdsUsed(false)
+
     addAarDependency(androidProjectRule.module, "aarLib", "com.example.mylibrary") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
@@ -63,6 +70,11 @@ class LibraryResourceClassLoaderTest {
       """.trimIndent()
       )
     }
+  }
+
+  @After
+  fun tearDown() {
+    resourceIdManger.resetFinalIdsUsed()
   }
 
   @Test
@@ -93,5 +105,15 @@ class LibraryResourceClassLoaderTest {
       .map { it.name }
       .sorted()
       .joinToString())
+  }
+
+  // Regression test for b/233862429
+  @Test
+  fun `library R class is not found if final IDs are used`() {
+    resourceIdManger.setFinalIdsUsed(true)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    // When final IDs are used, we should load the R classes from the compiled R classes, not the light classes created by this class loader
+    assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R") }
+    assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R${'$'}layout") }
   }
 }

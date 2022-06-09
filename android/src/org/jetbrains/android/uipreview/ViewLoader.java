@@ -25,7 +25,11 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
+import com.android.ide.common.util.PathString;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -45,6 +49,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
@@ -104,6 +109,27 @@ public class ViewLoader {
   private static String getRClassName(@NotNull final Module module) {
     String packageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
     return packageName == null ? null : packageName + '.' + R_CLASS;
+  }
+
+  @Nullable
+  private static String getPackageName(ExternalAndroidLibrary library) {
+    String packageName = library.getPackageName();
+    if (packageName == null) {
+      // Try the manifest if the package name is not directly set.
+      PathString manifest = library.getManifestFile();
+      if (manifest != null) {
+        try {
+          packageName = AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifest);
+        }
+        catch (IOException e) {
+          LOG.info(String.format("getPackageName: failed to find packageName for library %1$s", library.libraryName()));
+        }
+      }
+      if (packageName == null) {
+        return null;
+      }
+    }
+    return packageName + '.' + R_CLASS;
   }
 
   /**
@@ -433,11 +459,16 @@ public class ViewLoader {
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     idManager.resetCompiledIds();
     Stream.concat(
-        Stream.of(myModule),
-        // Get all project (not external libraries) dependencies
-        AndroidDependenciesCache.getAllAndroidDependencies(myModule, false).stream().map(Facet::getModule))
-      .map(ViewLoader::getRClassName)
-      .forEach((rClassName) -> {
+        Stream.concat(
+            Stream.of(myModule),
+            // Get all project (not external libraries) dependencies
+            AndroidDependenciesCache.getAllAndroidDependencies(myModule, false).stream().map(Facet::getModule)
+          )
+          .map(ViewLoader::getRClassName),
+        // Get all external (libraries) dependencies
+        ProjectSystemUtil.getModuleSystem(myModule).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
+          .map(ViewLoader::getPackageName)
+      ).forEach((rClassName) -> {
         try {
           if (rClassName == null) {
             LOG.info(
