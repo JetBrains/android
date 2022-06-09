@@ -70,7 +70,7 @@ class GradleTaskFinder {
     }
 
     // Instrumented test support for Dynamic Features: base-app module should be added explicitly for gradle tasks
-    if (testCompileType === TestCompileType.ANDROID_TESTS) {
+    if (testCompileType === TestCompileType.ANDROID_TESTS || testCompileType === TestCompileType.ALL) {
       for (module in modules) {
         val baseAppModule = DynamicAppUtils.getBaseFeature(module)
         if (baseAppModule != null) {
@@ -184,8 +184,8 @@ class GradleTaskFinder {
             } else if (androidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
             ) {
               // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
-              if (testCompileType === TestCompileType.ANDROID_TESTS) {
-                for (artifact in testCompileType.getArtifacts(androidModel.selectedVariant)) {
+              if (testCompileType === TestCompileType.ANDROID_TESTS || testCompileType === TestCompileType.ALL) {
+                for (artifact in TestCompileType.ANDROID_TESTS.getArtifacts(androidModel.selectedVariant)) {
                   addTaskIfSpecified(tasks, gradlePath, artifact.assembleTaskName)
                 }
               }

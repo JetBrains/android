@@ -97,7 +97,7 @@ PROJECT                       : project
                 COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -322,7 +322,7 @@ PROJECT                       : project
                 COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -490,7 +490,7 @@ PROJECT                       : project
                 COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -676,7 +676,7 @@ PROJECT                       : project
                 COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -759,11 +759,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                BUNDLE                        : :app:bundleBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -850,11 +852,13 @@ PROJECT                       : project
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                BUNDLE                        : :app:bundleBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -937,11 +941,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                BUNDLE                        : :app:bundleBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -1013,11 +1019,13 @@ PROJECT                       : project
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                BUNDLE                        : :app:bundleBasicBarDebug
+                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
@@ -3525,7 +3533,7 @@ PROJECT                       : project
             COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugAndroidTestSources, <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::app:compileBasicBarDebugUnitTestSources, <PROJECT>::dyn_feature:compileDebugAndroidTestSources, <PROJECT>::dyn_feature:compileDebugSources, <PROJECT>::dyn_feature:compileDebugUnitTestSources, <PROJECT>::jav:compileJava, <PROJECT>::jav:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::nested1:compileDebugAndroidTestSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:compileDebugUnitTestSources, <PROJECT>::nested1:deep:compileDebugAndroidTestSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested1:deep:compileDebugUnitTestSources, <PROJECT>::nested2:compileBasicDebugAndroidTestSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:compileBasicDebugUnitTestSources, <PROJECT>::nested2:deep:compileDebugAndroidTestSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:deep:compileDebugUnitTestSources, <PROJECT>::nested2:trans:deep2:compileDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             BUNDLE                        : :app:bundleBasicBarDebug
-            APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+            APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest
