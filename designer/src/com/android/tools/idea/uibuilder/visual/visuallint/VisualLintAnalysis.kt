@@ -28,8 +28,10 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAn
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 
 enum class VisualLintErrorType(private val ignoredAttributeName: String) {
+  TEXT_FIELD_SIZE("TextFieldSize"),
   BUTTON_SIZE("ButtonSize"),
   BOUNDS("Bounds"),
   BOTTOM_NAV("BottomNav"),
@@ -58,7 +60,7 @@ enum class VisualLintErrorType(private val ignoredAttributeName: String) {
   }
 }
 
-private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer,
+private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
                                     OverlapAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
 
 /**
