@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -33,7 +34,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.Executors
@@ -59,7 +59,7 @@ class MessageProcessorTest {
   fun appendMessages_batchesJoined(): Unit = runBlocking {
     val mockClock = mock<Clock>()
     // First call initializes lastFlushTime, then each call represents a batch.
-    `when`(mockClock.millis()).thenReturn(1000, 1000, 1010)
+    whenever(mockClock.millis()).thenReturn(1000, 1000, 1010)
     val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 100, clock = mockClock, autoStart = false)
     val batch1 = listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", timestamp), "message1"),
@@ -110,7 +110,7 @@ class MessageProcessorTest {
   fun appendMessages_batchesSplitOnMaxTimePerBatchMs() = runBlocking {
     val mockClock = mock<Clock>()
     // First call initializes lastFlushTime, then each call represents a batch.
-    `when`(mockClock.millis()).thenReturn(1000, 1000, 2000, 3000)
+    whenever(mockClock.millis()).thenReturn(1000, 1000, 2000, 3000)
     val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 500, clock = mockClock, autoStart = false)
     // We need 3 batches here because the first batch will never be flushed on its own unless the channel is empty. We can fake it by
     // setting up the mock with (1000, 2000, 3000) but that's not an accurate representation of what actually happens where the first 2

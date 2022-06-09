@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
@@ -45,7 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
+
 
 private const val PROCESS_NAME = "com.example.p1"
 
@@ -163,7 +164,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     // Simulate that the process was started in the debugger.
     // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
-    `when`(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
+    whenever(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
     val debugHandler = AndroidRemoteDebugProcessHandler(project, mock(), false)
     debugHandler.startNotify()
     status.processHandler = debugHandler

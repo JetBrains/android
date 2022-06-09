@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
@@ -49,18 +49,18 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     module2 = createModule("lib")
     usageReporter = TestSyncIssueUsageReporter()
 
-    `when`(syncIssue1.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
-    `when`(syncIssue2.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
+    whenever(syncIssue1.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
+    whenever(syncIssue2.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
   }
 
   @Test
   fun testDeduplicationInSameModule() {
-    `when`(syncIssue1.message).thenReturn("Warning message!")
-    `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    `when`(syncIssue2.message).thenReturn("Warning message!")
-    `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue1.message).thenReturn("Warning message!")
+    whenever(syncIssue1.data).thenReturn("key")
+    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue2.message).thenReturn("Warning message!")
+    whenever(syncIssue2.data).thenReturn("key")
+    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(), usageReporter)
 
@@ -81,12 +81,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testNoDeduplicationInSameModule() {
-    `when`(syncIssue1.message).thenReturn("Warning message!")
-    `when`(syncIssue1.data).thenReturn("key1")
-    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    `when`(syncIssue2.message).thenReturn("Warning message!")
-    `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue1.message).thenReturn("Warning message!")
+    whenever(syncIssue1.data).thenReturn("key1")
+    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue2.message).thenReturn("Warning message!")
+    whenever(syncIssue2.data).thenReturn("key")
+    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -114,12 +114,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testDeduplicationAcrossModules() {
-    `when`(syncIssue1.message).thenReturn("Warning message!")
-    `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    `when`(syncIssue2.message).thenReturn("Warning message!")
-    `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue1.message).thenReturn("Warning message!")
+    whenever(syncIssue1.data).thenReturn("key")
+    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue2.message).thenReturn("Warning message!")
+    whenever(syncIssue2.data).thenReturn("key")
+    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -140,12 +140,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testNoDeduplicationAcrossModules() {
-    `when`(syncIssue1.message).thenReturn("Warning message!")
-    `when`(syncIssue1.data).thenReturn("key1")
-    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    `when`(syncIssue2.message).thenReturn("Warning message!")
-    `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue1.message).thenReturn("Warning message!")
+    whenever(syncIssue1.data).thenReturn("key1")
+    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue2.message).thenReturn("Warning message!")
+    whenever(syncIssue2.data).thenReturn("key")
+    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -173,12 +173,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testDeduplicationHandlesErrors() {
-    `when`(syncIssue1.message).thenReturn("Error message!")
-    `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    `when`(syncIssue2.message).thenReturn("Error message!")
-    `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    whenever(syncIssue1.message).thenReturn("Error message!")
+    whenever(syncIssue1.data).thenReturn("key")
+    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    whenever(syncIssue2.message).thenReturn("Error message!")
+    whenever(syncIssue2.data).thenReturn("key")
+    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 

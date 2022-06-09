@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
@@ -69,7 +70,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -448,7 +448,7 @@ class SettingsFragment : PreferenceFragmentCompat()
   fun testAddDestination() {
     val destination = mock(Destination::class.java)
     val component = model.find("fragment")!!
-    `when`(destination.component).thenReturn(component)
+    whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
@@ -462,8 +462,8 @@ class SettingsFragment : PreferenceFragmentCompat()
   fun testAddInclude() {
     val destination = mock(Destination::class.java)
     val component = spy(model.find("fragment")!!)
-    `when`(component.tagName).thenReturn(TAG_INCLUDE)
-    `when`(destination.component).thenReturn(component)
+    whenever(component.tagName).thenReturn(TAG_INCLUDE)
+    whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()

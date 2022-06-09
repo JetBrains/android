@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.HardwareProperties
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.google.common.truth.Truth.assertThat
@@ -29,7 +30,6 @@ import com.google.common.util.concurrent.Futures
 import org.junit.After
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -176,10 +176,10 @@ class AndroidDeviceSpecUtilTest {
     density: Density = Density.DPI_260
   ): AvdInfo {
     val avdInfo = mock(AvdInfo::class.java)
-    `when`(avdInfo.androidVersion).thenReturn(version)
-    `when`(avdInfo.name).thenReturn(name)
-    `when`(avdInfo.displayName).thenReturn(displayName)
-    `when`(avdInfo.properties).thenReturn(mapOf(Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString())))
+    whenever(avdInfo.androidVersion).thenReturn(version)
+    whenever(avdInfo.name).thenReturn(name)
+    whenever(avdInfo.displayName).thenReturn(displayName)
+    whenever(avdInfo.properties).thenReturn(mapOf(Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString())))
     return avdInfo
   }
 
@@ -190,13 +190,13 @@ class AndroidDeviceSpecUtilTest {
     config: String = EXAMPLE_DEVICE_CONFIG
   ): AndroidDevice {
     val device = mock(AndroidDevice::class.java)
-    `when`(device.version).thenReturn(version)
-    `when`(device.density).thenReturn(density.dpiValue)
-    `when`(device.abis).thenReturn(abis)
+    whenever(device.version).thenReturn(version)
+    whenever(device.density).thenReturn(density.dpiValue)
+    whenever(device.abis).thenReturn(abis)
     val launchedDevice = mock(IDevice::class.java)
-    `when`(launchedDevice.version).thenReturn(version)
+    whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {
-      `when`(launchedDevice.executeShellCommand(Mockito.anyString(),
+      whenever(launchedDevice.executeShellCommand(Mockito.anyString(),
                                                 Mockito.any(),
                                                 Mockito.anyLong(),
                                                 Mockito.any())).thenAnswer {
@@ -206,7 +206,7 @@ class AndroidDeviceSpecUtilTest {
         receiver.addOutput(byteArray, 0, byteArray.size)
       }
     }
-    `when`(device.launchedDevice).thenReturn(Futures.immediateFuture(launchedDevice))
+    whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(launchedDevice))
     return device
   }
 

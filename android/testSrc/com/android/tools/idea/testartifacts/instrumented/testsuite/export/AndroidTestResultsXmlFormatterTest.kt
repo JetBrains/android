@@ -18,14 +18,15 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.testFramework.DisposableRule
@@ -36,7 +37,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.`when`
 import java.io.StringWriter
 import java.time.Duration
 import javax.xml.transform.OutputKeys
@@ -65,33 +65,33 @@ class AndroidTestResultsXmlFormatterTest {
       mutableMapOf("processorName" to "testProcessorName"))
 
     val runConfig = mock<RunConfiguration>().apply {
-      `when`(name).thenReturn("testRunConfig")
-      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      whenever(name).thenReturn("testRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
 
     val rootResults = mock<AndroidTestResults>().apply {
-      `when`(getTotalDuration()).thenReturn(Duration.ofMillis(1234L))
-      `when`(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1))
-      `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getTotalDuration()).thenReturn(Duration.ofMillis(1234L))
+      whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1))
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
     }
     val classResults = mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
-      `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getStartTime(eq(device))).thenReturn(10000L)
-      `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+      whenever(methodName).thenReturn("")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
     }
     val caseResults = mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("testmethod")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
-      `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getStartTime(eq(device))).thenReturn(10000L)
-      `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
-      `when`(getLogcat(eq(device))).thenReturn("testLogcat")
-      `when`(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
-      `when`(getBenchmark(eq(device))).thenReturn(BenchmarkOutput("testBenchmark"))
+      whenever(methodName).thenReturn("testmethod")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device))).thenReturn("testLogcat")
+      whenever(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
+      whenever(getBenchmark(eq(device))).thenReturn(BenchmarkOutput("testBenchmark"))
     }
     val rootResultsNode = AndroidTestResultsTreeNode(
       rootResults,
@@ -147,47 +147,47 @@ class AndroidTestResultsXmlFormatterTest {
       mutableMapOf("processorName" to "testProcessorName2"))
 
     val runConfig = mock<RunConfiguration>().apply {
-      `when`(name).thenReturn("testRunConfig")
-      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      whenever(name).thenReturn("testRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
 
     val rootResults = mock<AndroidTestResults>().apply {
-      `when`(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
-      `when`(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
+      whenever(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
+      whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
 
-      `when`(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      `when`(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
     val classResults = mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
+      whenever(methodName).thenReturn("")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
 
-      `when`(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      `when`(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
     val caseResults = mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("testmethod")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
+      whenever(methodName).thenReturn("testmethod")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
 
-      `when`(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
-      `when`(getLogcat(eq(device1))).thenReturn("testLogcat")
-      `when`(getErrorStackTrace(eq(device1))).thenReturn("testErrorStackTrace")
-      `when`(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput("testBenchmark"))
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device1))).thenReturn("testLogcat")
+      whenever(getErrorStackTrace(eq(device1))).thenReturn("testErrorStackTrace")
+      whenever(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput("testBenchmark"))
 
-      `when`(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
-      `when`(getLogcat(eq(device2))).thenReturn("testLogcat2")
-      `when`(getErrorStackTrace(eq(device2))).thenReturn("testErrorStackTrace2")
-      `when`(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput("testBenchmark2"))
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getLogcat(eq(device2))).thenReturn("testLogcat2")
+      whenever(getErrorStackTrace(eq(device2))).thenReturn("testErrorStackTrace2")
+      whenever(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput("testBenchmark2"))
     }
     val rootResultsNode = AndroidTestResultsTreeNode(
       rootResults,

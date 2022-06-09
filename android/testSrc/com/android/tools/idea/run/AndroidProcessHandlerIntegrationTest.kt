@@ -17,12 +17,12 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -36,8 +36,8 @@ class AndroidProcessHandlerIntegrationTest {
 
   private fun createDevice(): IDevice {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.version).thenReturn(AndroidVersion(26))
-    `when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
+    whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
   }
 
@@ -65,7 +65,7 @@ class AndroidProcessHandlerIntegrationTest {
     val device = createDevice()
     runnableClientsService.startClient(device, APP_PACKAGE)
     val callbackCalled = CountDownLatch(1)
-    `when`(device.forceStop(APP_PACKAGE)).then { callbackCalled.countDown() }
+    whenever(device.forceStop(APP_PACKAGE)).then { callbackCalled.countDown() }
     val handler = AndroidProcessHandler(projectRule.project, APP_PACKAGE)
 
     handler.startNotify()

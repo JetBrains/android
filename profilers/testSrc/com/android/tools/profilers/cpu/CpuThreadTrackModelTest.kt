@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
@@ -36,7 +37,7 @@ class CpuThreadTrackModelTest {
   @Test
   fun analysisTabs() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
+      whenever(this.range).thenReturn(Range())
     }
     val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(1, "Foo"), DefaultTimeline(), MultiSelectionModel())
     val analysisTabModels = threadTrackModel.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()

@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -38,7 +39,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -324,7 +324,7 @@ class PropertiesPageTest {
     val model = mock(PropertyEditorModel::class.java)
     val editor = JLabel()
     val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
-    `when`(model.property).thenReturn(property)
+    whenever(model.property).thenReturn(property)
     return Pair(model, editor)
   }
 }

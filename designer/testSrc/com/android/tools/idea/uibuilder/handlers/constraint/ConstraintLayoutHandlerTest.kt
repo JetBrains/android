@@ -20,6 +20,7 @@ import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.AndroidXConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -27,7 +28,6 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
-
 import org.mockito.Mockito
 
 class ConstraintLayoutHandlerTest: SceneTest() {
@@ -186,7 +186,7 @@ class ConstraintLayoutHandlerTest: SceneTest() {
 
   private fun nonViewMockedComponent(id: String): NlComponent {
     val component = Mockito.mock(NlComponent::class.java)
-    Mockito.`when`(component.id).thenReturn(id)
+    whenever(component.id).thenReturn(id)
     return component
   }
 

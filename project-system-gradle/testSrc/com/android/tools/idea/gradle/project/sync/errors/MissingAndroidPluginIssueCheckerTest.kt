@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -38,7 +39,7 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
 
     executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("TestService", 1) as BoundedTaskExecutor
     mockAppExecutorUtil = MockitoKt.mockStatic()
-    mockAppExecutorUtil.`when`<Any> {
+    mockAppExecutorUtil.whenever<Any> {
       AppExecutorUtil.getAppExecutorService()
     }.thenReturn(executor)
   }

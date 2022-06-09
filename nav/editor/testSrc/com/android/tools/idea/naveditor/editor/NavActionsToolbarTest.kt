@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito
 import org.mockito.Mockito.*
 import java.util.Collections
@@ -46,14 +45,14 @@ class NavActionsToolbarTest : NavTestCase() {
 
     surface.selectionModel.clear()
     val issuePanel = mock(IssuePanel::class.java)
-    `when`(surface.issuePanel).thenReturn(issuePanel)
+    whenever(surface.issuePanel).thenReturn(issuePanel)
     val issueModel = mock(IssueModel::class.java)
-    `when`(surface.issueModel).thenReturn(issueModel)
-    `when`(surface.actionManager).thenReturn(actionManager)
-    `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    whenever(surface.issueModel).thenReturn(issueModel)
+    whenever(surface.actionManager).thenReturn(actionManager)
+    whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    `when`(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     ActionsToolbar(project, surface)
 
     val components = listOf(model.find("root")!!)

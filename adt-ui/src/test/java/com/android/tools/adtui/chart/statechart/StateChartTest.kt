@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.statechart
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
@@ -29,7 +30,6 @@ import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.geom.Rectangle2D
-import java.util.EnumMap
 
 class StateChartTest {
   @Test
@@ -40,7 +40,7 @@ class StateChartTest {
     val stateChart = StateChart(model, mapOf())
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
   }
 
@@ -53,7 +53,7 @@ class StateChartTest {
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), { "123" })
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
       .drawString(ArgumentMatchers.eq("123"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
@@ -68,7 +68,7 @@ class StateChartTest {
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
       .drawString(ArgumentMatchers.eq("Test"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
@@ -91,7 +91,7 @@ class StateChartTest {
     val stateChart = StateChart(model, colorMap)
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
 
     // Because between 0 -> Max Long, values 100 and 101 are so close we end up with a floating point
@@ -172,7 +172,7 @@ class StateChartTest {
     val stateChart = StateChart(model, ::render).apply { setSize(100, 100) }
 
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(5))
       .drawString(ArgumentMatchers.eq("hi"), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())

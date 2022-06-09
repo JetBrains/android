@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings.table.filter
 
 import com.android.ide.common.resources.Locale
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResource
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.rendering.FlagManager
@@ -28,7 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import javax.swing.RowFilter.Entry
-import org.mockito.Mockito.`when` as whenever
+
 
 /** Tests the [NeedsTranslationForLocaleRowFilter] class. */
 @RunWith(JUnit4::class)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.devices.Device
 import com.google.common.truth.Truth.assertThat
@@ -24,7 +25,7 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+
 
 /**
  * Tests for [PauseLogcatAction]
@@ -39,7 +40,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun update_text_isNotPaused() {
-    `when`(mockLogcatPresenter.isLogcatPaused()).thenReturn(false)
+    whenever(mockLogcatPresenter.isLogcatPaused()).thenReturn(false)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.update(event)
@@ -49,7 +50,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun update_text_isPaused() {
-    `when`(mockLogcatPresenter.isLogcatPaused()).thenReturn(true)
+    whenever(mockLogcatPresenter.isLogcatPaused()).thenReturn(true)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.update(event)
@@ -60,7 +61,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun update_connected_enabled() {
-    `when`(mockLogcatPresenter.getConnectedDevice()).thenReturn(device)
+    whenever(mockLogcatPresenter.getConnectedDevice()).thenReturn(device)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.update(event)
@@ -70,7 +71,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun update_notConnected_disabled() {
-    `when`(mockLogcatPresenter.getConnectedDevice()).thenReturn(null)
+    whenever(mockLogcatPresenter.getConnectedDevice()).thenReturn(null)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.update(event)
@@ -80,7 +81,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun actionPerformed_pause() {
-    `when`(mockLogcatPresenter.isLogcatPaused()).thenReturn(false)
+    whenever(mockLogcatPresenter.isLogcatPaused()).thenReturn(false)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.actionPerformed(event)
@@ -90,7 +91,7 @@ class PauseLogcatActionTest {
 
   @Test
   fun actionPerformed_resume() {
-    `when`(mockLogcatPresenter.isLogcatPaused()).thenReturn(true)
+    whenever(mockLogcatPresenter.isLogcatPaused()).thenReturn(true)
     val action = PauseLogcatAction(mockLogcatPresenter)
 
     action.actionPerformed(event)

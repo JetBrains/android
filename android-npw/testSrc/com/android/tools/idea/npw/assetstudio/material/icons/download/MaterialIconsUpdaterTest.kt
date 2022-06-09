@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.material.icons.download
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
@@ -31,7 +32,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.io.StringReader
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
@@ -110,7 +110,7 @@ class MaterialIconsUpdaterTest {
     val fileDescription = DownloadableFileDescriptionImpl(
       ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon_1/my_icon_1"), "tmp")
     val mockDownloader = Mockito.mock(FileDownloader::class.java)
-    `when`(mockDownloader.download(downloadDir.toFile())).thenAnswer {
+    whenever(mockDownloader.download(downloadDir.toFile())).thenAnswer {
       // Write file with the new file contents to the 'downloads' directory
       val downloadedFile = downloadDir.resolve(fileDescription.defaultFileName).apply {
         parent.createDirectories()
@@ -118,9 +118,9 @@ class MaterialIconsUpdaterTest {
       }.toFile()
       return@thenAnswer listOf(Pair(downloadedFile, fileDescription))
     }
-    `when`(mockDownloadableFileService.createFileDescription(
+    whenever(mockDownloadableFileService.createFileDescription(
       ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon_1/style1_my_icon_1_24.tmp"))).thenReturn(fileDescription)
-    `when`(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
+    whenever(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
   }
 
   @Test

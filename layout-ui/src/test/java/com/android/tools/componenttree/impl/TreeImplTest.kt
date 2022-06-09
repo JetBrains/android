@@ -5,6 +5,7 @@ import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.componenttree.api.ComponentTreeBuilder
@@ -215,7 +216,7 @@ class TreeImplTest {
     val ui = FakeUi(scrollPane, createFakeWindow = true)
 
     mockStatic(ScreenUtil::class.java).use { utilities ->
-      utilities.`when`<Rectangle> {
+      utilities.whenever<Rectangle> {
         ScreenUtil.getScreenRectangle(any(Point::class.java))
       }.thenReturn(Rectangle(0, 0, 1000, 1000))
 

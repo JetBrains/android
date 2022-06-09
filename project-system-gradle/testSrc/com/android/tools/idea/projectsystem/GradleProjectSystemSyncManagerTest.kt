@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.BuildStatus
@@ -37,7 +38,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.messages.MessageBusConnection
 import org.junit.Assert
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+
 
 class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -53,7 +54,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
     gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
-    `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
+    whenever<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)
@@ -81,7 +82,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     }
     ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
     // http://b/62543184
-    `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
+    whenever(gradleProjectInfo.isImportedProject).thenReturn(true)
 
     project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
   }

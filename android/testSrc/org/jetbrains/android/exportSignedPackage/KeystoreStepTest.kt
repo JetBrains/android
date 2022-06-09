@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.help.AndroidWebHelpProvider
@@ -34,7 +35,6 @@ import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 import java.util.Arrays
@@ -67,7 +67,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyExportFlagFalse() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
 
@@ -78,7 +78,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyExportFlagTrue() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
 
@@ -89,7 +89,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyCheckboxButNotSelected_ExportKeyPathFieldsShouldBeHidden() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
 
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.EXPORT_PRIVATE_KEY = false
@@ -104,7 +104,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyCheckboxNotSelected_NextSucceeds() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val testKeyStorePath = "/test/path/to/keystore"
     val testKeyAlias = "testkey"
     val testKeyStorePassword = "123456"
@@ -126,7 +126,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyCheckboxSelectedWithoutExportPath_NextFails() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val testKeyStorePath = "/test/path/to/keystore"
     val testKeyAlias = "testkey"
     val testKeyStorePassword = "123456"
@@ -151,7 +151,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testEnableEncryptedKeyCheckboxSelectedWithExportPath_NextSucceeds() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val testKeyStorePath = "/test/path/to/keystore"
     val testKeyAlias = "testkey"
     val testKeyStorePassword = "123456"
@@ -175,14 +175,14 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testModuelDropDownEnabledByDefault() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     assertEquals(true, keystoreStep.myModuleCombo.isEnabled)
   }
 
   fun testModuleDropDownDisabledWhenOnlyOneFacet() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     facets.add(myAndroidFacet1)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
@@ -192,7 +192,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
   fun testUpdatesInvalidSelection() {
     // if the current selected facet is no longer in the list of facets, then it should be updated to the first one in the list
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     facets.add(myAndroidFacet1)
     facets.add(myAndroidFacet2)
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -223,7 +223,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
+    whenever(wizard.project).thenReturn(project)
     return wizard
   }
 
@@ -248,8 +248,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.myExportKeyPathField.text = testExportKeyPath
@@ -287,8 +287,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val settings = GenerateSignedApkSettings()
     settings.KEY_ALIAS = testKeyAlias1
@@ -397,8 +397,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.myExportKeyPathField.text = testExportKeyPath
@@ -450,8 +450,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.myExportKeyPathField.text = testExportKeyPath
@@ -495,8 +495,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     trySavePasswords(testKeyStorePath1, testKeyStorePassword1.toCharArray(), testKeyAlias1, testKeyPassword1.toCharArray(), true)
     trySavePasswords(testKeyStorePath2, testKeyStorePassword2.toCharArray(), testKeyAlias2, testKeyPassword2.toCharArray(), true)
@@ -528,7 +528,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
   fun testGetHelpId() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     Truth.assertThat(keystoreStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")

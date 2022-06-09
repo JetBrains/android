@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.getTypedArgument
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
 import kotlinx.coroutines.runBlocking
@@ -49,7 +50,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
         keepAliveSemaphore.acquire()
       }
       null
-    }.`when`(device).executeShellCommand(ArgumentMatchers.anyString(),
+    }.whenever(device).executeShellCommand(ArgumentMatchers.anyString(),
                                          ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.any())
   }
 

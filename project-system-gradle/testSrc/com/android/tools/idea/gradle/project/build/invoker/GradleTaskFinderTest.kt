@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
@@ -34,7 +35,6 @@ import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.io.File
 import java.nio.file.Path
 
@@ -65,7 +65,7 @@ class GradleTaskFinderTest : PlatformTestCase() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     val syncState = Mockito.mock(GradleSyncState::class.java)
     IdeComponents(project).replaceProjectService(GradleSyncState::class.java, syncState)
-    `when`(syncState.lastSyncFailed()).thenReturn(true)
+    whenever(syncState.lastSyncFailed()).thenReturn(true)
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
     // If sync fails, try building last known Gradle projects.
     assertThat(tasksPerProject.forTest()).containsEntry(projectDir, listOf(":app:assembleDebug"))

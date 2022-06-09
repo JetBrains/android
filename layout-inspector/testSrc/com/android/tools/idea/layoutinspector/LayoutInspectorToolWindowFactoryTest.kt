@@ -19,6 +19,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
@@ -64,7 +65,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.anyString
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
@@ -238,7 +238,7 @@ class LayoutInspectorToolWindowFactoryTest {
   @Test
   fun toolWindowFactoryCreatesCorrectSettings() {
     inspectorRule.projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
-    `when`(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
+    whenever(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
     LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
     val component = toolWindow.contentManager.selectedContent?.component!!
@@ -274,11 +274,11 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
     val discovery = TestProcessDiscovery()
     val apiServices: AppInspectionApiServices = mock()
     val target: AppInspectionTarget = mock()
-    `when`(service.apiServices).thenReturn(apiServices)
-    `when`(service.apiServices.processDiscovery).thenReturn(discovery)
-    `when`(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(target)
-    `when`(apiServices.launchInspector(any())).thenReturn(mock())
-    `when`(target.getLibraryVersions(any())).thenReturn(emptyList())
+    whenever(service.apiServices).thenReturn(apiServices)
+    whenever(service.apiServices.processDiscovery).thenReturn(discovery)
+    whenever(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(target)
+    whenever(apiServices.launchInspector(any())).thenReturn(mock())
+    whenever(target.getLibraryVersions(any())).thenReturn(emptyList())
 
     // In this test we want to close the project BEFORE the tear down of this test method.
     // Existing project rules do not allow this since they assume the project is closed in the tear down.

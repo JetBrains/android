@@ -17,6 +17,7 @@ package com.android.tools.idea.transport
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.messages.MessageBus
 import org.junit.Before
@@ -27,7 +28,6 @@ import org.junit.rules.Timeout
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -105,7 +105,7 @@ class TransportFileManagerTest {
       .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
-    `when`(mockDevice.abis).thenReturn(listOf(
+    whenever(mockDevice.abis).thenReturn(listOf(
       // it will be ignored, because there is no perfd under it.
       Abi.X86,
       // it will be used.
@@ -154,7 +154,7 @@ class TransportFileManagerTest {
       .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
-    `when`(mockDevice.abis).thenReturn(listOf(
+    whenever(mockDevice.abis).thenReturn(listOf(
       // it will be ignored, because there is no simpleperf under it.
       Abi.X86,
       // it will be used.
@@ -208,7 +208,7 @@ class TransportFileManagerTest {
       .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
-    `when`(mockDevice.abis).thenReturn(listOf(
+    whenever(mockDevice.abis).thenReturn(listOf(
       // it will be ignored, because there is no simpleperf under it.
       Abi.X86,
       // it will be used.

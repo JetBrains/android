@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApkInfo
@@ -41,7 +42,7 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
      */
     val apk = "${myFixture.testDataPath}/configurations/activity/apkWithDefaultActivity.apk"
 
-    Mockito.doReturn(TestApksProvider(apk, "com.example.myapplication")).`when`(config).apkProvider
+    Mockito.doReturn(TestApksProvider(apk, "com.example.myapplication")).whenever(config).apkProvider
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     state.launch(device, app, config, false, "", EmptyTestConsoleView())

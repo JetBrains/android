@@ -21,6 +21,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.concurrency.waitForCondition
@@ -42,7 +43,6 @@ import com.intellij.util.io.readBytes
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.file.Path
@@ -151,8 +151,8 @@ DONE.
     legacyClient: LegacyClient
   ) {
     val client = mock<ClientImpl>()
-    Mockito.`when`(client.device).thenReturn(mock())
-    Mockito.`when`(client.send(ArgumentMatchers.argThat { argument ->
+    whenever(client.device).thenReturn(mock())
+    whenever(client.send(ArgumentMatchers.argThat { argument ->
       argument?.payload?.int == DebugViewDumpHandler.CHUNK_VURT &&
         argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, ArgumentMatchers.any())).thenAnswer { invocation ->
@@ -160,10 +160,10 @@ DONE.
         .getArgument(1, DebugViewDumpHandler::class.java)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
     }
-    Mockito.`when`(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+    whenever(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
                                             ArgumentMatchers.anyBoolean(),
                                             ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
-    Mockito.`when`(client.listViewRoots(any())).thenAnswer { invocation ->
+    whenever(client.listViewRoots(any())).thenAnswer { invocation ->
       val bytes = ByteBuffer.allocate(windowName.length * 2 + Int.SIZE_BYTES * 2).apply {
         putInt(1)
         putInt(windowName.length)
@@ -175,7 +175,7 @@ DONE.
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VULW, bytes, true, 1)
     }
 
-    Mockito.`when`(
+    whenever(
       client.captureView(ArgumentMatchers.eq(windowName), ArgumentMatchers.any(), ArgumentMatchers.any())).thenAnswer { invocation ->
       invocation
         .getArgument<DebugViewDumpHandler>(2)

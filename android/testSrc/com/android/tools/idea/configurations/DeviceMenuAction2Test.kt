@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.flags.StudioFlags
-import org.mockito.Mockito
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.AnAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.ApplicationManager
@@ -34,6 +34,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class DeviceMenuAction2Test {
 
@@ -63,8 +64,8 @@ class DeviceMenuAction2Test {
   @Test
   fun testActions() {
     val configuration = Mockito.mock(Configuration::class.java)
-    Mockito.`when`(configuration.module).thenReturn(projectRule.projectRule.module)
-    Mockito.`when`(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    whenever(configuration.module).thenReturn(projectRule.projectRule.module)
+    whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     val holder = ConfigurationHolder { configuration }
     val menuAction = DeviceMenuAction2(holder) { _, _ -> }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)

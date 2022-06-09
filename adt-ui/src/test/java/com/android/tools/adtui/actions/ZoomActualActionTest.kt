@@ -15,19 +15,17 @@
  */
 package com.android.tools.adtui.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-
 import org.junit.Before
 import org.junit.Test
-
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -42,8 +40,8 @@ class ZoomActualActionTest {
 
   @Before
   fun setUp() {
-    `when`(dataContext.getData(ZOOMABLE_KEY)).thenReturn(zoomable)
-    `when`(zoomable.canZoomToActual()).thenReturn(true)
+    whenever(dataContext.getData(ZOOMABLE_KEY)).thenReturn(zoomable)
+    whenever(zoomable.canZoomToActual()).thenReturn(true)
   }
 
   @Test
@@ -51,7 +49,7 @@ class ZoomActualActionTest {
     val event = getActionEvent()
     zoomAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
-    `when`(zoomable.canZoomToActual()).thenReturn(false)
+    whenever(zoomable.canZoomToActual()).thenReturn(false)
     zoomAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
   }

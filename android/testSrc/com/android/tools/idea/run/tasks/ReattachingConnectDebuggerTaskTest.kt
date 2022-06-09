@@ -20,6 +20,7 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -41,7 +42,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
@@ -81,16 +81,16 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
     super.setUp()
 
     MockitoAnnotations.initMocks(this)
-    `when`(mockApplicationIdProvider.packageName).thenReturn(TEST_APP_PACKAGE_NAME)
-    `when`(mockApplicationIdProvider.testPackageName).thenThrow(ApkProvisionException("no test package"))
+    whenever(mockApplicationIdProvider.packageName).thenReturn(TEST_APP_PACKAGE_NAME)
+    whenever(mockApplicationIdProvider.testPackageName).thenThrow(ApkProvisionException("no test package"))
     baseConnector = TestConnectDebuggerTask(project, mockApplicationIdProvider)
     printer = ProcessHandlerConsolePrinter(mockProcessHandler)
 
-    `when`(mockStatus.processHandler).thenReturn(mockProcessHandler)
-    `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockAndroidSessionInfo)
-    `when`(mockClient.clientData).thenReturn(mockClientData)
-    `when`(mockClientData.clientDescription).thenReturn(TEST_APP_PACKAGE_NAME)
-    `when`(mockClientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
+    whenever(mockStatus.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockAndroidSessionInfo)
+    whenever(mockClient.clientData).thenReturn(mockClientData)
+    whenever(mockClientData.clientDescription).thenReturn(TEST_APP_PACKAGE_NAME)
+    whenever(mockClientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
 
     mockLaunchInfo = LaunchInfo(
       DefaultDebugExecutor.getDebugExecutorInstance(),
@@ -103,7 +103,7 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
   @Test
   fun testPerform() {
     val mockRunContentManager = mock(RunContentManager::class.java)
-    `when`(mockRunContentManager.findContentDescriptor(any(), any())).thenReturn(mock(RunContentDescriptor::class.java))
+    whenever(mockRunContentManager.findContentDescriptor(any(), any())).thenReturn(mock(RunContentDescriptor::class.java))
     project.replaceService(RunContentManager::class.java, mockRunContentManager, testRootDisposable)
 
     val listener = TestListener()

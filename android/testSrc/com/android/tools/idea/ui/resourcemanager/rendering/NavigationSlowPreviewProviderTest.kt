@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -127,7 +128,7 @@ class NavigationSlowPreviewProviderTest {
       g.fillRect(0, 0, 100, 100)
       g.dispose()
     }
-    Mockito.`when`(mockRenderer.getLayoutRender(xmlFile, configuration)).thenReturn(CompletableFuture.completedFuture(mockImage))
+    whenever(mockRenderer.getLayoutRender(xmlFile, configuration)).thenReturn(CompletableFuture.completedFuture(mockImage))
     LayoutRenderer.setInstance(rule.module.androidFacet!!, mockRenderer)
   }
 }

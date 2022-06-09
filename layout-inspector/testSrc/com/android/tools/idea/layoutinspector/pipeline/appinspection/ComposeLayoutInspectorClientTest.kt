@@ -19,6 +19,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
@@ -45,7 +46,6 @@ import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.EnumSet
@@ -82,14 +82,14 @@ class ComposeLayoutInspectorClientTest {
 
     val artifactService = mock<InspectorArtifactService>()
     val messenger = mock<AppInspectorMessenger>()
-    `when`(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
+    whenever(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val apiServices = mock<AppInspectionApiServices>()
-    `when`(apiServices.launchInspector(any())).thenReturn(messenger)
+    whenever(apiServices.launchInspector(any())).thenReturn(messenger)
     val target = mock<AppInspectionTarget>()
-    `when`(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
-    `when`(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1", "")))
-    `when`(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
+    whenever(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1", "")))
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
     val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock(), capabilities,
@@ -112,9 +112,9 @@ class ComposeLayoutInspectorClientTest {
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    `when`(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0-SNAPSHOT", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0-SNAPSHOT", "")))
     val apiServices = mock<AppInspectionApiServices>()
-    `when`(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
 
     val banner = InspectorBanner(projectRule.project)
@@ -139,9 +139,9 @@ class ComposeLayoutInspectorClientTest {
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    `when`(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0", "")))
     val apiServices = mock<AppInspectionApiServices>()
-    `when`(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
 
     val banner = InspectorBanner(projectRule.project)

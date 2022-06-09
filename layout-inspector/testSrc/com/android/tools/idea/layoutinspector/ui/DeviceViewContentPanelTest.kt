@@ -28,6 +28,7 @@ import com.android.resources.ScreenRound
 import com.android.testutils.AssumeUtil
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
@@ -87,7 +88,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.atLeastOnce
@@ -299,7 +299,7 @@ class DeviceViewContentPanelTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val client = mock<InspectorClient>()
-    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { client }, mock(), null,
                                        disposable.disposable)
     panel.setSize(130, 250)
@@ -473,9 +473,9 @@ class DeviceViewContentPanelTest {
     val client: InspectorClient = mock()
     val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { client }, mock(), null,
                                        disposable.disposable)
-    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
-    `when`(layoutInspector.currentClient).thenReturn(client)
+    whenever(layoutInspector.currentClient).thenReturn(client)
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { id ->
       when (id) {
         LAYOUT_INSPECTOR_DATA_KEY.name -> layoutInspector
@@ -599,7 +599,7 @@ class DeviceViewContentPanelTest {
     doAnswer { invocation ->
       latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
       latestPopup
-    }.`when`(ActionManager.getInstance()).createActionPopupMenu(anyString(), any(ActionGroup::class.java))
+    }.whenever(ActionManager.getInstance()).createActionPopupMenu(anyString(), any(ActionGroup::class.java))
 
     // Right click on VIEW4 when system views are showing:
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
@@ -618,12 +618,12 @@ class DeviceViewContentPanelTest {
     val model = model {}
     val launcher: InspectorClientLauncher = mock()
     val client = mock<InspectorClient>()
-    `when`(launcher.activeClient).thenReturn(client)
+    whenever(launcher.activeClient).thenReturn(client)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val selectProcessAction = mock<SelectProcessAction>()
+    whenever(selectProcessAction.templatePresentation).thenReturn(mock())
     val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction, null)
-    `when`(selectProcessAction.templatePresentation).thenReturn(mock())
     val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { client }, mock(),
                                        dropDownActionWithButton, disposable.disposable)
     panel.setSize(200, 200)
@@ -1055,7 +1055,7 @@ class DeviceViewContentPanelTest {
 
     fun assertSelectViewAction(vararg expected: Long) {
       val event: AnActionEvent = mock()
-      `when`(event.actionManager).thenReturn(ActionManager.getInstance())
+      whenever(event.actionManager).thenReturn(ActionManager.getInstance())
       val actions = group.getChildren(event)
       assertThat(actions.size).isEqualTo(1)
       assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)

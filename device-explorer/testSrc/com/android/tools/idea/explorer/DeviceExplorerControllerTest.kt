@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -83,7 +83,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -234,7 +233,7 @@ class DeviceExplorerControllerTest {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start()).thenThrow(RuntimeException(setupErrorMessage))
+    whenever(service.start()).thenThrow(RuntimeException(setupErrorMessage))
     val controller = createController(service = service)
 
     // Act
@@ -250,7 +249,7 @@ class DeviceExplorerControllerTest {
   fun startControllerUnexpectedFailure() = runBlocking {
     // Prepare
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start()).thenThrow(RuntimeException())
+    whenever(service.start()).thenThrow(RuntimeException())
     val controller = createController(service = service)
 
     // Act
@@ -267,7 +266,7 @@ class DeviceExplorerControllerTest {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.devices).thenThrow(RuntimeException(setupErrorMessage))
+    whenever(service.devices).thenThrow(RuntimeException(setupErrorMessage))
     val controller = createController(service = service)
 
     // Act
@@ -1348,9 +1347,9 @@ class DeviceExplorerControllerTest {
     }
     val support = mock<TransferSupport>()
     val location = mock<TransferHandler.DropLocation>()
-    `when`(location.dropPoint).thenReturn(Point(bounds.centerX.toInt(), bounds.centerY.toInt()))
-    `when`(support.transferable).thenReturn(transferable)
-    `when`(support.dropLocation).thenReturn(location)
+    whenever(location.dropPoint).thenReturn(Point(bounds.centerX.toInt(), bounds.centerY.toInt()))
+    whenever(support.transferable).thenReturn(transferable)
+    whenever(support.dropLocation).thenReturn(location)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()

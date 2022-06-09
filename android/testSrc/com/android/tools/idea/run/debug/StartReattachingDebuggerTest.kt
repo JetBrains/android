@@ -22,6 +22,7 @@ import com.android.ddmlib.internal.ClientImpl
 import com.android.flags.junit.SetFlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.configuration.execution.RunnableClientsService
@@ -37,7 +38,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -71,8 +71,8 @@ class StartReattachingDebuggerTest {
 
   private fun createDevice(): IDevice {
     val mockDevice = Mockito.mock(IDevice::class.java)
-    `when`(mockDevice.version).thenReturn(AndroidVersion(26))
-    `when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
+    whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
   }
 
@@ -113,7 +113,7 @@ class StartReattachingDebuggerTest {
       val latchStartDebug = CountDownLatch(1)
       val additionalRunnableClient = runnableClientsService.startClient(mockDevice, APP_ID)
       AndroidDebugBridge.clientChanged(additionalRunnableClient as ClientImpl, Client.CHANGE_DEBUGGER_STATUS)
-      `when`(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
+      whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
         tabsOpened.incrementAndGet()
         latchStartDebug.countDown()
       }
@@ -134,13 +134,13 @@ class StartReattachingDebuggerTest {
     val masterIsRunning = AtomicBoolean(true)
     val appIsRunning = AtomicBoolean(true)
 
-    `when`(mockDevice.forceStop(APP_ID)).thenAnswer {
+    whenever(mockDevice.forceStop(APP_ID)).thenAnswer {
       if (appIsRunning.getAndSet(false)) {
         latch.countDown()
       }
     }
 
-    `when`(mockDevice.forceStop(MASTER_PROCESS_NAME)).thenAnswer {
+    whenever(mockDevice.forceStop(MASTER_PROCESS_NAME)).thenAnswer {
       if (masterIsRunning.getAndSet(false)) {
         latch.countDown()
       }

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
@@ -112,10 +113,10 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     // Mock the binary xml extraction.
-    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).`when`(executor).getComplicationSourceTypes(any())
+    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
@@ -215,10 +216,10 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     // Mock the binary xml extraction.
-    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).`when`(executor).getComplicationSourceTypes(any())
+    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
@@ -299,10 +300,10 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     // Mock the binary xml extraction.
-    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).`when`(executor).getComplicationSourceTypes(any())
+    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
@@ -332,16 +333,16 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     androidComplicationConfiguration.chosenSlots = listOf(
       AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
     )
-    Mockito.doNothing().`when`(androidComplicationConfiguration).verifyProviderTypes(any())
+    Mockito.doNothing().whenever(androidComplicationConfiguration).verifyProviderTypes(any())
     // Use run executor
     val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(),
                                                AndroidConfigurationProgramRunner(),
                                                configSettings,
                                                project))
-    doReturn(androidComplicationConfiguration).`when`(env).runProfile
+    doReturn(androidComplicationConfiguration).whenever(env).runProfile
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
-    doReturn(emptyList<String>()).`when`(executor).getComplicationSourceTypes(any())
+    doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
 
     val failedResponse = "Component not found."
 
@@ -351,7 +352,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .`when`(app).activateComponent(any(), any(), any(), any(AppComponent.Mode::class.java), any())
+      .whenever(app).activateComponent(any(), any(), any(), any(AppComponent.Mode::class.java), any())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(
@@ -359,7 +360,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )) // Mock app installation.
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
     assertThat(e).hasMessageThat().contains("Error while launching complication, message: $failedResponse")

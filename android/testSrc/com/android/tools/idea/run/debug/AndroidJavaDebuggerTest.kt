@@ -19,12 +19,9 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
-import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.services.Service
-import com.android.fakeadbserver.services.ServiceOutput
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
@@ -159,7 +156,7 @@ class AndroidJavaDebuggerTest {
   fun testCatchError() {
     val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
-    Mockito.`when`(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
+    whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
       ExecutionException("Test execution exception in test testCatchError"))
 
     try {

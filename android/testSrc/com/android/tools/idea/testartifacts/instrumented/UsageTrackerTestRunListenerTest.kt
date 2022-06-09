@@ -17,11 +17,12 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
-import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -36,7 +37,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.PlatformTestCase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class UsageTrackerTestRunListenerTest : PlatformTestCase() {
@@ -59,7 +59,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
         module!!.getModuleSystem().getTestLibrariesInUse(),
         AndroidModel.get(module)!!.testOptions!!.executionOption,
         mock(IDevice::class.java)!!.also {
-          `when`(it.serialNumber).thenReturn(serial)
+          whenever(it.serialNumber).thenReturn(serial)
         }
       )
 

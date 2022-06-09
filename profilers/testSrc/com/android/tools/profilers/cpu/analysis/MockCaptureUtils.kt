@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import org.mockito.Mockito
+
 import perfetto.protos.PerfettoTrace
 
 object MockCaptureUtils {
@@ -75,10 +77,10 @@ object MockCaptureUtils {
   )
 
   val SYSTEM_TRACE_DATA = Mockito.mock(CpuSystemTraceData::class.java).apply {
-    Mockito.`when`(androidFrameLayers).thenReturn(LAYERS)
-    Mockito.`when`(androidFrameTimelineEvents).thenReturn(TIMELINE_EVENTS)
+    whenever(androidFrameLayers).thenReturn(LAYERS)
+    whenever(androidFrameTimelineEvents).thenReturn(TIMELINE_EVENTS)
   }
   val CPU_CAPTURE = Mockito.mock(CpuCapture::class.java).apply {
-    Mockito.`when`(systemTraceData).thenReturn(SYSTEM_TRACE_DATA)
+    whenever(systemTraceData).thenReturn(SYSTEM_TRACE_DATA)
   }
 }

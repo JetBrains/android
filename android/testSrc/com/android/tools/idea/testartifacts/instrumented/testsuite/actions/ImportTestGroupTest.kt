@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.flags.junit.RestoreFlagRule
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -39,7 +40,6 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import java.util.Date
@@ -74,7 +74,7 @@ class ImportTestGroupTest {
   @Before
   fun setupMocks() {
     TestStateStorage.getTestHistoryRoot(projectRule.project).mkdirs()
-    `when`(mockActionEvent.project).thenReturn(projectRule.project)
+    whenever(mockActionEvent.project).thenReturn(projectRule.project)
   }
 
   @Test

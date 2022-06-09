@@ -27,6 +27,7 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.capture
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
 import com.android.tools.idea.editors.strings.model.StringResourceKey
@@ -52,7 +53,7 @@ import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.`when` as whenever
+
 
 @RunWith(JUnit4::class)
 class RemoveKeysActionTest {

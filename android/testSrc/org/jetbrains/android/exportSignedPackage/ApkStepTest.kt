@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth
 import com.intellij.testFramework.LightPlatformTestCase
@@ -23,8 +24,8 @@ import org.mockito.Mockito
 class ApkStepTest : LightPlatformTestCase() {
   fun testGetHelpId() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    Mockito.`when`(wizard.project).thenReturn(project)
-    Mockito.`when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    whenever(wizard.project).thenReturn(project)
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val apkStep = ApkStep(wizard)
     Truth.assertThat(apkStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")

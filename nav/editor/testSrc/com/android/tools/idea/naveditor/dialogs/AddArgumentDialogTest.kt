@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.dialogs
 
 import com.android.SdkConstants.CLASS_PARCELABLE
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -30,7 +31,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -163,8 +163,8 @@ class AddArgumentDialogTest : NavTestCase() {
 
     val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
-    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    `when`(classChooser.selected).thenReturn(customEnum)
+    whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    whenever(classChooser.selected).thenReturn(customEnum)
 
     val fragment1 = model.find("fragment1")!!
     fragment1.children.forEach {
@@ -201,8 +201,8 @@ class AddArgumentDialogTest : NavTestCase() {
 
     val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
-    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    `when`(classChooser.selected).thenReturn(customEnum)
+    whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    whenever(classChooser.selected).thenReturn(customEnum)
 
     val fragment1 = model.find("fragment1")!!
 
@@ -264,7 +264,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val psiClass = ClassUtil.findPsiClass(PsiManager.getInstance(project), jvmName)
 
-    `when`(classChooser.selected).thenReturn(psiClass)
+    whenever(classChooser.selected).thenReturn(psiClass)
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
@@ -282,8 +282,8 @@ class AddArgumentDialogTest : NavTestCase() {
 
     val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
-    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    `when`(classChooser.selected).thenReturn(customEnum)
+    whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    whenever(classChooser.selected).thenReturn(customEnum)
 
     val fragment1 = model.find("fragment1")!!
 
@@ -302,14 +302,14 @@ class AddArgumentDialogTest : NavTestCase() {
     }
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), any(), any(), any())).thenReturn(classChooser)
+    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), any(), any(), any())).thenReturn(classChooser)
     val containingClass = mock(PsiClass::class.java)
-    `when`(containingClass.qualifiedName).thenReturn("android.graphics.Paint")
+    whenever(containingClass.qualifiedName).thenReturn("android.graphics.Paint")
     val innerClass = mock(PsiClass::class.java)
-    `when`(innerClass.qualifiedName).thenReturn("android.graphics.Paint.Align")
-    `when`(innerClass.containingClass).thenReturn(containingClass)
-    `when`(innerClass.name).thenReturn("Align")
-    `when`(classChooser.selected).thenReturn(innerClass)
+    whenever(innerClass.qualifiedName).thenReturn("android.graphics.Paint.Align")
+    whenever(innerClass.containingClass).thenReturn(containingClass)
+    whenever(innerClass.name).thenReturn("Align")
+    whenever(classChooser.selected).thenReturn(innerClass)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
     val fragment1 = model.find("fragment1")!!
@@ -330,8 +330,8 @@ class AddArgumentDialogTest : NavTestCase() {
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
-    `when`(classChooser.selected).thenReturn(null)
+    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
+    whenever(classChooser.selected).thenReturn(null)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
     val fragment1 = model.find("fragment1")!!
@@ -392,7 +392,7 @@ class AddArgumentDialogTest : NavTestCase() {
   private fun replaceTreeClassChooser(base: PsiClass? = null): TreeClassChooser {
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(base), any(), any())).thenReturn(classChooser)
+    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(base), any(), any())).thenReturn(classChooser)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
     return classChooser
   }

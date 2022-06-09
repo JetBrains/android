@@ -17,6 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.LoggedUsage
@@ -202,7 +203,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldShowErrorIfAgpConnectionFails() {
     val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
-    Mockito.`when`(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt())).thenThrow(RuntimeException("Test"))
+    whenever(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt())).thenThrow(RuntimeException("Test"))
     phoneDevice.launch = { Futures.immediateFuture(iDevice) }
     wearDevice.launch = phoneDevice.launch
 
@@ -302,7 +303,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
                                companionAppId: String? = null,
                                additionalReplies: (request: String) -> String? = { null }): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(
+    whenever(
       iDevice.executeShellCommand(
         Mockito.anyString(),
         Mockito.any()
@@ -328,9 +329,9 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
       receiver.addOutput(byteArray, 0, byteArray.size)
     }
 
-    Mockito.`when`(iDevice.arePropertiesSet()).thenReturn(true)
-    Mockito.`when`(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
-    Mockito.`when`(iDevice.getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
+    whenever(iDevice.arePropertiesSet()).thenReturn(true)
+    whenever(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
+    whenever(iDevice.getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
 
     return iDevice
   }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 /**
@@ -49,7 +49,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testTemplateWithMinSdkHigherThanModule() {
     val template = mock(Template::class.java)
-    `when`(template.minSdk).thenReturn(9)
+    whenever(template.minSdk).thenReturn(9)
 
     assertThat(template.validate(
       moduleApiLevel = 5, isNewModule = true, isAndroidxProject = true, language = Java,
@@ -60,7 +60,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testTemplateRequiringAndroidX() {
     val template = mock(Template::class.java)
-    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
+    whenever(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
 
     assertThat(template.validate(
       moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java,
@@ -71,7 +71,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testTemplateRequiringKotlinForNewModule() {
     val template = mock(Template::class.java)
-    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
+    whenever(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
 
     assertThat(template.validate(
       moduleApiLevel = 5,
@@ -83,7 +83,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testTemplateRequiringKotlinForExistingModule() {
     val template = mock(Template::class.java)
-    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
+    whenever(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
 
     assertThat(template.validate(
       moduleApiLevel = 5,

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.TOOLS_URI
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -26,12 +27,9 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.test.expect
 
 class NlComponentBackendXmlTest : AndroidTestCase() {
 
@@ -91,7 +89,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
 
   fun testAffectedFileInvalidTag() {
     val invalidTag = mock(XmlTag::class.java)
-    `when`(invalidTag.name).thenReturn("")
+    whenever(invalidTag.name).thenReturn("")
     val backend = createBackend(invalidTag)
 
     ApplicationManager.getApplication().runReadAction {
@@ -208,7 +206,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
 
   fun testSetAttributeNlWriteCommandAction() {
     val model = mock(NlModel::class.java)
-    `when`(model.project).thenReturn(myModule.project)
+    whenever(model.project).thenReturn(myModule.project)
 
     val expected = "Hello World"
     val changed = "Changed"
@@ -273,7 +271,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
   private fun createTagPointer(tag: XmlTag): SmartPsiElementPointer<XmlTag> {
     val tagPointer = mock(SmartPsiElementPointer::class.java) as SmartPsiElementPointer<XmlTag>
 
-    `when`<XmlTag>(tagPointer.element).thenReturn(tag)
+    whenever(tagPointer.element).thenReturn(tag)
     return tagPointer
   }
 }

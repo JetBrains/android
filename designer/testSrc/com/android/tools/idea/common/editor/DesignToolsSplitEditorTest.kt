@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
@@ -27,7 +28,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
@@ -44,23 +44,23 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val panel = mock(DesignerEditorPanel::class.java)
-    `when`(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
-    `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
+    whenever(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
+    whenever(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
-    `when`(designerEditor.component).thenReturn(panel)
+    whenever(designerEditor.component).thenReturn(panel)
 
     val textEditorComponent = object: JComponent() {}
     textEditor = mock(TextEditor::class.java)
-    `when`(textEditor.component).thenReturn(textEditorComponent)
-    `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
+    whenever(textEditor.component).thenReturn(textEditorComponent)
+    whenever(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val editor = mock(EditorEx::class.java)
-    `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
-    `when`(textEditor.editor).thenReturn(editor)
+    whenever(editor.contentComponent).thenReturn(mock(JComponent::class.java))
+    whenever(textEditor.editor).thenReturn(editor)
 
     val gutterComponentEx = mock(EditorGutterComponentEx::class.java)
-    `when`(editor.gutterComponentEx).thenReturn(gutterComponentEx)
+    whenever(editor.gutterComponentEx).thenReturn(gutterComponentEx)
 
-    `when`(gutterComponentEx.setShowDefaultGutterPopup(anyBoolean())).then {
+    whenever(gutterComponentEx.setShowDefaultGutterPopup(anyBoolean())).then {
       showDefaultGutterPopupValue = (it.arguments[0] as? Boolean) ?: false
       Unit
     }
@@ -136,7 +136,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     val modifiers = (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or InputEvent.SHIFT_DOWN_MASK
     val focusManager = mock(KeyboardFocusManager::class.java)
     val component = splitEditor.component
-    `when`(focusManager.focusOwner).thenReturn(component)
+    whenever(focusManager.focusOwner).thenReturn(component)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     val dispatcher = IdeKeyEventDispatcher(null)
 

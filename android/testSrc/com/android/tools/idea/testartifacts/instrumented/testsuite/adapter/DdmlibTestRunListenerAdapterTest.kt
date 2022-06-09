@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_PATH_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_V2_TEST_METRICS_KEY
@@ -43,7 +44,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.argThat
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.times
@@ -69,10 +69,10 @@ class DdmlibTestRunListenerAdapterTest {
 
   @Before
   fun setup() {
-    `when`(mockDevice.serialNumber).thenReturn("mockDeviceSerialNumber")
-    `when`(mockDevice.avdName).thenReturn("mockDeviceAvdName")
-    `when`(mockDevice.version).thenReturn(AndroidVersion(29))
-    `when`(mockDevice.isEmulator).thenReturn(true)
+    whenever(mockDevice.serialNumber).thenReturn("mockDeviceSerialNumber")
+    whenever(mockDevice.avdName).thenReturn("mockDeviceAvdName")
+    whenever(mockDevice.version).thenReturn(AndroidVersion(29))
+    whenever(mockDevice.isEmulator).thenReturn(true)
   }
 
   private fun eq(arg: AndroidTestCase): AndroidTestCase {

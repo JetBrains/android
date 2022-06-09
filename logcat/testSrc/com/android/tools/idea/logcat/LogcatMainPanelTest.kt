@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
@@ -101,7 +102,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -994,11 +994,11 @@ private fun mockDevice(serialNumber: String, avdName: String = ""): IDevice {
     // Set up a mock device with just enough information to get the test to work. We still get a bunch of errors in the log.
     // TODO(aalbert): Extract an interface from LogcatDeviceManager so we can pass a factory into LogcatMainPanel to make it easier to
     //  test.
-    `when`(it.state).thenReturn(ONLINE)
-    `when`(it.clients).thenReturn(emptyArray())
-    `when`(it.serialNumber).thenReturn(serialNumber)
-    `when`(it.version).thenReturn(AndroidVersion(30))
-    `when`(it.avdData).thenReturn(immediateFuture(AvdData(avdName, avdName)))
+    whenever(it.state).thenReturn(ONLINE)
+    whenever(it.clients).thenReturn(emptyArray())
+    whenever(it.serialNumber).thenReturn(serialNumber)
+    whenever(it.version).thenReturn(AndroidVersion(30))
+    whenever(it.avdData).thenReturn(immediateFuture(AvdData(avdName, avdName)))
   }
 }
 

@@ -20,9 +20,9 @@ import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.time.Instant
 
 private const val PROCESS_ID = 123
@@ -75,8 +75,8 @@ private fun newLogMessage(processId: Int, packageName: String): LogCatMessage =
 
 private fun mockClientData(pid: Int, packageName: String): ClientData {
   return mock<ClientData>().apply {
-    `when`(this.pid).thenReturn(pid)
-    `when`(this.packageName).thenReturn(packageName)
+    whenever(this.pid).thenReturn(pid)
+    whenever(this.packageName).thenReturn(packageName)
   }
 
 }

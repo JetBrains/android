@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher.DefaultCallback
 import com.google.common.util.concurrent.FutureCallback
@@ -75,10 +76,10 @@ internal class DeviceNamePropertiesFetcherTest {
                            buildVersion: ListenableFuture<String>,
                            apiLevel: ListenableFuture<String>): IDevice {
     val d = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer)
-    Mockito.`when`(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(model)
-    Mockito.`when`(d.getSystemProperty(IDevice.PROP_BUILD_VERSION)).thenReturn(buildVersion)
-    Mockito.`when`(d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(apiLevel)
+    whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer)
+    whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(model)
+    whenever(d.getSystemProperty(IDevice.PROP_BUILD_VERSION)).thenReturn(buildVersion)
+    whenever(d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(apiLevel)
     return d
   }
 
@@ -189,22 +190,22 @@ internal class DeviceNamePropertiesFetcherTest {
   @Test
   fun getDeviceUnauthorizedUntilAuthorized() {
     val d = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(
+    whenever(
       d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(manufacturer))
-    Mockito.`when`(
+    whenever(
       d.getSystemProperty(IDevice.PROP_DEVICE_MODEL))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(model))
       .thenReturn(Futures.immediateFuture(model))
-    Mockito.`when`(
+    whenever(
       d.getSystemProperty(IDevice.PROP_BUILD_VERSION))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(buildVersion))
-    Mockito.`when`(
+    whenever(
       d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))

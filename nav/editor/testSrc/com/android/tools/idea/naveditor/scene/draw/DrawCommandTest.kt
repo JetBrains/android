@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
@@ -25,7 +26,6 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.BUFFERED_IMAGE
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.mockito.InOrder
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -219,7 +219,7 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun testDrawActionHandle(command: DrawCommand, fraction: Float) {
-    `when`(context.time).thenReturn((fraction * DURATION).toLong())
+    whenever(context.time).thenReturn((fraction * DURATION).toLong())
 
     val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
     val innerRadius = interpolate(INITIAL_INNER_RADIUS, FINAL_INNER_RADIUS, fraction)
@@ -239,7 +239,7 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun testDrawActionHandleDrag(command: DrawCommand, fraction: Float) {
-    `when`(context.time).thenReturn((fraction * DURATION).toLong())
+    whenever(context.time).thenReturn((fraction * DURATION).toLong())
     setMouse()
 
     val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
@@ -262,7 +262,7 @@ class DrawCommandTest : NavTestCase() {
     val root = mock(Graphics2D::class.java)
 
     val graphics = makeGraphicsMock()
-    `when`(root.create()).thenReturn(graphics)
+    whenever(root.create()).thenReturn(graphics)
 
     val inOrder = inOrder(graphics)
     command.paint(root, context)
@@ -272,8 +272,8 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun setMouse() {
-    `when`(context.mouseX).thenReturn(MOUSE_X)
-    `when`(context.mouseY).thenReturn(MOUSE_Y)
+    whenever(context.mouseX).thenReturn(MOUSE_X)
+    whenever(context.mouseY).thenReturn(MOUSE_Y)
   }
 
   private fun interpolate(start: Float, end: Float, fraction: Float) = start + (end - start) * fraction

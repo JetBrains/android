@@ -24,6 +24,7 @@ import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
@@ -44,7 +45,6 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -93,8 +93,8 @@ class RetentionViewTest {
     val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(sdkRoot, packages)
     androidSdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot, mgr)
-    `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
-    `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
+    whenever(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
+    whenever(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime, mockLogReporter,
                                   MoreExecutors.directExecutor())
   }
@@ -215,7 +215,7 @@ class RetentionViewTest {
 
   @Test
   fun loadSnapshotWithPb() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -237,7 +237,7 @@ class RetentionViewTest {
 
   @Test
   fun loadSnapshotFolderWithPb() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFolder = temporaryFolderRule.newFolder()
     val snapshotFile = snapshotFolder.resolve(SNAPSHOT_PB)
@@ -262,7 +262,7 @@ class RetentionViewTest {
   @Test
   fun snapshotNotLoadable() {
     val reason = "a good reason"
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
       "Not loadable\n$reason".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
@@ -288,7 +288,7 @@ class RetentionViewTest {
   @Test
   fun snapshotNotLoadableCached() {
     val reason = "a good reason"
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
       "Not loadable\n$reason".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
@@ -308,7 +308,7 @@ class RetentionViewTest {
 
   @Test
   fun loadSameSnapshotWithPb() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -324,7 +324,7 @@ class RetentionViewTest {
 
   @Test
   fun unloadSnapshot() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -339,7 +339,7 @@ class RetentionViewTest {
 
   @Test
   fun loadSnapshotWithPbNotLoadable() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Not loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Not loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -392,7 +392,7 @@ class RetentionViewTest {
 
   @Test
   fun scanSnapshotWithUiUpdate() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -416,7 +416,7 @@ class RetentionViewTest {
   // Thus in the UI code it checks multiple times if it has become stale. If so, interrupt the UI updates.
   @Test
   fun interruptUiUpdate0() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -437,7 +437,7 @@ class RetentionViewTest {
 
   @Test
   fun interruptUiUpdate1() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -460,7 +460,7 @@ class RetentionViewTest {
 
   @Test
   fun interruptUiUpdate2() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    whenever(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)

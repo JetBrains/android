@@ -16,6 +16,7 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.GradlePluginsData
+import com.android.testutils.MockitoKt.whenever
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Pair
@@ -78,7 +79,7 @@ class KnownGradlePluginsServiceImplTest {
     val downloadableFileDescription = DownloadableFileDescriptionImpl(distributionUrl.toString(), fileName, "json")
 
     val downloader = Mockito.mock(FileDownloader::class.java)
-    Mockito.`when`(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
       .thenReturn(listOf(Pair(distributionFile, downloadableFileDescription)))
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
@@ -91,7 +92,7 @@ class KnownGradlePluginsServiceImplTest {
     val outputDir = temporaryFolder.newFolder()
     val localCache = FileUtils.join(outputDir, "cache")
     val downloader = Mockito.mock(FileDownloader::class.java)
-    Mockito.`when`(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
       .thenThrow(IOException())
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)

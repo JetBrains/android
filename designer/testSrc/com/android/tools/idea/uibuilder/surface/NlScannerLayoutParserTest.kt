@@ -16,16 +16,15 @@
 package com.android.tools.idea.uibuilder.surface
 
 import android.view.View
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class NlScannerLayoutParserTest {
@@ -119,7 +118,7 @@ class NlScannerLayoutParserTest {
     val children = ArrayList<NlComponent>(2)
     children.add(child1)
     children.add(child2)
-    Mockito.`when`(root.children).thenReturn(children)
+    whenever(root.children).thenReturn(children)
 
     val layoutParser = NlScannerLayoutParser()
     val result = layoutParser.tryFindingRootWithViewInfo(root)
@@ -138,7 +137,7 @@ class NlScannerLayoutParserTest {
     val children = ArrayList<NlComponent>(2)
     children.add(child1)
     children.add(child2)
-    Mockito.`when`(root.children).thenReturn(children)
+    whenever(root.children).thenReturn(children)
 
     val layoutParser = NlScannerLayoutParser()
     val result = layoutParser.tryFindingRootWithViewInfo(root)
@@ -152,7 +151,7 @@ class NlScannerLayoutParserTest {
       val helper = ScannerTestHelper()
       val root = helper.buildNlComponent()
       val include = helper.buildNlComponent(tagName = "include")
-      Mockito.`when`(root.children).thenReturn(listOf(include))
+      whenever(root.children).thenReturn(listOf(include))
 
       return root
     }

@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -38,7 +39,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -82,16 +82,16 @@ class LaunchTaskRunnerTest {
 
   @Before
   fun setUp() {
-    `when`(mockExecutor.toolWindowId).thenReturn("toolWindowId")
+    whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
   }
 
   private fun createDeviceFutures(numDevices: Int = 1): DeviceFutures {
     val devices = (1..numDevices).map {
       val device = mock<AndroidDevice>()
       val iDevice = mock<IDevice>()
-      `when`(iDevice.isOnline).thenReturn(true)
-      `when`(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
-      `when`(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
+      whenever(iDevice.isOnline).thenReturn(true)
+      whenever(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
+      whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
       device
     }.toList()
     return DeviceFutures(devices)
@@ -99,9 +99,9 @@ class LaunchTaskRunnerTest {
 
   private fun setFailingLaunchTask(targetDevice: IDevice? = null) {
     val failingTask = mock<LaunchTask>()
-    `when`(failingTask.shouldRun(any())).thenReturn(true)
-    `when`(failingTask.run(any())).thenReturn(LaunchResult.error("", ""))
-    `when`(mockLaunchTasksProvider.getTasks(
+    whenever(failingTask.shouldRun(any())).thenReturn(true)
+    whenever(failingTask.run(any())).thenReturn(LaunchResult.error("", ""))
+    whenever(mockLaunchTasksProvider.getTasks(
       targetDevice?.let { eq(targetDevice) } ?: any(),
       any(),
       any())).thenReturn(listOf(failingTask))
@@ -109,16 +109,16 @@ class LaunchTaskRunnerTest {
 
   private fun setWarningLaunchTask(targetDevice: IDevice? = null) {
     val warningTask = mock<LaunchTask>()
-    `when`(warningTask.shouldRun(any())).thenReturn(true)
-    `when`(warningTask.run(any())).thenReturn(LaunchResult.warning(""))
-    `when`(mockLaunchTasksProvider.getTasks(
+    whenever(warningTask.shouldRun(any())).thenReturn(true)
+    whenever(warningTask.run(any())).thenReturn(LaunchResult.warning(""))
+    whenever(mockLaunchTasksProvider.getTasks(
       targetDevice?.let { eq(targetDevice) } ?: any(),
       any(),
       any())).thenReturn(listOf(warningTask))
   }
 
   private fun setSwapInfo() {
-    `when`(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
+    whenever(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
   }
 
   private fun createLaunchTaskRunner(deviceFutures: DeviceFutures): LaunchTaskRunner {

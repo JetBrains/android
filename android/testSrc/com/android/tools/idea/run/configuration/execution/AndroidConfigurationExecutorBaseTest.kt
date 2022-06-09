@@ -20,6 +20,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -39,7 +40,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.io.File
 
 
@@ -68,8 +68,8 @@ abstract class AndroidConfigurationExecutorBaseTest {
   @Before
   fun setUp() {
     val projectSystemMock = createProjectSystemMock()
-    `when`(projectSystemMock.getApkProvider(any(RunConfiguration::class.java))).thenReturn(TestApksProvider(appId))
-    `when`(projectSystemMock.getApplicationIdProvider(
+    whenever(projectSystemMock.getApkProvider(any(RunConfiguration::class.java))).thenReturn(TestApksProvider(appId))
+    whenever(projectSystemMock.getApplicationIdProvider(
       any(RunConfiguration::class.java))).thenReturn(TestApplicationIdProvider(appId))
 
     val emptyLogcatService = Mockito.mock(AndroidLogcatService::class.java)
@@ -86,17 +86,17 @@ abstract class AndroidConfigurationExecutorBaseTest {
   private fun createProjectSystemMock(): AndroidProjectSystem {
     val projectSystemMock = Mockito.mock(AndroidProjectSystem::class.java)
     val projectSystemService = Mockito.mock(ProjectSystemService::class.java)
-    `when`(projectSystemService.projectSystem).thenReturn(projectSystemMock)
+    whenever(projectSystemService.projectSystem).thenReturn(projectSystemMock)
     project.replaceService(ProjectSystemService::class.java, projectSystemService, testRootDisposable)
     return projectSystemMock
   }
 
   protected fun getMockDevice(commandHandlers: Map<Command, CommandHandler> = emptyMap()): IDevice {
     val device = Mockito.mock(IDevice::class.java)
-    `when`(device.version).thenReturn(AndroidVersion(20, null))
-    `when`(device.density).thenReturn(640)
-    `when`(device.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86).map { it.toString() })
-    `when`(
+    whenever(device.version).thenReturn(AndroidVersion(20, null))
+    whenever(device.density).thenReturn(640)
+    whenever(device.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86).map { it.toString() })
+    whenever(
       device.executeShellCommand(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any())
     ).thenAnswer { invocation ->
       val command = invocation.arguments[0] as String
@@ -104,7 +104,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
       val handler = commandHandlers[command]
       handler?.invoke(device, receiver)
     }
-    `when`(device.isOnline).thenReturn(true)
+    whenever(device.isOnline).thenReturn(true)
     return device
   }
 

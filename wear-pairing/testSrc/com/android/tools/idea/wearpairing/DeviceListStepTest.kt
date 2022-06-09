@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.LoggedUsage
@@ -248,7 +249,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     fakeUi.layoutAndDispatchEvents()
 
     val phoneList = Mockito.spy(fakeUi.getPhoneList())
-    Mockito.doReturn(Point(0, 0)).`when`(phoneList).locationOnScreen // Work around for headless UI
+    Mockito.doReturn(Point(0, 0)).whenever(phoneList).locationOnScreen // Work around for headless UI
 
     val cellRect = phoneList.getCellBounds(0, 0)
 

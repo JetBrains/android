@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
@@ -34,7 +35,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
@@ -43,22 +43,22 @@ class V1NdkModelTest {
 
   @Mock
   private val mockNativeSettings1 = mock(NativeSettings::class.java).apply {
-    `when`(name).thenReturn("nativeSettings1")
+    whenever(name).thenReturn("nativeSettings1")
   }
 
   @Mock
   private val mockNativeSettings2 = mock(NativeSettings::class.java).apply {
-    `when`(name).thenReturn("nativeSettings2")
+    whenever(name).thenReturn("nativeSettings2")
   }
 
   @Mock
   private val mockNativeToolchain1 = mock(NativeToolchain::class.java).apply {
-    `when`(name).thenReturn("toolchain1")
+    whenever(name).thenReturn("toolchain1")
   }
 
   @Mock
   private val mockNativeToolchain2 = mock(NativeToolchain::class.java).apply {
-    `when`(name).thenReturn("toolchain2")
+    whenever(name).thenReturn("toolchain2")
   }
 
   private val soFolder = FileUtil.createTempDirectory("V1NdkModelTest", null)

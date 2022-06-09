@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.analytics.CommonNopTracker
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.IssueModel
@@ -59,8 +60,8 @@ class NlLayoutScannerTest {
   private fun createScanner(): NlLayoutScanner {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val issuePanel: IssuePanel = Mockito.mock(IssuePanel::class.java)
-    Mockito.`when`(mockSurface.issueModel).thenReturn(issueModel)
-    Mockito.`when`(mockSurface.issuePanel).thenReturn(issuePanel)
+    whenever(mockSurface.issueModel).thenReturn(issueModel)
+    whenever(mockSurface.issuePanel).thenReturn(issuePanel)
     return NlLayoutScanner(mockSurface, projectRule.fixture.testRootDisposable!!)
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings.action
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -39,9 +40,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorTextField
-import javax.swing.JButton
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -51,7 +49,10 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.`when` as whenever
+import javax.swing.JButton
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
+
 
 /** Test [AddKeyAction] methods. */
 @RunWith(JUnit4::class)

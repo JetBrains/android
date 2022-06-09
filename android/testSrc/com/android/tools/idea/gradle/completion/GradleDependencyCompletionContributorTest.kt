@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.completion
 
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.imports.GMavenIndexRepository
 import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
@@ -27,7 +28,6 @@ import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.nio.charset.StandardCharsets
 
 @RunsInEdt
@@ -279,7 +279,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
     val mockGMavenIndexRepository: GMavenIndexRepository = MockitoKt.mock()
-    `when`(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(
+    whenever(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -330,7 +330,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     val mavenClassRegistry = MavenClassRegistry(mockGMavenIndexRepository)
 
     return MockitoKt.mock<MavenClassRegistryManager>().apply {
-      `when`(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+      whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
     }
   }
 }

@@ -17,9 +17,8 @@ package com.android.tools.idea.startup
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FD_PLATFORMS
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
@@ -28,7 +27,6 @@ import org.jetbrains.android.sdk.AndroidSdkType
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
@@ -126,15 +124,15 @@ class AndroidSdkInitializerTest {
 
   private fun getAndroidStudioIde(): IdeInfo {
     val mockIdeInfo = mock(IdeInfo::class.java)
-    `when`(mockIdeInfo.isGameTools).thenReturn(false)
-    `when`(mockIdeInfo.isAndroidStudio).thenReturn(true)
+    whenever(mockIdeInfo.isGameTools).thenReturn(false)
+    whenever(mockIdeInfo.isAndroidStudio).thenReturn(true)
     return mockIdeInfo;
   }
 
   private fun getGameToolsIde(): IdeInfo {
     val mockIdeInfo = mock(IdeInfo::class.java)
-    `when`(mockIdeInfo.isGameTools).thenReturn(true)
-    `when`(mockIdeInfo.isAndroidStudio).thenReturn(false)
+    whenever(mockIdeInfo.isGameTools).thenReturn(true)
+    whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
     return mockIdeInfo;
   }
 }

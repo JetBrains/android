@@ -26,6 +26,7 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -57,7 +58,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -122,10 +122,10 @@ DONE.
    */
   private fun createMockLegacyClient(): LegacyClient {
     val legacyClient = mock<LegacyClient>()
-    `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
-    `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(legacyClient))
-    `when`(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
-    `when`(legacyClient.launchMonitor).thenReturn(mock())
+    whenever(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
+    whenever(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(legacyClient))
+    whenever(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
+    whenever(legacyClient.launchMonitor).thenReturn(mock())
     return legacyClient
   }
 
@@ -133,8 +133,8 @@ DONE.
   fun testParseNodes() {
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
-    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(resourceLookup.dpi).thenReturn(-1)
+    whenever(lookup.resourceLookup).thenReturn(resourceLookup)
+    whenever(resourceLookup.dpi).thenReturn(-1)
     val provider = LegacyPropertiesProvider()
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
 
@@ -211,10 +211,10 @@ DONE.
     val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
     val client = mock<ClientImpl>()
-    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(device.density).thenReturn(560)
-    `when`(client.device).thenReturn(device)
-    `when`(client.send(argThat { argument ->
+    whenever(lookup.resourceLookup).thenReturn(resourceLookup)
+    whenever(device.density).thenReturn(560)
+    whenever(client.device).thenReturn(device)
+    whenever(client.send(argThat { argument ->
       argument?.payload?.int == CHUNK_VURT &&
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, any())).thenAnswer { invocation ->
@@ -223,9 +223,9 @@ DONE.
         .getArgument(1, DebugViewDumpHandler::class.java)
         .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
     }
-    `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
-    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+    whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
       verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
       invocation
         .getArgument<DebugViewDumpHandler>(2)
@@ -276,9 +276,9 @@ DONE.
     val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
     val client = mock<ClientImpl>()
-    `when`(client.device).thenReturn(device)
-    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(client.send(argThat { argument ->
+    whenever(client.device).thenReturn(device)
+    whenever(lookup.resourceLookup).thenReturn(resourceLookup)
+    whenever(client.send(argThat { argument ->
       argument?.payload?.int == CHUNK_VURT &&
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, any())).thenAnswer { invocation ->
@@ -291,9 +291,9 @@ DONE.
 
         """.trimIndent().toByteArray(Charsets.UTF_8)), true, 1)
     }
-    `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
-    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+    whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
       invocation
         .getArgument<DebugViewDumpHandler>(2)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageBytes), true, 1234)
@@ -329,7 +329,7 @@ DONE.
     val image2Bytes = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image2.png").readBytes()
     val image2 = ImageIO.read(ByteArrayInputStream(image2Bytes))
 
-    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+    whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
       invocation
         .getArgument<DebugViewDumpHandler>(2)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(image2Bytes), true, 1234)

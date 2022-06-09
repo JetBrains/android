@@ -29,14 +29,15 @@ import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,7 +48,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -130,7 +130,7 @@ class HelpActionsTest {
 
   private fun toHelpUrl(componentName: String, propertyName: String): String? {
     val property = mock(NlPropertyItem::class.java)
-    `when`(property.name).thenReturn(propertyName)
+    whenever(property.name).thenReturn(propertyName)
     return HelpActions.toHelpUrl(componentName, property)
   }
 }

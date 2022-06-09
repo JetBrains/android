@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
@@ -41,7 +42,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 import java.util.concurrent.ScheduledExecutorService
@@ -58,8 +58,8 @@ class SingleDeviceAndroidProcessMonitorTest {
 
   private fun createDevice(): IDevice {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.version).thenReturn(AndroidVersion(26))
-    `when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
+    whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
   }
 
@@ -99,7 +99,7 @@ class SingleDeviceAndroidProcessMonitorTest {
 
   @Before
   fun setUp() {
-    `when`(mockScheduledExecutor.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).then {
+    whenever(mockScheduledExecutor.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).then {
       capturedUpdateStateRunnable = it.getArgument(0)
       capturedUpdateInitialDelay = it.getArgument(1)
       capturedUpdateInterval = it.getArgument(2)
@@ -107,7 +107,7 @@ class SingleDeviceAndroidProcessMonitorTest {
       mockStateUpdaterScheduledFuture
     }
 
-    `when`(mockScheduledExecutor.schedule(any(), anyLong(), any())).then {
+    whenever(mockScheduledExecutor.schedule(any(), anyLong(), any())).then {
       capturedTimeoutRunnable = it.getArgument(0)
       capturedTimeout = it.getArgument(1)
       capturedTimeoutTimeUnit = it.getArgument(2)
@@ -151,14 +151,14 @@ class SingleDeviceAndroidProcessMonitorTest {
     startMonitor()
 
     val mockClients = listOf(createMockClient(123))
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
     verify(mockLogcatCaptor).startCapture(eq(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now the target process finishes.
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf())
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf())
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
@@ -172,7 +172,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     val monitor = startMonitor(finishAndroidProcessCallback = { callBackIsCalled = true })
 
     val mockClients = listOf(createMockClient(123))
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
     updateMonitorState()
 
     // Now kill the target process by close.
@@ -185,10 +185,10 @@ class SingleDeviceAndroidProcessMonitorTest {
   fun processFoundThenKillProcessByMonitor() {
     val monitor = startMonitor()
 
-    `when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.isOnline).thenReturn(true)
     val mockClient = createMockClient(123)
 
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
@@ -207,7 +207,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     val monitor = startMonitor()
 
     val mockClient = createMockClient(123)
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
@@ -236,7 +236,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     val monitor = startMonitor(logcatCaptor = null)
 
     val mockClients = listOf(createMockClient(123))
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
@@ -248,11 +248,11 @@ class SingleDeviceAndroidProcessMonitorTest {
 
   @Test
   fun processFoundThenStopListeningAndClose() {
-    `when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.isOnline).thenReturn(true)
     val monitor = startMonitor()
 
     val mockClient = createMockClient(123)
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
+    whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
@@ -273,9 +273,9 @@ class SingleDeviceAndroidProcessMonitorTest {
 
   private fun createMockClient(pid: Int): Client {
     val mockClientData = mock(ClientData::class.java)
-    `when`(mockClientData.pid).thenReturn(pid)
+    whenever(mockClientData.pid).thenReturn(pid)
     val mockClient = mock(Client::class.java)
-    `when`(mockClient.clientData).thenReturn(mockClientData)
+    whenever(mockClient.clientData).thenReturn(mockClientData)
     return mockClient
   }
 }

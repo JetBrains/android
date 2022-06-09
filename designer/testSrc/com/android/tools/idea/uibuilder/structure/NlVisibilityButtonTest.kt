@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentModificationDelegate
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
@@ -24,6 +25,7 @@ import icons.StudioIcons.LayoutEditor.Properties
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
+
 import javax.swing.Icon
 
 class NlVisibilityButtonTest {
@@ -89,12 +91,12 @@ class NlVisibilityButtonTest {
 
   private fun generateModel(android: Visibility, tools: Visibility): NlVisibilityModel {
     val component: NlComponent = Mockito.mock(NlComponent::class.java)
-    Mockito.`when`(component.getAttribute(SdkConstants.ANDROID_URI, "visibility"))
+    whenever(component.getAttribute(SdkConstants.ANDROID_URI, "visibility"))
       .thenReturn(Visibility.convert(android))
-    Mockito.`when`(component.getAttribute(SdkConstants.TOOLS_URI, "visibility"))
+    whenever(component.getAttribute(SdkConstants.TOOLS_URI, "visibility"))
       .thenReturn(Visibility.convert(tools))
     val delegate = Mockito.mock(NlComponentModificationDelegate::class.java)
-    Mockito.`when`(component.componentModificationDelegate).thenReturn(delegate)
+    whenever(component.componentModificationDelegate).thenReturn(delegate)
     return NlVisibilityModel(component)
   }
 }

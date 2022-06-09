@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -37,7 +38,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 class BuildOutputParserWrapperTest {
@@ -66,11 +66,11 @@ class BuildOutputParserWrapperTest {
     outputParserManager = BuildOutputParserManager(myProject, listOf(myParserWrapper))
     UsageTracker.setWriterForTest(tracker)
 
-    `when`(myProject.basePath).thenReturn("test")
+    whenever(myProject.basePath).thenReturn("test")
 
     val moduleManager = Mockito.mock(ModuleManager::class.java)
-    `when`(myProject.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
-    `when`(moduleManager.modules).thenReturn(emptyArray<Module>())
+    whenever(myProject.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
+    whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 
   @After

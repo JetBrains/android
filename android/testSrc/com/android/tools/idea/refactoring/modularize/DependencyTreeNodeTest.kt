@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -28,7 +29,6 @@ import org.mockito.Mockito.CALLS_REAL_METHODS
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.`when` as given
 import org.mockito.Mockito.withSettings
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
@@ -51,7 +51,7 @@ class DependencyTreeNodeTest {
   @Test
   fun `text attributes are regular when node is checked`() {
     val node = spyDependencyTreeNode(mock(), Random.nextInt())
-    given(node.isChecked).thenReturn(true)
+    whenever(node.isChecked).thenReturn(true)
 
     assertThat(node.textAttributes).isEqualTo(SimpleTextAttributes.REGULAR_ATTRIBUTES)
   }
@@ -59,7 +59,7 @@ class DependencyTreeNodeTest {
   @Test
   fun `text attributes are strikethrough when node is not checked`() {
     val node = spyDependencyTreeNode(mock(), Random.nextInt())
-    given(node.isChecked).thenReturn(false)
+    whenever(node.isChecked).thenReturn(false)
 
     assertThat(node.textAttributes.isStrikeout).isTrue()
     assertThat(BitUtil.isSet(node.textAttributes.style, SimpleTextAttributes.STYLE_ITALIC)).isTrue()
@@ -82,9 +82,9 @@ class DependencyTreeNodeTest {
   fun `renderReferenceCount appends the ref count with smaller italicized text when it's more than 1`() {
     val renderer = mock<ColoredTreeCellRenderer>()
     val attributes = mock<SimpleTextAttributes>()
-    given(attributes.style).thenReturn(SimpleTextAttributes.STYLE_STRIKEOUT)
+    whenever(attributes.style).thenReturn(SimpleTextAttributes.STYLE_STRIKEOUT)
     val color = mock<Color>()
-    given(attributes.fgColor).thenReturn(color)
+    whenever(attributes.fgColor).thenReturn(color)
     val derivedAttr = SimpleTextAttributes(
       attributes.style or
         SimpleTextAttributes.STYLE_ITALIC or

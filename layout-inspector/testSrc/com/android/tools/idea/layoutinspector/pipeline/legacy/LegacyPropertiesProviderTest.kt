@@ -17,14 +17,15 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.testing.ApplicationRule
@@ -34,7 +35,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 
 class LegacyPropertiesProviderTest {
   @get:Rule
@@ -86,7 +86,7 @@ class LegacyPropertiesProviderTest {
   @Test
   fun testExample() {
     val lookup = Mockito.mock(ViewNodeAndResourceLookup::class.java)
-    `when`(lookup.resourceLookup).thenReturn(Mockito.mock(ResourceLookup::class.java))
+    whenever(lookup.resourceLookup).thenReturn(Mockito.mock(ResourceLookup::class.java))
     val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, null, "", 0)
     val provider = LegacyPropertiesProvider()
     val propertyLoader = LegacyPropertiesProvider.Updater(lookup)

@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class NativeAllocationMethodSetTest {
@@ -43,7 +43,7 @@ class NativeAllocationMethodSetTest {
   fun classifier() {
     val classifier = NativeAllocationMethodSet.createDefaultClassifier()
     val instanceObject = mock(InstanceObject::class.java)
-    `when`(instanceObject.classEntry).thenReturn(
+    whenever(instanceObject.classEntry).thenReturn(
       ClassDb.ClassEntry(0, 0, "Test"))
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeAllocationMethodSet::class.java)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
@@ -93,5 +94,5 @@ private val FAKE_EVENT_1 =
 private val FAKE_SELECTION_MODEL = Mockito.mock(MultiSelectionModel::class.java)
 private val CAPTURE_RANGE = Range(1000.0, 10000.0)
 private val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-  Mockito.`when`(range).thenReturn(CAPTURE_RANGE)
+  whenever(range).thenReturn(CAPTURE_RANGE)
 }

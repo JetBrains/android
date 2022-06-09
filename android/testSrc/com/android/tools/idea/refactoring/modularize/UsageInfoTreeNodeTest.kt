@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.getTypedArgument
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.res.getFolderConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.Application
@@ -48,7 +49,6 @@ import java.awt.Color
 import javax.swing.Icon
 import kotlin.random.Random
 import kotlin.test.assertFailsWith
-import org.mockito.Mockito.`when` as given
 
 class UsageInfoTreeNodeTest {
 
@@ -60,7 +60,7 @@ class UsageInfoTreeNodeTest {
   fun `constructor populates PsiElement from UsageInfo`() {
     val usageInfo = mock<UsageInfo>()
     val element = mock<PsiElement>()
-    given(usageInfo.element).thenReturn(element)
+    whenever(usageInfo.element).thenReturn(element)
 
     val node = UsageInfoTreeNode(usageInfo, Random.nextInt())
 
@@ -77,14 +77,14 @@ class UsageInfoTreeNodeTest {
   @Test
   fun `render throws a NPE if the PsiElement is missing`() {
     val app = mock<Application>()
-    given(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
+    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
       it.getTypedArgument<Computable<Icon>>(0).compute()
     }
 
     val node = UsageInfoTreeNode(mock(), Random.nextInt())
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(app)
+      whenever(ApplicationManager.getApplication()).thenReturn(app)
 
       assertFailsWith<NullPointerException> { node.render(mock()) }
     }
@@ -94,12 +94,12 @@ class UsageInfoTreeNodeTest {
   fun `render sets the icon from the PsiElement`() {
     val icon = mock<Icon>()
     val element = mock<PsiElement>()
-    given(element.getIcon(Iconable.ICON_FLAG_VISIBILITY or Iconable.ICON_FLAG_READ_STATUS)).thenReturn(icon)
+    whenever(element.getIcon(Iconable.ICON_FLAG_VISIBILITY or Iconable.ICON_FLAG_READ_STATUS)).thenReturn(icon)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(element)
+    whenever(usageInfo.element).thenReturn(element)
 
     val app = mock<Application>()
-    given(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
+    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
       it.getTypedArgument<Computable<Icon>>(0).compute()
     }
 
@@ -108,7 +108,7 @@ class UsageInfoTreeNodeTest {
     val node = UsageInfoTreeNode(usageInfo, Random.nextInt())
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(app)
+      whenever(ApplicationManager.getApplication()).thenReturn(app)
 
       assertThat(
         assertFailsWith<IllegalArgumentException> { node.render(renderer) })
@@ -121,18 +121,18 @@ class UsageInfoTreeNodeTest {
   fun `render appends XmlTag's text with attributes`() {
     val text = "<some element text>"
     val xmlTag = mock<XmlTag>()
-    given(xmlTag.text).thenReturn(text)
+    whenever(xmlTag.text).thenReturn(text)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(xmlTag)
+    whenever(usageInfo.element).thenReturn(xmlTag)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       node.render(renderer)
 
@@ -144,18 +144,18 @@ class UsageInfoTreeNodeTest {
   fun `render handles PsiClass with name`() {
     val name = "<a PsiClass name>"
     val psiClass = mock<PsiClass>()
-    given(psiClass.name).thenReturn(name)
+    whenever(psiClass.name).thenReturn(name)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(psiClass)
+    whenever(usageInfo.element).thenReturn(psiClass)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       node.render(renderer)
 
@@ -167,18 +167,18 @@ class UsageInfoTreeNodeTest {
   @Test
   fun `render handles PsiClass without name`() {
     val psiClass = mock<PsiClass>()
-    given(psiClass.name).thenReturn(null)
+    whenever(psiClass.name).thenReturn(null)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(psiClass)
+    whenever(usageInfo.element).thenReturn(psiClass)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       node.render(renderer)
 
@@ -191,28 +191,28 @@ class UsageInfoTreeNodeTest {
   fun `render handles PsiFile with nontrivial folder config`() {
     val name = "<a PsiFile name>"
     val psiFile = mock<PsiFile>()
-    given(psiFile.name).thenReturn(name)
+    whenever(psiFile.name).thenReturn(name)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(psiFile)
+    whenever(usageInfo.element).thenReturn(psiFile)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
     val color = mock<Color>()
-    given(attributes.fgColor).thenReturn(color)
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    whenever(attributes.fgColor).thenReturn(color)
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     val qualifierString = "<a qualifier string>" // a nontrivial config
     val folderConfiguration = mock<FolderConfiguration>()
-    given(folderConfiguration.qualifierString).thenReturn(qualifierString)
+    whenever(folderConfiguration.qualifierString).thenReturn(qualifierString)
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       val `JVM class containing getFolderConfiguration` = Class.forName("com.android.tools.idea.res.IdeResourcesUtil")
       Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
-        given(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
+        whenever(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
 
         node.render(renderer)
 
@@ -230,26 +230,26 @@ class UsageInfoTreeNodeTest {
   fun `render handles PsiFile with trivial folder config`() {
     val name = "<a PsiFile name>"
     val psiFile = mock<PsiFile>()
-    given(psiFile.name).thenReturn(name)
+    whenever(psiFile.name).thenReturn(name)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(psiFile)
+    whenever(usageInfo.element).thenReturn(psiFile)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     val qualifierString = "" // a trivial config
     val folderConfiguration = mock<FolderConfiguration>()
-    given(folderConfiguration.qualifierString).thenReturn(qualifierString)
+    whenever(folderConfiguration.qualifierString).thenReturn(qualifierString)
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       val `JVM class containing getFolderConfiguration` = Class.forName("com.android.tools.idea.res.IdeResourcesUtil")
       Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
-        given(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
+        whenever(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
 
         node.render(renderer)
 
@@ -267,22 +267,22 @@ class UsageInfoTreeNodeTest {
   fun `render raises NPE on PsiFile without folder config`() {
     val name = "<a PsiFile name>"
     val psiFile = mock<PsiFile>()
-    given(psiFile.name).thenReturn(name)
+    whenever(psiFile.name).thenReturn(name)
     val usageInfo = mock<UsageInfo>()
-    given(usageInfo.element).thenReturn(psiFile)
+    whenever(usageInfo.element).thenReturn(psiFile)
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    Mockito.doReturn(attributes).`when`(node).textAttributes
+    Mockito.doReturn(attributes).whenever(node).textAttributes
 
     mockStatic<ApplicationManager>().use {
-      given(ApplicationManager.getApplication()).thenReturn(mock())
+      whenever(ApplicationManager.getApplication()).thenReturn(mock())
 
       val `JVM class containing getFolderConfiguration` = Class.forName("com.android.tools.idea.res.IdeResourcesUtil")
       Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
-        given(getFolderConfiguration(psiFile)).thenReturn(null)
+        whenever(getFolderConfiguration(psiFile)).thenReturn(null)
 
         assertFailsWith<NullPointerException> { node.render(renderer) }
 

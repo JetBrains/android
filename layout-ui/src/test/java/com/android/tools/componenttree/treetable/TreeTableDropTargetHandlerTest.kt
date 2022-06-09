@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
@@ -38,7 +39,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.inOrder
@@ -242,8 +242,8 @@ class TreeTableDropTargetHandlerTest {
     checkPaint(table, handler, 3, 6)
 
     val dropEvent: DropTargetDropEvent = mock()
-    `when`(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
-    `when`(dropEvent.transferable).thenReturn(mock())
+    whenever(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
+    whenever(dropEvent.transferable).thenReturn(mock())
     handler.drop(dropEvent)
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
@@ -263,8 +263,8 @@ class TreeTableDropTargetHandlerTest {
     checkPaint(table, handler, 3, 6)
 
     val dropEvent: DropTargetDropEvent = mock()
-    `when`(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
-    `when`(dropEvent.transferable).thenReturn(mock())
+    whenever(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
+    whenever(dropEvent.transferable).thenReturn(mock())
     handler.drop(dropEvent)
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
@@ -281,7 +281,7 @@ class TreeTableDropTargetHandlerTest {
   private fun checkPaint(table: TreeTableImpl, handler: TreeTableDropTargetHandler, expectedReceiverRow: Int, expectedInsertionRow: Int) {
     val g: Graphics = mock()
     val g2: Graphics2D = mock()
-    `when`(g.create()).thenReturn(g2)
+    whenever(g.create()).thenReturn(g2)
     handler.paintDropTargetPosition(g)
     val rb = table.tree.getRowBounds(expectedReceiverRow)
     val ib = table.tree.getRowBounds(maxOf(0, expectedInsertionRow - 1))
@@ -325,12 +325,12 @@ class TreeTableDropTargetHandlerTest {
   private fun createDropTargetDragEvent(component: JComponent, location: Point): DropTargetDragEvent {
     val dropTarget: DropTarget = mock() // The constructor is throwing HeadlessException
     val context: DropTargetContext = mock()
-    `when`(dropTarget.component).thenReturn(component)
-    `when`(dropTarget.dropTargetContext).thenReturn(context)
-    `when`(context.dropTarget).thenReturn(dropTarget)
-    `when`(context.component).thenReturn(component)
+    whenever(dropTarget.component).thenReturn(component)
+    whenever(dropTarget.dropTargetContext).thenReturn(context)
+    whenever(context.dropTarget).thenReturn(dropTarget)
+    whenever(context.component).thenReturn(component)
     val event = spy(DropTargetDragEvent(dropTarget.dropTargetContext, location, DnDConstants.ACTION_MOVE, DnDConstants.ACTION_COPY_OR_MOVE))
-    `when`(event.transferable).thenReturn(mock())
+    whenever(event.transferable).thenReturn(mock())
     return event
   }
 }

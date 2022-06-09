@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.events.BuildEvent
@@ -24,7 +25,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.util.function.Consumer
@@ -41,7 +41,7 @@ class InstantExecutionReportParserTest {
   fun setUp() {
     MockitoAnnotations.initMocks(this)
     parser = InstantExecutionReportParser()
-    `when`(reader.parentEventId).thenReturn("testId")
+    whenever(reader.parentEventId).thenReturn("testId")
   }
 
   @Test

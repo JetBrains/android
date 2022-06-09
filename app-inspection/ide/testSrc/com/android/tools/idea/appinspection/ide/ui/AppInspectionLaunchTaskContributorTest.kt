@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
@@ -39,7 +40,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
+
 
 class AppInspectionLaunchTaskContributorTest {
   @get:Rule
@@ -108,7 +109,7 @@ class AppInspectionLaunchTaskContributorTest {
     // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
     // Assert that the recent process is still p2.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
-    `when`(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
+    whenever(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
     val debugHandler2 = AndroidRemoteDebugProcessHandler(project, mock(), false)
     debugHandler2.startNotify()
     status2.processHandler = debugHandler2

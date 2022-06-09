@@ -16,15 +16,11 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponentBackend
-import com.android.tools.idea.common.model.NlComponentModificationDelegate
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
 import org.junit.Test
 import org.mockito.Mockito
 
@@ -148,7 +144,7 @@ class NlVisibilityModelTest: LayoutTestCase() {
     val component = mockComponent(currentVisibility)
     val parent = mockComponent(parentVisibility)
 
-    Mockito.`when`(component.parent).thenReturn(parent)
+    whenever(component.parent).thenReturn(parent)
 
     assertEquals(expected, getVisibilityFromParents(component))
   }
@@ -162,15 +158,15 @@ class NlVisibilityModelTest: LayoutTestCase() {
     val parent = mockComponent(parentVisibility)
     val grandParent = mockComponent(grandparentVisibility)
 
-    Mockito.`when`(component.parent).thenReturn(parent)
-    Mockito.`when`(parent.parent).thenReturn(grandParent)
+    whenever(component.parent).thenReturn(parent)
+    whenever(parent.parent).thenReturn(grandParent)
 
     assertEquals(expected, getVisibilityFromParents(component))
   }
 
   private fun mockComponent(visibility: String? = null): NlComponent {
     val component: NlComponent = Mockito.mock(NlComponent::class.java)
-    Mockito.`when`(component.getAttribute(SdkConstants.ANDROID_URI, "visibility")).thenReturn(visibility)
+    whenever(component.getAttribute(SdkConstants.ANDROID_URI, "visibility")).thenReturn(visibility)
     return component
   }
 

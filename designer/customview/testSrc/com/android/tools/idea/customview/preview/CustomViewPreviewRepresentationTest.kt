@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.DetachedToolWindowManager
 import com.android.tools.adtui.workbench.WorkBenchManager
 import com.android.tools.idea.common.error.IssuePanelService
@@ -33,7 +34,6 @@ import junit.framework.TestCase
 import org.mockito.AdditionalAnswers.returnsSecondArg
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
 class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase() {
@@ -66,7 +66,7 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
 
     MockitoAnnotations.initMocks(this)
 
-    Mockito.`when`(persistenceManager.getValue(anyString(), anyString())).then(returnsSecondArg<String>())
+    whenever(persistenceManager.getValue(anyString(), anyString())).then(returnsSecondArg<String>())
     // For workbench
     project.registerServiceInstance(DetachedToolWindowManager::class.java, detachedToolWindowManager)
     ApplicationManager.getApplication().registerServiceInstance(WorkBenchManager::class.java, workbenchManager)
@@ -76,10 +76,10 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
     // For setupBuildListener
     project.registerServiceInstance(ProjectSystemService::class.java, projectSystemService)
     project.registerServiceInstance(IssuePanelService::class.java, IssuePanelService(project))
-    Mockito.`when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
-    Mockito.`when`(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
-    Mockito.`when`(syncManager.getLastSyncResult()).thenReturn(ProjectSystemSyncManager.SyncResult.FAILURE)
-    Mockito.`when`(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
+    whenever(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
+    whenever(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
+    whenever(syncManager.getLastSyncResult()).thenReturn(ProjectSystemSyncManager.SyncResult.FAILURE)
+    whenever(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
   }
 
   override fun tearDown() {

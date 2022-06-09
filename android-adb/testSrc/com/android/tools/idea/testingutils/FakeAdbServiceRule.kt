@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.google.common.util.concurrent.Futures
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import org.junit.rules.ExternalResource
 import org.mockito.Mockito
+
 import java.io.File
 
 class FakeAdbServiceRule(
@@ -53,13 +55,13 @@ class FakeAdbServiceRule(
     Mockito.doAnswer {
       serverKilled = false
       Futures.immediateFuture(bridge)
-    }.`when`(service).getDebugBridge(MockitoKt.eq(adbFile))
+    }.whenever(service).getDebugBridge(MockitoKt.eq(adbFile))
     Mockito.doAnswer {
       if (serverKilled) {
         error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
       }
       adbRule.bridge.devices
-    }.`when`(bridge).devices
+    }.whenever(bridge).devices
   }
 
   override fun after() {

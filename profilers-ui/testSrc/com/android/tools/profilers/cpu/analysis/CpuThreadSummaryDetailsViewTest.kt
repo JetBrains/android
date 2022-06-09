@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
@@ -108,11 +109,11 @@ class CpuThreadSummaryDetailsViewTest {
       viewRange.set(0.0, 0.0)
     }
     val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(getThreadStatesForThread(123)).thenReturn(listOf())
+      whenever(getThreadStatesForThread(123)).thenReturn(listOf())
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.PERFETTO)
-      Mockito.`when`(systemTraceData).thenReturn(sysTraceData)
+      whenever(type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+      whenever(systemTraceData).thenReturn(sysTraceData)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
       sysTrace,
@@ -132,7 +133,7 @@ class CpuThreadSummaryDetailsViewTest {
       viewRange.set(0.0, 0.0)
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.ART)
+      whenever(type).thenReturn(Cpu.CpuTraceType.ART)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
       sysTrace,

@@ -29,6 +29,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
@@ -257,10 +258,10 @@ class AvdOptionsModelTest : AndroidTestCase() {
     // Arrange
     val avd = Mockito.mock(AvdInfo::class.java)
 
-    Mockito.`when`(avd.deviceManufacturer).thenReturn("Google")
-    Mockito.`when`(avd.deviceName).thenReturn("pixel_3")
-    Mockito.`when`(avd.displayName).thenReturn("Pixel 3 API 30")
-    Mockito.`when`(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to SkinUtils.NO_SKIN))
+    whenever(avd.deviceManufacturer).thenReturn("Google")
+    whenever(avd.deviceName).thenReturn("pixel_3")
+    whenever(avd.displayName).thenReturn("Pixel 3 API 30")
+    whenever(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to SkinUtils.NO_SKIN))
 
     // Act
     val model = AvdOptionsModel(avd)

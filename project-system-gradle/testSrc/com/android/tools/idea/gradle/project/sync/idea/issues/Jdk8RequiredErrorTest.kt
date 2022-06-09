@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter.Companion.replaceSyncMessagesService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -25,8 +25,6 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 
 class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
@@ -34,7 +32,7 @@ class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val ideSdks = spy(IdeSdks.getInstance())
     IdeComponents(project).replaceApplicationService<IdeSdks>(IdeSdks::class.java, ideSdks)
-    `when`(ideSdks.isUsingJavaHomeJdk).thenReturn(false)
+    whenever(ideSdks.isUsingJavaHomeJdk).thenReturn(false)
     val usageReporter = replaceSyncMessagesService(project)
     SimulatedSyncErrors.registerSyncErrorToSimulate(
       "com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0")

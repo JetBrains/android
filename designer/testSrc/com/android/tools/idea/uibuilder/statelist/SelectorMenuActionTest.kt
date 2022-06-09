@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.statelist
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,7 +29,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -48,7 +48,7 @@ class SelectorMenuActionTest {
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
     DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
-    Mockito.`when`(toolbar.isTransitionSelected()).thenReturn(false)
+    whenever(toolbar.isTransitionSelected()).thenReturn(false)
 
     val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
     val presentation = PresentationFactory().getPresentation(action)
@@ -66,7 +66,7 @@ class SelectorMenuActionTest {
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
     DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
-    Mockito.`when`(toolbar.isTransitionSelected()).thenReturn(true)
+    whenever(toolbar.isTransitionSelected()).thenReturn(true)
 
     val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
     val presentation = PresentationFactory().getPresentation(action)

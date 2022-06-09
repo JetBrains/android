@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
@@ -24,7 +25,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.EditorTextFieldProvider
 import com.intellij.ui.components.JBList
-import org.mockito.Mockito.`when`
 import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -121,7 +121,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     assertEquals(-1, list.selectedIndex)
 
     val mouseEvent = mock<MouseEvent>()
-    `when`(mouseEvent.point).thenReturn(Point(0,0))
+    whenever(mouseEvent.point).thenReturn(Point(0,0))
 
     // Act
     list.mouseMotionListeners.forEach { it.mouseMoved(mouseEvent) }

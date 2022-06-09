@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -47,7 +48,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyDouble
-import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -165,7 +165,7 @@ class AppInspectionInspectorMetricsTest {
     waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
-      `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
+      whenever(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
     }
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
 

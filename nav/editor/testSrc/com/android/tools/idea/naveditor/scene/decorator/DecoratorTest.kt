@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
@@ -40,7 +41,6 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
 import org.mockito.InOrder
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Color
 import java.awt.Dimension
@@ -177,7 +177,7 @@ class DecoratorTest : NavTestCase() {
     val headerRect = makeHeaderRectangle(drawRect)
     val dimensions = Dimension(drawRect.width.toInt(), drawRect.height.toInt())
 
-    Mockito.doReturn(refinableImage).`when`(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
+    Mockito.doReturn(refinableImage).whenever(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
 
     try {
       ThumbnailManager.setInstance(myFacet, thumbnailManager)
@@ -397,10 +397,10 @@ class DecoratorTest : NavTestCase() {
     val root = Mockito.mock(Graphics2D::class.java)
 
     val child = Mockito.mock(Graphics2D::class.java)
-    `when`(root.create()).thenReturn(child)
+    whenever(root.create()).thenReturn(child)
 
     val graphics = makeGraphicsMock()
-    `when`(child.create()).thenReturn(graphics)
+    whenever(child.create()).thenReturn(graphics)
 
     val inOrder = Mockito.inOrder(graphics)
 

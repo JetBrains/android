@@ -15,35 +15,30 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.protobuf.ByteString
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
-import io.grpc.ManagedChannel
 import io.grpc.netty.NettyChannelBuilder
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import java.util.concurrent.BlockingDeque
 import java.util.concurrent.LinkedBlockingDeque
 
 
 fun mockTransportProxy(): TransportProxy {
-  val mockProxy = mock<TransportProxy>(TransportProxy::class.java)
-
+  val mockProxy: TransportProxy = mock()
   val channel = NettyChannelBuilder.forTarget("someTarget").usePlaintext().build()
-  `when`<ManagedChannel>(mockProxy.transportChannel).thenReturn(channel)
-  `when`<Map<String, ByteString>>(mockProxy.bytesCache).thenReturn(mutableMapOf())
-  `when`<BlockingDeque<Common.Event>>(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
+  whenever(mockProxy.transportChannel).thenReturn(channel)
+  whenever(mockProxy.bytesCache).thenReturn(mutableMapOf())
+  whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
 
-  val mockDevice = mock<IDevice>(IDevice::class.java)
-  `when`<String>(mockDevice.serialNumber).thenReturn("Serial")
-  `when`<String>(mockDevice.name).thenReturn("Device")
-  `when`<AndroidVersion>(mockDevice.version).thenReturn(AndroidVersion(1, "API"))
-  `when`<Boolean>(mockDevice.isOnline).thenReturn(true)
-  `when`<Array<Client>>(mockDevice.clients).thenReturn(arrayOf())
-  `when`<IDevice>(mockProxy.device).thenReturn(mockDevice)
+  val mockDevice: IDevice = mock()
+  whenever(mockDevice.serialNumber).thenReturn("Serial")
+  whenever(mockDevice.name).thenReturn("Device")
+  whenever(mockDevice.version).thenReturn(AndroidVersion(1, "API"))
+  whenever(mockDevice.isOnline).thenReturn(true)
+  whenever(mockDevice.clients).thenReturn(arrayOf())
+  whenever(mockProxy.device).thenReturn(mockDevice)
 
   return mockProxy
 }

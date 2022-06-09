@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.mocks.OpenActionManager
@@ -45,7 +46,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -149,7 +149,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
       override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu {
         popUpMenuActionGroupList.add(group)
         val mockPopUpMenu = mock(ActionPopupMenu::class.java)
-        `when`(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
+        whenever(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
         return mockPopUpMenu
       }
     }

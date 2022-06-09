@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import junit.framework.TestCase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 internal class SelectJdkFromFileSystemHyperlinkTest : TestCase() {
   fun testCreateProjectDisposed() {
     val mockProject = mock(Project::class.java)
-    `when`(mockProject.isDisposed()).thenReturn(true)
+    whenever(mockProject.isDisposed()).thenReturn(true)
     assertThat(SelectJdkFromFileSystemHyperlink.doCreate(mockProject)).isNull();
   }
 }

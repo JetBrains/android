@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -25,10 +26,10 @@ class CpuThreadComparatorTest {
   fun childSizeOrdering() {
     val capture = Mockito.mock(CpuCapture::class.java)
 
-    Mockito.`when`(capture.getCaptureNode(1)).thenReturn(buildCaptureNode("Thread 1", 5))
-    Mockito.`when`(capture.getCaptureNode(2)).thenReturn(buildCaptureNode("Thread 2", 0))
-    Mockito.`when`(capture.getCaptureNode(3)).thenReturn(buildCaptureNode("Thread 3", 1))
-    Mockito.`when`(capture.getCaptureNode(4)).thenReturn(buildCaptureNode(CpuThreadInfo.RENDER_THREAD_NAME, 0))
+    whenever(capture.getCaptureNode(1)).thenReturn(buildCaptureNode("Thread 1", 5))
+    whenever(capture.getCaptureNode(2)).thenReturn(buildCaptureNode("Thread 2", 0))
+    whenever(capture.getCaptureNode(3)).thenReturn(buildCaptureNode("Thread 3", 1))
+    whenever(capture.getCaptureNode(4)).thenReturn(buildCaptureNode(CpuThreadInfo.RENDER_THREAD_NAME, 0))
     val comparator = CpuThreadComparator.withCaptureInfo(capture)
     val thread1 = CpuThreadInfo(1, "Thread 1")
     val thread2 = CpuThreadInfo(2, "Thread 2")

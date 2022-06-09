@@ -16,11 +16,11 @@
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorGotoDeclaration
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.awt.event.KeyEvent
 
 class GotoDeclarationStatisticsTest {
@@ -50,7 +50,7 @@ class GotoDeclarationStatisticsTest {
   private fun mockKeyShortcut(): AnActionEvent {
     val event: AnActionEvent = mock()
     val input: KeyEvent = mock()
-    `when`(event.inputEvent).thenReturn(input)
+    whenever(event.inputEvent).thenReturn(input)
     return event
   }
 }

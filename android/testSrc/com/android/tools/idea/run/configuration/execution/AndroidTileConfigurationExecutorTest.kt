@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -79,7 +80,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
@@ -131,7 +132,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
@@ -152,9 +153,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .`when`(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
+      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
@@ -203,7 +204,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()

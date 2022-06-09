@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.google.common.truth.Truth.assertThat
@@ -44,7 +45,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations.initMocks
 
 /**
@@ -109,8 +109,8 @@ class AndroidProcessHandlerTest {
 
     project.replaceService(ExecutionTargetManager::class.java, mockExecutionTargetManager, projectRule.project.earlyDisposable)
 
-    `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
-    `when`(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
+    whenever(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
+    whenever(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
       val (text, attributes, textAcceptor) = invocation.arguments
       text as String
       attributes as Key<*>
@@ -238,8 +238,8 @@ class AndroidProcessHandlerTest {
     val nonAssociatedDevice = mock(IDevice::class.java)
     val associatedDevice = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
-    `when`(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
+    whenever(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
+    whenever(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
 
     assertThat(handler.canKillProcess()).isTrue()
   }
@@ -249,14 +249,14 @@ class AndroidProcessHandlerTest {
     val nonAssociatedDevice1 = mock(IDevice::class.java)
     val nonAssociatedDevice2 = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
+    whenever(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
 
     assertThat(handler.canKillProcess()).isFalse()
   }
 
   @Test
   fun canKillProcess_returnsFalseWhenActiveTargetIsNotAndroidTarget() {
-    `when`(mockExecutionTargetManager.activeTarget).thenReturn(mock(ExecutionTarget::class.java))
+    whenever(mockExecutionTargetManager.activeTarget).thenReturn(mock(ExecutionTarget::class.java))
 
     assertThat(handler.canKillProcess()).isFalse()
   }
@@ -295,7 +295,7 @@ class AndroidProcessHandlerTest {
     val targetDevice = createMockDevice(28)
 
     handler.addTargetDevice(targetDevice)
-    `when`(mockMonitorManager.isEmpty()).thenReturn(true)
+    whenever(mockMonitorManager.isEmpty()).thenReturn(true)
     handler.detachDevice(targetDevice)
 
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
@@ -310,7 +310,7 @@ class AndroidProcessHandlerTest {
 
   private fun createMockDevice(apiVersion: Int): IDevice {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
+    whenever(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
     return mockDevice
   }
 }

@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.google.common.util.concurrent.Futures
@@ -52,13 +53,13 @@ class AdbServiceRule(
     doAnswer {
       serverKilled = false
       Futures.immediateFuture(bridge)
-    }.`when`(service).getDebugBridge(eq(adbFile))
+    }.whenever(service).getDebugBridge(eq(adbFile))
     doAnswer {
       if (serverKilled) {
         error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
       }
       adbRule.bridge.devices
-    }.`when`(bridge).devices
+    }.whenever(bridge).devices
   }
 
   override fun after() {

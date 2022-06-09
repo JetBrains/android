@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants.*
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -72,7 +73,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         "        android:id=\"@+id/fragment\"\n" +
         "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
 
-    mockStatic<ViewEditor>(testRootDisposable).`when`<String> {
+    mockStatic<ViewEditor>(testRootDisposable).whenever<String> {
       ViewEditor.displayResourceInput(eq(model), eq("Navigation Graphs"), eq(EnumSet.of(ResourceType.NAVIGATION)))
     }.thenReturn("@navigation/testNav")
 

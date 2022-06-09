@@ -17,6 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -29,7 +30,7 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.Mockito.`when` as whenever
+
 
 private const val OEM_COMPANION_APP_ID = "com.example"
 
@@ -100,7 +101,7 @@ private fun createDeviceWithShellCommandResult(result: String): IDevice {
     val data = result.toByteArray()
     outputReceiver.addOutput(data, 0, data.size)
     null
-  }.`when`(device).executeShellCommand(anyString(),
+  }.whenever(device).executeShellCommand(anyString(),
                                        ArgumentMatchers.any())
   return device
 }

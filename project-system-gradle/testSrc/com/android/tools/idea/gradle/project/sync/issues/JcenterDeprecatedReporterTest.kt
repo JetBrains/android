@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue.Companion.TYPE_JCENTER_IS_DEPRECATED
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 /**
@@ -62,7 +62,7 @@ class JcenterDeprecatedReporterTest {
   private fun generateQuickfixes(initialized: Boolean, canApply: Boolean): List<SyncIssueNotificationHyperlink> {
     val reporter = JcenterDeprecatedReporter()
     val mockProject = mock(Project::class.java)
-    `when`(mockProject.isInitialized).thenReturn(initialized)
+    whenever(mockProject.isInitialized).thenReturn(initialized)
     val modules = ArrayList<Module>()
     return reporter.createQuickFixes(mockProject, modules) { _, _ -> canApply }
   }

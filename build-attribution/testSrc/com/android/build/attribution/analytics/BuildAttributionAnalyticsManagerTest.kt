@@ -16,7 +16,6 @@
 package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
-import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
@@ -38,6 +37,7 @@ import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -60,7 +60,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.time.Duration
 
@@ -90,10 +89,10 @@ class BuildAttributionAnalyticsManagerTest {
     MockitoAnnotations.initMocks(this)
     UsageTracker.setWriterForTest(tracker)
 
-    `when`(project.basePath).thenReturn("test")
+    whenever(project.basePath).thenReturn("test")
     val moduleManager = Mockito.mock(ModuleManager::class.java)
-    `when`(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
-    `when`(moduleManager.modules).thenReturn(emptyArray<Module>())
+    whenever(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
+    whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 
   @After

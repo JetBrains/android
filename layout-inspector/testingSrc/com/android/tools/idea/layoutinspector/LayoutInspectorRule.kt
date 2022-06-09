@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -113,7 +114,7 @@ fun interface InspectorClientProvider {
 fun LegacyClientProvider(
   parentDisposable: Disposable,
   treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
-    Mockito.`when`(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
+    whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
   }
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,

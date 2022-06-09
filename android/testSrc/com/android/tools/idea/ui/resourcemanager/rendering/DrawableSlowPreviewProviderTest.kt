@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -70,10 +71,10 @@ class DrawableSlowPreviewProviderTest {
     val frameworkResourceValue = ResourceValueImpl(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, name, null)
 
     // Have the Attribute resource resolve to the framework resource value.
-    Mockito.`when`(resourceResolver.findItemInTheme(resourceItem.referenceToSelf)).thenReturn(frameworkResourceValue)
+    whenever(resourceResolver.findItemInTheme(resourceItem.referenceToSelf)).thenReturn(frameworkResourceValue)
 
     // Have the drawable renderer return a valid image for our desired framework resource value.
-    Mockito.`when`(drawableRenderer.getDrawableRender(frameworkResourceValue, mockFile, Dimension(100, 100))).thenReturn(
+    whenever(drawableRenderer.getDrawableRender(frameworkResourceValue, mockFile, Dimension(100, 100))).thenReturn(
       CompletableFuture.completedFuture(image)
     )
     val provider = DrawableSlowPreviewProvider(facet, resourceResolver, null)

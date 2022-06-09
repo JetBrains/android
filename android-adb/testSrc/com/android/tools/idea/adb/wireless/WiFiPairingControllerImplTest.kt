@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -124,8 +125,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Prepare
     adbService.useMock = true
     runBlocking {
-      Mockito
-        .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
         .thenReturn(AdbCommandResult(1, listOf(), listOf("unknown command")))
 
       // Act
@@ -167,8 +167,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowErrorIfMdnsCheckFails() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(1, listOf(), listOf()))
 
     // Act
@@ -184,8 +183,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowErrorIfMdnsCheckReturnsRandomText() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf()))
 
     // Act
@@ -201,8 +199,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowQrCodeIfMdnsCheckSucceeds() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
     // Act
@@ -255,23 +252,19 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3")))
 
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
+    whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
       .thenReturn(
         AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.waitForOnlineDevice(any()))
+    whenever(adbService.instance.waitForOnlineDevice(any()))
       .thenReturn(phoneDeviceInfo)
 
     // Act
@@ -349,23 +342,19 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3")))
 
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
+    whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
       .thenReturn(
         AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.waitForOnlineDevice(any()))
+    whenever(adbService.instance.waitForOnlineDevice(any()))
       .thenReturn(phoneDeviceInfo)
 
     fun enterPairingCode(pairingCodeDialog: DialogWrapper, @Suppress("SameParameterValue") phonePairingCode: String) {

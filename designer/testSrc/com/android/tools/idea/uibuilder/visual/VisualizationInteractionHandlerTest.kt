@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.AndroidXConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
@@ -31,7 +32,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.awt.event.KeyEvent
 
 class VisualizationInteractionHandlerTest : SceneTest() {
@@ -43,11 +43,11 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     // Return SceneView when hover on it, null otherwise.
     val view = sceneManager.sceneView
-    `when`(surface.getSceneViewAt(anyInt(), anyInt())).thenReturn(null)
+    whenever(surface.getSceneViewAt(anyInt(), anyInt())).thenReturn(null)
     val xMatcher = intThat { view.x <= it && it <= view.x + view.scaledContentSize.width }
     val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
 
-    `when`(surface.getSceneViewAt(xMatcher, yMatcher)).thenReturn(view)
+    whenever(surface.getSceneViewAt(xMatcher, yMatcher)).thenReturn(view)
   }
 
   fun testDoubleClickToNavigateToFileOfPreview() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -29,7 +30,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
 import javax.swing.UIManager
 
@@ -50,7 +50,7 @@ class EmulatorShowExtendedControlsActionTest {
   @Test
   fun testShowExtendedControls() {
     val mockLafManager = mock<LafManager>()
-    `when`(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
+    whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
 
     val view = emulatorViewRule.newEmulatorView()

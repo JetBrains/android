@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.editor.ProfilerState
@@ -29,7 +30,6 @@ import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
@@ -90,7 +90,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
     val state = ProfilerState();
-    `when`(runConfig.profilerState).thenReturn(state);
+    whenever(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.FULL.value)
 
@@ -115,7 +115,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     val state = ProfilerState();
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
     state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    whenever(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
     assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
@@ -130,7 +130,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     val state = ProfilerState();
     state.STARTUP_CPU_PROFILING_ENABLED = true;
     state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    whenever(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
     assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE);

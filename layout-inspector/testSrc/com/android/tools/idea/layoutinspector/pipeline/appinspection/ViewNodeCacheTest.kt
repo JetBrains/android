@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -34,7 +35,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.util.concurrent.Executors
 
 class ViewNodeCacheTest {
@@ -44,7 +44,7 @@ class ViewNodeCacheTest {
   @Before
   fun init() {
     val executors: AndroidExecutors = mock()
-    `when`(executors.workerThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
+    whenever(executors.workerThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
     rule.testApplication.registerService(AndroidExecutors::class.java, executors)
   }
 

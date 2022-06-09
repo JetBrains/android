@@ -23,6 +23,7 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.junit.Rule
@@ -171,7 +172,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
-    Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
+    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo,
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), false)
@@ -193,7 +194,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
-    Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
+    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
       ":lib" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":lib")),
     ))
@@ -225,7 +226,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
-    Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
+    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
     ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
@@ -249,7 +250,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
-    Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
+    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
     ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
@@ -273,7 +274,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
-    Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
+    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
     ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(

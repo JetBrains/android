@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
@@ -60,7 +61,6 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -717,7 +717,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun tableShouldUpdateColumnsWidthsAfterResize() {
-    `when`(mockAndroidTestRunConfiguration.project).thenReturn(projectRule.project)
+    whenever(mockAndroidTestRunConfiguration.project).thenReturn(projectRule.project)
     val androidTestResultsUserPreferencesManager = AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("deviceId1"))
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, androidTestResultsUserPreferencesManager)
     val device1 = device("deviceId1", "deviceName1")
@@ -778,18 +778,18 @@ class AndroidTestResultsTableViewTest {
     val mockAndroidTestSourceScope = mock<GlobalSearchScope>()
     val mockPsiClass = mock<PsiClass>()
     val mockPsiMethod = mock<PsiMethod>()
-    `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
-    `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
-    `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
-    `when`(mockPsiClass.findMethodsByName(any(), anyBoolean())).thenReturn(arrayOf())
-    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"), anyBoolean())).thenReturn(arrayOf(mockPsiMethod))
-    `when`(mockPsiClass.name).thenReturn("myTestClassName")
-    `when`(mockPsiClass.isValid).thenReturn(true)
-    `when`(mockPsiClass.project).thenReturn(projectRule.project)
-    `when`(mockPsiMethod.name).thenReturn("myTestMethodName")
-    `when`(mockPsiMethod.isValid).thenReturn(true)
-    `when`(mockPsiMethod.project).thenReturn(projectRule.project)
-    `when`(mockJavaPsiFacade.project).thenReturn(projectRule.project)
+    whenever(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
+    whenever(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
+    whenever(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
+    whenever(mockPsiClass.findMethodsByName(any(), anyBoolean())).thenReturn(arrayOf())
+    whenever(mockPsiClass.findMethodsByName(eq("myTestMethodName"), anyBoolean())).thenReturn(arrayOf(mockPsiMethod))
+    whenever(mockPsiClass.name).thenReturn("myTestClassName")
+    whenever(mockPsiClass.isValid).thenReturn(true)
+    whenever(mockPsiClass.project).thenReturn(projectRule.project)
+    whenever(mockPsiMethod.name).thenReturn("myTestMethodName")
+    whenever(mockPsiMethod.isValid).thenReturn(true)
+    whenever(mockPsiMethod.project).thenReturn(projectRule.project)
+    whenever(mockJavaPsiFacade.project).thenReturn(projectRule.project)
 
     val table = AndroidTestResultsTableView(
       mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
@@ -904,7 +904,7 @@ class AndroidTestResultsTableViewTest {
     val nextFailedTestAction = table.createNavigateToNextFailedTestAction()
     val tableView = table.getTableViewForTesting()
     val mockActionEvent = mock<AnActionEvent>()
-    `when`(mockActionEvent.project).thenReturn(projectRule.project)
+    whenever(mockActionEvent.project).thenReturn(projectRule.project)
 
     assertThat(tableView.selectedObject).isNull()
     nextFailedTestAction.actionPerformed(mockActionEvent)

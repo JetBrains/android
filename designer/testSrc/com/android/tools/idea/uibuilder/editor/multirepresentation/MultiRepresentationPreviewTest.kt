@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -310,12 +311,12 @@ class MultiRepresentationPreviewTest {
     val shortcutsApplicableComponent = Mockito.mock(JComponent::class.java)
 
     val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
+    whenever(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
     val initiallyAcceptingProvider =
       TestPreviewRepresentationProvider("initialRepresentation", true, initiallyAcceptedRepresentation)
 
     val laterAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(laterAcceptedRepresentation.component).thenReturn(JPanel())
+    whenever(laterAcceptedRepresentation.component).thenReturn(JPanel())
     val laterAcceptingProvider = TestPreviewRepresentationProvider("laterRepresentation", false, laterAcceptedRepresentation)
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
@@ -348,13 +349,13 @@ class MultiRepresentationPreviewTest {
   @Test
   fun testUpdateNotificationsPropagated() = runBlocking {
     val representation1 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation1.component).thenReturn(JPanel())
+    whenever(representation1.component).thenReturn(JPanel())
 
     val representation2 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation2.component).thenReturn(JPanel())
+    whenever(representation2.component).thenReturn(JPanel())
 
     val representation3 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation3.component).thenReturn(JPanel())
+    whenever(representation3.component).thenReturn(JPanel())
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)

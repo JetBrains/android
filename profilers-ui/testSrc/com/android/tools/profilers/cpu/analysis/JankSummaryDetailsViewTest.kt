@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.ui.HideablePanel
@@ -63,15 +64,15 @@ private val FAKE_RENDER_THREAD = CpuThreadInfo(2, CpuThreadInfo.RENDER_THREAD_NA
 private val CAPTURE_RANGE = Range(0.0, 5000.0)
 private val PROFILERS = Mockito.mock(StudioProfilers::class.java)
 private val PROFILERS_VIEW = Mockito.mock(StudioProfilersView::class.java).apply {
-  Mockito.`when`(studioProfilers).thenReturn(PROFILERS)
+  whenever(studioProfilers).thenReturn(PROFILERS)
 }
 private val EVENT_NODE = Mockito.mock(CaptureNode::class.java)
 private val CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-  Mockito.`when`(range).thenReturn(CAPTURE_RANGE)
-  Mockito.`when`(systemTraceData).thenReturn(this)
-  Mockito.`when`(getThreads()).thenReturn(setOf(FAKE_MAIN_THREAD, FAKE_GPU_THREAD, FAKE_RENDER_THREAD))
-  Mockito.`when`(getThreadStatesForThread(anyInt())).thenReturn(listOf())
-  Mockito.`when`(frameRenderSequence).thenReturn { RenderSequence(EVENT_NODE, EVENT_NODE, EVENT_NODE) }
+  whenever(range).thenReturn(CAPTURE_RANGE)
+  whenever(systemTraceData).thenReturn(this)
+  whenever(getThreads()).thenReturn(setOf(FAKE_MAIN_THREAD, FAKE_GPU_THREAD, FAKE_RENDER_THREAD))
+  whenever(getThreadStatesForThread(anyInt())).thenReturn(listOf())
+  whenever(frameRenderSequence).thenReturn { RenderSequence(EVENT_NODE, EVENT_NODE, EVENT_NODE) }
 }
 private val MODEL = JankAnalysisModel.Summary(
   AndroidFrameTimelineEvent(42, 42,

@@ -2,6 +2,7 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
@@ -24,7 +25,6 @@ import com.intellij.openapi.actionSystem.Separator
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
@@ -329,7 +329,7 @@ class SelectProcessActionTest {
   private fun update(action: AnAction): AnActionEvent {
     val presentation = action.templatePresentation.clone()
     val event: AnActionEvent = mock()
-    `when`(event.presentation).thenReturn(presentation)
+    whenever(event.presentation).thenReturn(presentation)
     action.update(event)
     return event
   }

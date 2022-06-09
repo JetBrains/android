@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
@@ -25,7 +26,6 @@ import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 
 class ProjectNotificationsUtilsTest {
@@ -48,7 +48,7 @@ class ProjectNotificationsUtilsTest {
   @Test
   fun testNotifyOnInvalidGradleJdkJdkUseEmbedded() {
     val mockGradleManager = mock(GradleInstallationManager::class.java)
-    Mockito.`when`(mockGradleManager.getGradleJvmPath(any(), any())).thenReturn("/path/to/invalid/jdk/")
+    whenever(mockGradleManager.getGradleJvmPath(any(), any())).thenReturn("/path/to/invalid/jdk/")
 
     val project = projectRule.project
     ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)

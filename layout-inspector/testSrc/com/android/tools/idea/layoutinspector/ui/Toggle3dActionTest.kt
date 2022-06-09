@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.PropertySetterRule
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -39,7 +40,6 @@ import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.util.concurrent.TimeUnit
 
@@ -73,20 +73,20 @@ class Toggle3dActionTest {
   fun setUp() {
     appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(capabilities)
-    `when`(client.isConnected).thenReturn(true)
-    `when`(client.isCapturing).thenReturn(true)
-    `when`(device.apiLevel).thenReturn(29)
+    whenever(client.capabilities).thenReturn(capabilities)
+    whenever(client.isConnected).thenReturn(true)
+    whenever(client.isCapturing).thenReturn(true)
+    whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()
-    `when`(launcher.activeClient).thenReturn(client)
+    whenever(launcher.activeClient).thenReturn(client)
     inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel, mock()), mock(), MoreExecutors.directExecutor())
     viewModel = DeviceViewPanelModel(inspectorModel, inspector.stats, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
-    `when`(process.device).thenReturn(device)
-    `when`(client.process).thenReturn(process)
-    `when`(event.getData(DEVICE_VIEW_MODEL_KEY)).thenReturn(viewModel)
-    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
-    `when`(event.presentation).thenReturn(presentation)
+    whenever(process.device).thenReturn(device)
+    whenever(client.process).thenReturn(process)
+    whenever(event.getData(DEVICE_VIEW_MODEL_KEY)).thenReturn(viewModel)
+    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
+    whenever(event.presentation).thenReturn(presentation)
   }
 
   @Test
@@ -128,7 +128,7 @@ class Toggle3dActionTest {
 
   @Test
   fun testOldDevice() {
-    `when`(device.apiLevel).thenReturn(28)
+    whenever(device.apiLevel).thenReturn(28)
     capabilities.clear()
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false

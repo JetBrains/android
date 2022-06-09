@@ -23,6 +23,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -66,7 +67,6 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -487,9 +487,9 @@ class EmulatorToolWindowPanelTest {
 
     val initialMousePosition = Point(glassPane.x + glassPane.width / 2, glassPane.y + glassPane.height / 2)
     val pointerInfo = mock<PointerInfo>()
-    `when`(pointerInfo.location).thenReturn(initialMousePosition)
+    whenever(pointerInfo.location).thenReturn(initialMousePosition)
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
-    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+    mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
     focusManager.focusOwner = emulatorView
@@ -585,7 +585,7 @@ class EmulatorToolWindowPanelTest {
     val installPackagesCalled = CountDownLatch(1)
     val installOptions = listOf("-t", "--user", "current", "--full")
     val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
+    whenever(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
       installPackagesCalled.countDown()
     }
 
@@ -613,7 +613,7 @@ class EmulatorToolWindowPanelTest {
     val pushCalled = CountDownLatch(1)
     val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
     val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
+    whenever(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
 
     // Simulate drop.
     target.drop(event)
@@ -633,7 +633,7 @@ class EmulatorToolWindowPanelTest {
 
     var nullableTarget: DnDTarget? = null
     val mockDndManager = mock<DnDManager>()
-    `when`(mockDndManager.registerTarget(any(), any())).then {
+    whenever(mockDndManager.registerTarget(any(), any())).then {
       it.apply { nullableTarget = getArgument<DnDTarget>(0) }
     }
     ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
@@ -647,23 +647,23 @@ class EmulatorToolWindowPanelTest {
 
   private fun createMockDevice(): IDevice {
     val device = mock<IDevice>()
-    `when`(device.isEmulator).thenReturn(true)
-    `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
+    whenever(device.isEmulator).thenReturn(true)
+    whenever(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
     val mockAdb = mock<AndroidDebugBridge>()
-    `when`(mockAdb.devices).thenReturn(arrayOf(device))
+    whenever(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
-    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFuture(mockAdb))
+    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFuture(mockAdb))
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
     return device
   }
 
   private fun createDragEvent(files: List<File>): DnDEvent {
     val transferableWrapper = mock<TransferableWrapper>()
-    `when`(transferableWrapper.asFileList()).thenReturn(files)
+    whenever(transferableWrapper.asFileList()).thenReturn(files)
     val event = mock<DnDEvent>()
-    `when`(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    `when`(event.attachedObject).thenReturn(transferableWrapper)
+    whenever(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    whenever(event.attachedObject).thenReturn(transferableWrapper)
     return event
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.menu
 
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
@@ -32,7 +33,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -71,11 +71,11 @@ class SearchItemHandlerTest(private val projectMinSdk: Int,
 
   @Before
   fun setUp() {
-    `when`(model.module).thenReturn(rule.module)
-    `when`(model.facet).thenReturn(AndroidFacet.getInstance(rule.module))
-    `when`(model.project).thenReturn(rule.project)
-    `when`(newChild.model).thenReturn(model)
-    `when`(newChild.backend).thenReturn(backend)
+    whenever(model.module).thenReturn(rule.module)
+    whenever(model.facet).thenReturn(AndroidFacet.getInstance(rule.module))
+    whenever(model.project).thenReturn(rule.project)
+    whenever(newChild.model).thenReturn(model)
+    whenever(newChild.backend).thenReturn(backend)
 
     val projectSystem = TestProjectSystem(rule.project)
     if (dependencies.isNotEmpty()) {

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.ui.ComboBox
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.awt.Graphics2D
 import javax.swing.JSlider
@@ -35,9 +35,9 @@ class InspectorPainterTest {
   @Test
   fun zeroWidth() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(0)
-    Mockito.`when`(slider.maximum).thenReturn(200)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(0)
+    whenever(slider.maximum).thenReturn(200)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(200, result)
   }
@@ -45,9 +45,9 @@ class InspectorPainterTest {
   @Test
   fun maxIntMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(Int.MAX_VALUE)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(Int.MAX_VALUE)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(700_000_000, result)
   }
@@ -55,9 +55,9 @@ class InspectorPainterTest {
   @Test
   fun largeMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(200_000_000)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(200_000_000)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(60_000_000, result)
   }
@@ -65,9 +65,9 @@ class InspectorPainterTest {
   @Test
   fun smallMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(5)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(5)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(1, result)
   }

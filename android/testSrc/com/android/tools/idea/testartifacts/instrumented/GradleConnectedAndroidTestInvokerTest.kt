@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.ConsolePrinter
@@ -56,7 +57,6 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
 import org.mockito.Mockito.nullable
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import java.util.concurrent.ExecutorService
 
@@ -83,11 +83,11 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Before
   fun setup() {
-    `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
-    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
-    `when`(mockModuleData.id).thenReturn(":app")
-    `when`(mockBuildToolWindow.isAvailable).thenReturn(true)
-    `when`(mockBuildToolWindow.isVisible).thenReturn(false)
+    whenever(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
+    whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
+    whenever(mockModuleData.id).thenReturn(":app")
+    whenever(mockBuildToolWindow.isAvailable).thenReturn(true)
+    whenever(mockBuildToolWindow.isVisible).thenReturn(false)
   }
 
   private fun createGradleConnectedAndroidTestInvoker(
@@ -95,21 +95,21 @@ class GradleConnectedAndroidTestInvokerTest {
   ) : GradleConnectedAndroidTestInvoker {
     mockDevices = (1..numDevices).map { deviceIndex ->
       mock<IDevice>().apply {
-        `when`(serialNumber).thenReturn("DEVICE_SERIAL_NUMBER_${deviceIndex}")
-        `when`(version).thenReturn(AndroidVersion(29))
+        whenever(serialNumber).thenReturn("DEVICE_SERIAL_NUMBER_${deviceIndex}")
+        whenever(version).thenReturn(AndroidVersion(29))
       }
     }.toList()
     mockGradleTestResultAdapters = (1..numDevices).map { deviceIndex ->
       mock<GradleTestResultAdapter>().apply {
-        `when`(device).thenReturn(AndroidDevice(
+        whenever(device).thenReturn(AndroidDevice(
           id = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
           deviceName = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
           avdName = "avdName",
           deviceType = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
           version = AndroidVersion(29)
         ))
-        `when`(iDevice).thenReturn(mockDevices[deviceIndex - 1])
-        `when`(needRerunWithUninstallIncompatibleApkOption()).thenReturn(GradleTestResultAdapter.UtpInstallResult())
+        whenever(iDevice).thenReturn(mockDevices[deviceIndex - 1])
+        whenever(needRerunWithUninstallIncompatibleApkOption()).thenReturn(GradleTestResultAdapter.UtpInstallResult())
       }
     }
     return  GradleConnectedAndroidTestInvoker(
@@ -422,7 +422,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun testTaskNamesMatchSelectedBuildVariant() {
-    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("nonDefaultBuildVariant")
+    whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("nonDefaultBuildVariant")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -443,7 +443,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun testTaskNamesMatchSelectedModule() {
-    `when`(mockModuleData.id).thenReturn(":app:testModule")
+    whenever(mockModuleData.id).thenReturn(":app:testModule")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -465,7 +465,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun testTaskNamesCanHandleTheRootModuleOnlyProject() {
     // This is a regression test for b/219164389.
-    `when`(mockModuleData.id).thenReturn("rootProjectName")
+    whenever(mockModuleData.id).thenReturn("rootProjectName")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -486,7 +486,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun retryExecuteTaskAfterInstallationFailure() {
-    `when`(mockGradleTaskManager.executeTasks(
+    whenever(mockGradleTaskManager.executeTasks(
       any(),
       anyList(),
       anyString(),
@@ -503,11 +503,11 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker(numDevices = 2)
 
     var attempt = 0
-    `when`(mockGradleTestResultAdapters[1].needRerunWithUninstallIncompatibleApkOption()).then {
+    whenever(mockGradleTestResultAdapters[1].needRerunWithUninstallIncompatibleApkOption()).then {
       attempt++
       GradleTestResultAdapter.UtpInstallResult(attempt == 1)
     }
-    `when`(mockGradleTestResultAdapters[1].showRerunWithUninstallIncompatibleApkOptionDialog(any(), any())).thenReturn(true)
+    whenever(mockGradleTestResultAdapters[1].showRerunWithUninstallIncompatibleApkOptionDialog(any(), any())).thenReturn(true)
 
     mockDevices.forEach {
       gradleConnectedTestInvoker.schedule(
@@ -556,10 +556,10 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun deviceSpecificGradleProperties() {
     val mockDevice = mock <com.android.tools.idea.run.AndroidDevice>()
-    `when`(mockDevice.version).thenReturn(AndroidVersion(30))
-    `when`(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
-    `when`(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
-    `when`(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
+    whenever(mockDevice.version).thenReturn(AndroidVersion(30))
+    whenever(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
+    whenever(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
+    whenever(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -607,7 +607,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun buildToolWindowShouldBeDisplayedWhenTaskFailedBeforeTestSuiteStarted() {
-    `when`(mockGradleTaskManager.executeTasks(
+    whenever(mockGradleTaskManager.executeTasks(
       any(),
       anyList(),
       anyString(),
@@ -637,7 +637,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskFailedAfterTestSuiteStarted() {
-    `when`(mockGradleTaskManager.executeTasks(
+    whenever(mockGradleTaskManager.executeTasks(
       any(),
       anyList(),
       anyString(),
@@ -653,7 +653,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
-    `when`(mockGradleTestResultAdapters[0].testSuiteStarted).thenReturn(true)
+    whenever(mockGradleTestResultAdapters[0].testSuiteStarted).thenReturn(true)
 
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
@@ -669,7 +669,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskIsCancelled() {
-    `when`(mockGradleTaskManager.executeTasks(
+    whenever(mockGradleTaskManager.executeTasks(
       any(),
       anyList(),
       anyString(),

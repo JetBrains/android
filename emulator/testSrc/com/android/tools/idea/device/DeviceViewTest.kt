@@ -17,6 +17,7 @@ package com.android.tools.idea.device
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -170,9 +171,9 @@ internal class DeviceViewTest {
 
     val mousePosition = Point(30, 30)
     val pointerInfo = MockitoKt.mock<PointerInfo>()
-    Mockito.`when`(pointerInfo.location).thenReturn(mousePosition)
+    whenever(pointerInfo.location).thenReturn(mousePosition)
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
-    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+    mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
     ui.keyboard.setFocus(view)
     ui.mouse.moveTo(mousePosition)
@@ -252,7 +253,7 @@ internal class DeviceViewTest {
     assertThat(agent.commandLog).isEmpty()
 
     val mockFocusManager: KeyboardFocusManager = MockitoKt.mock()
-    Mockito.`when`(mockFocusManager.redispatchEvent(MockitoKt.any(Component::class.java), MockitoKt.any(KeyEvent::class.java))).thenCallRealMethod()
+    whenever(mockFocusManager.redispatchEvent(MockitoKt.any(Component::class.java), MockitoKt.any(KeyEvent::class.java))).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
     // Shift+Tab should trigger a forward local focus traversal.
     with(ui.keyboard) {

@@ -19,6 +19,7 @@ import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnMac
 import com.android.testutils.truth.PathSubject.assertThat
@@ -141,8 +142,8 @@ class FindEmulatorAndSetupRetentionTest {
                                       ActionManager.getInstance(), 0)
     val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
       val mockAvdManager = mock<AvdManager>()
-      doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).`when`(mockAvdManager).isAvdRunning(any())
+      doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
+      doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
       mockAvdManager
     }
     action.actionPerformed(anActionEvent)
@@ -171,8 +172,8 @@ class FindEmulatorAndSetupRetentionTest {
                                       ActionManager.getInstance(), 0)
     val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
       val mockAvdManager = mock<AvdManager>()
-      doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).`when`(mockAvdManager).isAvdRunning(any())
+      doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
+      doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
       mockAvdManager
     }
     action.actionPerformed(anActionEvent)

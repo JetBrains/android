@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -53,7 +54,6 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.awt.Image
 import java.awt.Polygon
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
@@ -225,7 +225,7 @@ class AppInspectionTreeLoaderTest {
     ))
 
     val skiaParser: SkiaParser = mock()
-    `when`(
+    whenever(
       skiaParser.getViewTree(eq(sample565.bytes), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) }, any(), any()))
       .thenReturn(skiaResponse)
 
@@ -332,7 +332,7 @@ class AppInspectionTreeLoaderTest {
     val banner = InspectorBanner(projectRule.project)
 
     val skiaParser: SkiaParser = mock()
-    `when`(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
+    whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
     val treeLoader = AppInspectionTreeLoader(
       projectRule.project,
@@ -379,7 +379,7 @@ class AppInspectionTreeLoaderTest {
   @Test
   fun testCanProcessBitmapScreenshots() {
     val skiaParser: SkiaParser = mock()
-    `when`(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     val treeLoader = AppInspectionTreeLoader(
       projectRule.project,
       logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },

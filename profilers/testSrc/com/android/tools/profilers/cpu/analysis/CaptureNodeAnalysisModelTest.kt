@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CaptureNode
@@ -29,8 +30,8 @@ class CaptureNodeAnalysisModelTest {
   @Test
   fun analysisTabs() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
-      Mockito.`when`(this.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+      whenever(this.range).thenReturn(Range())
+      whenever(this.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
     }
     val model = CaptureNodeAnalysisModel(CaptureNode(SingleNameModel("Foo")), capture)
     val tabs = model.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
@@ -40,7 +41,7 @@ class CaptureNodeAnalysisModelTest {
   @Test
   fun getLongestRunningOccurrences() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
+      whenever(this.range).thenReturn(Range())
     }
     assertThat(CaptureNodeAnalysisModel(ROOT_NODE, capture).getLongestRunningOccurrences(3)).containsExactly(ROOT_NODE).inOrder()
     assertThat(CaptureNodeAnalysisModel(FOO_1, capture).getLongestRunningOccurrences(3)).containsExactly(FOO_2, FOO_1).inOrder()
@@ -50,7 +51,7 @@ class CaptureNodeAnalysisModelTest {
   @Test
   fun getAllOccurrencesStats() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
+      whenever(this.range).thenReturn(Range())
     }
     val stats = CaptureNodeAnalysisModel(BAR_11, capture).allOccurrenceStats
     assertThat(stats.count).isEqualTo(5)

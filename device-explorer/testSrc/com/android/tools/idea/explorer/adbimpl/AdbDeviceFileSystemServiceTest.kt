@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer.adbimpl
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
@@ -32,7 +33,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -116,7 +116,7 @@ class AdbDeviceFileSystemServiceTest {
     // Prepare
     val service = getInstance(project)
     val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
-    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
+    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
 
     assertThrows(RuntimeException::class.java, "test fail") {
       runBlocking { service.start() }
@@ -128,7 +128,7 @@ class AdbDeviceFileSystemServiceTest {
     // Prepare
     val service = getInstance(project)
     val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
-    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException()))
+    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException()))
 
     // Act
     assertThrows(RuntimeException::class.java) {

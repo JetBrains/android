@@ -34,6 +34,7 @@ import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -992,7 +993,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
         throw exceptionToThrow
       }
       null
-    }.`when`(it).updateProgress(any(AttachErrorState::class.java))
+    }.whenever(it).updateProgress(any(AttachErrorState::class.java))
   }
 
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) {

@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.engine.DebugProcess
@@ -47,17 +48,17 @@ class AndroidRemoteDebugProcessHandlerTest {
       override fun getPackageName() = "MyApp"
       override fun getClientDescription() = "MyApp"
     }
-    Mockito.`when`(client.clientData).thenReturn(clientData)
-    Mockito.`when`(client.device).thenReturn(device)
+    whenever(client.clientData).thenReturn(clientData)
+    whenever(client.device).thenReturn(device)
     debugProcess = Mockito.mock(DebugProcess::class.java)
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
-    Mockito.`when`(debugManager.getDebugProcess(MockitoKt.any(AndroidRemoteDebugProcessHandler::class.java))).thenReturn(debugProcess)
+    whenever(debugManager.getDebugProcess(MockitoKt.any(AndroidRemoteDebugProcessHandler::class.java))).thenReturn(debugProcess)
   }
 
   private fun createDevice(): IDevice {
     val mockDevice = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(mockDevice.version).thenReturn(AndroidVersion(26))
-    Mockito.`when`(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
+    whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
   }
 

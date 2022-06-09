@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
@@ -55,7 +56,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
     executor.doOnDevices(listOf(device))
 
@@ -95,7 +96,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
       startCommand to startActivityCommandHandler,
     ))
 
-    Mockito.`when`(device.forceStop(eq(appId))).then {
+    whenever(device.forceStop(eq(appId))).then {
       runnableClientsService.stopClient(device, appId)
       processTerminatedLatch.countDown()
     }
@@ -103,7 +104,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)

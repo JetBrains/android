@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.scene.draw.makeGraphicsMock
@@ -38,10 +39,10 @@ fun verifyScene(surface: DesignSurface<*>, verifier: (InOrder, Graphics2D) -> Un
   val root = Mockito.mock(Graphics2D::class.java)
 
   val child = Mockito.mock(Graphics2D::class.java)
-  Mockito.`when`(root.create()).thenReturn(child)
+  whenever(root.create()).thenReturn(child)
 
   val graphics = makeGraphicsMock()
-  Mockito.`when`(child.create()).thenReturn(graphics)
+  whenever(child.create()).thenReturn(graphics)
 
   val inOrder = Mockito.inOrder(graphics)
 

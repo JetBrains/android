@@ -17,6 +17,7 @@
 
 package com.android.tools.adtui.swing
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
@@ -31,7 +32,6 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration
@@ -345,19 +345,19 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(Window::class.java)
-  `when`(mockWindow.treeLock).thenCallRealMethod()
-  `when`(mockWindow.toolkit).thenReturn(fakeToolkit)
-  `when`(mockWindow.isShowing).thenReturn(true)
-  `when`(mockWindow.isVisible).thenReturn(true)
-  `when`(mockWindow.isEnabled).thenReturn(true)
-  `when`(mockWindow.isLightweight).thenReturn(true)
-  `when`(mockWindow.isFocusableWindow).thenReturn(true)
-  `when`(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
-  `when`(mockWindow.size).thenReturn(rootPane.size)
-  `when`(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
-  `when`(mockWindow.ownedWindows).thenReturn(emptyArray())
-  `when`(mockWindow.isFocused).thenReturn(true)
-  `when`(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
+  whenever(mockWindow.treeLock).thenCallRealMethod()
+  whenever(mockWindow.toolkit).thenReturn(fakeToolkit)
+  whenever(mockWindow.isShowing).thenReturn(true)
+  whenever(mockWindow.isVisible).thenReturn(true)
+  whenever(mockWindow.isEnabled).thenReturn(true)
+  whenever(mockWindow.isLightweight).thenReturn(true)
+  whenever(mockWindow.isFocusableWindow).thenReturn(true)
+  whenever(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
+  whenever(mockWindow.size).thenReturn(rootPane.size)
+  whenever(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
+  whenever(mockWindow.ownedWindows).thenReturn(emptyArray())
+  whenever(mockWindow.isFocused).thenReturn(true)
+  whenever(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()

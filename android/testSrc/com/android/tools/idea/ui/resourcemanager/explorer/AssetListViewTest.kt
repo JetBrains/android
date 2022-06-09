@@ -19,13 +19,13 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import javax.swing.JList
 
 class AssetListViewTest {
@@ -123,9 +123,9 @@ class AssetListViewTest {
     ResourceAssetSet(name, values.map {
       val item = mock<ResourceItem>()
       val resValue = mock<ResourceValue>()
-      `when`(item.name).thenReturn(name)
-      `when`(item.resourceValue).thenReturn(resValue)
-      `when`(resValue.value).thenReturn(it)
+      whenever(item.name).thenReturn(name)
+      whenever(item.resourceValue).thenReturn(resValue)
+      whenever(resValue.value).thenReturn(it)
       DesignAsset(MockVirtualFile("strings.xml"), emptyList(), ResourceType.STRING, resourceItem = item)
     })
 }

@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -48,7 +49,6 @@ import com.intellij.ui.treeStructure.Tree
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.EnumSet
@@ -202,10 +202,10 @@ class TreeSettingsActionsTest {
     val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
     val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
-    `when`(inspector.treeSettings).thenReturn(treeSettings)
-    `when`(inspector.currentClient).thenReturn(mock())
-    `when`(treePanel.tree).thenReturn(tree)
-    `when`(treePanel.component).thenReturn(component)
+    whenever(inspector.treeSettings).thenReturn(treeSettings)
+    whenever(inspector.currentClient).thenReturn(mock())
+    whenever(treePanel.tree).thenReturn(tree)
+    whenever(treePanel.component).thenReturn(component)
 
     val model = model {
       view(ROOT) {
@@ -216,10 +216,10 @@ class TreeSettingsActionsTest {
         }
       }
     }
-    `when`(inspector.layoutInspectorModel).thenReturn(model)
-    `when`(inspector.currentClient).thenReturn(client)
-    Mockito.doAnswer { capabilities }.`when`(client).capabilities
-    Mockito.doAnswer { isConnected }.`when`(client).isConnected
+    whenever(inspector.layoutInspectorModel).thenReturn(model)
+    whenever(inspector.currentClient).thenReturn(client)
+    Mockito.doAnswer { capabilities }.whenever(client).capabilities
+    Mockito.doAnswer { isConnected }.whenever(client).isConnected
 
     val dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {

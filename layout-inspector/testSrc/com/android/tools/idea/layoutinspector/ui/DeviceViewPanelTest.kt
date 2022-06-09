@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -51,10 +52,10 @@ import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -86,7 +87,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -371,7 +371,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val selectProcessAction = contentPanel.selectTargetAction?.dropDownAction as? SelectProcessAction
     selectProcessAction?.updateActions(mock())
     val actionEvent = mock<AnActionEvent>()
-    `when`(actionEvent.actionManager).thenReturn(mock())
+    whenever(actionEvent.actionManager).thenReturn(mock())
     val stopAction = selectProcessAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
     stopAction?.actionPerformed(mock())
 
@@ -406,7 +406,7 @@ class DeviceViewPanelWithFullInspectorTest {
   private fun checkDeviceAction(action: AnAction, enabled: Boolean, icon: Icon?, text: String) {
     val presentation = action.templatePresentation.clone()
     val event: AnActionEvent = mock()
-    `when`(event.presentation).thenReturn(presentation)
+    whenever(event.presentation).thenReturn(presentation)
     action.update(event)
     assertThat(presentation.text).isEqualTo(text)
     assertThat(presentation.icon).isSameAs(icon)
@@ -459,7 +459,7 @@ class DeviceViewPanelTest {
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
-    `when`(stats.rotation).thenReturn(mock())
+    whenever(stats.rotation).thenReturn(mock())
     val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {} ,inspector, viewSettings, disposableRule.disposable)
@@ -503,7 +503,7 @@ class DeviceViewPanelTest {
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
-    `when`(stats.rotation).thenReturn(mock())
+    whenever(stats.rotation).thenReturn(mock())
     val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable)
@@ -649,8 +649,8 @@ class DeviceViewPanelTest {
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher: InspectorClientLauncher = mock()
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
-    `when`(launcher.activeClient).thenReturn(client)
+    whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    whenever(launcher.activeClient).thenReturn(client)
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false

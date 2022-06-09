@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
 import com.android.tools.idea.common.model.NlComponent
@@ -54,7 +55,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
@@ -318,7 +318,7 @@ class NavSceneTest {
     assertDrawRectEquals(sceneView, component2, 580f, 400f, 76.5f, 128f)
     assertDrawRectEquals(sceneView, nested, 400f, 400f, 70f, 19f)
 
-    `when`<NlComponent>(surface.currentNavigation).then { model.find("nested")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.find("nested")!! }
     scene.sceneManager.update()
     val component3 = scene.getSceneComponent("fragment3")!!
     moveComponentTo(component3, 200, 20)
@@ -597,8 +597,8 @@ class NavSceneTest {
     scene.layout(0, sceneContext)
 
     val interactionManager = mock(InteractionManager::class.java)
-    `when`(interactionManager.isInteractionInProgress).thenReturn(true)
-    `when`(surface.interactionManager).thenReturn(interactionManager)
+    whenever(interactionManager.isInteractionInProgress).thenReturn(true)
+    whenever(surface.interactionManager).thenReturn(interactionManager)
 
     val drawRect1 = scene.getSceneComponent("fragment1")!!
     scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY, 0)
@@ -745,7 +745,7 @@ class NavSceneTest {
     }
 
     val surface = model.surface as NavDesignSurface
-    `when`<NlComponent>(surface.currentNavigation).then { model.find("nav1")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.find("nav1")!! }
 
     val scene = surface.scene!!
     scene.sceneManager.update()
@@ -780,7 +780,7 @@ class NavSceneTest {
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
-    `when`(view.scale).thenReturn(1.0)
+    whenever(view.scale).thenReturn(1.0)
     val transform = view.context
     val fragment1 = scene.getSceneComponent("fragment1")!!
     fragment1.setPosition(100, 100)
@@ -824,7 +824,7 @@ class NavSceneTest {
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
-    `when`(view.scale).thenReturn(1.0)
+    whenever(view.scale).thenReturn(1.0)
     val transform = view.context
     val action1 = scene.getSceneComponent("a1")!!
 
@@ -961,7 +961,7 @@ class NavSceneTest {
     var component1 = scene.getSceneComponent("fragment1")!!
     assertDrawRectEquals(sceneView, component1, 400f, 400f, 76.5f, 128f)
 
-    `when`(surface.scale).thenReturn(newScale)
+    whenever(surface.scale).thenReturn(newScale)
     scene.layout(0, SceneContext.get())
 
     component1 = scene.getSceneComponent("fragment1")!!

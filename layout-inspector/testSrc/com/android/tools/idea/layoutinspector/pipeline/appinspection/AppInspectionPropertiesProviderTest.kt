@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -460,10 +461,10 @@ class AppInspectionPropertiesProviderTest {
       assertThat(modification.added).hasSize(2)
       assertThat(modification.removed).isEmpty()
       moreListElements1.countDown()
-    }.`when`(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    }.whenever(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table1.component
-    }.`when`(event1).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
+    }.whenever(event1).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     val list = last.children.last() as ParameterGroupItem
     moreListElements1.runInEdt {
       val showMoreItem = list.children[2] as ShowMoreElementsItem
@@ -490,10 +491,10 @@ class AppInspectionPropertiesProviderTest {
       assertThat(modification.added).hasSize(3)
       assertThat(modification.removed).hasSize(1)
       moreListElements2.countDown()
-    }.`when`(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    }.whenever(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table2.component
-    }.`when`(event2).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
+    }.whenever(event2).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     moreListElements2.runInEdt {
       val showMoreItem = list.children[4] as ShowMoreElementsItem
       // Click the "Show more" link:

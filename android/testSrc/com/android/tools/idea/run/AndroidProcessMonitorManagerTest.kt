@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
@@ -30,7 +31,6 @@ import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
@@ -68,7 +68,7 @@ class AndroidProcessMonitorManagerTest {
       stateChangeListener = listener
 
       val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
-      `when`(monitor.targetDevice).thenReturn(device)
+      whenever(monitor.targetDevice).thenReturn(device)
       mockSingleDeviceAndroidProcessMonitors[device] = monitor
 
       monitor
@@ -247,8 +247,8 @@ class AndroidProcessMonitorManagerTest {
 
   private fun createMockDevice(apiVersion: Int): IDevice {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.isOnline).thenReturn(true)
-    `when`(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
+    whenever(mockDevice.isOnline).thenReturn(true)
+    whenever(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
     return mockDevice
   }
 }

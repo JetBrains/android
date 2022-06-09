@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.explorer.fs.DeviceFileDownloaderService
 import com.android.tools.idea.explorer.fs.DownloadProgress
@@ -31,7 +32,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 
 class FileDatabaseManagerTest : LightPlatformTestCase() {
@@ -56,7 +56,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     ) as SqliteDatabaseId.LiveSqliteDatabaseId
 
     val virtualFile = mock<VirtualFile>()
-    `when`(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
+    whenever(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
     fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as SqliteDatabaseId.FileSqliteDatabaseId
 
     deviceFileDownloaderService = mock()
@@ -74,7 +74,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     val file2 = MockVirtualFile("f2")
     val file3 = MockVirtualFile("f3")
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
       mapOf(
         "/data/data/com.example.package/databases/db-file" to file1,
         "/data/data/com.example.package/databases/db-file-shm" to file2,
@@ -105,7 +105,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
       mapOf(
         "/data/data/com.example.package/databases/db-file-shm" to file2,
         "/data/data/com.example.package/databases/db-file-wal" to file3
@@ -127,7 +127,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
   fun testFileDownloadFailedExceptionIsHandled() = runBlocking {
     // Prepare
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
       .thenThrow(DeviceFileDownloaderService.FileDownloadFailedException::class.java)
 
     // Act

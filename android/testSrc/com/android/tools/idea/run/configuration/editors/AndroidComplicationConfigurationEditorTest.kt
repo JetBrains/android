@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.model.MergedManifestManager
@@ -120,7 +121,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       override fun get(): ListenableFuture<MergedManifestSnapshot> = immediateFuture(manifestSnapshot)
     }
     val mockMergedManifestManager = Mockito.mock(MergedManifestManager::class.java)
-    Mockito.`when`(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
+    whenever(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
     myModule.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, testRootDisposable)
   }
 

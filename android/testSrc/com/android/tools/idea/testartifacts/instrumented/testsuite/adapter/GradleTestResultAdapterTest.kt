@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -44,7 +45,6 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
@@ -65,10 +65,10 @@ class GradleTestResultAdapterTest {
 
   @Before
   fun setup() {
-    `when`(mockDevice1.serialNumber).thenReturn("mockDevice1SerialNumber")
-    `when`(mockDevice1.avdName).thenReturn("mockDevice1AvdName")
-    `when`(mockDevice1.version).thenReturn(AndroidVersion(29))
-    `when`(mockDevice1.isEmulator).thenReturn(true)
+    whenever(mockDevice1.serialNumber).thenReturn("mockDevice1SerialNumber")
+    whenever(mockDevice1.avdName).thenReturn("mockDevice1AvdName")
+    whenever(mockDevice1.version).thenReturn(AndroidVersion(29))
+    whenever(mockDevice1.isEmulator).thenReturn(true)
   }
 
   private fun createAdapter(): GradleTestResultAdapter {

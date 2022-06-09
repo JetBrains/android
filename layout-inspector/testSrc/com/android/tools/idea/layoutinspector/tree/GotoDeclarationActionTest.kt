@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -40,7 +41,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 
@@ -121,8 +121,8 @@ class GotoDeclarationActionTest {
 
   private fun createEvent(model: InspectorModel, stats: SessionStatistics, fromShortcut: Boolean = false): AnActionEvent {
     val inspector: LayoutInspector = mock()
-    `when`(inspector.layoutInspectorModel).thenReturn(model)
-    `when`(inspector.stats).thenReturn(stats)
+    whenever(inspector.layoutInspectorModel).thenReturn(model)
+    whenever(inspector.stats).thenReturn(stats)
     val dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
         return null

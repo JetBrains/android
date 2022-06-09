@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.repository
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -39,7 +40,6 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
@@ -66,19 +66,19 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     databaseConnection2 = mock()
     databaseConnection3 = mock()
 
-    `when`(databaseConnection1.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
-    `when`(databaseConnection2.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
-    `when`(databaseConnection3.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(databaseConnection1.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(databaseConnection2.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(databaseConnection3.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
 
-    `when`(databaseConnection1.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
-    `when`(databaseConnection2.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
-    `when`(databaseConnection3.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
+    whenever(databaseConnection1.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
+    whenever(databaseConnection2.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
+    whenever(databaseConnection3.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
 
-    `when`(databaseConnection1.readSchema())
+    whenever(databaseConnection1.readSchema())
       .thenReturn(Futures.immediateFuture(SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false)))))
-    `when`(databaseConnection2.readSchema())
+    whenever(databaseConnection2.readSchema())
       .thenReturn(Futures.immediateFuture(SqliteSchema(listOf(SqliteTable("t2", emptyList(), null, false)))))
-    `when`(databaseConnection3.readSchema())
+    whenever(databaseConnection3.readSchema())
       .thenReturn(Futures.immediateFuture(SqliteSchema(listOf(SqliteTable("t3", emptyList(), null, false)))))
   }
 

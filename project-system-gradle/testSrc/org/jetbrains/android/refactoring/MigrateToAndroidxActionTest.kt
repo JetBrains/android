@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -46,14 +48,14 @@ class MigrateToAndroidxActionTest {
 
     myEvent = Mockito.mock(AnActionEvent::class.java)
 
-    Mockito.`when`<Project>(myEvent!!.project).thenReturn(myProject)
-    Mockito.`when`(myEvent!!.presentation).thenReturn(myPresentation)
+    whenever(myEvent!!.project).thenReturn(myProject)
+    whenever(myEvent!!.presentation).thenReturn(myPresentation)
   }
 
   @Before
   fun mockContext() {
     myContext = Mockito.mock(DataContext::class.java)
-    Mockito.`when`<Project>(myContext!!.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.project)
+    whenever(myContext!!.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.project)
   }
 
   @Test

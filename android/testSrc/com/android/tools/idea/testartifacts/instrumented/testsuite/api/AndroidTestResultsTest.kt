@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -24,7 +25,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.time.Duration
 
@@ -54,7 +54,7 @@ class AndroidTestResultsTest {
 
   private fun createAndroidTestResults(duration: Duration? = null): AndroidTestResults {
     val results = mock<AndroidTestResults>()
-    `when`(results.getDuration(any())).thenReturn(duration)
+    whenever(results.getDuration(any())).thenReturn(duration)
     return results
   }
 }

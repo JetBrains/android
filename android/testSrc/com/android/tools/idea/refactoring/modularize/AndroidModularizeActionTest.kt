@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.google.common.truth.Truth.assertThat
@@ -42,7 +43,6 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.mockito.quality.Strictness
-import org.mockito.Mockito.`when` as given
 
 /**
  * We need to use parameterized tests for several methods
@@ -104,8 +104,8 @@ class AndroidModularizeActionTest {
       val project = mock<Project>()
       val file = fileInfo?.let { fileInfo ->
         mock<PsiFile>().apply {
-          given(fileType).thenReturn(fileInfo.fileType)
-          given(project).thenReturn(this@Case.project)
+          whenever(fileType).thenReturn(fileInfo.fileType)
+          whenever(project).thenReturn(this@Case.project)
         }
       }
     }
@@ -117,7 +117,7 @@ class AndroidModularizeActionTest {
 
     companion object {
       // Mock FileType instances don't have a description by default so we need to give them one
-      private fun mockFileType() = mock<FileType>().also { given(it.description).thenReturn("mock<FileType>") }
+      private fun mockFileType() = mock<FileType>().also { whenever(it.description).thenReturn("mock<FileType>") }
 
       @JvmStatic
       @Parameters(name = "{0}")
@@ -141,7 +141,7 @@ class AndroidModularizeActionTest {
       val action = TestableAndroidModularizeAction()
       mockStatic<AndroidUtils>().use {
         case.fileInfo?.let { fileInfo ->
-          given(AndroidUtils.hasAndroidFacets(case.project)).thenReturn(fileInfo.hasAndroidFacets)
+          whenever(AndroidUtils.hasAndroidFacets(case.project)).thenReturn(fileInfo.hasAndroidFacets)
         }
         assertThat(action.isAvailableForFile(case.file)).isEqualTo(case.expected)
       }
@@ -161,8 +161,8 @@ class AndroidModularizeActionTest {
       val syncManager = lastSyncOk?.let {
         mock<ProjectSystemSyncManager>().also {
           val syncRes = mock<ProjectSystemSyncManager.SyncResult>()
-          given(it.getLastSyncResult()).thenReturn(syncRes)
-          given(syncRes.isSuccessful).thenReturn(lastSyncOk)
+          whenever(it.getLastSyncResult()).thenReturn(syncRes)
+          whenever(syncRes.isSuccessful).thenReturn(lastSyncOk)
         }
       }
       val file = fileAvail?.let {
@@ -170,11 +170,11 @@ class AndroidModularizeActionTest {
       }
       val availableFile = mock<PsiFile>()
       private val availableElement = mock<PsiElement>().also {
-        given(it.containingFile).thenReturn(availableFile)
+        whenever(it.containingFile).thenReturn(availableFile)
       }
       val unavailableFile = mock<PsiFile>()
       private val unavailableElement = mock<PsiElement>().also {
-        given(it.containingFile).thenReturn(unavailableFile)
+        whenever(it.containingFile).thenReturn(unavailableFile)
       }
       val elements = Array(numAvailElem) { availableElement }
         .letIf(addUnavailElem) { it + unavailableElement }
@@ -223,23 +223,23 @@ class AndroidModularizeActionTest {
       // it's simpler to just mock out both result cases to make sure we're handling all scenarios
       case.file?.let {
         // The normal syntax is iffy on spies so they suggest this version instead
-        Mockito.doReturn(case.fileAvail).`when`(action).isAvailableForFile(it)
+        Mockito.doReturn(case.fileAvail).whenever(action).isAvailableForFile(it)
       }
-      Mockito.doReturn(true).`when`(action).isAvailableForFile(case.availableFile)
-      Mockito.doReturn(false).`when`(action).isAvailableForFile(case.unavailableFile)
+      Mockito.doReturn(true).whenever(action).isAvailableForFile(case.availableFile)
+      Mockito.doReturn(false).whenever(action).isAvailableForFile(case.unavailableFile)
 
       val dc = mock<DataContext>()
-      given(CommonDataKeys.PROJECT.getData(dc)).thenReturn(case.project)
-      given(CommonDataKeys.PSI_FILE.getData(dc)).thenReturn(case.file)
+      whenever(CommonDataKeys.PROJECT.getData(dc)).thenReturn(case.project)
+      whenever(CommonDataKeys.PSI_FILE.getData(dc)).thenReturn(case.file)
       // getPsiElementArray is a super class static method
       mockStatic<BaseRefactoringAction>().use {
-        given(BaseRefactoringAction.getPsiElementArray(dc)).thenReturn(case.elements)
+        whenever(BaseRefactoringAction.getPsiElementArray(dc)).thenReturn(case.elements)
 
         val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
         Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
           // if there is a project then hook it up to a sync manager
           case.project?.let {
-            given(it.getSyncManager()).thenReturn(case.syncManager!!)
+            whenever(it.getSyncManager()).thenReturn(case.syncManager!!)
           }
 
           // finally, we can actually do the test
@@ -254,12 +254,12 @@ class AndroidModularizeActionTest {
     data class Case(val lastSyncSuccessful: Boolean) {
       val project = mock<Project>()
       val file = mock<PsiFile>().also {
-        given(it.project).thenReturn(project)
+        whenever(it.project).thenReturn(project)
       }
       val syncManager = mock<ProjectSystemSyncManager>().also {
         val syncResult = mock<ProjectSystemSyncManager.SyncResult>()
-        given(it.getLastSyncResult()).thenReturn(syncResult)
-        given(syncResult.isSuccessful).thenReturn(lastSyncSuccessful)
+        whenever(it.getLastSyncResult()).thenReturn(syncResult)
+        whenever(syncResult.isSuccessful).thenReturn(lastSyncSuccessful)
       }
     }
 
@@ -278,7 +278,7 @@ class AndroidModularizeActionTest {
 
       val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
       Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
-        given(case.project.getSyncManager()).thenReturn(case.syncManager)
+        whenever(case.project.getSyncManager()).thenReturn(case.syncManager)
 
         assertThat(action.isAvailableOnElementInEditorAndFile(mock(), mock(), case.file, mock())).isEqualTo(case.lastSyncSuccessful)
       }

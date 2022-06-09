@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
@@ -130,7 +131,7 @@ class CommonComboBoxTest {
     val oldManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
     val manager = Mockito.mock(KeyboardFocusManager::class.java)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
-    Mockito.`when`(manager.focusOwner).thenReturn(component)
+    whenever(manager.focusOwner).thenReturn(component)
     return oldManager
   }
 

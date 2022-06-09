@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import junit.framework.TestCase
 import org.gradle.tooling.model.GradleModuleVersion
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 /**
@@ -139,16 +139,16 @@ class PsArtifactDependencySpecTest : TestCase() {
     val model = mock(ArtifactDependencyModel::class.java)
     fun propertyModelFunc(value: String): ResolvedPropertyModel? {
       val propertyModel = mock(ResolvedPropertyModel::class.java)
-      `when`(propertyModel.toString()).thenReturn(value)
-      `when`(propertyModel.forceString()).thenReturn(value)
+      whenever(propertyModel.toString()).thenReturn(value)
+      whenever(propertyModel.forceString()).thenReturn(value)
       return propertyModel
     }
     val groupModel = propertyModelFunc("group")
     val nameModel = propertyModelFunc("name")
     val versionModel = propertyModelFunc("version")
-    `when`(model.group()).thenReturn(groupModel)
-    `when`(model.name()).thenReturn(nameModel)
-    `when`(model.version()).thenReturn(versionModel)
+    whenever(model.group()).thenReturn(groupModel)
+    whenever(model.name()).thenReturn(nameModel)
+    whenever(model.version()).thenReturn(versionModel)
     val spec = PsArtifactDependencySpec.create(model)
     assertNotNull(spec)
     assertEquals("group", spec.group)
@@ -167,9 +167,9 @@ class PsArtifactDependencySpecTest : TestCase() {
 
   fun testCreate_gradleModuleVersion() {
     val version = mock(GradleModuleVersion::class.java)
-    `when`(version.group).thenReturn("group")
-    `when`(version.name).thenReturn("name")
-    `when`(version.version).thenReturn("version")
+    whenever(version.group).thenReturn("group")
+    whenever(version.name).thenReturn("name")
+    whenever(version.version).thenReturn("version")
     val spec = PsArtifactDependencySpec.create(version)
     assertNotNull(spec)
     assertEquals("group", spec.group)

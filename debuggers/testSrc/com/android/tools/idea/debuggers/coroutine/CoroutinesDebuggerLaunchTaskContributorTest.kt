@@ -19,13 +19,13 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.LaunchOptions
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
@@ -34,7 +34,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    `when`(configuration.project).thenReturn(project)
+    whenever(configuration.project).thenReturn(project)
   }
 
   fun testContributorHasNoTask() {
@@ -72,7 +72,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
@@ -86,7 +86,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
@@ -94,7 +94,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
       assertEquals("", amStartOptions)
     }
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
@@ -102,7 +102,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
       assertEquals("", amStartOptions)
     }
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
@@ -110,7 +110,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
       assertEquals("", amStartOptions)
     }
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
@@ -124,7 +124,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
@@ -140,7 +140,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 

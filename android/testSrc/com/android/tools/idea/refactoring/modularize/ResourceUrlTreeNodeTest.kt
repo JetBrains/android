@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.resources.ResourceUrl
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
@@ -28,7 +29,6 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.mockito.quality.Strictness
-import org.mockito.Mockito.`when` as given
 
 class ResourceUrlTreeNodeTest {
 
@@ -51,11 +51,11 @@ class ResourceUrlTreeNodeTest {
 
     val url = mock<ResourceUrl>()
     val stringRep = "<a string representation of a ResourceUrl>"
-    given(url.toString()).thenReturn(stringRep)
+    whenever(url.toString()).thenReturn(stringRep)
 
     val node = spy(ResourceUrlTreeNode(url))
     val textAttr = mock<SimpleTextAttributes>()
-    Mockito.doReturn(textAttr).`when`(node).textAttributes
+    Mockito.doReturn(textAttr).whenever(node).textAttributes
 
     node.render(renderer)
 

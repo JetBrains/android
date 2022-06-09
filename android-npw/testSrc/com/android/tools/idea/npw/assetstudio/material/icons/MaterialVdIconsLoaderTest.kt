@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.material.icons
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
@@ -26,7 +27,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLConnection
@@ -195,7 +195,7 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
 
   private fun createMockJarUrl(style: String): URL {
     val jarMock = Mockito.mock(JarFile::class.java)
-    `when`(jarMock.stream()).thenAnswer {
+    whenever(jarMock.stream()).thenAnswer {
       Stream.of(
         JarEntry("images/material/icons/$style"),
         JarEntry("images/material/icons/$style/my_icon_1"),
@@ -205,7 +205,7 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
       )
     }
     val jarConnectionMock = Mockito.mock(JarURLConnection::class.java)
-    `when`(jarConnectionMock.jarFile).thenReturn(jarMock)
+    whenever(jarConnectionMock.jarFile).thenReturn(jarMock)
     val jarUrlHandler = object : URLStreamHandler() {
       override fun openConnection(u: URL?): URLConnection {
         return jarConnectionMock

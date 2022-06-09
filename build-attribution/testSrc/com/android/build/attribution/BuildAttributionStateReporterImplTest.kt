@@ -18,7 +18,7 @@ package com.android.build.attribution
 import com.android.build.attribution.BuildAttributionStateReporter.State
 import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject
 import com.android.tools.idea.gradle.project.build.BuildContext
@@ -32,11 +32,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class BuildAttributionStateReporterImplTest {
@@ -57,8 +55,8 @@ class BuildAttributionStateReporterImplTest {
     projectRule.replaceProjectService(ProjectStructure::class.java, projectStructureMock)
 
     val androidPluginVersions = mock(AndroidPluginVersionsInProject::class.java)
-    `when`(androidPluginVersions.allVersions).thenAnswer { listOf(moduleAgpVersion) }
-    `when`(projectStructureMock.androidPluginVersions).thenAnswer { androidPluginVersions }
+    whenever(androidPluginVersions.allVersions).thenAnswer { listOf(moduleAgpVersion) }
+    whenever(projectStructureMock.androidPluginVersions).thenAnswer { androidPluginVersions }
 
     projectRule.project.messageBus.connect(projectRule.fixture.testRootDisposable)
       .subscribe(BuildAttributionStateReporter.FEATURE_STATE_TOPIC, object : BuildAttributionStateReporter.Notifier {
@@ -71,7 +69,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testInitHasData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(true)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(true)
 
     val stateReporter = createStateReporter()
 
@@ -82,7 +80,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testInitHasNoData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
 
@@ -94,7 +92,7 @@ class BuildAttributionStateReporterImplTest {
   @Test
   fun testInitWhenAGPVersionLow() {
     moduleAgpVersion = GradleVersion.parse("3.5.3")
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
 
@@ -105,7 +103,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildStartedAfterNoData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA)
@@ -119,7 +117,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildFailedAfterNoData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA)
@@ -135,7 +133,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildFinishedButStillNoData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA)
@@ -151,14 +149,14 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildFinishedWithNewData() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA)
 
     sendBuildStarted()
     sendBuildSuccess()
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(true)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(true)
     // Supposed to be called from uiManager when it receives data.
     stateReporter.setStateDataExist()
 
@@ -169,7 +167,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildStartedAfterDataExist() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(true)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(true)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.REPORT_DATA_READY)
@@ -184,7 +182,7 @@ class BuildAttributionStateReporterImplTest {
   @RunsInEdt
   @Test
   fun testBuildFailedAfterDataExist() {
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(true)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(true)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.REPORT_DATA_READY)
@@ -200,7 +198,7 @@ class BuildAttributionStateReporterImplTest {
   @Test
   fun testBuildStartedWhenAgpLow() {
     moduleAgpVersion = GradleVersion.parse("3.5.3")
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.AGP_VERSION_LOW)
@@ -216,7 +214,7 @@ class BuildAttributionStateReporterImplTest {
   @Test
   fun testBuildFailedWhenAgpLow() {
     moduleAgpVersion = GradleVersion.parse("3.5.3")
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.AGP_VERSION_LOW)
@@ -232,7 +230,7 @@ class BuildAttributionStateReporterImplTest {
   @Test
   fun testAgpVersionUpdated() {
     moduleAgpVersion = GradleVersion.parse("3.5.3")
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
+    whenever(uiManagerMock.hasDataToShow()).thenReturn(false)
 
     val stateReporter = createStateReporter()
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.AGP_VERSION_LOW)

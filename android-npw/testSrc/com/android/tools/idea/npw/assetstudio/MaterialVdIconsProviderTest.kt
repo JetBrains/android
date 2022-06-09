@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIcons
 import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider
@@ -33,7 +34,6 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
@@ -197,7 +197,7 @@ class MaterialVdIconsProviderTestWithSdk {
       "style1_my_sdk_icon_24.xml").writeText(SIMPLE_VD)
 
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
-    Mockito.`when`(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
+    whenever(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
   }
 
   @Test

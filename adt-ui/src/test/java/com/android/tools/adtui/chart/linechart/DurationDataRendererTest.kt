@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.linechart
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultDataSeries
 import com.android.tools.adtui.model.DurationData
 import com.android.tools.adtui.model.DurationDataModel
@@ -25,7 +26,6 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Component
@@ -117,8 +117,8 @@ class DurationDataRendererTest {
 
     // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
     val mockIcon = mock(Icon::class.java)
-    `when`(mockIcon.iconWidth).thenReturn(5)
-    `when`(mockIcon.iconHeight).thenReturn(5)
+    whenever(mockIcon.iconWidth).thenReturn(5)
+    whenever(mockIcon.iconHeight).thenReturn(5)
     val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
       .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build()
     durationData.update(-1)  // value doesn't matter here.

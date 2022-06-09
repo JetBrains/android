@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -40,7 +41,7 @@ class StartDestinationToolbarActionTest : NavTestCase() {
 
     val action = StartDestinationToolbarAction.instance
     val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    Mockito.`when`(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    whenever(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
     action.actionPerformed(actionEvent)
 
     assertEquals(

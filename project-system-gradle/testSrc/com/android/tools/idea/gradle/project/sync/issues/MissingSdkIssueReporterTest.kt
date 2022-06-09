@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
@@ -25,7 +26,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
@@ -133,10 +133,10 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
 
   private fun setUpMockSyncIssue(path: String): IdeSyncIssue {
     val syncIssue = mock(IdeSyncIssue::class.java)
-    `when`(syncIssue.data).thenReturn(path)
-    `when`(syncIssue.message).thenReturn("This is some message that is not used")
-    `when`(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    `when`(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_SDK_NOT_SET)
+    whenever(syncIssue.data).thenReturn(path)
+    whenever(syncIssue.message).thenReturn("This is some message that is not used")
+    whenever(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    whenever(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_SDK_NOT_SET)
     return syncIssue
   }
 }

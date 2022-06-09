@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_INPUT_TYPE
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
@@ -43,7 +44,6 @@ import com.intellij.openapi.actionSystem.IdeActions
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import javax.swing.JScrollPane
 
 class FlagPropertyEditorTest {
@@ -53,7 +53,7 @@ class FlagPropertyEditorTest {
 
   @Before
   fun setUp() {
-    `when`(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
+    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
   }
 
   @Test

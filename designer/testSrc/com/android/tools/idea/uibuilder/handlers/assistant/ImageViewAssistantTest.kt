@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
@@ -42,8 +43,8 @@ class ImageViewAssistantTest {
     val nlComponent = Mockito.mock(NlComponent::class.java)
     val model = Mockito.mock(NlModel::class.java)
     val facet = AndroidFacet.getInstance(rule.module)!!
-    Mockito.`when`(model.facet).thenReturn(facet)
-    Mockito.`when`(nlComponent.model).thenReturn(model)
+    whenever(model.facet).thenReturn(facet)
+    whenever(nlComponent.model).thenReturn(model)
     var toolSrc : String? = null
 
     val imageHandler = object : ImageViewHandler() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -35,7 +36,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+
 
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
@@ -78,7 +79,7 @@ class UpgradeGradleVersionsQuickFixTest {
       }
     }
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
-    `when`(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
+    whenever(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
     val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
     assertThat(result).isEqualTo(success)
     verify(mockedUpdater).updatePluginVersion(eq(latestAgpVersion), eq(latestGradleVersion))

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
@@ -35,7 +36,6 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
 import java.io.Closeable
@@ -237,7 +237,7 @@ class DeviceComboBoxTest {
     DeviceComboBox(disposable, initialDevice, deviceTracker, TestCoroutineScope()).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
-      `when`(it.model.setSelectedItem(any())).thenAnswer { invocation ->
+      whenever(it.model.setSelectedItem(any())).thenAnswer { invocation ->
         invocation.callRealMethod()
         selectionEvents.add(invocation.arguments[0])
       }

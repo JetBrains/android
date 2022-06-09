@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.common.scene
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import org.mockito.Mockito
 
 open class SceneComponentTest: SceneTest() {
 
@@ -42,7 +44,7 @@ open class SceneComponentTest: SceneTest() {
 
   fun testAddSceneComponent() {
     val sceneComponent = TemporarySceneComponent(myScene, LayoutTestUtilities.createMockComponent().apply {
-      Mockito.`when`(this.tagName).thenReturn(TEXT_VIEW)
+      whenever(this.tagName).thenReturn(TEXT_VIEW)
     })
     val parent = myScene.getSceneComponent("parent")
 

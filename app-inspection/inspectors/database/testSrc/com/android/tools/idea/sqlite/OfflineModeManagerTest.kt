@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
@@ -24,10 +25,15 @@ import com.android.tools.idea.testing.runDispatching
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
-import org.mockito.Mockito.`when`
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -111,9 +117,9 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   fun testDownloadFailed() = runBlocking {
     // Prepare
     val fileDatabaseManager = mock<FileDatabaseManager>()
-    `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb1))
+    whenever(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb1))
       .thenThrow(FileDatabaseException::class.java)
-    `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb2))
+    whenever(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb2))
       .thenThrow(DeviceNotFoundException::class.java)
     offlineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager, uiDispatcher, isFileDownloadAllowed = { true })
 

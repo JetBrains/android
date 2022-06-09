@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification
 
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
 import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener.Companion.baseId
 import com.android.tools.idea.sdk.IdeSdks
@@ -145,7 +146,7 @@ class GradleJvmNotificationExtensionTest {
     assertThat(notificationData.registeredListenerIds).isEmpty()
 
     val spyIdeSdks = spy(IdeSdks.getInstance())
-    Mockito.doReturn(invalidReason).`when`(spyIdeSdks).generateInvalidJdkReason(Mockito.any())
+    Mockito.doReturn(invalidReason).whenever(spyIdeSdks).generateInvalidJdkReason(Mockito.any())
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, gradleProjectRule.fixture.projectDisposable)
     gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
     assertThat(notificationData.message).isEqualTo(expectedMessage)
@@ -157,11 +158,11 @@ class GradleJvmNotificationExtensionTest {
   @Test
   fun `null path generates invalid JDK error`() {
     val mockJdk = Mockito.mock(Sdk::class.java)
-    Mockito.`when`(mockJdk.homePath).thenReturn(null)
+    whenever(mockJdk.homePath).thenReturn(null)
     val spyProjectJdkTable = spy(ProjectJdkTable.getInstance())
-    Mockito.`when`(spyProjectJdkTable.findJdk(MockitoKt.any(), MockitoKt.any())).thenReturn(mockJdk)
+    whenever(spyProjectJdkTable.findJdk(MockitoKt.any(), MockitoKt.any())).thenReturn(mockJdk)
     val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
-    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(null)
+    whenever(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(null)
 
     val project = gradleProjectRule.project
     ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
@@ -174,7 +175,7 @@ class GradleJvmNotificationExtensionTest {
   @Test
   fun `invalid JDK path generates error`() {
     val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
-    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn("/path/to/invalid/jdk/")
+    whenever(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn("/path/to/invalid/jdk/")
 
     val project = gradleProjectRule.project
     ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
@@ -191,7 +192,7 @@ class GradleJvmNotificationExtensionTest {
     assertThat(jdkPath).isNotEmpty()
 
     val mockGradleManager = Mockito.mock(GradleInstallationManager::class.java)
-    Mockito.`when`(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(jdkPath)
+    whenever(mockGradleManager.getGradleJvmPath(MockitoKt.any(), MockitoKt.any())).thenReturn(jdkPath)
 
     val project = gradleProjectRule.project
     ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)

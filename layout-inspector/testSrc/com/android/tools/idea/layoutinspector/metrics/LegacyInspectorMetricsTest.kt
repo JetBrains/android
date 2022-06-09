@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -51,7 +52,7 @@ class LegacyInspectorMetricsTest {
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
+    whenever(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
       windowIdsRetrievedLock.countDown()
       windowIds
     }

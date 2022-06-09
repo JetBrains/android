@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.tools.idea.common.scene.SceneContext
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -24,8 +24,10 @@ import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import java.util.Collections
 
 class EmptyDesignerTargetTest : NavTestCase() {
@@ -36,17 +38,17 @@ class EmptyDesignerTargetTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
+    whenever(surface.focusedSceneView).thenReturn(view)
 
     val actionManager = mock(NavActionManager::class.java)
     val menu = mock(AddDestinationMenu::class.java)
 
-    `when`(surface.actionManager).thenReturn(actionManager)
-    doReturn(menu).`when`(actionManager).addDestinationMenu
-    `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    whenever(surface.actionManager).thenReturn(actionManager)
+    doReturn(menu).whenever(actionManager).addDestinationMenu
+    whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    `when`(actionManager.getToolbarActions(any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
 
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!

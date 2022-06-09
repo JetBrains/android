@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -23,7 +24,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 @RunWith(JUnit4::class)
@@ -89,10 +89,10 @@ class BenchmarkOutputTest {
     val testView = mock(ConsoleView::class.java)
     val outputString = StringBuffer()
     val printedHyperlinks = mutableListOf<String>()
-    `when`(testView.print(anyString(), any())).then {
+    whenever(testView.print(anyString(), any())).then {
       outputString.append(it.arguments[0])
     }
-    `when`(testView.printHyperlink(anyString(), any())).then {
+    whenever(testView.printHyperlink(anyString(), any())).then {
       printedHyperlinks.add(it.arguments[0].toString())
       outputString.append(it.arguments[0])
     }

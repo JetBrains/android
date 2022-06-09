@@ -21,6 +21,7 @@ import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
@@ -50,7 +51,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.TimeUnit
@@ -79,7 +79,7 @@ class EmulatorToolWindowManagerTest {
   @Before
   fun setUp() {
     val mockLafManager = mock<LafManager>()
-    `when`(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
+    whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
     savedMirroringEnabledState = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
@@ -138,8 +138,8 @@ class EmulatorToolWindowManagerTest {
 
     for (emulator in listOf(emulator2, emulator3)) {
       val device = mock<IDevice>()
-      `when`(device.isEmulator).thenReturn(true)
-      `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
+      whenever(device.isEmulator).thenReturn(true)
+      whenever(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, project)
     }
 

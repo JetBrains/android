@@ -23,17 +23,15 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
+
 
 private val client1 = client(1, "client1")
 private val client2 = client(2, "client2")
@@ -245,7 +243,7 @@ class ProjectAppMonitorTest {
     device.setClients(client, client2)
     projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
 
-    `when`(client.clientData.packageName).thenReturn("client")
+    whenever(client.clientData.packageName).thenReturn("client")
     projectAppMonitor.clientChanged(client, CHANGE_NAME)
 
     runInEdtAndWait {
@@ -258,20 +256,20 @@ class ProjectAppMonitorTest {
 }
 
 private fun IDevice.setClients(vararg clients: Client) {
-  `when`(this.clients).thenReturn(clients)
+  whenever(this.clients).thenReturn(clients)
   clients.forEach {
-    `when`(it.device).thenReturn(this)
+    whenever(it.device).thenReturn(this)
   }
 }
 
 private fun client(pid: Int, packageName: String): Client {
   val clientData = mock<ClientData>()
-  `when`(clientData.pid).thenReturn(pid)
-  `when`(clientData.packageName).thenReturn(packageName)
+  whenever(clientData.pid).thenReturn(pid)
+  whenever(clientData.packageName).thenReturn(packageName)
 
   val client = mock<Client>()
-  `when`(client.clientData).thenReturn(clientData)
-  `when`(client.toString()).thenReturn("pid=$pid packageName=$packageName")
+  whenever(client.clientData).thenReturn(clientData)
+  whenever(client.toString()).thenReturn("pid=$pid packageName=$packageName")
 
   return client
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
@@ -71,13 +72,13 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
 
   private fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    whenever(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-    Mockito.`when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")
-    Mockito.`when`(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
-    Mockito.`when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 }

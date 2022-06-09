@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -52,7 +53,7 @@ class LayoutQualifierDropdownMenuTest {
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.module)
     val config = manager.getConfiguration(file)
 
-    Mockito.`when`(surface.configurations).thenReturn(ImmutableList.of(config))
+    whenever(surface.configurations).thenReturn(ImmutableList.of(config))
     context = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetLanguageLevel8QuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.google.common.truth.Truth.assertThat
@@ -41,7 +42,7 @@ class KotlincWithQuickFixesParserTest {
   fun setUp() {
     MockitoAnnotations.initMocks(this)
     parser = KotlincWithQuickFixesParser()
-    Mockito.`when`(reader.parentEventId).thenReturn("testId")
+    whenever(reader.parentEventId).thenReturn("testId")
   }
 
   @Test

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -207,9 +208,9 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
     val y = 10 + index * NlVisibilityButton.HEIGHT
 
     val event: MouseEvent = Mockito.mock(MouseEvent::class.java)
-    Mockito.`when`(event.button).thenReturn(BUTTON1)
-    Mockito.`when`(event.clickCount).thenReturn(1)
-    Mockito.`when`(event.point).thenReturn(Point(x, y))
+    whenever(event.button).thenReturn(BUTTON1)
+    whenever(event.clickCount).thenReturn(1)
+    whenever(event.point).thenReturn(Point(x, y))
 
     return event
   }

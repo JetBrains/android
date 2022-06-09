@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
@@ -37,7 +38,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
+
 
 class BottomAppBarHandlerTest {
   @get:Rule
@@ -63,7 +64,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreate() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    `when`(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.4.9"))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.4.9"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 
     val handler = BottomAppBarHandler()
@@ -88,7 +89,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreateWithMaterial3() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    `when`(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.5.0"))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.5.0"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 
     val handler = BottomAppBarHandler()
@@ -110,8 +111,8 @@ class BottomAppBarHandlerTest {
   private fun createViewEditor(): ViewEditor {
     val editor: ViewEditor = mock()
     val model: NlModel = mock()
-    `when`(model.facet).thenReturn(AndroidFacet.getInstance(projectRule.module))
-    `when`(editor.model).thenReturn(model)
+    whenever(model.facet).thenReturn(AndroidFacet.getInstance(projectRule.module))
+    whenever(editor.model).thenReturn(model)
     return editor
   }
 

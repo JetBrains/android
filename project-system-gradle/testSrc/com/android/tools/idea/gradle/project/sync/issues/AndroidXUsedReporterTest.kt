@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.io.File
 
@@ -31,8 +31,8 @@ class AndroidXUsedReporterTest {
     val reporter = AndroidXUsedReporter()
     val mockedPropertiesFile = mock(File::class.java)
     val expectedPath = "/path/to/gradle.properties"
-    Mockito.`when`(mockedPropertiesFile.exists()).thenReturn(true)
-    Mockito.`when`(mockedPropertiesFile.path).thenReturn(expectedPath)
+    whenever(mockedPropertiesFile.exists()).thenReturn(true)
+    whenever(mockedPropertiesFile.path).thenReturn(expectedPath)
     val fixes = reporter.createQuickFixes(mockedPropertiesFile)
     assertThat(fixes).hasSize(3)
     assertThat(fixes[0]).isInstanceOf(EnableAndroidXHyperlink::class.java)
@@ -46,7 +46,7 @@ class AndroidXUsedReporterTest {
   fun `expected quick fixes without properties file`() {
     val reporter = AndroidXUsedReporter()
     val mockedPropertiesFile = mock(File::class.java)
-    Mockito.`when`(mockedPropertiesFile.exists()).thenReturn(false)
+    whenever(mockedPropertiesFile.exists()).thenReturn(false)
     val fixes = reporter.createQuickFixes(mockedPropertiesFile)
     assertThat(fixes).hasSize(2)
     assertThat(fixes[0]).isInstanceOf(EnableAndroidXHyperlink::class.java)

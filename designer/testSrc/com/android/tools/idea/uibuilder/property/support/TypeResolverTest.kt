@@ -48,12 +48,13 @@ import com.android.SdkConstants.PreferenceClasses
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.junit.Test
-import org.mockito.Mockito.`when`
+
 
 class TypeResolverTest {
 
@@ -173,8 +174,8 @@ class TypeResolverTest {
     names.reverse()
     for (name in names) {
       psiClass = mock<PsiClass?>().apply {
-        `when`(this?.superClass).thenReturn(psiClass)
-        `when`(this?.qualifiedName).thenReturn(name)
+        whenever(this?.superClass).thenReturn(psiClass)
+        whenever(this?.qualifiedName).thenReturn(name)
       }
     }
     return psiClass

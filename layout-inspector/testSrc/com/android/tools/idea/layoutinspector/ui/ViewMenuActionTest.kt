@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -37,7 +38,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 import java.awt.event.InputEvent
 import java.util.EnumSet
@@ -122,10 +122,10 @@ class ViewMenuActionTest {
   private fun createEvent(): AnActionEvent {
     val inspector: LayoutInspector = mock()
     val client: AppInspectionInspectorClient = mock()
-    `when`(inspector.treeSettings).thenReturn(treeSettings)
-    `when`(inspector.currentClient).thenReturn(client)
-    doAnswer { capabilities }.`when`(client).capabilities
-    doAnswer { isConnected }.`when`(client).isConnected
+    whenever(inspector.treeSettings).thenReturn(treeSettings)
+    whenever(inspector.currentClient).thenReturn(client)
+    doAnswer { capabilities }.whenever(client).capabilities
+    doAnswer { isConnected }.whenever(client).isConnected
 
     val dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {

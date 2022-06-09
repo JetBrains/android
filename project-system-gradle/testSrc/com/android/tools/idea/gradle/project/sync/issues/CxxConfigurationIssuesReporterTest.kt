@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
@@ -24,7 +25,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
@@ -118,10 +118,10 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
 
   private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {
     val syncIssue = mock(IdeSyncIssue::class.java)
-    `when`(syncIssue.data).thenReturn(null)
-    `when`(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
-    `when`(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    `when`(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
+    whenever(syncIssue.data).thenReturn(null)
+    whenever(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
+    whenever(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    whenever(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
     return syncIssue
   }
 }

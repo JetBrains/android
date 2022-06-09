@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.AndroidXConstants
+import com.android.testutils.MockitoKt.whenever
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -35,12 +36,12 @@ class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    Mockito.`when`(event.getData(PlatformDataKeys.PSI_FILE)).thenReturn(psi)
-    Mockito.`when`(event.dataContext).thenReturn(myDataContext)
-    Mockito.`when`(event.project).thenReturn(myModule.project)
-    Mockito.`when`(event.presentation).thenReturn(presentation)
-    Mockito.`when`(psi.rootTag).thenReturn(tag)
-    Mockito.`when`(tag.name).thenReturn("")
+    whenever(event.getData(PlatformDataKeys.PSI_FILE)).thenReturn(psi)
+    whenever(event.dataContext).thenReturn(myDataContext)
+    whenever(event.project).thenReturn(myModule.project)
+    whenever(event.presentation).thenReturn(presentation)
+    whenever(psi.rootTag).thenReturn(tag)
+    whenever(tag.name).thenReturn("")
   }
 
   fun testUpdateConstraintlayout() {
@@ -58,6 +59,6 @@ class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
   }
 
   private fun setupTagName(name: String) {
-    Mockito.`when`(tag.name).thenReturn(name)
+    whenever(tag.name).thenReturn(name)
   }
 }

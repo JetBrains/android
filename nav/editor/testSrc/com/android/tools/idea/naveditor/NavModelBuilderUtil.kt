@@ -31,11 +31,11 @@ import com.android.SdkConstants.TAG_ACTIVITY
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.SdkConstants.TOOLS_URI
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
@@ -53,7 +53,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCL
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.createIfNecessary
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.Point
@@ -83,20 +82,20 @@ object NavModelBuilderUtil {
         throw RuntimeException(e)
       }
 
-      `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
-      `when`(surface.extentSize).thenReturn(extentSize)
-      `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
+      whenever(surface.currentNavigation).then { model.components[0] }
+      whenever(surface.extentSize).thenReturn(extentSize)
+      whenever(surface.scrollPosition).thenAnswer { Point(0, 0) }
 
       val sceneView = mock(SceneView::class.java)
-      `when`<Configuration>(sceneView.configuration).thenReturn(model.configuration)
+      whenever(sceneView.configuration).thenReturn(model.configuration)
       val selectionModel = surface.selectionModel
-      `when`(sceneView.selectionModel).thenReturn(selectionModel)
-      `when`<DesignSurface<*>>(sceneView.surface).thenReturn(surface)
+      whenever(sceneView.selectionModel).thenReturn(selectionModel)
+      whenever(sceneView.surface).thenReturn(surface)
 
-      `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+      whenever(surface.focusedSceneView).thenReturn(sceneView)
 
       val manager = NavSceneManager(model, surface)
-      `when`(sceneView.sceneManager).thenReturn(manager)
+      whenever(sceneView.sceneManager).thenReturn(manager)
       manager
     }
 

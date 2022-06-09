@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -71,13 +72,13 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   @Test
   fun allInstalledQuickPathToSuccess() {
     val phoneIDevice = Mockito.mock(IDevice::class.java).apply {
-      Mockito.`when`(arePropertiesSet()).thenReturn(true)
-      Mockito.`when`(isOnline).thenReturn(true)
-      Mockito.`when`(name).thenReturn("MyPhone")
-      Mockito.`when`(serialNumber).thenReturn("serialNumber")
-      Mockito.`when`(state).thenReturn(IDevice.DeviceState.ONLINE)
-      Mockito.`when`(version).thenReturn(AndroidVersion(28, null))
-      Mockito.`when`(getProperty("dev.bootcomplete")).thenReturn("1")
+      whenever(arePropertiesSet()).thenReturn(true)
+      whenever(isOnline).thenReturn(true)
+      whenever(name).thenReturn("MyPhone")
+      whenever(serialNumber).thenReturn("serialNumber")
+      whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
+      whenever(version).thenReturn(AndroidVersion(28, null))
+      whenever(getProperty("dev.bootcomplete")).thenReturn("1")
 
       addExecuteShellCommandReply { request ->
         when {
@@ -94,16 +95,16 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     val avdWearInfo = AvdInfo("My Wear", Paths.get("ini"), Paths.get("folder"), Mockito.mock(ISystemImage::class.java), wearPropertiesMap)
 
     val wearIDevice = Mockito.mock(IDevice::class.java).apply {
-      Mockito.`when`(arePropertiesSet()).thenReturn(true)
-      Mockito.`when`(isOnline).thenReturn(true)
-      Mockito.`when`(isEmulator).thenReturn(true)
-      Mockito.`when`(name).thenReturn(avdWearInfo.name)
-      Mockito.`when`(serialNumber).thenReturn("serialNumber")
-      Mockito.`when`(state).thenReturn(IDevice.DeviceState.ONLINE)
-      Mockito.`when`(version).thenReturn(AndroidVersion(28, null))
-      Mockito.`when`(avdData).thenReturn(Futures.immediateFuture(AvdData(avdWearInfo.name, avdWearInfo.dataFolderPath.toString())))
-      Mockito.`when`(getProperty("dev.bootcomplete")).thenReturn("1")
-      Mockito.`when`(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
+      whenever(arePropertiesSet()).thenReturn(true)
+      whenever(isOnline).thenReturn(true)
+      whenever(isEmulator).thenReturn(true)
+      whenever(name).thenReturn(avdWearInfo.name)
+      whenever(serialNumber).thenReturn("serialNumber")
+      whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
+      whenever(version).thenReturn(AndroidVersion(28, null))
+      whenever(avdData).thenReturn(Futures.immediateFuture(AvdData(avdWearInfo.name, avdWearInfo.dataFolderPath.toString())))
+      whenever(getProperty("dev.bootcomplete")).thenReturn("1")
+      whenever(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
       addExecuteShellCommandReply { request ->
         when {
           request == "cat /proc/uptime" -> "500"
@@ -157,7 +158,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
 
   private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
-    Mockito.`when`(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
+    whenever(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver
       val reply = requestHandler(request)

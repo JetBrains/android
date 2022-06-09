@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
@@ -25,16 +26,17 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import org.junit.Test
 import org.mockito.Mockito
+
 import javax.swing.JTable
 
 class CpuAnalysisFramesTabTest {
   @Test
   fun tableIsPopulatedByLayer() {
     val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(androidFrameLayers).thenReturn(LAYERS)
+      whenever(androidFrameLayers).thenReturn(LAYERS)
     }
     val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(systemTraceData).thenReturn(traceData)
+      whenever(systemTraceData).thenReturn(traceData)
     }
     val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply {
       dataSeries.add(cpuCapture)
@@ -55,17 +57,17 @@ class CpuAnalysisFramesTabTest {
   @Test
   fun selectingTableRowUpdatedViewRange() {
     val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(androidFrameLayers).thenReturn(LAYERS.subList(0, 1))
+      whenever(androidFrameLayers).thenReturn(LAYERS.subList(0, 1))
     }
     val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(systemTraceData).thenReturn(traceData)
+      whenever(systemTraceData).thenReturn(traceData)
     }
     val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply {
       dataSeries.add(cpuCapture)
     }
     val viewRange = Range()
     val studioProfilersView: StudioProfilersView = Mockito.mock(StudioProfilersView::class.java, Mockito.RETURNS_DEEP_STUBS).apply {
-      Mockito.`when`(studioProfilers.stage.timeline.viewRange).thenReturn(viewRange)
+      whenever(studioProfilers.stage.timeline.viewRange).thenReturn(viewRange)
     }
     val framesTab = CpuAnalysisFramesTab(studioProfilersView, framesTabModel)
     val treeWalker = TreeWalker(framesTab)

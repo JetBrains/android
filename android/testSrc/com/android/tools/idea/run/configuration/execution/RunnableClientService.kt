@@ -20,6 +20,7 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.concurrency.AsyncFutureResultImpl
@@ -135,9 +136,9 @@ private class RunnableClient private constructor(private val device: IDevice, pr
       override fun getDebuggerConnectionStatus() = DebuggerStatus.WAITING
     }
 
-    Mockito.`when`(mockClient.clientData).thenReturn(clientData)
-    Mockito.`when`(mockClient.debuggerListenPort).thenReturn(debugPort)
-    Mockito.`when`(mockClient.device).thenReturn(device)
+    whenever(mockClient.clientData).thenReturn(clientData)
+    whenever(mockClient.debuggerListenPort).thenReturn(debugPort)
+    whenever(mockClient.device).thenReturn(device)
 
     return mockClient
   }

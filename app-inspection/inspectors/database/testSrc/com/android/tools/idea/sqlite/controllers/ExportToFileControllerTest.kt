@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
@@ -117,7 +118,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.io.File
 import java.nio.file.Files
@@ -447,7 +447,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
     // set up a database: prepare a 'freeze' on issuing a database query - making the export operation go indefinitely
     val queryIssuedLatch = CountDownLatch(1)
-    `when`(connection.query(any())).thenAnswer {
+    whenever(connection.query(any())).thenAnswer {
       queryIssuedLatch.countDown()
       CoroutineScope(taskExecutor.asCoroutineDispatcher()).async<List<SqliteRow>> {
         CompletableDeferred<SqliteResultSet>().await() // never going to complete, giving us time to cancel the job

@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.util.LaunchStatus
 import com.google.common.truth.Truth.assertThat
@@ -28,7 +29,6 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import kotlin.test.fail
@@ -85,7 +85,7 @@ class ClearAppStorageTaskTest {
 
 private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = true): IDevice {
   val mock = mock<IDevice>()
-  `when`(mock.executeShellCommand(any(), any())).thenAnswer {
+  whenever(mock.executeShellCommand(any(), any())).thenAnswer {
     val command = it.arguments[0] as String
     val receiver = it.arguments[1] as CollectingOutputReceiver
     val result = when {
@@ -93,7 +93,7 @@ private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = tr
       command.startsWith("pm list packages ") -> if (command.endsWith(" $packageName")) "package:$packageName" else ""
       else -> fail("""Command "$command" not setup in mock""")
     }
-    `when`(mock.toString()).thenReturn("device1")
+    whenever(mock.toString()).thenReturn("device1")
 
     receiver.addOutput(result.toByteArray(), 0, result.length)
     receiver.flush()

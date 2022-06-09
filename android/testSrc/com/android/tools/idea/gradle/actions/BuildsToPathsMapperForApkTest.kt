@@ -22,6 +22,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput
 import com.android.builder.model.InstantAppVariantBuildOutput
 import com.android.builder.model.ProjectBuildOutput
 import com.android.builder.model.VariantBuildOutput
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
@@ -30,7 +31,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -44,7 +44,6 @@ import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
-import java.util.ArrayList
 
 /**
  * Tests for [BuildsToPathsMapper].
@@ -221,21 +220,21 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   private class PostBuildModuleModelsMockBuilder {
     private val myPostBuildModuleModels: PostBuildModuleModels = Mockito.mock(PostBuildModuleModels::class.java)
     fun setProjectBuildOutput(projectBuildOutput: ProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      Mockito.`when`(
+      whenever(
         myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
           ProjectBuildOutput::class.java))).thenReturn(projectBuildOutput)
       return this
     }
 
     fun setAppBundleProjectBuildOutput(appBundleOutput: AppBundleProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      Mockito.`when`(
+      whenever(
         myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
           AppBundleProjectBuildOutput::class.java))).thenReturn(appBundleOutput)
       return this
     }
 
     fun setInstantAppProjectBuildOutput(instantAppProjectBuildOutput: InstantAppProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      Mockito.`when`(
+      whenever(
         myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
           InstantAppProjectBuildOutput::class.java))).thenReturn(instantAppProjectBuildOutput)
       return this
@@ -250,7 +249,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     private val myPostBuildProjectModels: PostBuildProjectModels = Mockito.mock(PostBuildProjectModels::class.java)
     fun setPostBuildModuleModels(gradlePath: String,
                                  postBuildModuleModels: PostBuildModuleModels): PostBuildProjectModelsMockBuilder {
-      Mockito.`when`(myPostBuildProjectModels.getModels(ArgumentMatchers.eq(gradlePath))).thenReturn(
+      whenever(myPostBuildProjectModels.getModels(ArgumentMatchers.eq(gradlePath))).thenReturn(
         postBuildModuleModels)
       return this
     }
@@ -268,11 +267,11 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       val variantBuildOutput = Mockito.mock(
         InstantAppVariantBuildOutput::class.java)
       val outputFile = Mockito.mock(OutputFile::class.java)
-      Mockito.`when`(
+      whenever(
         projectBuildOutput.instantAppVariantsBuildOutput).thenReturn(setOf(variantBuildOutput))
-      Mockito.`when`(variantBuildOutput.name).thenReturn(variant)
-      Mockito.`when`(variantBuildOutput.output).thenReturn(outputFile)
-      Mockito.`when`(outputFile.outputFile).thenReturn(file)
+      whenever(variantBuildOutput.name).thenReturn(variant)
+      whenever(variantBuildOutput.output).thenReturn(outputFile)
+      whenever(outputFile.outputFile).thenReturn(file)
       return projectBuildOutput
     }
 
@@ -283,13 +282,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       val outputFiles: MutableList<OutputFile> = ArrayList()
       for (file in files) {
         val outputFile = Mockito.mock(OutputFile::class.java)
-        Mockito.`when`(outputFile.outputFile).thenReturn(file)
+        whenever(outputFile.outputFile).thenReturn(file)
         outputFiles.add(outputFile)
       }
-      Mockito.`when`(projectBuildOutput.variantsBuildOutput).thenReturn(
+      whenever(projectBuildOutput.variantsBuildOutput).thenReturn(
         setOf(variantBuildOutput))
-      Mockito.`when`(variantBuildOutput.name).thenReturn(variant)
-      Mockito.`when`(variantBuildOutput.outputs).thenReturn(outputFiles)
+      whenever(variantBuildOutput.name).thenReturn(variant)
+      whenever(variantBuildOutput.outputs).thenReturn(outputFiles)
       return projectBuildOutput
     }
 
@@ -298,10 +297,10 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       val projectBuildOutput = Mockito.mock(AppBundleProjectBuildOutput::class.java)
       val variantBuildOutput = Mockito.mock(AppBundleVariantBuildOutput::class.java)
 
-      Mockito.`when`(projectBuildOutput.appBundleVariantsBuildOutput).thenReturn(
+      whenever(projectBuildOutput.appBundleVariantsBuildOutput).thenReturn(
         setOf(variantBuildOutput))
-      Mockito.`when`(variantBuildOutput.name).thenReturn(variant)
-      Mockito.`when`(variantBuildOutput.bundleFile).thenReturn(file)
+      whenever(variantBuildOutput.name).thenReturn(variant)
+      whenever(variantBuildOutput.bundleFile).thenReturn(file)
       return projectBuildOutput
     }
   }

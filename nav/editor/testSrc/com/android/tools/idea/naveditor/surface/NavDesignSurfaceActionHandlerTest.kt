@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -26,7 +27,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
@@ -175,7 +175,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(subnav))
     assertEquals(subnav, handler.pasteTarget)
 
-    `when`(surface.currentNavigation).thenReturn(subnav)
+    whenever(surface.currentNavigation).thenReturn(subnav)
     surface.selectionModel.setSelection(listOf())
     assertEquals(subnav, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf(subnav))
@@ -216,7 +216,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     assertTrue(handler.canHandleChildren(subnav, listOf(action1)))
     assertFalse(handler.canHandleChildren(subnav, listOf(fragment1)))
 
-    `when`(surface.currentNavigation).thenReturn(subnav)
+    whenever(surface.currentNavigation).thenReturn(subnav)
     assertTrue(handler.canHandleChildren(subnav, listOf(fragment1)))
   }
 

@@ -20,6 +20,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaResponse
 import androidx.sqlite.inspection.SqliteInspectorProtocol.QueryResponse
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -43,7 +44,6 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -108,7 +108,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(schemaResponse.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(schemaResponse.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -166,7 +166,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -236,7 +236,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -302,7 +302,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -351,7 +351,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setQuery(QueryResponse.newBuilder())
       .build()
 
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -377,7 +377,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     val cursor = Response.newBuilder().build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -409,7 +409,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -440,7 +440,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -471,7 +471,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -505,7 +505,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -536,7 +536,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -567,7 +567,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -599,7 +599,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 

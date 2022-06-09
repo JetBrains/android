@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -35,7 +36,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -200,8 +200,8 @@ class SuppressLogTagsMenuActionTest {
     val event = createEvent(logcatText)
     val editor = event.getData(CommonDataKeys.EDITOR)!!
 
-    `when`(editor.selectionModel.hasSelection()).thenReturn(false)
-    `when`(editor.caretModel.offset).thenReturn(offset)
+    whenever(editor.selectionModel.hasSelection()).thenReturn(false)
+    whenever(editor.caretModel.offset).thenReturn(offset)
 
     return event
   }
@@ -210,9 +210,9 @@ class SuppressLogTagsMenuActionTest {
     val event = createEvent(logcatText)
     val selectionModel = event.getData(CommonDataKeys.EDITOR)!!.selectionModel
 
-    `when`(selectionModel.hasSelection()).thenReturn(true)
-    `when`(selectionModel.selectionStart).thenReturn(selectionStart)
-    `when`(selectionModel.selectionEnd).thenReturn(selectionEnd)
+    whenever(selectionModel.hasSelection()).thenReturn(true)
+    whenever(selectionModel.selectionStart).thenReturn(selectionStart)
+    whenever(selectionModel.selectionEnd).thenReturn(selectionEnd)
 
     return event
   }
@@ -223,11 +223,11 @@ class SuppressLogTagsMenuActionTest {
     val selectionModel = mock(SelectionModel::class.java)
     val caretModel = mock(CaretModel::class.java)
 
-    `when`(event.getData(CommonDataKeys.EDITOR)).thenReturn(editor)
-    `when`(event.getData(CommonDataKeys.PROJECT)).thenReturn(projectRule.project)
-    `when`(editor.document).thenReturn(DocumentImpl(logcatText))
-    `when`(editor.selectionModel).thenReturn(selectionModel)
-    `when`(editor.caretModel).thenReturn(caretModel)
+    whenever(event.getData(CommonDataKeys.EDITOR)).thenReturn(editor)
+    whenever(event.getData(CommonDataKeys.PROJECT)).thenReturn(projectRule.project)
+    whenever(editor.document).thenReturn(DocumentImpl(logcatText))
+    whenever(editor.selectionModel).thenReturn(selectionModel)
+    whenever(editor.caretModel).thenReturn(caretModel)
 
     return event
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.action
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -30,7 +31,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when` as whenever
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 

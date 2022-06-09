@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -40,7 +41,6 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -226,7 +226,7 @@ class DeviceViewPanelModelTest {
     val treeSettings = FakeTreeSettings()
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(capabilities)
+    whenever(client.capabilities).thenReturn(capabilities)
 
     val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)

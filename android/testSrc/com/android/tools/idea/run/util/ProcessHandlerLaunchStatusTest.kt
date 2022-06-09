@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.util
 
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
@@ -23,7 +24,6 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.contains
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -43,16 +43,16 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminationStateIsTiedWithProcessHandler() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     assertThat(ProcessHandlerLaunchStatus(processHandler).isLaunchTerminated).isFalse()
 
-    `when`(processHandler.isProcessTerminating).thenReturn(true)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(true)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     assertThat(ProcessHandlerLaunchStatus(processHandler).isLaunchTerminated).isTrue()
 
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(true)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(true)
     assertThat(ProcessHandlerLaunchStatus(processHandler).isLaunchTerminated).isTrue()
   }
 
@@ -64,8 +64,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminateLaunch() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     assertThat(status.isLaunchTerminated).isFalse()
@@ -79,8 +79,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminateLaunchAndDestroyProcess() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     assertThat(status.isLaunchTerminated).isFalse()
@@ -94,8 +94,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminateLaunchWithNoErrorMessage() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     assertThat(status.isLaunchTerminated).isFalse()
@@ -109,8 +109,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminateLaunchWithEmptyErrorMessage() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     assertThat(status.isLaunchTerminated).isFalse()
@@ -124,8 +124,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminationConditions() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     var condition1 = false
@@ -136,7 +136,7 @@ class ProcessHandlerLaunchStatusTest {
 
     assertThat(status.isLaunchTerminated).isFalse()
 
-    `when`(processHandler.isProcessTerminated).thenReturn(true)
+    whenever(processHandler.isProcessTerminated).thenReturn(true)
 
     // isLaunchTerminated should return false even after the process handler is terminated because condition1
     // and condition2 are still false.
@@ -151,8 +151,8 @@ class ProcessHandlerLaunchStatusTest {
 
   @Test
   fun testTerminationConditionsAreMetButProcessIsStillRunning() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     status.addLaunchTerminationCondition { true }
@@ -160,14 +160,14 @@ class ProcessHandlerLaunchStatusTest {
     // A condition is met but the process is still running so isLaunchTerminated should return false.
     assertThat(status.isLaunchTerminated).isFalse()
 
-    `when`(processHandler.isProcessTerminated).thenReturn(true)
+    whenever(processHandler.isProcessTerminated).thenReturn(true)
     assertThat(status.isLaunchTerminated).isTrue()
   }
 
   @Test
   fun testTerminationConditionsAreIgnoredWhenForcefulTermination() {
-    `when`(processHandler.isProcessTerminating).thenReturn(false)
-    `when`(processHandler.isProcessTerminated).thenReturn(false)
+    whenever(processHandler.isProcessTerminating).thenReturn(false)
+    whenever(processHandler.isProcessTerminated).thenReturn(false)
     val status = ProcessHandlerLaunchStatus(processHandler)
 
     status.addLaunchTerminationCondition { false }

@@ -18,6 +18,7 @@ import com.android.flags.Flag
 import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
@@ -49,9 +50,9 @@ class ServerFlagOverridesTest {
     Truth.assertThat(overrides.get(flagC)).isNull()
 
     val service = Mockito.mock(ServerFlagService::class.java)
-    Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
-    Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
-    Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
+    whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
+    whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
+    whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
     ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
 
     Truth.assertThat(overrides.get(flagA)).isEqualTo("true")

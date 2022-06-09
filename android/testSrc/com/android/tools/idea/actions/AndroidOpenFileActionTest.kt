@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.validation.Validator
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import junit.framework.TestCase
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 /**
@@ -30,7 +30,7 @@ class AndroidOpenFileActionTest : TestCase() {
 
   fun testSelectableFiles() {
     val descriptor = mock(FileChooserDescriptor::class.java)
-    `when`(descriptor.isFileSelectable(any())).thenReturn(true)
+    whenever(descriptor.isFileSelectable(any())).thenReturn(true)
 
     val file = MockVirtualFile("test.txt")
     val issue = AndroidOpenFileAction.validateFiles(listOf(file), descriptor)
@@ -39,7 +39,7 @@ class AndroidOpenFileActionTest : TestCase() {
 
   fun testNotSelectableFiles() {
     val descriptor = mock(FileChooserDescriptor::class.java)
-    `when`(descriptor.isFileSelectable(any())).thenReturn(false)
+    whenever(descriptor.isFileSelectable(any())).thenReturn(false)
 
     val file = MockVirtualFile("test.txt")
     val issue = AndroidOpenFileAction.validateFiles(listOf(file), descriptor)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -55,8 +56,6 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
-import junit.framework.TestCase
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -82,9 +81,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
 
     val mockPopUpMenu = mock(ActionPopupMenu::class.java)
-    `when`(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
+    whenever(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
     mockActionManager = mock(ActionManager::class.java)
-    `when`(mockActionManager.createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))).thenReturn(mockPopUpMenu)
+    whenever(mockActionManager.createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))).thenReturn(mockPopUpMenu)
 
     IdeComponents(myFixture).replaceApplicationService(ActionManager::class.java, mockActionManager)
 
