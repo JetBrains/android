@@ -54,8 +54,10 @@ class RuleData(
     }
 
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-      this.value = value
-      onSet(this@RuleData)
+      if (this.value != value) {
+        this.value = value
+        onSet(this@RuleData)
+      }
     }
   }
 
