@@ -19,6 +19,8 @@ import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheck
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -59,13 +61,14 @@ class ThreadingCheckerHookImpl : ThreadingCheckerHook {
 
     // Only show one notification per method signature
     if (violationCount == 1L) {
-      NotificationGroupManager.getInstance()
+      val notification = NotificationGroupManager.getInstance()
         .getNotificationGroup("Threading Violation Notification")
         .createNotification(
           "Threading violation",
           "$warningMessage<p>Violating method: $methodSignature",
           NotificationType.ERROR)
-        .notify(null)
+
+      ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
     }
   }
 }

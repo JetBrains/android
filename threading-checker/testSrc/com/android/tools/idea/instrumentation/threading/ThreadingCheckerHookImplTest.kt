@@ -22,6 +22,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.util.Collections
@@ -53,11 +54,13 @@ class ThreadingCheckerHookImplTest : LightPlatformTestCase() {
 
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
+    UIUtil.dispatchAllInvocationEvents()
     Truth.assertThat(notifications).hasSize(1)
 
     checkForUiThreadOnWorkerThread()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
+    UIUtil.dispatchAllInvocationEvents()
     Truth.assertThat(notifications).hasSize(1)
   }
 
