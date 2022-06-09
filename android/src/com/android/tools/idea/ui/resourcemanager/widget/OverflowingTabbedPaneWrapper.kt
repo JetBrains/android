@@ -25,6 +25,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.AWTEvent
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.LayoutManager
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -162,7 +163,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
     tabPane.removeComponentListener(resizeListener)
   }
 
-  override fun createLayoutManager() = OverflowingTabPaneLayout()
+  override fun createLayoutManager(): LayoutManager = OverflowingTabPaneLayout()
 
   /**
    * A modified copy of the base [javax.swing.plaf.basic.BasicTabbedPaneUI.TabbedPaneLayout]
