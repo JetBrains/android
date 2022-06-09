@@ -41,19 +41,13 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PermanentInstallationID;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
-import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
-import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
@@ -94,15 +88,6 @@ public class SdkComponentSourceTest {
 
   @Before
   public void setUp() throws Exception {
-    MockApplication instance = MockApplication.setUp(myDisposableRule.getDisposable());
-    instance.registerService(ExternalComponentManager.class);
-    instance.registerService(UpdateSettings.class, UpdateSettings.class);
-    ApplicationInfoEx appInfo = mock(ApplicationInfoEx.class);
-    when(appInfo.getBuild()).thenReturn(new BuildNumber("a", 1));
-    instance.registerService(ApplicationInfo.class, appInfo);
-    instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
-                                                       ExtensionPoint.Kind.INTERFACE, myDisposableRule.getDisposable());
-
     try (MockedStatic<PermanentInstallationID> theMock = Mockito.mockStatic(PermanentInstallationID.class)) {
       theMock.when(PermanentInstallationID::get).thenReturn("foo");
       //noinspection ResultOfMethodCallIgnored

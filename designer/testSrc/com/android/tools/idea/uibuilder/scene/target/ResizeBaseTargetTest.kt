@@ -17,35 +17,11 @@ package com.android.tools.idea.uibuilder.scene.target
 
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
-import com.android.tools.adtui.common.TestAdtUiCursorsProvider
-import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.idea.common.model.NlAttributesHolder
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
-import java.awt.Cursor
 
 class ResizeBaseTargetTest {
-
-  private lateinit var rootDisposable: Disposable
-
-  @Before
-  fun setup() {
-    rootDisposable = Disposer.newDisposable()
-    val app = MockApplication.setUp(rootDisposable)
-    app.registerService(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
-    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
-    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(rootDisposable)
-  }
 
   @Test
   fun testResizingCursors() {

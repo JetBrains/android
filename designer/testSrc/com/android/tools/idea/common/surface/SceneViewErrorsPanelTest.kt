@@ -16,11 +16,8 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
@@ -28,8 +25,8 @@ import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.assertTrue
-import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -37,15 +34,17 @@ import javax.swing.JPanel
 
 class SceneViewErrorsPanelTest {
 
-  private lateinit var testDisposable: Disposable
-
   private lateinit var fakeUi: FakeUi
   private lateinit var panelParent: JPanel
 
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
+
   @Before
   fun setUp() {
-    testDisposable = Disposer.newDisposable()
-    ApplicationManager.setApplication(MockApplication(testDisposable), testDisposable)
     invokeAndWaitIfNeeded {
       panelParent = JPanel().apply {
         layout = BorderLayout()
@@ -54,11 +53,6 @@ class SceneViewErrorsPanelTest {
       fakeUi = FakeUi(panelParent, 1.0, true)
       fakeUi.root.validate()
     }
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(testDisposable)
   }
 
   @Test

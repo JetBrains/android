@@ -26,10 +26,6 @@ import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayData;
 import com.android.tools.idea.ui.designer.overlays.OverlayEntry;
 import com.android.tools.idea.ui.designer.overlays.OverlayProvider;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
@@ -46,7 +42,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -59,18 +54,9 @@ public class OverlayLayerTest {
   private static final Rectangle FULL_SIZE = new Rectangle(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
   private OverlayConfiguration myOverlayConfiguration;
 
-  private final Disposable myDisposable =  Disposer.newDisposable();
-
   @Before
   public void setUp() {
-    MockApplication instance = new MockApplication(myDisposable);
-    ApplicationManager.setApplication(instance, myDisposable);
     myOverlayConfiguration = new OverlayConfiguration();
-  }
-
-  @After
-  public void tearDown() {
-    Disposer.dispose(myDisposable);
   }
 
   @Test
