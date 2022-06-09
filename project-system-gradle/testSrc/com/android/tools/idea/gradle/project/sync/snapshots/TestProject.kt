@@ -90,6 +90,22 @@ enum class TestProject(
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
+  MULTI_FLAVOR_WITH_FILTERING(
+    TestProjectToSnapshotPaths.MULTI_FLAVOR,
+    testName = "_withFiltering",
+    patch = { projectRoot ->
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content
+          .replace(" implementation", "// implementation")
+          .replace(" androidTestImplementation", "// androidTestImplementation") +
+        """
+              android.variantFilter { variant ->
+                  variant.setIgnore(variant.name.startsWith("firstXyz")  || variant.name.startsWith("firstAbcSecondXyz") )
+              }
+        """
+      }
+    }
+  ),
   NAMESPACES(TestProjectToSnapshotPaths.NAMESPACES),
   INCLUDE_FROM_LIB(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
   LOCAL_AARS_AS_MODULES(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES),

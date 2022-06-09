@@ -146,6 +146,9 @@ abstract class SyncedProjectTest(
   fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
 
   @Test
+  fun testMultiFlavorWithFiltering() = testProject(TestProject.MULTI_FLAVOR_WITH_FILTERING)
+
+  @Test
   fun testNamespaces() = testProject(TestProject.NAMESPACES)
 
   @Test
