@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.intellij.icons.AllIcons.General.InspectionsError
 import com.intellij.icons.AllIcons.General.InspectionsOK
 import com.intellij.icons.AllIcons.General.InspectionsOKEmpty
@@ -40,7 +41,6 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
@@ -53,7 +53,6 @@ import java.awt.Insets
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.FontUIResource
-import org.jetbrains.kotlin.idea.KotlinFileType
 import java.net.URL
 
 class LiveEditActionProvider : InspectionWidgetActionProvider {
@@ -150,9 +149,6 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
   companion object {
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
   }
-
-  internal fun VirtualFile.isKotlinFileType(): Boolean =
-    extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
 
   /**
    * Action that opens the Live Edit settings page for the user to enable/disable live edit.

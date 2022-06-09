@@ -20,13 +20,11 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Segment
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 import java.time.Duration
 
@@ -34,13 +32,6 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   val bodyPsiElement = this?.sourcePsi ?: return null
   return SmartPointerManager.createPointer(bodyPsiElement)
 }
-
-/**
- * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
- * actually trigger the potentially costly [VirtualFile#fileType] call.
- */
-internal fun VirtualFile.isKotlinFileType(): Boolean =
-  extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
 
 /**
  * Returns an index indicating how close the given model is to the given [PreviewElementInstance] 0 meaning they are equal and higher the
