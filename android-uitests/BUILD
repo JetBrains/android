@@ -1242,8 +1242,6 @@ java_test(
         "no_windows",
         "qa_smoke",
         "qa_smoke_emu",  # Run together with emulators because the test needs to run alone
-        "qa_smoke_unreliable_emu",  # b/119505019
-        "qa_unreliable",  # b/119505019
         "requires-network",
         "requires_emulator",  # Run together with emulators because the test needs to run alone
     ],
@@ -1317,6 +1315,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.RefactoringFlowTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "qa_smoke_emu",  # Run together with emulators because the test needs to run alone
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
