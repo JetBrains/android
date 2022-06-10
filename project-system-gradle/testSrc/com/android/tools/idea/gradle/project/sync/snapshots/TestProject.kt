@@ -100,7 +100,7 @@ enum class TestProject(
           .replace(" androidTestImplementation", "// androidTestImplementation") +
         """
               android.variantFilter { variant ->
-                  variant.setIgnore(variant.name.startsWith("firstXyz")  || variant.name.startsWith("firstAbcSecondXyz") )
+                  variant.setIgnore(!variant.name.startsWith("firstAbcSecondAbc"))
               }
         """
       }
