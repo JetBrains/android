@@ -16,8 +16,6 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
@@ -26,8 +24,6 @@ import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -60,13 +56,7 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
     Future<Object> future = myBuilder.buildAsync();
 
     // Assert
-    try {
-      TestDeviceManagerFutures.get(future);
-      fail();
-    }
-    catch (ExecutionException exception) {
-      assertTrue(exception.getCause() instanceof NoSuchElementException);
-    }
+    assertEquals(myVirtualDevice, TestDeviceManagerFutures.get(future));
   }
 
   @Test

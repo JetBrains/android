@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -65,7 +64,7 @@ final class AsyncVirtualDeviceDetailsBuilder {
     return Futures.transform(Futures.successfulAsList(futures), avds -> findDevice(avds, devices), AppExecutorUtil.getAppExecutorService());
   }
 
-  private @NotNull IDevice findDevice(@NotNull List<@Nullable AvdData> avds, @NotNull List<@NotNull IDevice> devices) {
+  private @Nullable IDevice findDevice(@NotNull List<@Nullable AvdData> avds, @NotNull List<@NotNull IDevice> devices) {
     Object key = myDevice.getKey().toString();
 
     for (int i = 0, size = avds.size(); i < size; i++) {
@@ -80,10 +79,10 @@ final class AsyncVirtualDeviceDetailsBuilder {
       }
     }
 
-    throw new NoSuchElementException();
+    return null;
   }
 
-  private @NotNull Object build(@NotNull IDevice device) {
+  private @NotNull Object build(@Nullable IDevice device) {
     return new VirtualDevice.Builder()
       .setKey(myDevice.getKey())
       .setType(myDevice.getType())
