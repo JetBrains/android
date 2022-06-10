@@ -43,7 +43,7 @@ sealed class ControlMessage(val type: Int) {
         SetMaxVideoResolutionMessage.TYPE -> SetMaxVideoResolutionMessage.deserialize(stream)
         StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
         StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
-        ClipboardChangedMessage.TYPE -> ClipboardChangedMessage.deserialize(stream)
+        ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
@@ -273,7 +273,7 @@ internal class StopClipboardSyncMessage : ControlMessage(TYPE) {
 }
 
 /** A clipboard update from the device. */
-internal data class ClipboardChangedMessage(val text: String) : ControlMessage(TYPE) {
+internal data class ClipboardChangedNotification(val text: String) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -281,15 +281,15 @@ internal data class ClipboardChangedMessage(val text: String) : ControlMessage(T
   }
 
   override fun toString(): String {
-    return "ClipboardChangedMessage(text=\"$text\")"
+    return "ClipboardChangedNotification(text=\"$text\")"
   }
 
   companion object : Deserializer {
     const val TYPE = 8
 
-    override fun deserialize(stream: Base128InputStream): ClipboardChangedMessage {
+    override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
-      return ClipboardChangedMessage(bytes.toString(UTF_8))
+      return ClipboardChangedNotification(bytes.toString(UTF_8))
     }
   }
 }

@@ -46,8 +46,8 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(Base128InputStream& strea
     case StopClipboardSyncMessage::TYPE:
       return unique_ptr<ControlMessage>(StopClipboardSyncMessage::Deserialize(stream));
 
-    case ClipboardChangedMessage::TYPE:
-      return unique_ptr<ControlMessage>(ClipboardChangedMessage::Deserialize(stream));
+    case ClipboardChangedNotification::TYPE:
+      return unique_ptr<ControlMessage>(ClipboardChangedNotification::Deserialize(stream));
 
     default:
       Log::Fatal("Unexpected message type %d", type);
@@ -112,7 +112,7 @@ StopClipboardSyncMessage* StopClipboardSyncMessage::Deserialize(Base128InputStre
   return new StopClipboardSyncMessage();
 }
 
-void ClipboardChangedMessage::Serialize(Base128OutputStream& stream) const {
+void ClipboardChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBytes(text_);
 }

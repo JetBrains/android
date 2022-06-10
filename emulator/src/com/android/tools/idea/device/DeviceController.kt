@@ -79,7 +79,7 @@ class DeviceController(
         try {
           suspendingInputStream.waitForData(1)
           when (val message = ControlMessage.deserialize(inputStream)) {
-            is ClipboardChangedMessage -> onDeviceClipboardChanged(message)
+            is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
           }
         }
@@ -96,7 +96,7 @@ class DeviceController(
     }
   }
 
-  private fun onDeviceClipboardChanged(message: ClipboardChangedMessage) {
+  private fun onDeviceClipboardChanged(message: ClipboardChangedNotification) {
     val text = message.text
     for (listener in deviceClipboardListeners) {
       listener.onDeviceClipboardChanged(text)

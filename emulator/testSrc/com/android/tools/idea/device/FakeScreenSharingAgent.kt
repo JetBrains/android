@@ -111,7 +111,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
       if (value != oldValue) {
         coroutineScope.launch {
           if (clipboardSynchronizationActive.get()) {
-            sendNotification(ClipboardChangedMessage(value))
+            sendNotification(ClipboardChangedNotification(value))
           }
         }
       }

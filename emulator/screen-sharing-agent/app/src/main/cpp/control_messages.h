@@ -252,17 +252,17 @@ private:
 };
 
 // Notification of clipboard content change.
-class ClipboardChangedMessage : ControlMessage {
+class ClipboardChangedNotification : ControlMessage {
 public:
-  ClipboardChangedMessage(const std::string& text)
+  ClipboardChangedNotification(const std::string& text)
       : ControlMessage(TYPE),
         text_(text) {
   }
-  ClipboardChangedMessage(std::string&& text)
+  ClipboardChangedNotification(std::string&& text)
       : ControlMessage(TYPE),
         text_(text) {
   }
-  virtual ~ClipboardChangedMessage() {};
+  virtual ~ClipboardChangedNotification() {};
 
   const std::string& text() const { return text_; }
 
@@ -275,7 +275,7 @@ private:
 
   std::string text_;
 
-  DISALLOW_COPY_AND_ASSIGN(ClipboardChangedMessage);
+  DISALLOW_COPY_AND_ASSIGN(ClipboardChangedNotification);
 };
 
 }  // namespace screensharing

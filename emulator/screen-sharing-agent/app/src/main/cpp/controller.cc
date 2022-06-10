@@ -384,7 +384,7 @@ void Controller::OnPrimaryClipChanged() {
     last_clipboard_text_ = text;
   }
 
-  ClipboardChangedMessage message(move(text));
+  ClipboardChangedNotification message(move(text));
   try {
     message.Serialize(output_stream_);
     output_stream_.Flush();
