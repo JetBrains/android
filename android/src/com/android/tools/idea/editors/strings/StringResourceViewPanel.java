@@ -244,9 +244,7 @@ public class StringResourceViewPanel implements Disposable {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ResourceLoadingTask(this).queue();
-    }
+    new ResourceLoadingTask(this).queue();
   }
 
   @NotNull

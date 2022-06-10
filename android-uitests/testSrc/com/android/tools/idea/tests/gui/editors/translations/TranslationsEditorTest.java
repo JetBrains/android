@@ -112,23 +112,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void dialogAddsKeyInDifferentFolder() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.getAddKeyButton().click();
-
-    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
-    dialog.getDefaultValueTextField().enterText("action_settings");
-    dialog.getKeyTextField().enterText("action_settings");
-    dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
-    dialog.getOkButton().click();
-
-    Object expected = Arrays.asList("app_name", "action_settings", "app_name", "hello_world", "action_settings", "some_id", "cancel");
-    assertEquals(expected, translationsEditor.getTable().columnAt(KEY_COLUMN));
-  }
-
-  @Test
   public void dialogDoesntAddKeyInSameFolder() throws IOException {
     importSimpleApplication();
     TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
@@ -140,6 +123,7 @@ public final class TranslationsEditorTest {
     dialog.getKeyTextField().enterText("action_settings");
     dialog.getOkButton().click();
 
+    // TODO(b/232444069): Test this when testing NewStringKeyDialog and remove this test.
     dialog.waitUntilErrorLabelFound(".*" + toResourceName("action_settings already exists in app/src/main/res") + ".*");
     dialog.getCancelButton().click();
   }
@@ -195,6 +179,7 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
+  // TODO(b/232444069): Test that filters work at the table level and remove these tests.
   @Test
   public void filterKeys() throws IOException {
     importSimpleApplication();
@@ -337,6 +322,7 @@ public final class TranslationsEditorTest {
     assertEquals(expectedColumn, myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().columnAt(RESOURCE_FOLDER_COLUMN));
   }
 
+  // TODO(b/232444069): Test this functionality at the table level instead of firing up the whole app
   @Test
   public void keySorting() throws IOException {
     importSimpleApplication();
@@ -543,28 +529,6 @@ public final class TranslationsEditorTest {
 
     editor.open("app/src/main/res/values-en/strings.xml");
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-  }
-
-  @Test
-  public void reloadButtonUpdatesEditorFromStringsXml() throws IOException {
-    importSimpleApplication();
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-
-    // Change value to "Reload!"
-    editor
-      .open("app/src/main/res/values-en/strings.xml")
-      .moveBetween("\n", "\n</resources>")
-      .enterText("<string name=\"test_reload\">Reload!</string>\n");
-
-    // Switch back to translations editor and click reload
-    openTranslationsEditor(myStringsXmlPath);
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    translationsEditor.clickReloadButton();
-
-    // Check "Reload!"
-    TableCell cell = translationsEditor.cell("test_reload", "app/src/main/res", ENGLISH_COLUMN);
-    translationsEditor.getTable().selectCell(cell);
-    translationsEditor.waitUntilTableValueAtEquals(cell, "Reload!");
   }
 
   @NotNull
