@@ -303,6 +303,13 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun findUsages(): Array<UsageInfo> {
+    val usages = doFindUsages()
+    trackProcessorUsage(FIND_USAGES, usages.size, projectBuildModel.context.allRequestedFiles.size)
+    return usages
+  }
+
+  @VisibleForTesting
+  fun doFindUsages(): Array<UsageInfo> {
     projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
@@ -321,7 +328,6 @@ class AgpUpgradeRefactoringProcessor(
 
     foundUsages = usages.size > 0
     this.usages = usages.toTypedArray()
-    trackProcessorUsage(FIND_USAGES, usages.size, projectBuildModel.context.allRequestedFiles.size)
     return this.usages
   }
 
@@ -472,6 +478,11 @@ class AgpUpgradeRefactoringProcessor(
       execute(usages)
       return
     }
+    doPreviewRefactoring(usages)
+  }
+
+  @VisibleForTesting
+  fun doPreviewRefactoring(usages: Array<out UsageInfo>) {
     val viewDescriptor = createUsageViewDescriptor(usages)
     val elements = viewDescriptor.elements
     val targets = PsiElement2UsageTargetAdapter.convert(elements)
