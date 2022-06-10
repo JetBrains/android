@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.editors.strings.action;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
@@ -31,7 +31,7 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class FilterLocalesAction extends ComboBoxAction {
+public class FilterLocalesAction extends ComboBoxAction {
 
   private static final String NO_FILTER_TITLE = "Show All Locales";
 
