@@ -21,7 +21,7 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.MATERIAL2_PKG;
-import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;

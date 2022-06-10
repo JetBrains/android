@@ -45,7 +45,7 @@ import static com.android.SdkConstants.ATTR_TAB_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_THEME;
-import static com.android.SdkConstants.TAB_ITEM;
+import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 

@@ -58,7 +58,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
 import static com.android.SdkConstants.ATTR_PARENT;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.VALUE_N_DP;

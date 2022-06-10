@@ -17,7 +17,7 @@ package org.jetbrains.android.uipreview;
 
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX
+import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.resources.ResourceFolderType
 import com.google.wireless.android.sdk.stats.LayoutEditorState

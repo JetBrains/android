@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;

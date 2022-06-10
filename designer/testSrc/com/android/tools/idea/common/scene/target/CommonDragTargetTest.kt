@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene.target
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
@@ -356,7 +357,7 @@ class CommonDragTargetTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
                    .withBounds(0, 0, 2000, 2000)
                    .id("@id/constraint")
                    .matchParentWidth()

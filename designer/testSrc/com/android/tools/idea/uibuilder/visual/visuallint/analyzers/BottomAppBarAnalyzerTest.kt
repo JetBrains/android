@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
@@ -27,7 +27,7 @@ class BottomAppBarAnalyzerTest: LayoutTestCase() {
   fun testBottomAppBarPhone() {
     val model =
       model("phone_appbar_layout.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -45,7 +45,7 @@ class BottomAppBarAnalyzerTest: LayoutTestCase() {
   fun testBottomAppBarTablet() {
     val model =
       model("tablet_appbar_layout.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(

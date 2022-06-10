@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;

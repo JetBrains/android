@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.support.AndroidxName
 import com.google.common.truth.Truth.assertThat
@@ -34,8 +35,8 @@ class IconProviderTest {
 
   @Test
   fun testViewPagerIcon() {
-    assertThat(iconOfView(SdkConstants.VIEW_PAGER.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_PAGER)
-    assertThat(iconOfView(SdkConstants.VIEW_PAGER.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_PAGER)
+    assertThat(iconOfView(AndroidXConstants.VIEW_PAGER.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_PAGER)
+    assertThat(iconOfView(AndroidXConstants.VIEW_PAGER.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_PAGER)
     assertThat(iconOfView(SdkConstants.VIEW_PAGER2)).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_PAGER)
   }
 
@@ -50,16 +51,16 @@ class IconProviderTest {
     assertThat(iconOfView(SdkConstants.FQCN_LINEAR_LAYOUT)).isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
     assertThat(iconOfView("androidx.appcompat.widget.FitWindowsLinearLayout"))
       .isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
-    assertThat(iconOfView(SdkConstants.CLASS_ACTION_MENU_VIEW.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
-    assertThat(iconOfView(SdkConstants.CLASS_ACTION_MENU_VIEW.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
+    assertThat(iconOfView(AndroidXConstants.CLASS_ACTION_MENU_VIEW.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
+    assertThat(iconOfView(AndroidXConstants.CLASS_ACTION_MENU_VIEW.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
     assertThat(iconOfView("com.google.android.material.tabs.SlidingTabIndicator"))
       .isEqualTo(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ)
   }
 
   @Test
   fun testRecyclerViewIcon() {
-    assertThat(iconOfView(SdkConstants.RECYCLER_VIEW.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW)
-    assertThat(iconOfView(SdkConstants.RECYCLER_VIEW.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW)
+    assertThat(iconOfView(AndroidXConstants.RECYCLER_VIEW.oldName())).isEqualTo(StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW)
+    assertThat(iconOfView(AndroidXConstants.RECYCLER_VIEW.newName())).isEqualTo(StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW)
     assertThat(iconOfView("androidx.viewpager2.widget.RecyclerViewImpl")).isEqualTo(StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW)
   }
 

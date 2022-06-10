@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS
 import com.android.tools.adtui.LightCalloutPopup
@@ -160,7 +160,7 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
       var components: List<NlComponent>? = properties.first?.components ?: return false
       if (components!!.isEmpty()) return false
       var component: NlComponent? = components?.get(0)
-      return component!!.isOrHasSuperclass(SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER)
+      return component!!.isOrHasSuperclass(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER)
     }
   }
 

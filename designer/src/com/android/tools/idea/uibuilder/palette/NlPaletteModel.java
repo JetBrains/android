@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;

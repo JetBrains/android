@@ -24,7 +24,7 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.SdkConstants.MATERIAL2_PKG

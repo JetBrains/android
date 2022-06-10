@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -123,7 +124,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
+    assertStandardLayout(item, AndroidXConstants.COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   private void assertIncludeItem(@NotNull Palette.BaseItem item) {

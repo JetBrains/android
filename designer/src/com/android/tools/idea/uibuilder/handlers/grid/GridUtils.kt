@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
@@ -81,7 +82,7 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
  * Function for getting Barriers of
  */
 fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
-  val isSupportLibrary = SdkConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
+  val isSupportLibrary = AndroidXConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
 
   // Helper function to convert px to dp
   fun Int.toDp() = Coordinates.pxToDp(gridComponent.scene.sceneManager, this)

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_INCLUDE;

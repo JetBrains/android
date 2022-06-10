@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 
 /**
  * Test selecting overlapping widgets

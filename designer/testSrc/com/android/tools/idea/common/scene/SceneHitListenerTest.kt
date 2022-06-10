@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.CommonDragTarget
@@ -45,10 +46,10 @@ class SceneHitListenerTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("model.xml", component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+    return model("model.xml", component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
       .id("@+id/root")
       .withBounds(0, 0, 1000, 1000)
-      .children(component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+      .children(component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                   .id("@+id/inner")
                   .withBounds(200, 200, 200, 200)
                   .width("100dp")

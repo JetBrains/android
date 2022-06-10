@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.AndroidXConstants;
 import org.junit.Test;
 
 import static com.android.SdkConstants.*;
@@ -26,27 +27,29 @@ public class PaletteComponentHandlerTest {
   public void testGetGradleCoordinateId() {
     PaletteComponentHandler handler = new PaletteComponentHandler() {};
 
-    assertThat(handler.getGradleCoordinateId(NESTED_SCROLL_VIEW.oldName())).isEqualTo(SUPPORT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(NESTED_SCROLL_VIEW.newName())).isEqualTo(ANDROIDX_SUPPORT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.NESTED_SCROLL_VIEW.oldName())).isEqualTo(SUPPORT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.NESTED_SCROLL_VIEW.newName())).isEqualTo(ANDROIDX_SUPPORT_LIB_ARTIFACT);
 
-    assertThat(handler.getGradleCoordinateId(CLASS_CONSTRAINT_LAYOUT_BARRIER.oldName())).isEqualTo(CONSTRAINT_LAYOUT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(CLASS_CONSTRAINT_LAYOUT_BARRIER.newName())).isEqualTo(ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(
+      AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.oldName())).isEqualTo(CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(
+      AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.newName())).isEqualTo(ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT);
 
-    assertThat(handler.getGradleCoordinateId(CLASS_BROWSE_FRAGMENT.oldName())).isEqualTo(LEANBACK_V17_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(CLASS_BROWSE_FRAGMENT.newName())).isEqualTo(ANDROIDX_LEANBACK_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_BROWSE_FRAGMENT.oldName())).isEqualTo(LEANBACK_V17_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_BROWSE_FRAGMENT.newName())).isEqualTo(ANDROIDX_LEANBACK_ARTIFACT);
 
-    assertThat(handler.getGradleCoordinateId(CLASS_FLOATING_ACTION_BUTTON.oldName())).isEqualTo(DESIGN_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(CLASS_FLOATING_ACTION_BUTTON.newName())).isEqualTo(ANDROIDX_MATERIAL_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON.oldName())).isEqualTo(DESIGN_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON.newName())).isEqualTo(ANDROIDX_MATERIAL_ARTIFACT);
 
     // Note: RecyclerViewHandler is overriding the default and will return RECYCLER_VIEW_LIB_ARTIFACT for non AndroidX controls
-    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.newName())).isEqualTo(ANDROIDX_RECYCLER_VIEW_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.RECYCLER_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.RECYCLER_VIEW.newName())).isEqualTo(ANDROIDX_RECYCLER_VIEW_ARTIFACT);
 
     // Note: CardViewHandler is overriding the default and will return CARD_VIEW_LIB_ARTIFACT for non AndroidX controls
-    assertThat(handler.getGradleCoordinateId(CARD_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(CARD_VIEW.newName())).isEqualTo(ANDROIDX_CARD_VIEW_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CARD_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CARD_VIEW.newName())).isEqualTo(ANDROIDX_CARD_VIEW_ARTIFACT);
 
-    assertThat(handler.getGradleCoordinateId(TOOLBAR_V7.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(TOOLBAR_V7.newName())).isEqualTo(ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.TOOLBAR_V7.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(AndroidXConstants.TOOLBAR_V7.newName())).isEqualTo(ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
   }
 }

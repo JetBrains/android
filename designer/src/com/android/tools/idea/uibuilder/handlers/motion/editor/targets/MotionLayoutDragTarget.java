@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
-
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -30,9 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainChecker;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +55,7 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
 
   @Override
   protected boolean isAutoConnectionEnabled() {
-    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
+    return !AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
            ToggleAutoConnectAction.isAutoconnectOn();
   }
 

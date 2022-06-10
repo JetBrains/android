@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
-import static com.android.SdkConstants.MOTION_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.AndroidXConstants.MOTION_LAYOUT;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.SceneTest;

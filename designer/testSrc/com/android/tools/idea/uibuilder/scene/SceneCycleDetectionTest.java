@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 
 /**
  * Test cycles are avoided

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewHandler
@@ -28,7 +29,7 @@ import javax.swing.Icon
 class ConstraintLayoutGuidelineHandler : ViewHandler() {
 
   override fun getIcon(component: NlComponent): Icon {
-    if (!CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
+    if (!AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
       return super.getIcon(component)
     }
     return if (isVertical(component)) {

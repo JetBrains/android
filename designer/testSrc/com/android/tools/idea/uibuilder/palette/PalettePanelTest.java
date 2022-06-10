@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.ADS_ARTIFACT;
 import static com.android.SdkConstants.AD_VIEW;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.tools.idea.common.LayoutTestUtilities.cleanUsageTrackerAfterTesting;

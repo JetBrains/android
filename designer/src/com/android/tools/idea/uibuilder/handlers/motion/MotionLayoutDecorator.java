@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -25,7 +26,6 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
@@ -606,9 +606,9 @@ public class MotionLayoutDecorator extends SceneDecorator {
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
         }
-        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
+        else if (AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
                  ||
-                 SdkConstants.CONSTRAINT_LAYOUT_BARRIER
+                 AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
                    .isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
           destType = DrawConnection.DEST_GUIDELINE;
         }

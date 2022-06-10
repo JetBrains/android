@@ -19,7 +19,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**

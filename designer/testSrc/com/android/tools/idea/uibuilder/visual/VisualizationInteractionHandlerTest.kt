@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
@@ -101,7 +101,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
                    .withBounds(0, 0, 2000, 2000)
                    .id("@id/constraint")
                    .matchParentWidth()

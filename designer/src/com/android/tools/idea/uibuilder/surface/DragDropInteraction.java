@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
@@ -346,14 +347,14 @@ public class DragDropInteraction extends Interaction {
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
           boolean constraintHelper =
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_VIEW.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_BUTTON.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_VIEW.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_BUTTON.isEquals(component.getTagName()) ||
+            AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
           boolean acceptableHandler =
               (myCurrentHandler instanceof ConstraintLayoutHandler) ||
               (myCurrentHandler instanceof MotionLayoutHandler);
@@ -577,7 +578,7 @@ public class DragDropInteraction extends Interaction {
 
     NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
     components.forEach( component -> {
-      if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
+      if (AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
         if (ConstraintLayoutGuidelineHandler.isVertical(component)) {
           manager.trackAddVerticalGuideline();
         }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.DnDTransferItem

@@ -24,7 +24,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference

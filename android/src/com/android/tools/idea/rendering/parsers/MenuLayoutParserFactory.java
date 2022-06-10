@@ -31,7 +31,7 @@ import org.w3c.dom.Document;
 
 import java.util.Collections;
 
-import static com.android.SdkConstants.NAVIGATION_VIEW;
+import static com.android.AndroidXConstants.NAVIGATION_VIEW;
 import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
 import static com.android.tools.idea.util.DependencyManagementUtil.mapAndroidxName;
 

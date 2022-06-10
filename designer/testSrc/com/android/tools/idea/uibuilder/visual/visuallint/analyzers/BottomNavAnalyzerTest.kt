@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
@@ -26,7 +26,7 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
   fun testBottomNavSmallWidth() {
     val model =
       model("small_width_layout.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 800, 1300)
               .withMockView()
               .children(
@@ -43,7 +43,7 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
   fun testBottomNavLargeWidth() {
     val model =
       model("large_width_layout.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 2000, 1300)
               .withMockView()
               .children(

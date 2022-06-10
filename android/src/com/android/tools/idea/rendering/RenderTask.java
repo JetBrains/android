@@ -21,6 +21,7 @@ import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVI
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
@@ -367,8 +368,8 @@ public class RenderTask {
   }
 
   private void clearGapWorkerCache() {
-    if (!myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.newName()) &&
-        !myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.oldName())) {
+    if (!myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
+        !myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())) {
       // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
       return;
     }

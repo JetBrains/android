@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 

@@ -23,6 +23,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -541,8 +542,8 @@ public class NavigationSchema implements Disposable {
     Map<String, DestinationType> destinationClassToType = new HashMap<>();
 
     destinationClassToType.put(SdkConstants.CLASS_ACTIVITY, ACTIVITY);
-    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT);
-    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
+    destinationClassToType.put(AndroidXConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT);
+    destinationClassToType.put(AndroidXConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
     destinationClassToType.put(NAV_GRAPH_DESTINATION, NAVIGATION);
 
     for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {

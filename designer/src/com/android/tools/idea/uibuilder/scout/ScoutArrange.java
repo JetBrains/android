@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpBaseline;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpHeight;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpWidth;

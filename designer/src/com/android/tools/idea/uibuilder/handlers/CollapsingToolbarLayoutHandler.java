@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,7 @@ public class CollapsingToolbarLayoutHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public List<String> getBaseStyles(@NotNull String tagName) {
-    if (COLLAPSING_TOOLBAR_LAYOUT.isEquals(tagName)) {
+    if (AndroidXConstants.COLLAPSING_TOOLBAR_LAYOUT.isEquals(tagName)) {
       return ImmutableList.of(PREFIX_APP + "Widget.Design.CollapsingToolbar");  // Notice the missing "Layout"
     }
     return super.getBaseStyles(tagName);

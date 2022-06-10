@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
@@ -147,7 +148,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
       var components: List<NlComponent>? = properties.first?.components ?: return false
       if (components!!.isEmpty()) return false
       var component: NlComponent? = components?.get(0)
-      return component!!.isOrHasSuperclass(SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW)
+      return component!!.isOrHasSuperclass(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW)
     }
   }
 

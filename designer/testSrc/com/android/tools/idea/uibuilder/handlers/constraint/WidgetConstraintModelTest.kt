@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -30,7 +31,7 @@ class WidgetConstraintModelTest: SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
                    .withBounds(0, 0, 1000, 1000)
                    .id("@id/constraint")
                    .matchParentWidth()
@@ -59,7 +60,7 @@ class WidgetConstraintModelTest: SceneTest() {
                        .height("400dp")
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp"),
-                     component(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
+                     component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
                        .id("@id/guideline")
                        .withBounds(0, 200, 1000, 1)
                        .wrapContentWidth()

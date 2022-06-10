@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.MergeDelegateHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ public class SceneMergeTest extends SceneTest {
                    .withBounds(0, 0, 1000, 1000)
                    .width("1000dp")
                    .height("1000dp")
-                   .withAttribute("tools:parentTag", CONSTRAINT_LAYOUT.defaultName())
+                   .withAttribute("tools:parentTag", AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
     );
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
@@ -52,7 +53,7 @@ class MotionLayoutDragTargetTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("model.xml", component(SdkConstants.MOTION_LAYOUT.defaultName())
+    return model("model.xml", component(AndroidXConstants.MOTION_LAYOUT.defaultName())
       .id("@+id/root")
       .withBounds(0, 0, 1000, 1000)
       .children(component(SdkConstants.BUTTON)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
@@ -49,7 +50,7 @@ public class ConstraintLayoutBarrierHandler extends ConstraintHelperHandler {
   @NotNull
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
-    if (!CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName())) {
+    if (!AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName())) {
       return super.getIcon(component);
     }
     if (isVertical(component)) {

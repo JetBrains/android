@@ -19,11 +19,11 @@ package com.android.tools.idea.actions.annotations
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_VALUE
-import com.android.SdkConstants.INT_DEF_ANNOTATION
+import com.android.AndroidXConstants.INT_DEF_ANNOTATION
 import com.android.SdkConstants.KOTLIN_SUPPRESS
-import com.android.SdkConstants.LONG_DEF_ANNOTATION
-import com.android.SdkConstants.STRING_DEF_ANNOTATION
-import com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX
+import com.android.AndroidXConstants.LONG_DEF_ANNOTATION
+import com.android.AndroidXConstants.STRING_DEF_ANNOTATION
+import com.android.AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.annotationNames
@@ -972,7 +972,8 @@ class InferredConstraints private constructor(
       val qualifiedName = annotation.qualifiedName ?: return null
 
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
-        return SUPPORT_ANNOTATIONS_PREFIX.newName() + qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length)
+        return SUPPORT_ANNOTATIONS_PREFIX.newName() + qualifiedName.substring(
+          SUPPORT_ANNOTATIONS_PREFIX.oldName().length)
       }
 
       if (qualifiedName == DIMENSION_ANNOTATION.newName()) {

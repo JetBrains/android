@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.cache;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder;
@@ -54,7 +55,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
     DataBindingComponentClassFinder classFinder = PsiElementFinder.EP.findExtensionOrFail(DataBindingComponentClassFinder.class, project);
     // we need to search for both old and new. Class finder knows which one to generate.
-    final AndroidxName componentClass = SdkConstants.CLASS_DATA_BINDING_COMPONENT;
+    final AndroidxName componentClass = AndroidXConstants.CLASS_DATA_BINDING_COMPONENT;
     final PsiClass[] support = classFinder.findClasses(componentClass.oldName(), scope);
     final PsiClass[] androidX = classFinder.findClasses(componentClass.newName(), scope);
     return ArrayUtil.mergeArrays(support, androidX);

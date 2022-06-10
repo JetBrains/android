@@ -34,7 +34,7 @@ import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX;
+import static com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX;
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
 import static com.android.SdkConstants.TAG_ADAPTIVE_ICON;
 import static com.android.SdkConstants.TAG_APPWIDGET_PROVIDER;

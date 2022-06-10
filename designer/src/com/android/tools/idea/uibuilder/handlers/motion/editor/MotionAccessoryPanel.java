@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
@@ -663,9 +664,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   @Nullable
   public XmlFile getTransitionFile(@NotNull NlComponent component) {
     // get the parent if need be
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.MOTION_LAYOUT)) {
       component = component.getParent();
-      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.MOTION_LAYOUT)) {
         return null;
       }
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
@@ -55,7 +56,7 @@ public final class WidgetCreatorFactory {
     else if (SdkConstants.IMAGE_VIEW.equals(tagName)) {
       creator = new ImageViewCreator(mockup, model, screenView, selection);
     }
-    else if (SdkConstants.FLOATING_ACTION_BUTTON.isEquals(tagName)) {
+    else if (AndroidXConstants.FLOATING_ACTION_BUTTON.isEquals(tagName)) {
       creator = new FloatingActionButtonCreator(mockup, model, screenView, selection);
     }
     else if (SdkConstants.TEXT_VIEW.equals(tagName)) {
@@ -64,7 +65,7 @@ public final class WidgetCreatorFactory {
     else if (SdkConstants.ATTR_DRAWABLE.equals(tagName)) {
       creator = new ExtractIconCreator(mockup, model, screenView, selection);
     }
-    else if (SdkConstants.RECYCLER_VIEW.isEquals(tagName)) {
+    else if (AndroidXConstants.RECYCLER_VIEW.isEquals(tagName)) {
       creator = new RecyclerViewCreator(mockup, model, screenView, selection);
     }
     else {

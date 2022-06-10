@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
@@ -101,11 +102,11 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
       component = parent;
       parent = component.getParent();
     }
-    if (!COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
+    if (!AndroidXConstants.COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
       return null;
     }
     for (NlComponent child : component.getChildren()) {
-      if (APP_BAR_LAYOUT.isEquals(child.getTagName())) {
+      if (AndroidXConstants.APP_BAR_LAYOUT.isEquals(child.getTagName())) {
         return child;
       }
     }

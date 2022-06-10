@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
@@ -30,14 +31,14 @@ public class SceneGuidelineConnectionTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT.defaultName())
+                                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("500dp")
                                    .height("500dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
-                                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
+                                     component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                                        .id("@id/guideline")
                                        .withBounds(300, 0, 2, 1000)
                                        .width("0dp")

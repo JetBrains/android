@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.AndroidXConstants;
 import com.android.annotations.NonNull;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -189,41 +190,41 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
 
     List<AppCompatMigrationEntry> mapEntries = Lists.newArrayListWithExpectedSize(MIGRATION_ENTRY_SIZE);
     // Change Activity => AppCompatActivity
-    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY)));
     // ActionBarActivity is deprecated
     mapEntries.add(new ClassMigrationEntry("android.support.v7.appActionBarActivity",
-                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+                                           getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY)));
     mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY,
-                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+                                           getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY)));
     mapEntries.add(new ClassMigrationEntry("android.app.ActionBar",
                                            getName(isAndroidx, ANDROID_SUPPORT_V7_APP_ACTION_BAR)));
     // Change method getActionBar => getSupportActionBar
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar",
-                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
+                                            getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY),
                                             "getSupportActionBar"));
 
     // Change method setActionBar => setSupportActionBar
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar",
-                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
+                                            getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY),
                                             "setSupportActionBar"));
 
     mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar",
-                                           getName(isAndroidx, CLASS_TOOLBAR_V7)));
+                                           getName(isAndroidx, AndroidXConstants.CLASS_TOOLBAR_V7)));
 
     mapEntries.add(new XmlTagMigrationEntry("android.widget.Toolbar", "",
-                                            getName(isAndroidx, CLASS_TOOLBAR_V7), "",
+                                            getName(isAndroidx, AndroidXConstants.CLASS_TOOLBAR_V7), "",
                                             XmlElementMigration.FLAG_LAYOUT));
 
     // Change usages of Fragment => v4.app.Fragment
     mapEntries.add(new ClassMigrationEntry("android.app.Fragment",
-                                           getName(isAndroidx, CLASS_V4_FRAGMENT)));
+                                           getName(isAndroidx, AndroidXConstants.CLASS_V4_FRAGMENT)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentTransaction",
                                            getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentManager",
                                            getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER)));
 
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getFragmentManager",
-                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
+                                            getName(isAndroidx, AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY),
                                             "getSupportFragmentManager"));
 
     mapEntries.add(new ClassMigrationEntry(

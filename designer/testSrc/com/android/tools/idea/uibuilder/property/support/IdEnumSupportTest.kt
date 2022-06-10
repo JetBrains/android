@@ -24,7 +24,7 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CHIP
 import com.android.SdkConstants.CHIP_GROUP
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace

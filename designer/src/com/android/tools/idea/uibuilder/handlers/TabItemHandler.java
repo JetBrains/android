@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -52,6 +53,6 @@ public class TabItemHandler extends ViewHandler {
   @Override
   public boolean acceptsParent(@NotNull NlComponent layout,
                                @NotNull NlComponent newChild) {
-    return TAB_LAYOUT.isEquals(layout.getTagName());
+    return AndroidXConstants.TAB_LAYOUT.isEquals(layout.getTagName());
   }
 }

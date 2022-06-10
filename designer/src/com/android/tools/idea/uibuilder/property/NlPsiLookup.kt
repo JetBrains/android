@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.SdkConstants
 import com.android.SdkConstants.CLASS_VIEW
-import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
+import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.tools.idea.psi.TagToClassMapper
 import com.intellij.psi.JavaPsiFacade

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
@@ -36,10 +36,10 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
     projectSystem.useInTests()
     model = model("model.xml",
-                  component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+                  component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                     .withBounds(0, 0, 10, 10)
                     .children(
-                      component(SdkConstants.CARD_VIEW.defaultName())
+                      component(AndroidXConstants.CARD_VIEW.defaultName())
                         .withBounds(1, 1, 1, 1)
                     )).build()
   }

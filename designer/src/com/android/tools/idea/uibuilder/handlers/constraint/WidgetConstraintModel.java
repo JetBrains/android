@@ -40,12 +40,13 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VALUE_ZERO_DP;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
@@ -852,8 +853,8 @@ public class WidgetConstraintModel implements SelectionListener {
   public boolean isMissingHorizontalConstrained() {
     if (myComponent != null) {
       String tagName = myComponent.getTagName();
-      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
-          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+      if (AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
         // Constraint Guideline and Barrier don't need to be constrained
         return false;
       }
@@ -865,8 +866,8 @@ public class WidgetConstraintModel implements SelectionListener {
   public boolean isMissingVerticalConstrained() {
     if (myComponent != null) {
       String tagName = myComponent.getTagName();
-      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
-          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+      if (AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
         // Constraint Guideline and Barrier don't need to be constrained
         return false;
       }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants.CLASS_VIEW
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
-import com.android.SdkConstants.RECYCLER_VIEW
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder

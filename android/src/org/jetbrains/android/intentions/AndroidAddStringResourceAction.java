@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.intentions;
 
+import com.android.AndroidXConstants;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -346,8 +347,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
     final boolean extendsFragment =
       getContainingInheritorOf(element, CLASS_FRAGMENT) != null ||
-      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
-      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
+      getContainingInheritorOf(element, AndroidXConstants.CLASS_V4_FRAGMENT.oldName()) != null ||
+      getContainingInheritorOf(element, AndroidXConstants.CLASS_V4_FRAGMENT.newName()) != null;
 
     final String rJavaFieldName = IdeResourcesUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;

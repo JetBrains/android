@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.uipreview;
 
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_V7;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;

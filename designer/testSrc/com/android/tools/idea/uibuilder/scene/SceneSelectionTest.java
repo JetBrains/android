@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.event.InputEvent;
 import java.util.List;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 

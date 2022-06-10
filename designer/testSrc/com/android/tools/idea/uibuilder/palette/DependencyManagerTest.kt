@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.palette
 
-import com.android.SdkConstants.CARD_VIEW
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.AndroidXConstants.CARD_VIEW
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
-import com.android.SdkConstants.RECYCLER_VIEW
+import com.android.AndroidXConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC

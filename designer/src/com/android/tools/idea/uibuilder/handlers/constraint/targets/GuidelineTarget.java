@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -159,7 +160,7 @@ public class GuidelineTarget extends BaseTarget {
   }
 
   private boolean isAutoConnectionEnabled() {
-    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
+    return !AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
            ToggleAutoConnectAction.isAutoconnectOn();
   }
 

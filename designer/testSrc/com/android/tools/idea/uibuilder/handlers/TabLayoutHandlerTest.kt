@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.uibuilder.api.XmlType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -25,7 +25,7 @@ class TabLayoutHandlerTest {
   @Test
   fun testXmlWithOldName() {
     val handler = TabLayoutHandler()
-    assertThat(handler.getXml(SdkConstants.TAB_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
+    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
       <android.support.design.widget.TabLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content">
@@ -52,7 +52,7 @@ class TabLayoutHandlerTest {
   @Test
   fun testXmlWithNewName() {
     val handler = TabLayoutHandler()
-    assertThat(handler.getXml(SdkConstants.TAB_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
+    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
       <com.google.android.material.tabs.TabLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content">

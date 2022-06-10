@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.google.common.collect.ImmutableList;
@@ -53,7 +54,7 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
     if (insertType == InsertType.CREATE) {
       NlModel model = newChild.getModel();
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(model, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
+      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(model, AndroidXConstants.APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
       ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }

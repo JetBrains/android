@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.actions.annotations
 
-import com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX
+import com.android.AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.describeResource
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.inheritMethodAnnotation

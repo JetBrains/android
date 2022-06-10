@@ -20,7 +20,7 @@ import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;

@@ -20,6 +20,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.END;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
@@ -603,15 +604,15 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   private static NlComponent getOriginalComponent(@NotNull NlComponent component) {
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
       NlComponent parent = component.getParent();
       assert parent != null;
 
-      if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         parent = parent.getParent();
         assert parent != null;
 
-        if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT)) {
+        if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT)) {
           for (NlComponent child : parent.getChildren()) {
             if (child.getId() != null && child.getId().equals(component.getId())) {
               return child;
@@ -979,7 +980,7 @@ public final class ConstraintComponentUtilities {
 
     String componentId = component.getId();
     for (NlComponent child: parent.getChildren()) {
-      if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_FLOW)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW)) {
         String attr = child.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (attr != null) {
           for(String id: attr.split(",")) {
@@ -1122,7 +1123,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
-    return CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
+    return AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable
@@ -1273,10 +1274,10 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       return true;
     }
-    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER);
+    return NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER);
   }
 
   /**
@@ -1290,13 +1291,13 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
       }
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
       if (dir != null) {
         if (dir.equalsIgnoreCase(CONSTRAINT_BARRIER_LEFT)
@@ -1321,13 +1322,13 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
       }
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
 
       if (dir != null) {
@@ -1343,7 +1344,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
     if (NlComponentHelperKt.getViewInfo(component) != null &&
-        NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
@@ -1354,7 +1355,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isVerticalGuideline(@NotNull NlComponent component) {
     if (NlComponentHelperKt.getViewInfo(component) != null &&
-        NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
@@ -1523,8 +1524,8 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
-    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
+    return NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT)
+           || AndroidXConstants.CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum

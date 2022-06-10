@@ -2,7 +2,7 @@
 
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.idea.navigator.AndroidProjectView;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
@@ -89,9 +89,9 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
         myResourceFolderType == ResourceFolderType.LAYOUT) {
 
       if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-        return SdkConstants.CONSTRAINT_LAYOUT.oldName();
+        return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
       } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-        return SdkConstants.CONSTRAINT_LAYOUT.newName();
+        return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
       }
     }
 

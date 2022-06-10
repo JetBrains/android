@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.ui;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.APP_PREFIX;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
-import static com.android.SdkConstants.COORDINATOR_LAYOUT;
-import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
+import static com.android.AndroidXConstants.FLOATING_ACTION_BUTTON;
 import static com.android.SdkConstants.TOOLS_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;

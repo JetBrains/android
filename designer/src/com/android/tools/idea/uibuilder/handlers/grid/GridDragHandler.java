@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -114,7 +115,7 @@ final class GridDragHandler extends DragHandler {
       transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
       transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
     }
-    else if (SdkConstants.GRID_LAYOUT_V7.isEquals(tagName)) {
+    else if (AndroidXConstants.GRID_LAYOUT_V7.isEquals(tagName)) {
       transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
       transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
     }

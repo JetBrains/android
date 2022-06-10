@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
@@ -55,7 +56,7 @@ public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
   @NotNull
   @Override
   public String getAndroidViewTag() {
-    return SdkConstants.FLOATING_ACTION_BUTTON.defaultName();
+    return AndroidXConstants.FLOATING_ACTION_BUTTON.defaultName();
   }
 
   @Override

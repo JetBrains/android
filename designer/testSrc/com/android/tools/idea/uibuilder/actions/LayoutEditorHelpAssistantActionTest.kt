@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -44,14 +44,14 @@ class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
   }
 
   fun testUpdateConstraintlayout() {
-    setupTagName(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+    setupTagName(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
     val action = LayoutEditorHelpAssistantAction()
     action.update(event)
     assertEquals(LayoutEditorHelpAssistantAction.Type.FULL, action.type)
   }
 
   fun testUpdateMotionlayout() {
-    setupTagName(SdkConstants.MOTION_LAYOUT.defaultName())
+    setupTagName(AndroidXConstants.MOTION_LAYOUT.defaultName())
     val action = LayoutEditorHelpAssistantAction()
     action.update(event)
     assertEquals(LayoutEditorHelpAssistantAction.Type.FULL, action.type)

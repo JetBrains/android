@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.BOTTOM_APP_BAR;
-import static com.android.SdkConstants.BOTTOM_NAVIGATION_VIEW;
+import static com.android.AndroidXConstants.BOTTOM_NAVIGATION_VIEW;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CHIP;
 import static com.android.SdkConstants.CHIP_GROUP;
-import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.AndroidXConstants.FLOATING_ACTION_BUTTON;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.MATERIAL_TOOLBAR;
-import static com.android.SdkConstants.NAVIGATION_VIEW;
-import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.AndroidXConstants.NAVIGATION_VIEW;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.SWITCH;
-import static com.android.SdkConstants.TAB_ITEM;
-import static com.android.SdkConstants.TAB_LAYOUT;
-import static com.android.SdkConstants.TEXT_INPUT_LAYOUT;
+import static com.android.AndroidXConstants.TAB_ITEM;
+import static com.android.AndroidXConstants.TAB_LAYOUT;
+import static com.android.AndroidXConstants.TEXT_INPUT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.tools.idea.uibuilder.palette.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;

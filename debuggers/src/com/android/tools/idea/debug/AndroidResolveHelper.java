@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -236,9 +236,9 @@ public class AndroidResolveHelper {
       }
 
       if (qualifiedName.endsWith(ResourceEvaluator.RES_SUFFIX)
-        || ResourceEvaluator.COLOR_INT_ANNOTATION.isEquals(qualifiedName)
-        || ResourceEvaluator.PX_ANNOTATION.isEquals(qualifiedName)
-        || SdkConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
+          || ResourceEvaluator.COLOR_INT_ANNOTATION.isEquals(qualifiedName)
+          || ResourceEvaluator.PX_ANNOTATION.isEquals(qualifiedName)
+          || AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
         return a;
       }
 

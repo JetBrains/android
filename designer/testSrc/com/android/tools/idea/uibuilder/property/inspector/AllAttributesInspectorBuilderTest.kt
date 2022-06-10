@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
@@ -47,7 +48,7 @@ class AllAttributesInspectorBuilderTest {
   fun testAllAttributes() {
     addManifest(projectRule.fixture)
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
-    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = SdkConstants.CONSTRAINT_LAYOUT.oldName())
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
     util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)

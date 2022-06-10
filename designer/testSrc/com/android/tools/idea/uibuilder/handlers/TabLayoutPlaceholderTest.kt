@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
-import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
 
@@ -58,23 +57,23 @@ class TabLayoutPlaceholderTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("tabLayout.xml",
-                 component(SdkConstants.TAB_LAYOUT.newName())
+                 component(AndroidXConstants.TAB_LAYOUT.newName())
                    .width("300dp")
                    .height("100dp")
                    .withBounds(0, 0, 600, 200)
                    .id("@id/tabLayout")
                    .children(
-                     component(SdkConstants.TAB_ITEM.newName())
+                     component(AndroidXConstants.TAB_ITEM.newName())
                        .withBounds(0, 0, 200, 200)
                        .id("@id/tabItem1")
                        .width("100dp")
                        .height("100dp"),
-                     component(SdkConstants.TAB_ITEM.newName())
+                     component(AndroidXConstants.TAB_ITEM.newName())
                        .withBounds(200, 0, 200, 200)
                        .id("@id/tabItem2")
                        .width("100dp")
                        .height("100dp"),
-                     component(SdkConstants.TAB_ITEM.newName())
+                     component(AndroidXConstants.TAB_ITEM.newName())
                        .withBounds(400, 0, 200, 200)
                        .id("@id/tabItem3")
                        .width("100dp")

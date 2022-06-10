@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**

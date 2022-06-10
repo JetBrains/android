@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
@@ -47,10 +48,10 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   static {
     try {
       ourConstructorMap.put(COMPOSE_VIEW_ADAPTER_FQN, ComposeViewAdapterDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_MOTION_LAYOUT.newName(), MotionLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_MOTION_LAYOUT.newName(), MotionLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.TOGGLE_BUTTON, ToggleButtonDecorator.class.getConstructor());
@@ -62,8 +63,8 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.LINEAR_LAYOUT, LinearLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.GRID_LAYOUT, GridLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7.oldName(), GridLayoutV7Decorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7.newName(), GridLayoutV7Decorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_GRID_LAYOUT_V7.oldName(), GridLayoutV7Decorator.class.getConstructor());
+      ourConstructorMap.put(AndroidXConstants.CLASS_GRID_LAYOUT_V7.newName(), GridLayoutV7Decorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.RELATIVE_LAYOUT, RelativeLayoutDecorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {

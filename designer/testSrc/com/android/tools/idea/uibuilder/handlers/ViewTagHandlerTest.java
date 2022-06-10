@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.api.InsertType;
@@ -97,7 +98,7 @@ public class ViewTagHandlerTest extends AndroidTestCase {
    */
   public void testIsViewSuitableForLayout() {
     assertTrue(SUITABLE_LAYOUT_CLASS.test("com.example.myownpackage.TestView"));
-    assertTrue(SUITABLE_LAYOUT_CLASS.test(SdkConstants.CLASS_CONSTRAINT_LAYOUT.defaultName()));
+    assertTrue(SUITABLE_LAYOUT_CLASS.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.defaultName()));
     assertFalse(SUITABLE_LAYOUT_CLASS.test(SdkConstants.FQCN_IMAGE_BUTTON));
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -47,6 +47,6 @@ public class RecyclerViewCreator extends SimpleViewCreator {
   @NotNull
   @Override
   public String getAndroidViewTag() {
-    return SdkConstants.RECYCLER_VIEW.defaultName();
+    return AndroidXConstants.RECYCLER_VIEW.defaultName();
   }
 }

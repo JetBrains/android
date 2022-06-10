@@ -36,7 +36,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 public class ConstraintAnchorTargetTest extends SceneTest {

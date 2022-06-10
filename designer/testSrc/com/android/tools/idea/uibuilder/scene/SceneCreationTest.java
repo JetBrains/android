@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -67,8 +68,8 @@ public class SceneCreationTest extends SceneTest {
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    ComponentDescriptor textView = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
     ComponentDescriptor editText = parent.addChild(component(EDIT_TEXT)
                                                      .withBounds(220, 440, 400, 60)
                                                      .width("200dp")
@@ -127,8 +128,8 @@ public class SceneCreationTest extends SceneTest {
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    parent.addChild(component(CONSTRAINT_LAYOUT.defaultName())
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    parent.addChild(component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                       .id("@id/layout")
                       .withBounds(200, 300, 200, 200)
                       .width("200dp")
@@ -160,8 +161,8 @@ public class SceneCreationTest extends SceneTest {
     Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.setAnimated(false);
 
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    ComponentDescriptor textView = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
     SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
 
     float dpiFactor =  560 / 160f;
@@ -185,7 +186,7 @@ public class SceneCreationTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT.defaultName())
+                                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")

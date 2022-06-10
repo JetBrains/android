@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.SdkConstants.BUTTON
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewEditor

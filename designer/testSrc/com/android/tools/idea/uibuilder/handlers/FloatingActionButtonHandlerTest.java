@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +33,7 @@ public class FloatingActionButtonHandlerTest {
 
   @Test
   public void testGetXml() {
-    assertThat(myHandler.getXml(SdkConstants.FLOATING_ACTION_BUTTON.defaultName(), XmlType.COMPONENT_CREATION)).isEqualTo(
+    assertThat(myHandler.getXml(AndroidXConstants.FLOATING_ACTION_BUTTON.defaultName(), XmlType.COMPONENT_CREATION)).isEqualTo(
       "<android.support.design.widget.FloatingActionButton\n" +
       "    android:src=\"@android:drawable/ic_input_add\"\n" +
       "    android:layout_width=\"wrap_content\"\n" +
@@ -44,7 +43,7 @@ public class FloatingActionButtonHandlerTest {
 
   @Test
   public void testGetPreviewXml() {
-    assertThat(myHandler.getXml(SdkConstants.FLOATING_ACTION_BUTTON.defaultName(), XmlType.PREVIEW_ON_PALETTE)).isEqualTo(
+    assertThat(myHandler.getXml(AndroidXConstants.FLOATING_ACTION_BUTTON.defaultName(), XmlType.PREVIEW_ON_PALETTE)).isEqualTo(
       "<android.support.design.widget.FloatingActionButton\n" +
       "    android:src=\"@android:drawable/ic_input_add\"\n" +
       "    android:layout_width=\"wrap_content\"\n" +

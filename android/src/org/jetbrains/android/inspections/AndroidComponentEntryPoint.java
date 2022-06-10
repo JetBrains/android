@@ -11,7 +11,7 @@ import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
 import static com.android.SdkConstants.CLASS_PARCELABLE;
 import static com.android.SdkConstants.CLASS_SERVICE;
-import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
+import static com.android.AndroidXConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
 
 import com.intellij.codeInspection.reference.EntryPoint;

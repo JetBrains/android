@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
@@ -132,8 +133,8 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
      */
     private val CONTEXT_CLASSES = listOf(SdkConstants.CLASS_ACTIVITY,
                                          SdkConstants.CLASS_FRAGMENT,
-                                         SdkConstants.CLASS_V4_FRAGMENT.oldName(),
-                                         SdkConstants.CLASS_V4_FRAGMENT.newName(),
+                                         AndroidXConstants.CLASS_V4_FRAGMENT.oldName(),
+                                         AndroidXConstants.CLASS_V4_FRAGMENT.newName(),
                                          SdkConstants.CLASS_ADAPTER)
 
     private fun PsiClass.findComponentDeclarationInManifest(): AndroidAttributeValue<PsiClass>? {

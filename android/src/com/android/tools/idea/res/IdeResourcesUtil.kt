@@ -38,7 +38,7 @@ import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
-import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
+import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM

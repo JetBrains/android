@@ -22,7 +22,7 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;

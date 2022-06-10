@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
@@ -29,7 +30,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text hidden because image is defined after text
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -53,7 +54,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text shown because image is defined before text
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -74,7 +75,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text hidden because image has higher elevation than text, even tho text view is defined later.
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -98,7 +99,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text shown because text has higher elevation
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -121,7 +122,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text hidden because image is defined after text
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -142,7 +143,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     // Text hidden because image is defined after text
     val model =
       model("is_hidden.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(
@@ -162,7 +163,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
   fun testNoOverlap() {
     val model =
       model("no_overlap.xml",
-            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
               .withBounds(0, 0, 200, 200)
               .withMockView()
               .children(

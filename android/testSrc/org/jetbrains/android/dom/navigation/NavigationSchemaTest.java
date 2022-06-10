@@ -19,6 +19,7 @@ import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 import com.android.AndroidProjectTypes;
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.android.tools.idea.testing.Dependencies;
@@ -165,7 +166,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   public void testDestinationClassByTag() {
     NavigationSchema schema = NavigationSchema.get(myModule);
     PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
-    PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
+    PsiClass fragment = findClass(AndroidXConstants.CLASS_V4_FRAGMENT.oldName());
     PsiClass navGraph = findClass("androidx.navigation.NavGraph");
     PsiClass custom = findClass("OtherNavigatorWithDestination.MyActualDestination");
 

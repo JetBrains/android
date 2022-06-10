@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.analytics;
 import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
 import static com.android.SdkConstants.ATTR_ELEVATION;
 import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;

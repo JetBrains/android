@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
@@ -85,7 +85,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "v");
     assertNotNull(annotation);
-    assertEquals(SdkConstants.INT_DEF_ANNOTATION.defaultName(), annotation.getQualifiedName());
+    assertEquals(AndroidXConstants.INT_DEF_ANNOTATION.defaultName(), annotation.getQualifiedName());
 
     AndroidResolveHelper.IntDefResolution result = AndroidResolveHelper.resolveIntDef(annotation);
     assertFalse(result.canBeOred);

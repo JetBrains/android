@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +34,7 @@ public class ConstraintLayoutChainHandler extends ConstraintHelperHandler {
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
     String title = getSimpleTagName(component.getTagName());
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
       boolean horizontal = true;
       String orientation = component.getLiveAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equals(VALUE_VERTICAL)) {

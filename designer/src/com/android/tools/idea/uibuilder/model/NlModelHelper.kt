@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY
+import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device

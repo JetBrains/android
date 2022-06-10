@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.ApplicationManager;
@@ -59,7 +59,7 @@ public class AnnotationsRenderer {
     else if (qualifiedName.endsWith(ResourceEvaluator.RES_SUFFIX)) {
       return renderResourceRefAnnotation(resolver, value, qualifiedName);
     }
-    else if (SdkConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
+    else if (AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
       return renderIntDefAnnotation(annotation, value);
     }
 

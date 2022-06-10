@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -125,7 +126,7 @@ class SceneComponentOrderTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/root")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")

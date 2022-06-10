@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections;
 
+import com.android.AndroidXConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Lists;
@@ -37,7 +38,6 @@ import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.Consumer;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectHashingStrategy;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -205,8 +205,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         continue;
       }
 
-      if (SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
-        if (INT_DEF_ANNOTATION.isEquals(qualifiedName) || STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
+      if (AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
+        if (AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName) || AndroidXConstants.STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
           if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
@@ -401,15 +401,15 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
   public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
     String resourceTypeName;
 
-    if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
-      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
+    if (qualifiedName.startsWith(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
                          qualifiedName
-                           .substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+                           .substring(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     }
     else {
-      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.newName().length())) +
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.newName().length())) +
                          qualifiedName
-                           .substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+                           .substring(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     }
     return ResourceType.fromClassName(resourceTypeName);
   }
