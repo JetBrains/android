@@ -28,6 +28,7 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationNamesInfo
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -40,11 +41,15 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.BorderLayout
+import java.io.File
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
@@ -117,6 +122,12 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
         report.heapProperties,
         report.properties
       )
+
+      val heapReportDir = Paths.get(PathManager.getLogPath()).resolve("heapReports")
+      heapReportDir.toFile().mkdirs()
+      val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+      val heapReportFile = heapReportDir.resolve(Paths.get("heapReport$datetime.txt"))
+      heapReportFile.toFile().writeText(reportString)
 
       val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
         AndroidBundle.message("heap.dump.analysis.notification.title"),

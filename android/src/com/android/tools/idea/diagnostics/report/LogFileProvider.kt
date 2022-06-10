@@ -24,6 +24,7 @@ import java.nio.file.Paths
 private val THREAD_DUMP_REGEX = Regex("^threadDumps-.*")
 private val UI_FREEZE_REGEX = Regex("^uiFreeze-.*")
 private val JVM_CRASH_REGEX = Regex("^java_error_in_STUDIO_[0-9]+.log$")
+private val HEAP_REPORT_REGEX = Regex("heapReports")
 
 /**
  * PathProvider contains various system paths used by the log file provider. It is used as a parameter in
@@ -63,10 +64,10 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
       fileInfo.addAll(getFiles(Paths.get(it)))
     }
 
-    // add all files located in thread dump directories
-    fileInfo.addAll(getFilesInDirectories(logDirPath, THREAD_DUMP_REGEX).toList())
-    // add all files located in ui freeze directories
-    fileInfo.addAll(getFilesInDirectories(logDirPath, UI_FREEZE_REGEX).toList())
+    // add all files located in thread dump directories, ui freeze directories, and heap report directory
+    for (regex in arrayOf(THREAD_DUMP_REGEX, UI_FREEZE_REGEX, HEAP_REPORT_REGEX)) {
+      fileInfo.addAll(getFilesInDirectories(logDirPath, regex).toList())
+    }
     return fileInfo
   }
 
