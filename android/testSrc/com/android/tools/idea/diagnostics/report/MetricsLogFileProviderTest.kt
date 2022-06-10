@@ -27,6 +27,7 @@ import junit.framework.TestCase
 import java.nio.file.Path
 import java.nio.file.Paths
 
+private const val DIRECTORY_NAME = "diagnostics"
 private const val FILE_NAME = "MetricsInfo.log"
 
 private const val LOG_DATA = """2022-02-07 00:00:00 UTC
@@ -74,7 +75,7 @@ class MetricsLogFileProviderTest : TestCase() {
     val fileInfo = metricsLogFileProvider.getFiles(null)
     assertThat(fileInfo.size).isEqualTo(1)
 
-    val logFile = testDirectoryPath.resolve(FILE_NAME)
+    val logFile = testDirectoryPath.resolve(DIRECTORY_NAME).resolve(FILE_NAME)
     fileInfo[0].apply {
       assertThat(source).isEqualTo(logFile)
       assertThat(destination).isEqualTo(Paths.get(FILE_NAME))

@@ -53,7 +53,7 @@ class MetricsLogFileProvider(private val pathProvider: PathProvider,
       builders.copyInto(orderedArray, builders.size - index, 0, index)
     }
 
-    val path = Paths.get(pathProvider.logDir).resolve(FILE_NAME)
+    val path = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(pathProvider.logDir).resolve(FILE_NAME)
     path.toFile().writeText(orderedArray.filterNotNull().joinToString("\n") { it.serialize() })
 
     return listOf(FileInfo(path, Paths.get(FILE_NAME)))

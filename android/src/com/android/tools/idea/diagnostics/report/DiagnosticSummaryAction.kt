@@ -21,8 +21,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
-import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -35,7 +35,9 @@ class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File
     val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
 
     val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-    val destination = File(PathManager.getLogPath()).resolve("DiagnosticsReport${datetime}.zip").path
+
+    val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
+    val destination = dir.resolve("DiagnosticsReport${datetime}.zip").toString()
 
     val message =
       try {

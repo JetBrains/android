@@ -20,15 +20,18 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import java.nio.file.Paths
 
+private const val FILE_NAME = "SystemInfo.log"
+
 /*
   SystemInfoFileProvider copies the text from the SendFeedbackAction into
   a text file so that it can be included in the diagnostic summary report
  */
 object SystemInfoFileProvider : DiagnosticsSummaryFileProvider {
   override fun getFiles(project: Project?): List<FileInfo> {
-    val path = Paths.get(PathManager.getLogPath()).resolve("SystemInfo.log")
+    val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
+    val path = dir.resolve(FILE_NAME)
     path.toFile().writeText(SendFeedbackAction.getDescription(project))
 
-    return listOf(FileInfo(path, Paths.get("SystemInfo.log")))
+    return listOf(FileInfo(path, Paths.get(FILE_NAME)))
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.report
 
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
+import java.nio.file.Paths
 
 /*
   FileInfo contains a pair of values used for creating a diagnostic report
@@ -30,6 +31,19 @@ data class FileInfo(val source: Path, val destination: Path)
   */
 interface DiagnosticsSummaryFileProvider {
   fun getFiles(project: Project?): List<FileInfo>
+
+  companion object {
+    /**
+     * Returns the diagnostics file directory based on the log path
+     * Will create the diagnostics directory if it doesn't exist
+     * Assumes that the log directory exists
+     */
+    fun getDiagnosticsDirectoryPath(logDir: String): Path {
+      val dir = Paths.get(logDir).resolve("diagnostics")
+      dir.toFile().mkdirs()
+      return dir
+    }
+  }
 }
 
 // TODO (b/231162502)
