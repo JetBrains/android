@@ -17,7 +17,10 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
+import com.android.tools.idea.devicemanager.Resolution;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
@@ -26,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -46,7 +50,7 @@ final class AsyncVirtualDeviceDetailsBuilder {
     myBridge = bridge;
   }
 
-  @NotNull Future<@NotNull Object> buildAsync() {
+  @NotNull Future<@NotNull Device> buildAsync() {
     Executor executor = AppExecutorUtil.getAppExecutorService();
 
     // noinspection UnstableApiUsage
@@ -82,7 +86,9 @@ final class AsyncVirtualDeviceDetailsBuilder {
     return null;
   }
 
-  private @NotNull Object build(@Nullable IDevice device) {
+  private @NotNull Device build(@Nullable IDevice device) {
+    AvdInfo avd = myDevice.getAvdInfo();
+
     return new VirtualDevice.Builder()
       .setKey(myDevice.getKey())
       .setType(myDevice.getType())
@@ -92,7 +98,35 @@ final class AsyncVirtualDeviceDetailsBuilder {
       .setCpuArchitecture(myDevice.getCpuArchitecture())
       .setAndroidVersion(myDevice.getAndroidVersion())
       .setSizeOnDisk(myDevice.getSizeOnDisk())
+      .setResolution(getResolution(avd))
+      .setDensity(getProperty(avd, "hw.lcd.density").orElse(-1))
       .setAvdInfo(myDevice.getAvdInfo())
       .build();
+  }
+
+  private static @Nullable Resolution getResolution(@NotNull AvdInfo avd) {
+    OptionalInt width = getProperty(avd, "hw.lcd.width");
+    OptionalInt height = getProperty(avd, "hw.lcd.height");
+
+    if (width.isEmpty() || height.isEmpty()) {
+      return null;
+    }
+
+    return new Resolution(width.orElseThrow(), height.orElseThrow());
+  }
+
+  private static @NotNull OptionalInt getProperty(@NotNull AvdInfo avd, @NotNull String name) {
+    String property = avd.getProperty(name);
+
+    if (property == null) {
+      return OptionalInt.empty();
+    }
+
+    try {
+      return OptionalInt.of(Integer.parseInt(property));
+    }
+    catch (NumberFormatException exception) {
+      return OptionalInt.empty();
+    }
   }
 }
