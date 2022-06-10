@@ -55,8 +55,6 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   // Set of templates tested with unit test - Used to detect templates without tests
   private val templatesChecked = mutableSetOf<String>()
 
-  override fun createDefaultProject() = false
-
   override fun setUp() {
     super.setUp()
     // Disable on Windows due to b/199156040
@@ -139,7 +137,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectChecker.checkProject(projectName, avoidModifiedModuleName, *customizers)
+      projectChecker.checkProject(project, projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }

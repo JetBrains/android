@@ -57,19 +57,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.util.WaitFor
 import junit.framework.TestCase
 import junit.framework.TestCase.assertTrue
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.jetbrains.android.AndroidTempDirTestFixture
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import java.io.ByteArrayOutputStream
@@ -154,19 +148,6 @@ internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName:
                  .setKotlinSupportVersion(moduleState.projectTemplateData.kotlinVersion).build(),
                usage.studioEvent.kotlinSupport)
 }
-// TODO(qumeric) should it be removed in favor of AndroidGradleTestCase.setUpFixture?
-internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFixture {
-  val tempDirFixture = AndroidTempDirTestFixture(projectName)
-  val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
-    .createFixtureBuilder(projectName, tempDirFixture.projectDir.parentFile.toPath(), true)
-  val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
-    setUp()
-  }
-  val project = fixture.project
-  FileUtil.ensureExists(File(toSystemDependentName(project.basePath!!)))
-  LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath!!)
-  return fixture
-}
 
 internal fun verifyLanguageFiles(projectDir: File, language: Language) {
   // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
@@ -239,13 +220,6 @@ internal fun checkDslParser(project: Project) {
     }
   }
   assertEmpty(unresolvedDependencies)
-}
-
-internal fun cleanupProjectFiles(projectDir: File) {
-  if (projectDir.exists()) {
-    FileUtil.delete(projectDir)
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir)
-  }
 }
 
 private const val defaultPackage = "template.test.pkg"

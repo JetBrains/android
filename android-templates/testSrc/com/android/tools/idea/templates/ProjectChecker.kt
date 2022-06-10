@@ -17,7 +17,6 @@ package com.android.tools.idea.templates
 
 import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.testutils.TestUtils.getSdk
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -56,7 +55,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -70,32 +68,26 @@ data class ProjectChecker(
 ) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun checkProject(moduleName: String, avoidModifiedModuleName: Boolean = false, vararg customizers: ProjectStateCustomizer) {
+  fun checkProject(project: Project, moduleName: String, avoidModifiedModuleName: Boolean = false, vararg customizers: ProjectStateCustomizer) {
     val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
-    val fixture = setUpFixtureForProject(modifiedModuleName)
-    val project = fixture.project!!
     moduleState = getDefaultModuleState(project, template)
     customizers.forEach {
       it(moduleState, moduleState.projectTemplateDataBuilder)
     }
 
     try {
-      createProject(fixture, modifiedModuleName)
+      createProject(project, modifiedModuleName)
       // TODO(b/149006038): ProjectTemplateData[Builder] should use only one language [class]
       val language = Language.valueOf(moduleState.projectTemplateDataBuilder.language!!.toString())
       project.verify(language)
     }
     finally {
-      fixture.tearDown()
       val openProjects = ProjectManagerEx.getInstanceEx().openProjects
       assert(openProjects.size <= 1) // 1: the project created by default by the test case
-      cleanupProjectFiles(getBaseDirPath(project))
     }
   }
 
-  private fun createProject(fixture: JavaCodeInsightTestFixture, moduleName: String) {
-    val project = fixture.project!!
-    AndroidGradleTests.setUpSdks(fixture, getSdk().toFile())
+  private fun createProject(project: Project, moduleName: String) {
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")
     project.create()
