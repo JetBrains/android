@@ -154,6 +154,14 @@ void JObject::IllegalGlobalReferenceUse() {
   Log::Fatal("JNIEnv pointer has to be provided when using a global reference");
 }
 
+jfieldID JClass::GetStaticFieldId(const char* name, const char* signature) const {
+  auto field = GetJni()->GetStaticFieldID(ref(), name, signature);
+  if (field == nullptr) {
+    Log::Fatal("Unable to find the static %s.%s field with signature %s", GetName().c_str(), name, signature);
+  }
+  return field;
+}
+
 jfieldID JClass::GetFieldId(const char* name, const char* signature) const {
   auto field = GetJni()->GetFieldID(ref(), name, signature);
   if (field == nullptr) {
@@ -165,7 +173,7 @@ jfieldID JClass::GetFieldId(const char* name, const char* signature) const {
 jmethodID JClass::GetStaticMethodId(const char* name, const char* signature) const {
   auto method = GetJni()->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal("Unable to find the %s.%s method with signature %s", GetName().c_str(), name, signature);
+    Log::Fatal("Unable to find the static %s.%s method with signature %s", GetName().c_str(), name, signature);
   }
   return method;
 }

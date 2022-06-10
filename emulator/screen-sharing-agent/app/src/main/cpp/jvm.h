@@ -189,6 +189,7 @@ class JClass : public JRef<JClass, jclass> {
 public:
   using JRef::JRef;
 
+  jfieldID GetStaticFieldId(const char* name, const char* signature) const;
   jfieldID GetFieldId(const char* name, const char* signature) const;
   jmethodID GetStaticMethodId(const char* name, const char* signature) const;
   jmethodID GetMethodId(const char* name, const char* signature) const;
@@ -245,6 +246,10 @@ public:
   }
 
   operator JNIEnv*() const {
+    return jni_env_;
+  }
+
+  JNIEnv* operator ->() const {
     return jni_env_;
   }
 
