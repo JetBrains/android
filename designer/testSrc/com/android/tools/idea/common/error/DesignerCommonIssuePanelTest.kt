@@ -36,7 +36,7 @@ class DesignerCommonIssuePanelTest {
   @Rule
   val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
 
-  @Test
+  // @Test disabled due to flaky. b/228523178
   fun testViewOptionFilter() {
     val infoSeverityIssue = TestIssue(severity = HighlightSeverity.INFORMATION)
     val warningSeverityIssue = TestIssue(severity = HighlightSeverity.WARNING)
@@ -80,7 +80,7 @@ class DesignerCommonIssuePanelTest {
     }
   }
 
-  @Test
+  // @Test disabled due to flaky. b/228523178
   fun testShowSidePanelWhenSelectIssueNode() {
     val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
     val model = DesignerCommonIssueModel()
