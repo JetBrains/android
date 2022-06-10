@@ -815,11 +815,9 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     buildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = assembleTaskName,
       assembleTaskOutputListingFile = buildPath.resolve("output/apk/$variant/output.json").path,
-      bundleTaskName = "bundle".takeIf { supportsBundleTask && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(
-        variant)?.appendCapitalized("androidTest"),
+      bundleTaskName = null,
       bundleTaskOutputListingFile = buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json").path,
-      apkFromBundleTaskName = "extractApksFor".takeIf { projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(
-        variant)?.appendCapitalized("androidTest"),
+      apkFromBundleTaskName = null,
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
@@ -923,11 +921,9 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     buildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = assembleTaskName,
       assembleTaskOutputListingFile = buildPath.resolve("output/apk/$variant/output.json").path,
-      bundleTaskName = "bundle".takeIf { supportsBundleTask && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(
-        variant)?.appendCapitalized("testFixtures"),
+      bundleTaskName = null,
       bundleTaskOutputListingFile = buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json").path,
-      apkFromBundleTaskName = "extractApksFor".takeIf { projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(
-        variant)?.appendCapitalized("testFixtures"),
+      apkFromBundleTaskName = null,
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,

@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-enum class TestCompileType(val displayName: String) {
-  ALL("All"),
-  ANDROID_TESTS("Android tests"),
-  UNIT_TESTS("Unit tests"),
+enum class TestCompileType(
+  val displayName: String,
+  val compileAndroidTests: Boolean = false,
+  val compileUnitTests: Boolean = false
+  ) {
+  ALL("All", compileAndroidTests = true, compileUnitTests = true),
+  ANDROID_TESTS("Android tests", compileAndroidTests = true),
+  UNIT_TESTS("Unit tests", compileUnitTests = true),
   NONE("None")
 }
