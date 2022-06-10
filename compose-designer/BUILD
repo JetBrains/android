@@ -108,9 +108,9 @@ iml_module(
 
 filegroup(
     name = "kotlin-compiler-daemon-libs",
-    # We only include the 1.1.0 version as part of the distribution as it is the only one needed
+    # We only include the 1.2.0 version as part of the distribution as it is the only one needed
     # for tests and canary.
-    srcs = ["lib/kotlin-compiler-daemon-1.1.0-fallback.jar"],
+    srcs = ["lib/kotlin-compiler-daemon-1.2.0-fallback.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -129,11 +129,12 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.compose.compiler.compiler_1.1.1",
-        "@maven//:androidx.compose.ui.ui-tooling_1.1.1",
+        "@maven//:androidx.compose.compiler.compiler_1.2.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling_1.2.0-beta01",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
-        "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-common_2.4.0",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
@@ -144,12 +145,12 @@ maven_repository(
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
