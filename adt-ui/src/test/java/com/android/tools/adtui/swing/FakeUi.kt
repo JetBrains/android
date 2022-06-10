@@ -196,7 +196,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * search starting from the root component, or null if no components satisfy the predicate.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? {
+  fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? {
     if (type.isInstance(root) && predicate(root as T)) {
       return root
     }
@@ -218,22 +218,22 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return null
   }
 
-  inline fun <reified T> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
+  inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
     findComponent(T::class.java) { predicate(it) }
 
-  fun <T> findComponent(type: Class<T>, predicate: Predicate<T>): T? = findComponent(type, predicate::test)
+  fun <T: Any> findComponent(type: Class<T>, predicate: Predicate<T>): T? = findComponent(type, predicate::test)
 
-  inline fun <reified T> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
+  inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
     findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
 
-  fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T = findComponent(type, predicate::test) ?: throw AssertionError()
+  fun <T: Any> getComponent(type: Class<T>, predicate: Predicate<T>): T = findComponent(type, predicate::test) ?: throw AssertionError()
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first
    * order.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
+  fun <T: Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
     val result = mutableListOf<T>()
     if (type.isInstance(root) && predicate(root as T)) {
       result.add(root)
@@ -256,7 +256,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return result
   }
 
-  inline fun <reified T> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
+  inline fun <reified T: Any> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
     findAllComponents(T::class.java) { predicate(it) }
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? = findTarget(root, x, y)
