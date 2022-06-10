@@ -134,7 +134,7 @@ internal class EmbeddedCompilerClientImplTest {
       }
     }
 
-    // Test with inline analysis disabled. This should fail when using inline methods in other files.
+    // Test with inline analysis disabled. This should pass when using inline methods in other files.
     run {
       val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), true)

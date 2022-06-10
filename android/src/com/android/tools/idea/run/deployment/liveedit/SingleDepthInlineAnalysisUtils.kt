@@ -80,17 +80,20 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
       println("Unable to local $className in the build system.")
     }
 
-    val file = Paths.get(vFile?.path)
+    bytecode = vFile?.let {
+      val file = Paths.get(it.path)
 
-    if (!file.exists()) {
-      // TODO REMOVE
-      println("Build output $file NOT found")
-      return
-    } else {
-      // TODO REMOVE
-      println("Build output $file found")
+      if (!file.exists()) {
+        // TODO REMOVE
+        println("Build output $file NOT found")
+        return
+      } else {
+        // TODO REMOVE
+        println("Build output $file found")
+      }
+
+      return@let Files.readAllBytes(file)
     }
-    bytecode = Files.readAllBytes(file)
   }
 
   /**

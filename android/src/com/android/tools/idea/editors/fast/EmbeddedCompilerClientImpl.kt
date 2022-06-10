@@ -16,9 +16,11 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -101,6 +103,11 @@ class EmbeddedCompilerClientImpl(
   override val isRunning: Boolean
     get() = daemonLock.holdsLock(this)
 
+  /**
+   * The Live Edit inline candidates cache. The cache can only be accessed with the Compile lock (see [runWithCompileLock]).
+   * The cache is automatically invalidated on build.
+   */
+  private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache
 
   /**
    * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
@@ -118,20 +125,13 @@ class EmbeddedCompilerClientImpl(
         val languageVersionSettings = inputs.first().languageVersionSettings
         log.debug("analyze")
         val bindingContext = analyze(inputs, resolution)
+        val inlineCandidates = inputs
+          .flatMap { analyzeSingleDepthInlinedFunctions(resolution, it, bindingContext, inlineCandidateCache) }
+          .toSet()
         ProgressManager.checkCanceled()
         log.debug("backCodeGen")
         try {
-          /**
-           * TODO: Use SourceInlineCandidateCache to avoid full source analysis for better performance:
-           *
-           * It should:
-           *
-           * 1) Created once per project and reused on every edit
-           * 2) If a real gradle build is invoked, clear all the entries there.
-           */
-          backendCodeGen(project, resolution, bindingContext, inputs,
-                         module,
-                         null,
+          backendCodeGen(project, resolution, bindingContext, inputs, module, inlineCandidates,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
         catch (e: LiveEditUpdateException) {
@@ -151,7 +151,7 @@ class EmbeddedCompilerClientImpl(
           // We will need to start using the binding context from the new analysis for code gen.
           val newBindingContext = newAnalysisResult.bindingContext
 
-          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, module,null,
+          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, module, inlineCandidates,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
       }
