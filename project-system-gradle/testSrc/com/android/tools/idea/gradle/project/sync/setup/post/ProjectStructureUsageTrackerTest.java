@@ -31,6 +31,7 @@ import java.util.List;
 import static com.android.tools.idea.model.AndroidModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_WATCHFACE;
 
 /**
  * Tests for {@link ProjectStructureUsageTracker}.
@@ -67,6 +68,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
 
+    Thread.sleep(5000);
     assertEquals(1,
                  usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).count());
     LoggedUsage usage =
@@ -98,6 +100,40 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                         .setFlavorDimension(0)
                                         .setSigningConfigCount(1))
                    .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
+                   .build(), usage.getStudioEvent().getGradleBuildDetails());
+  }
+
+  public void testProductStructureUsageWithWearHardware() throws Exception {
+    trackGradleProject(RUN_CONFIG_WATCHFACE);
+
+    List<LoggedUsage> usages = myUsageTracker.getUsages();
+
+    Thread.sleep(5000);
+    assertEquals(1,
+                 usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).count());
+    LoggedUsage usage =
+      usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).findFirst().get();
+    assertEquals(0, usage.getTimestamp());
+    assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
+    assertEquals(GradleBuildDetails.newBuilder()
+                   .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
+                   .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
+                   .addLibraries(GradleLibrary.newBuilder()
+                                   .setJarDependencyCount(0)
+                                   .setAarDependencyCount(0))
+                   .addModules(GradleModule.newBuilder()
+                                 .setTotalModuleCount(1)
+                                 .setAppModuleCount(1)
+                                 .setLibModuleCount(0))
+                   .addAndroidModules(GradleAndroidModule.newBuilder()
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("testProductStructureUsageWithWearHardware"))
+                                        .setIsLibrary(false)
+                                        .setBuildTypeCount(2)
+                                        .setFlavorCount(0)
+                                        .setFlavorDimension(0)
+                                        .setSigningConfigCount(1)
+                                        .setRequiredHardware("android.hardware.type.watch"))
+                   .setAppId(AnonymizerUtil.anonymizeUtf8("from.gradle.debug"))
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 
