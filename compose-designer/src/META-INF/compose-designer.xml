@@ -121,6 +121,10 @@
     <completion.contributor language="DeviceSpec"
                             id="DeviceSpecContributor"
                             implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecCompletionContributor"/>
+    <lang.syntaxHighlighterFactory
+      language="DeviceSpec"
+      implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecSyntaxHighlighterFactory"
+      />
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
