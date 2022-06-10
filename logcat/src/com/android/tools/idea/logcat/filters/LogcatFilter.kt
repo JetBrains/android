@@ -82,13 +82,13 @@ internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilt
 
 internal enum class LogcatFilterField {
   TAG {
-    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.tag
+    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.tag
   },
   APP {
-    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.getAppName()
+    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.getAppName()
   },
   MESSAGE {
-    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.message
+    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.message
   },
   LINE {
     override fun getValue(message: LogcatMessageWrapper) = message.logLine
@@ -139,12 +139,12 @@ internal data class NegatedRegexFilter(val string: String, val field: LogcatFilt
 }
 
 internal data class LevelFilter(val level: LogLevel) : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel >= level
+  override fun matches(message: LogcatMessageWrapper) = message.logcatMessage.header.logLevel >= level
 }
 
 internal data class AgeFilter(val age: Duration, private val clock: Clock) : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) =
-    clock.millis() - message.logCatMessage.header.timestamp.toEpochMilli() <= age.toMillis()
+    clock.millis() - message.logcatMessage.header.timestamp.toEpochMilli() <= age.toMillis()
 }
 
 /**
@@ -160,9 +160,9 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
   }
 
   override fun matches(message: LogcatMessageWrapper): Boolean {
-    val header = message.logCatMessage.header
+    val header = message.logcatMessage.header
     return packageNames.contains(header.getAppName())
-           || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logCatMessage.message))
+           || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logcatMessage.message))
   }
 
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
@@ -192,10 +192,10 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
 */
 internal object CrashFilter : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper): Boolean {
-    val header = message.logCatMessage.header
+    val header = message.logcatMessage.header
     val level = header.logLevel
     val tag = header.tag
-    return (level == ERROR && tag == "AndroidRuntime" && message.logCatMessage.message.startsWith("FATAL EXCEPTION"))
+    return (level == ERROR && tag == "AndroidRuntime" && message.logcatMessage.message.startsWith("FATAL EXCEPTION"))
            || (level == ASSERT && (tag == "DEBUG" || tag == "libc"))
   }
 }
@@ -203,5 +203,5 @@ internal object CrashFilter : LogcatFilter {
 private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")
 
 internal object StackTraceFilter : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logCatMessage.message) != null
+  override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logcatMessage.message) != null
 }

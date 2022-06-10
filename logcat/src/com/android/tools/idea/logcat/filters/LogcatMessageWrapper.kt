@@ -36,9 +36,10 @@ private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()
   .toFormatter(Locale.ROOT)
 
 /**
- * Todo
+ * A wrapper around LogcatMessage that holds the complete log lne as a lazy property so it doesn't have to be computed for each filter
+ * evaluation.
  */
-internal class LogcatMessageWrapper(val logCatMessage: LogcatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
+internal class LogcatMessageWrapper(val logcatMessage: LogcatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
   val logLine by lazy { toLine(zoneId) }
 
   /**
@@ -47,8 +48,8 @@ internal class LogcatMessageWrapper(val logCatMessage: LogcatMessage, zoneId: Zo
    * See [Never use toString() for behaviour](https://java.christmas/2019/4)
    */
   private fun toLine(zoneId: ZoneId): String {
-    val (logLevel, pid, tid, applicationId, _, tag, timestamp) = logCatMessage.header
+    val (logLevel, pid, tid, applicationId, _, tag, timestamp) = logcatMessage.header
     val datetime = DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, zoneId))
-    return "$datetime$pid-$tid $tag $applicationId ${logLevel.priorityLetter}: ${logCatMessage.message}"
+    return "$datetime$pid-$tid $tag $applicationId ${logLevel.priorityLetter}: ${logcatMessage.message}"
   }
 }

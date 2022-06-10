@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
@@ -25,9 +25,9 @@ import org.junit.Test
  * Tests for [MessageBacklog]
  */
 class MessageBacklogTest {
-  private val message1 = logCatMessage(message = "Message 1")
-  private val message2 = logCatMessage(message = "Message 2")
-  private val message3 = logCatMessage(message = "Message 3")
+  private val message1 = logcatMessage(message = "Message 1")
+  private val message2 = logcatMessage(message = "Message 2")
+  private val message3 = logcatMessage(message = "Message 3")
 
   @Test
   fun create_smallSize() {

@@ -24,7 +24,7 @@ import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatMessage
@@ -126,9 +126,9 @@ class LogcatServiceImplTest {
     val messages = service.readLogcat(device30).toList().flatten()
 
     assertThat(messages).containsExactly(
-      logCatMessage(
+      logcatMessage(
         DEBUG, 1, 1000, "app-1.1", "process-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(619)), "A message"),
-      logCatMessage(
+      logcatMessage(
         INFO, 1, 1000, "app-1.1", "process-1.1", "Tag", Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(700)), "Last message"),
       LogcatMessage(SYSTEM_HEADER, "Error message\n\nMore error information"),
     )

@@ -57,7 +57,7 @@ internal fun MessageProcessor.onIdle(run: () -> Unit) {
 /**
  * Convenience creation of a [LogcatMessage] for testing
  */
-internal fun logCatMessage(
+internal fun logcatMessage(
   logLevel: LogLevel = INFO,
   pid: Int = 1,
   tid: Int = 2,
@@ -70,7 +70,7 @@ internal fun logCatMessage(
 /**
  * Convenience creation of a [LogcatMessage] for testing
  */
-internal fun logCatMessage(
+internal fun logcatMessage(
   logLevel: LogLevel = INFO,
   pid: Int = 1,
   tid: Int = 2,

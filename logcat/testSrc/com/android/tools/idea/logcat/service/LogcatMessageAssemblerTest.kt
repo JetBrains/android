@@ -82,7 +82,7 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 123L, "Message 1")))
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 123L, "Message 1")))
   }
 
   @Test
@@ -107,10 +107,10 @@ class LogcatMessageAssemblerTest {
     channel.close()
     assertThat(channel.toList()).containsExactly(
       listOf(
-        logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 101L, "Message 1"),
-        logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 102L, "Message 2"),
+        logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 101L, "Message 1"),
+        logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 102L, "Message 2"),
       ),
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 103L, "Message 3")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 103L, "Message 3")),
     )
   }
 
@@ -140,9 +140,9 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
-      listOf(logCatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2 Line 1\nMessage 2 Line 2")),
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3")),
+      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
+      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2 Line 1\nMessage 2 Line 2")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3")),
     )
   }
 
@@ -174,12 +174,12 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
+      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
       listOf(
-        logCatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2"),
-        logCatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3"),
+        logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2"),
+        logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3"),
       ),
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag4", 1619900000L, 123L, "Message 4")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag4", 1619900000L, 123L, "Message 4")),
     )
   }
 
@@ -210,9 +210,9 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1")),
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2 Line 1\n\nMessage 2 Line 3")),
-      listOf(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2 Line 1\n\nMessage 2 Line 3")),
+      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3")),
     )
   }
 
@@ -245,8 +245,8 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3")),
-      listOf(logCatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2")),
+      listOf(logcatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3")),
+      listOf(logcatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2")),
     )
   }
 
@@ -273,9 +273,9 @@ class LogcatMessageAssemblerTest {
       listOf(
         LogcatMessage(SYSTEM_HEADER, "--------- beginning of crash"),
         LogcatMessage(SYSTEM_HEADER, "--------- beginning of system"),
-        logCatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag1", 1619900001L, 123L, "Message 1"),
+        logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag1", 1619900001L, 123L, "Message 1"),
       ),
-      listOf(logCatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
+      listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
     )
   }
 
@@ -296,7 +296,7 @@ class LogcatMessageAssemblerTest {
     advanceUntilIdle()
     channel.close()
     assertThat(channel.toList()).containsExactly(
-      listOf(logCatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
+      listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
     )
   }
 
@@ -319,10 +319,10 @@ class LogcatMessageAssemblerTest {
 
       """
     )
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
     assertThat(channel.isEmpty)
     advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
 
     assembler.processNewLines(
       """
@@ -334,10 +334,10 @@ class LogcatMessageAssemblerTest {
 
       """
     )
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
     assertThat(channel.isEmpty)
     advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
 
     assembler.processNewLines(
       """
@@ -349,10 +349,10 @@ class LogcatMessageAssemblerTest {
 
       """
     )
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
     assertThat(channel.isEmpty)
     advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logCatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
+    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
     channel.close()
     advanceUntilIdle()
     assertThat(channel.isEmpty)
@@ -426,7 +426,7 @@ class LogcatMessageAssemblerTest {
 
     advanceUntilIdle()
     channel.close()
-    assertThat(channel.toList()).containsExactly(listOf(logCatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")))
+    assertThat(channel.toList()).containsExactly(listOf(logcatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")))
   }
 
 
@@ -444,7 +444,7 @@ class LogcatMessageAssemblerTest {
       coroutineContext)
 }
 
-private fun logCatMessage(
+private fun logcatMessage(
   level: LogLevel,
   pid: Int,
   tid: Int,
