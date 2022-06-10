@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.strings.action
 import com.android.ide.common.resources.Locale
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -51,7 +52,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -69,7 +69,6 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.test.fail
-import org.mockito.Mockito.`when` as whenever
 
 /** Tests the [FilterKeysAction] class. */
 @RunWith(JUnit4::class)
@@ -117,14 +116,14 @@ class FilterKeysActionTest {
     whenever(panel.table).thenReturn(table)
     whenever(table.model).thenReturn(model)
 
-    doAnswer { rowFilter }.`when`(table).rowFilter
+    doAnswer { rowFilter }.whenever(table).rowFilter
     doAnswer {
       rowFilter = it.getArgument(0)
       Unit
-    }.`when`(table).setRowFilter(any())
+    }.whenever(table).setRowFilter(any())
 
     // Mock the WindowManager so the call to windowManager.getFrame will not return null.
-    // A null frame causes ComboBoxAction.actionPeformed(...) to return early before it invokes
+    // A null frame causes ComboBoxAction.actionPerformed(...) to return early before it invokes
     // createActionPopup, and thus will do nothing and can't be tested.
     val windowManager: WindowManager = mock()
     val frame: JFrame = mock(withSettings().extraInterfaces(IdeFrame::class.java))
@@ -156,7 +155,7 @@ class FilterKeysActionTest {
     rowFilter = object : StringResourceTableRowFilter() {
       override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean = throw NotImplementedError("Not called")
       override fun getDescription(): String = presentationText
-      override fun getIcon(): Icon? = AllIcons.Idea_logo_welcome
+      override fun getIcon(): Icon = AllIcons.Idea_logo_welcome
     }
 
     filterKeysAction.update(event)

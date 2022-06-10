@@ -154,7 +154,7 @@ public class StringResourceViewPanel implements Disposable {
     group.add(new RemoveKeysAction());
     group.add(new AddLocaleAction());
     group.add(new FilterKeysAction());
-    group.add(new FilterLocalesAction(myTable));
+    group.add(new FilterLocalesAction());
     group.add(new ReloadStringResourcesAction());
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 

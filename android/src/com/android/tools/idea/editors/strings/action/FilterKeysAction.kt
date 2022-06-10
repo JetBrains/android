@@ -37,11 +37,11 @@ import javax.swing.JTextField
 
 /** Action to allow the user to filter keys in the Translations Editor by various properties. */
 class FilterKeysAction : ComboBoxAction() {
-  override fun update(e: AnActionEvent) {
-    val editor = e.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
+  override fun update(event: AnActionEvent) {
+    val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.rowFilter
-    e.presentation.icon = filter?.getIcon()
-    e.presentation.text = filter?.getDescription() ?: "Show All Keys"
+    event.presentation.icon = filter?.getIcon()
+    event.presentation.text = filter?.getDescription() ?: NO_FILTER_TITLE
   }
 
   @Deprecated("Call the two-argument version instead.")
@@ -52,7 +52,7 @@ class FilterKeysAction : ComboBoxAction() {
   override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
     val group = DefaultActionGroup.createPopupGroupWithEmptyText()
 
-    group.add(rowFilterUpdatingAction("Show All Keys") { null })
+    group.add(rowFilterUpdatingAction(NO_FILTER_TITLE) { null })
 
     group.add(rowFilterUpdatingAction("Show Translatable Keys") { TranslatableRowFilter() })
 
@@ -91,9 +91,10 @@ class FilterKeysAction : ComboBoxAction() {
   }
 
   companion object {
+    private const val NO_FILTER_TITLE = "Show All Keys"
     /**
      * Returns a [PanelAction] that sets the row filter to filter for strings that need translation
-     * to the specified [Locale]
+     * to the specified [Locale].
      */
     private fun newShowKeysNeedingTranslationForLocaleAction(locale: Locale): PanelAction {
       val text = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
@@ -102,6 +103,7 @@ class FilterKeysAction : ComboBoxAction() {
       }
     }
 
+    /** Returns a [PanelAction] that updates the row filter on the table using the result of the [rowFilterSupplier]. */
     private fun rowFilterUpdatingAction(
         text: String,
         description: String? = null,
