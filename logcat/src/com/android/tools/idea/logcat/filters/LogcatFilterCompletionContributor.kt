@@ -80,6 +80,8 @@ private val LEVEL_LOOKUPS_UPPERCASE = LogLevel.values()
 
 private val IS_LOOKUPS = listOf("crash", "stacktrace").map { it.toLookupElement(suffix = " ") }
 
+private val AGE_LOOKUPS = listOf("30s", "5m", "3h", "1d").map { it.toLookupElement(suffix = " ") }
+
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"
 
@@ -135,6 +137,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                when {
                  parameters.findPreviousText() == LEVEL_KEY -> result.addLevelLookups()
                  parameters.findPreviousText() == IS_KEY && StudioFlags.LOGCAT_IS_FILTER.get() -> result.addAllElements(IS_LOOKUPS)
+                 parameters.findPreviousText() == AGE_KEY -> result.addAllElements(AGE_LOOKUPS)
                }
                result.addHints()
              }

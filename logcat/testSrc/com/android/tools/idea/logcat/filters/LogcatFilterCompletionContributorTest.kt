@@ -162,7 +162,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withoutWhitespace() {
-    for (key in ALL_STRING_KEYS + "age:") {
+    for (key in ALL_STRING_KEYS) {
       fixture.configure("$key$caret")
 
       fixture.completeBasic()
@@ -179,7 +179,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withWhitespace() {
-    for (key in ALL_STRING_KEYS + "age:") {
+    for (key in ALL_STRING_KEYS) {
       fixture.configure("$key  $caret")
 
       fixture.completeBasic()
@@ -192,6 +192,24 @@ class LogcatFilterCompletionContributorTest {
         assertThat(fixture.lookupElementStrings).named("$key with whitespace").isEmpty()
       }
     }
+  }
+
+  @Test
+  fun complete_afterAge_withoutWhitespace() {
+    fixture.configure("age:$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly("1d ", "3h ", "5m ", "30s ")
+  }
+
+  @Test
+  fun complete_afterAge_withWhitespace() {
+    fixture.configure("age: $caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly("1d ", "3h ", "5m ", "30s ")
   }
 
   @Test
