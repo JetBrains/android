@@ -23,7 +23,7 @@ public class Main {
   public static void main(String[] args) {
     Log.d("ScreenSharing", "Main.main");
     try {
-      System.load("/data/local/tmp/.studio/mirroring/libscreen-sharing-agent.so");
+      System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
     }
     catch (Throwable e) {
       Log.e("ScreenSharing", "Unable to load libscreen-sharing-agent.so - " + e.getMessage());

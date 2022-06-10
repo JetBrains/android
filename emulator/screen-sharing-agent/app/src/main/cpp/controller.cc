@@ -40,7 +40,7 @@ using namespace std::chrono;
 // Names an location of the screen sharing agent's files.
 #define SCREEN_SHARING_AGENT_JAR_NAME "screen-sharing-agent.jar"
 #define SCREEN_SHARING_AGENT_SO_NAME "libscreen-sharing-agent.so"
-#define DEVICE_PATH_BASE "/data/local/tmp/.studio/mirroring"
+#define DEVICE_PATH_BASE "/data/local/tmp/.studio"
 
 namespace {
 
@@ -86,15 +86,14 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
   }
 }
 
-// Removes files of the screen sharing agent from disk.
+// Removes files of the screen sharing agent from the persistent storage.
 void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
-  remove(DEVICE_PATH_BASE);
   // TODO: Remove the following three lines after July 1, 2022.
   // Remove files at the old locations to clean devices of early device mirroring adopters.
-  remove(DEVICE_PATH_BASE "/../../" SCREEN_SHARING_AGENT_JAR_NAME);
-  remove(DEVICE_PATH_BASE "/../../" SCREEN_SHARING_AGENT_SO_NAME);
+  remove("/data/local/tmp/" SCREEN_SHARING_AGENT_JAR_NAME);
+  remove("/data/local/tmp/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
 }  // namespace

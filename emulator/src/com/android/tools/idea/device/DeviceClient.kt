@@ -54,7 +54,7 @@ import java.nio.file.attribute.PosixFilePermission
 internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/emulator/screen-sharing-agent"
-internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio/mirroring"
+internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
 
 internal class DeviceClient(
   disposableParent: Disposable,
