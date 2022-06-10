@@ -49,6 +49,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
@@ -71,42 +72,80 @@ public class StudioInteractionService {
 
   public StudioInteractionService() { }
 
-  public void invokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
-    Component component = waitForComponent(matchers);
-
-    SwingUtilities.invokeAndWait(() -> invokeComponentInternal(component));
-  }
-
   /**
-   * Waits for a component to exist, then returns it. The return value will never be null; instead,
-   * a {@code TimeoutException} is thrown.
+   * Invokes a component. The bulk of the complexity of this method's implementation comes from
+   * concurrency and modality. There are three general scenarios that this method covers:
+   * <p>
+   * <ol>
+   *   <li>Successfully finding and invoking a component which spawns a modal dialog</li>
+   *   <li>Successfully finding and invoking a component which does not spawn a modal dialog</li>
+   *   <li>Unsuccessfully finding or invoking any component</li>
+   * </ol>
+   * <p>
+   * In case #1, if we were to use {@link SwingUtilities#invokeAndWait} to find and invoke the
+   * component, then the calling thread would not resume until the modal dialog is closed (due to
+   * the "AndWait" part of "invokeAndWait"). In our case, the calling thread is the gRPC server's
+   * thread, meaning no future requests from test code could be handled. This effectively means
+   * that the test would be forever stalled—no requests can interact with the dialog (so it will
+   * never close), and the calling thread is waiting forever in
+   * {@link SwingUtilities#invokeAndWait}.
+   * <p>
+   * In cases #2 and #3, {@link SwingUtilities#invokeAndWait} <i>could</i> be used to find and
+   * invoke a component. However, because we have to accommodate case #1 anyway and because we
+   * can't distinguish which case we'll be in ahead of time, we need to opt for
+   * {@link SwingUtilities#invokeLater}.
+   * <p>
+   * In all cases, we must ensure that the component does not disappear or otherwise become invalid
+   * between <b>finding</b> and <b>invoking</b> (see b/235277847).
    */
-  private Component waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws TimeoutException, InterruptedException {
+  public void invokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
+    log("Attempting to find and invoke a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246.
-    int timeoutMillis = 60000;
+    int timeoutMillis = 10000;
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;
-    long activeTimeSpentFindingComponent = 0;
-    int numTries = 0;
+    final AtomicBoolean foundComponent = new AtomicBoolean(false);
+    final AtomicBoolean invokedComponent = new AtomicBoolean(false);
 
     while (elapsedTime < timeoutMillis) {
-      numTries++;
-      long findComponentStartTime = System.currentTimeMillis();
-      Optional<Component> component = findComponentFromMatchers(matchers);
-      activeTimeSpentFindingComponent += System.currentTimeMillis() - findComponentStartTime;
-      elapsedTime = System.currentTimeMillis() - startTime;
-      if (component.isPresent()) {
-        Component c = component.get();
-        long idleTime = elapsedTime - activeTimeSpentFindingComponent;
-        log(String.format("Component found in %dms over %d search(es) (%dms searching, %dms waiting): %s",
-                          elapsedTime, numTries, activeTimeSpentFindingComponent, idleTime, c));
-        return c;
-      }
+      SwingUtilities.invokeLater(() -> {
+          Optional<Component> component = findComponentFromMatchers(matchers);
+          if (component.isPresent()) {
+            foundComponent.set(true);
+            invokeComponentInternal(component.get());
+          }
+      });
 
+      // The invokeLater call above queues a Runnable to be executed on the UI thread at some point
+      // in the future. This means that the calling thread continues its own execution immediately.
+      // However, the calling thread needs to know whether the Runnable was successful so that we
+      // can decide whether to return, retry, or timeout.
+      //
+      // In cases #2 and #3 from the method-level comment, the invokeAndWait Runnable below will
+      // only run once the invokeLater Runnable is complete.
+      //
+      // In case #1 though, the invokeLater Runnable will eventually try spawning a modal dialog,
+      // at which point Swing will know that it can execute the invokeAndWait Runnable even though
+      // the invokeLater Runnable hasn't finished.
+      SwingUtilities.invokeAndWait(() -> {
+        if (foundComponent.get()) {
+          // Note: all we can know is that we ATTEMPTED to invoke the component, not that it was
+          // successful.
+          invokedComponent.set(true);
+        }
+      });
+
+      if (invokedComponent.get()) {
+        break;
+      }
       Thread.sleep(msBetweenRetries);
+      elapsedTime = System.currentTimeMillis() - startTime;
     }
-    throw new TimeoutException("Timed out after " + elapsedTime + "ms.");
+
+    if (elapsedTime >= timeoutMillis) {
+      throw new TimeoutException(String.format("Timed out after %dms", elapsedTime));
+    }
   }
 
   private void log(String text) {
@@ -121,9 +160,7 @@ public class StudioInteractionService {
     } else if (component instanceof LinkLabel) {
       LinkLabel componentAsLink = (LinkLabel)component;
       log("Invoking LinkLabel: " + componentAsLink);
-      // LinkLabel instances in particular block execution when invoked, so they must be "clicked"
-      // via invokeLater so that test code can still interact with any resulting dialogs.
-      SwingUtilities.invokeLater(componentAsLink::doClick);
+      componentAsLink.doClick();
     } else if (component instanceof NotificationComponent) {
       log("Invoking hyperlink in Notification: " + component);
       ((NotificationComponent)component).hyperlinkUpdate();
