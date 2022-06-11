@@ -27,6 +27,7 @@ import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.jfr.RecordingManager;
+import com.android.tools.idea.diagnostics.jfr.reports.ReportTypesKt;
 import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
@@ -178,6 +179,9 @@ public final class AndroidStudioSystemHealthMonitor {
     Integer.getInteger("studio.diagnostic.histogram.maxReports", 10);
   private static final int MAX_FREEZE_REPORTS_COUNT =
     Integer.getInteger("studio.diagnostic.freeze.maxReports",
+                       ApplicationManager.getApplication().isEAP() ? 20 : 1);
+  private static final int MAX_JFR_REPORTS_COUNT =
+    Integer.getInteger("studio.diagnostic.jfr.maxReports",
                        ApplicationManager.getApplication().isEAP() ? 20 : 1);
 
   private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
@@ -461,7 +465,7 @@ public final class AndroidStudioSystemHealthMonitor {
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
-    RecordingManager.init();
+    RecordingManager.init(this::tryAppendReportToDatabase);
 
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
@@ -752,6 +756,9 @@ public final class AndroidStudioSystemHealthMonitor {
         sendDiagnosticReportsOfTypeWithLimit(PerformanceThreadDumpReport.REPORT_TYPE, reports, MAX_PERFORMANCE_REPORTS_COUNT);
         sendDiagnosticReportsOfTypeWithLimit(HistogramReport.REPORT_TYPE, reports, MAX_HISTOGRAM_REPORTS_COUNT);
         sendDiagnosticReportsOfTypeWithLimit(FreezeReport.REPORT_TYPE, reports, MAX_FREEZE_REPORTS_COUNT);
+        for (String type : ReportTypesKt.getTypesToFields().keySet()) {
+          sendDiagnosticReportsOfTypeWithLimit(type, reports, MAX_JFR_REPORTS_COUNT);
+        }
       });
     }
 

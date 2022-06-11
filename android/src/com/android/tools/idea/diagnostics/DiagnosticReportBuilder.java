@@ -73,8 +73,7 @@ public class DiagnosticReportBuilder {
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
       new MemoryUseReportContributor(),
-      new ActionsReportContributor(),
-      new JfrReportContributor()
+      new ActionsReportContributor()
     );
     myBinaryReportPaths = new TreeMap<>();
 

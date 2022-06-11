@@ -15,62 +15,144 @@
  */
 package com.android.tools.idea.diagnostics.jfr;
 
+import com.android.tools.idea.diagnostics.jfr.reports.JfrFreezeReports;
+import com.android.tools.idea.diagnostics.report.JfrBasedReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.AnActionListener;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.LowMemoryWatcher;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import jdk.jfr.Event;
+import jdk.jfr.Recording;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class RecordingManager {
 
-  public static final int JFR_RECORDING_DURATION_SECONDS = 30;
-  public static final int MAX_FROZEN_TIME_RECORDED_SECONDS = 90;
+  private static final Logger LOG = Logger.getInstance(RecordingManager.class);
 
+  public static final int JFR_RECORDING_DURATION_SECONDS = 30;
+  private static final int MAX_CAPTURE_DURATION_SECONDS = 300;
   private static final String JFR_SERVER_FLAG_NAME = "diagnostics/jfr";
 
-  private enum FreezeState { NOT_FROZEN, FROZEN }
+  private static final List<JfrReportGenerator.Capture> pendingCaptures = new ArrayList<>();
+  private static Instant previousRecordingEnd = Instant.MIN;
 
-  private static RecordingBuffer recordings = new RecordingBuffer();
+  private static final RecordingBuffer recordings = new RecordingBuffer();
   private static final Object jfrLock = new Object();
-  private static FreezeState freezeState = FreezeState.NOT_FROZEN;
-  private static long freezeStart;
   private static LowMemoryWatcher lowMemoryWatcher;
+  private static Consumer<DiagnosticReport> reportCallback;
 
-  public static void init() {
+  public static void init(Consumer<DiagnosticReport> callback) {
     if (ServerFlagService.Companion.getInstance().getBoolean(JFR_SERVER_FLAG_NAME, false)) {
+      reportCallback = callback;
       setupActionEvents();
-      setupFreezeEvents();
       setupLowMemoryEvents();
 
       JobScheduler.getScheduler().scheduleWithFixedDelay(new Runnable() {
         @Override
         public void run() {
+          Instant recordingEnd = Instant.now();
           synchronized (jfrLock) {
-            if (freezeState == FreezeState.NOT_FROZEN) {
-              recordings.swapBuffers();
-            } else if (recordings.isRecordingAndFrozen()) {
-              if (System.currentTimeMillis() - freezeStart > MAX_FROZEN_TIME_RECORDED_SECONDS * 1000) {
-                recordings.truncateLongFreeze();
+            try {
+              Recording rec = recordings.swapBuffers();
+              if (rec != null) {
+                boolean hasActiveCaptures = false;
+                for (JfrReportGenerator.Capture c : pendingCaptures) {
+                  // don't need to check if the capture's end is before the start of the previous recording,
+                  // since it would have been deleted by the previous call to purgeCompletedCaptures.
+                  if (c.getStart().isBefore(previousRecordingEnd)) {
+                    hasActiveCaptures = true;
+                    break;
+                  }
+                }
+                if (hasActiveCaptures) {
+                  Path recPath = new File(FileUtil.getTempDirectory(), "recording.jfr").toPath();
+                  rec.dump(recPath);
+                  rec.close();
+                  readAndDispatchRecordingEvents(recPath);
+                  Files.deleteIfExists(recPath);
+                }
               }
+            } catch (IOException e) {
+              LOG.warn(e);
             }
+            purgeCompletedCaptures();
+            previousRecordingEnd = recordingEnd;
           }
         }
       }, 0, JFR_RECORDING_DURATION_SECONDS, TimeUnit.SECONDS);
+    }
+    createReportManagers();
+  }
+
+  private static void createReportManagers() {
+    JfrFreezeReports.Companion.getFreezeReportManager();
+  }
+
+  static void startCapture(JfrReportGenerator.Capture capture) {
+    synchronized (jfrLock) {
+      pendingCaptures.add(capture);
+    }
+  }
+
+  private static void readAndDispatchRecordingEvents(Path recPath) throws IOException {
+    try (RecordingFile recordingFile = new RecordingFile(recPath)) {
+      while (recordingFile.hasMoreEvents()) {
+        RecordedEvent e = recordingFile.readEvent();
+        for (JfrReportGenerator.Capture capture : pendingCaptures) {
+          if (capture.containsInstant(e.getStartTime()) && capture.getGenerator().getEventFilter().accept(e)) {
+            capture.getGenerator().accept(e, capture);
+          }
+        }
+      }
+    }
+  }
+
+  private static void purgeCompletedCaptures() {
+    for (int i = pendingCaptures.size() - 1; i >= 0; i--) {
+      JfrReportGenerator.Capture capture = pendingCaptures.get(i);
+      if (capture.getEnd() != null && capture.getEnd().isBefore(previousRecordingEnd)) {
+        JfrReportGenerator generator = capture.getGenerator();
+        generator.captureCompleted(capture);
+        if (generator.isFinished()) {
+          generateReport(generator);
+        }
+        pendingCaptures.remove(i);
+      }
+    }
+  }
+
+  private static void generateReport(JfrReportGenerator gen) {
+    try {
+      Map<String, String> report = gen.generateReport();
+      if (!report.isEmpty()) {
+        reportCallback.accept(new JfrBasedReport(gen.getReportType(), gen.generateReport(), new DiagnosticReportProperties()));
+      }
+    } catch (Exception e) {
+      LOG.warn(e);
     }
   }
 
@@ -96,27 +178,6 @@ public class RecordingManager {
         if (a != null) {
           jfrEventMap.remove(event);
           a.commit();
-        }
-      }
-    });
-  }
-
-  private static void setupFreezeEvents() {
-    Application application = ApplicationManager.getApplication();
-    application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
-      @Override
-      public void uiFreezeStarted() {
-        synchronized (jfrLock) {
-          recordings.startFreeze();
-          freezeStart = System.currentTimeMillis();
-          freezeState = FreezeState.FROZEN;
-        }
-      }
-
-      @Override
-      public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
-        synchronized (jfrLock) {
-          freezeState = FreezeState.NOT_FROZEN;
         }
       }
     });
