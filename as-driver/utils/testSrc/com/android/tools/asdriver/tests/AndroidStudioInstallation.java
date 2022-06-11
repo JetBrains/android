@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.HashMap;
@@ -41,6 +42,8 @@ public class AndroidStudioInstallation {
   private final LogFile ideaLog;
   private final Path studioDir;
   private final Path vmOptionsPath;
+  private final Path configDir;
+  private final Path homeDir;
 
   public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
     Path workDir = Files.createTempDirectory(tempDir, "android-studio");
@@ -67,8 +70,11 @@ public class AndroidStudioInstallation {
     Files.createFile(ideaLog.getPath());
 
     vmOptionsPath = workDir.resolve("studio.vmoptions");
-    Path configDir = workDir.resolve("config");
+    configDir = workDir.resolve("config");
     Files.createDirectories(configDir);
+
+    homeDir = workDir.resolve("home");
+    Files.createDirectories(homeDir);
 
     setConsentGranted(true);
     createVmOptionsFile();
@@ -85,7 +91,7 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
                        String.format("-Didea.system.path=%s/system\n", workDir) +
                        String.format("-Didea.log.path=%s/system/log\n", workDir) +
-                       String.format("-Duser.home=%s/home\n", workDir);
+                       String.format("-Duser.home=%s\n", homeDir);
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
 
@@ -211,6 +217,10 @@ public class AndroidStudioInstallation {
     return studioDir;
   }
 
+  public Path getHomeDir() {
+    return homeDir;
+  }
+
   public LogFile getStdout() {
     return stdout;
   }
@@ -256,12 +266,39 @@ public class AndroidStudioInstallation {
   }
 
   public AndroidStudio run(Display display) throws IOException, InterruptedException {
-    return run(display, new HashMap<>());
+    return run(display, new HashMap<>(), new String[] {});
   }
 
   public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
+    return run(display, env, new String[] {});
+  }
+
+  public AndroidStudio run(Display display, Map<String, String> env, String[] args) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
-    return AndroidStudio.run(this, display, newEnv);
+    newEnv.put("ANDROID_USER_HOME", homeDir.resolve(".android").toString());
+
+    return AndroidStudio.run(this, display, newEnv, args);
+  }
+
+  public void trustPath(Path path) throws IOException {
+    Path trustedPaths = configDir.resolve("options").resolve("trusted-paths.xml");
+    Files.createDirectories(trustedPaths.getParent());
+    Files.writeString(trustedPaths, "<application>\n" +
+                                    "  <component name=\"Trusted.Paths\">\n" +
+                                    "    <option name=\"TRUSTED_PROJECT_PATHS\">\n" +
+                                    "      <map>\n" +
+                                    "        <entry key=\"" + path + "\" value=\"true\" />\n" +
+                                    "      </map>\n" +
+                                    "    </option>\n" +
+                                    "  </component>\n" +
+                                    "  <component name=\"Trusted.Paths.Settings\">\n" +
+                                    "    <option name=\"TRUSTED_PATHS\">\n" +
+                                    "      <list>\n" +
+                                    "        <option value=\"" + path.getParent() + "\" />\n" +
+                                    "      </list>\n" +
+                                    "    </option>\n" +
+                                    "  </component>\n" +
+                                    "</application>");
   }
 }

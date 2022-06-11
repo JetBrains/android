@@ -59,6 +59,7 @@ iml_module(
     data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/vendor/google/testing/display:ffmpeg_files",
         "//tools/vendor/google/testing/display:xvfb",
     ],
     iml_files = ["utils/as-driver.utils.iml"],

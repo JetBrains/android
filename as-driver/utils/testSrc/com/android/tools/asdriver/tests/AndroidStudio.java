@@ -22,6 +22,8 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
@@ -35,11 +37,14 @@ public class AndroidStudio implements AutoCloseable {
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
-                       Map<String, String> env) throws IOException, InterruptedException {
+                       Map<String, String> env,
+                       String[] args) throws IOException, InterruptedException {
     Path workDir = installation.getWorkDir();
 
-
-    ProcessBuilder pb = new ProcessBuilder(workDir.resolve("android-studio/bin/studio.sh").toString());
+    ArrayList<String> command = new ArrayList<>(args.length + 1);
+    command.add(workDir.resolve("android-studio/bin/studio.sh").toString());
+    command.addAll(Arrays.asList(args));
+    ProcessBuilder pb = new ProcessBuilder(command);
     pb.environment().clear();
 
     for (Map.Entry<String, String> entry : env.entrySet()) {
