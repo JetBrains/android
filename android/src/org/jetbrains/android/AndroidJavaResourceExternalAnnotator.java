@@ -42,7 +42,7 @@ public class AndroidJavaResourceExternalAnnotator extends AndroidResourceExterna
     FileAnnotationInfo annotationInfo = new FileAnnotationInfo(facet, file, editor);
     file.accept(new JavaRecursiveElementWalkingVisitor() {
       @Override
-      public void visitReferenceElement(PsiJavaCodeReferenceElement element) {
+      public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement element) {
         ResourceType type = AndroidPsiUtils.getResourceType(element);
         if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
           AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);

@@ -100,7 +100,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       final PsiJavaFile file = (PsiJavaFile) element;
       file.accept(new JavaRecursiveElementWalkingVisitor() {
         @Override
-        public void visitReferenceExpression(PsiReferenceExpression expression) {
+        public void visitReferenceExpression(@NotNull PsiReferenceExpression expression) {
           InlinedResource inlinedResource = findJavaExpressionReference(expression);
           if (inlinedResource != null) {
             result.add(inlinedResource.getDescriptor());

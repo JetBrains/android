@@ -155,7 +155,7 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   private fun getFirstParameter(file: PsiFile): PsiParameter {
     var first: PsiParameter? = null
     file.accept(object : JavaRecursiveElementVisitor() {
-      override fun visitParameter(parameter: PsiParameter?) {
+      override fun visitParameter(parameter: PsiParameter) {
         if (first == null) {
           first = parameter
         }

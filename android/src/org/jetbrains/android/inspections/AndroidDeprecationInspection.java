@@ -118,25 +118,25 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     }
 
     @Override
-    public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+    public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement reference) {
       JavaResolveResult result = reference.advancedResolve(true);
       PsiElement resolved = result.getElement();
       checkDeprecated(resolved, reference.getReferenceNameElement(), null, myIgnoreInsideDeprecated, myIgnoreImportStatements, myIgnoreMethodsOfDeprecated, myHolder);
     }
 
     @Override
-    public void visitImportStaticStatement(PsiImportStaticStatement statement) {
+    public void visitImportStaticStatement(@NotNull PsiImportStaticStatement statement) {
       final PsiJavaCodeReferenceElement importReference = statement.getImportReference();
       if (importReference != null) {
         checkDeprecated(importReference.resolve(), importReference.getReferenceNameElement(), null, myIgnoreInsideDeprecated, false, true, myHolder);
       }
     }
 
-    @Override public void visitReferenceExpression(PsiReferenceExpression expression) {
+    @Override public void visitReferenceExpression(@NotNull PsiReferenceExpression expression) {
       visitReferenceElement(expression);
     }
 
-    @Override public void visitNewExpression(PsiNewExpression expression) {
+    @Override public void visitNewExpression(@NotNull PsiNewExpression expression) {
       PsiType type = expression.getType();
       PsiExpressionList list = expression.getArgumentList();
       if (!(type instanceof PsiClassType)) return;
@@ -164,7 +164,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
       }
     }
 
-    @Override public void visitMethod(PsiMethod method){
+    @Override public void visitMethod(@NotNull PsiMethod method){
       MethodSignatureBackedByPsiMethod methodSignature = MethodSignatureBackedByPsiMethod.create(method, PsiSubstitutor.EMPTY);
       if (!method.isConstructor()) {
         List<MethodSignatureBackedByPsiMethod> superMethodSignatures = method.findSuperMethodSignaturesIncludingStatic(true);
@@ -199,7 +199,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     }
 
     @Override
-    public void visitClass(PsiClass aClass) {
+    public void visitClass(@NotNull PsiClass aClass) {
       if (aClass instanceof PsiTypeParameter) return;
       final PsiMethod[] currentConstructors = aClass.getConstructors();
       if (currentConstructors.length == 0) {

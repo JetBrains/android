@@ -43,7 +43,7 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
   public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
     return new JavaElementVisitor() {
       @Override
-      public void visitSwitchLabelStatement(PsiSwitchLabelStatement statement) {
+      public void visitSwitchLabelStatement(@NotNull PsiSwitchLabelStatement statement) {
         final AndroidFacet facet = AndroidFacet.getInstance(statement);
         if (facet == null || facet.getConfiguration().isAppProject()) {
           return;

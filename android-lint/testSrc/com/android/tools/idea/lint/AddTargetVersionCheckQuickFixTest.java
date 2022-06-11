@@ -24,6 +24,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.lint.detector.api.ExtensionSdk.ANDROID_SDK_ID;
 import static com.google.common.truth.Truth.assertThat;
@@ -48,7 +49,7 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     Ref<PsiExpression> first = new Ref<>();
     file.accept(new JavaRecursiveElementVisitor() {
       @Override
-      public void visitExpression(PsiExpression expression) {
+      public void visitExpression(@NotNull PsiExpression expression) {
         if (first.isNull()) {
           first.set(expression);
         }

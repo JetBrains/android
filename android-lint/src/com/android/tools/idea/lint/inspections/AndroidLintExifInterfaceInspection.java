@@ -183,7 +183,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         PsiFile file = element.getContainingFile();
         file.accept(new JavaRecursiveElementVisitor() {
           @Override
-          public void visitReferenceElement(PsiJavaCodeReferenceElement expression) {
+          public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement expression) {
             if (ExifInterfaceDetector.EXIF_INTERFACE.equals(expression.getReferenceName())) {
               if (expression.isQualified()) {
                 PsiElement context = expression.getParent();

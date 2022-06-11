@@ -253,7 +253,7 @@ public class PsiClassNavigation implements NavigationItem {
     }
 
     @Override
-    public void visitAnonymousClass(PsiAnonymousClass aClass) {
+    public void visitAnonymousClass(@NotNull PsiAnonymousClass aClass) {
       super.visitAnonymousClass(aClass);
       if (myAnonymousClassIndex == 0) {
         myAnonymousClass = aClass;
