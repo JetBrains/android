@@ -370,7 +370,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       }
 
       @Override
-      public void visitReferenceExpression(PsiReferenceExpression expression) {
+      public void visitReferenceExpression(@NotNull PsiReferenceExpression expression) {
         PsiElement element = expression.resolve();
         if (element instanceof PsiField) {
           AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(expression);
@@ -399,7 +399,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       }
 
       @Override
-      public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+      public void visitReferenceElement(@NotNull PsiJavaCodeReferenceElement reference) {
         PsiElement target = reference.advancedResolve(false).getElement();
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {

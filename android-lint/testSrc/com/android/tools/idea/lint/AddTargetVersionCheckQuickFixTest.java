@@ -25,6 +25,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtureTestCase {
   public void testNotApplicableInJavaModules() {
@@ -46,7 +47,7 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     Ref<PsiExpression> first = new Ref<>();
     file.accept(new JavaRecursiveElementVisitor() {
       @Override
-      public void visitExpression(PsiExpression expression) {
+      public void visitExpression(@NotNull PsiExpression expression) {
         if (first.isNull()) {
           first.set(expression);
         }
