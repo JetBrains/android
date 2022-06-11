@@ -49,7 +49,8 @@ public class XvfbServer implements Display {
     if (display == null || display.isEmpty()) {
       // If a display is provided use that, otherwise create one.
       this.display = launchUnusedDisplay();
-      System.out.println("Display: " + display);
+      this.recorder = launchRecorder(this.display);
+      System.out.println("Display: " + this.display);
     } else {
       this.display = display;
       System.out.println("Display inherited from parent: " + display);
@@ -140,18 +141,29 @@ public class XvfbServer implements Display {
     return pb.start();
   }
 
-  public String launchUnusedDisplay() throws IOException {
+  public String launchUnusedDisplay() {
     int retry = MAX_RETRIES_TO_FIND_DISPLAY;
     Random random = new Random();
     while (retry-- > 0) {
-      display = String.format(":%d", random.nextInt(65535));
+      int candidate = random.nextInt(65535);
+      // The only mechanism with our version of Xvfb to know when it's ready
+      // to accept connections is to check for the following file. Additionally,
+      // this serves as a check to know if another server is using the same
+      // display.
+      Path socket = Paths.get("/tmp/.X11-unix", "X" + candidate);
+      if (Files.exists(socket)) {
+        continue;
+      }
+      String display = String.format(":%d", candidate);
       Process process = launchDisplay(display);
       try {
-        boolean exited = process.waitFor(1, TimeUnit.SECONDS);
+        boolean exited = false;
+        while (!exited && !Files.exists(socket)) {
+          exited = process.waitFor(1, TimeUnit.SECONDS);
+        }
         if (!exited) {
           this.process = process;
           System.out.println("Launched xvfb on \"" + display + "\"");
-          recorder = launchRecorder(display);
           return display;
         }
       }
