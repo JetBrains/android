@@ -32,6 +32,7 @@ public class XvfbServer implements Display {
   private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
   private static final String XVFB_LAUNCHER = "tools/vendor/google/testing/display/launch_xvfb.sh";
+  private static final String FFMPEG = "tools/vendor/google/testing/display/ffmpeg";
 
   private Process process;
 
@@ -41,8 +42,9 @@ public class XvfbServer implements Display {
   private String display;
 
   private Boolean cachedCanCallImport = null;
+  private Process recorder;
 
-  public XvfbServer() {
+  public XvfbServer() throws IOException {
     String display = System.getenv("DISPLAY");
     if (display == null || display.isEmpty()) {
       // If a display is provided use that, otherwise create one.
@@ -125,7 +127,20 @@ public class XvfbServer implements Display {
     return display;
   }
 
-  public String launchUnusedDisplay() {
+  private Process launchRecorder(String display) throws IOException {
+    Path dir = TestUtils.getTestOutputDir();
+    Path mp4 = dir.resolve("recording.mp4");
+    Path ffmpeg = TestUtils.resolveWorkspacePathUnchecked(FFMPEG);
+
+    // Note that -pix_fmt is required by some players:
+    // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+    ProcessBuilder pb = new ProcessBuilder(ffmpeg.toString(), "-framerate", "25", "-f", "x11grab", "-i", display, "-pix_fmt", "yuv420p", mp4.toString());
+    pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    return pb.start();
+  }
+
+  public String launchUnusedDisplay() throws IOException {
     int retry = MAX_RETRIES_TO_FIND_DISPLAY;
     Random random = new Random();
     while (retry-- > 0) {
@@ -136,6 +151,7 @@ public class XvfbServer implements Display {
         if (!exited) {
           this.process = process;
           System.out.println("Launched xvfb on \"" + display + "\"");
+          recorder = launchRecorder(display);
           return display;
         }
       }
@@ -172,6 +188,9 @@ public class XvfbServer implements Display {
   public void close() {
     if (process != null) {
       process.destroyForcibly();
+    }
+    if (recorder != null) {
+      recorder.destroy();
     }
   }
 }
