@@ -136,8 +136,8 @@ public class XvfbServer implements Display {
     // Note that -pix_fmt is required by some players:
     // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
     ProcessBuilder pb = new ProcessBuilder(ffmpeg.toString(), "-framerate", "25", "-f", "x11grab", "-i", display, "-pix_fmt", "yuv420p", mp4.toString());
-    pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    pb.redirectOutput(dir.resolve("ffmpeg_stdout.txt").toFile());
+    pb.redirectError(dir.resolve("ffmpeg_stderr.txt").toFile());
     return pb.start();
   }
 

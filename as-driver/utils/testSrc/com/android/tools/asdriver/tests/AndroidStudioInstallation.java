@@ -28,7 +28,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.HashMap;
@@ -44,6 +43,7 @@ public class AndroidStudioInstallation {
   private final Path vmOptionsPath;
   private final Path configDir;
   private final Path homeDir;
+  private final Path logsDir;
 
   public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
     Path workDir = Files.createTempDirectory(tempDir, "android-studio");
@@ -62,12 +62,11 @@ public class AndroidStudioInstallation {
     this.workDir = workDir;
     this.studioDir = studioDir;
 
-    stdout = new LogFile(workDir.resolve("stdout.txt"));
-    stderr = new LogFile(workDir.resolve("stderr.txt"));
-    Path logDir = workDir.resolve("system/log");
-    Files.createDirectories(logDir);
-    ideaLog = new LogFile(logDir.resolve("idea.log"));
+    logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
+    ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
+    stdout = new LogFile(logsDir.resolve("stdout.txt"));
+    stderr = new LogFile(logsDir.resolve("stderr.txt"));
 
     vmOptionsPath = workDir.resolve("studio.vmoptions");
     configDir = workDir.resolve("config");
@@ -90,7 +89,7 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.config.path=%s/config\n", workDir) +
                        String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
                        String.format("-Didea.system.path=%s/system\n", workDir) +
-                       String.format("-Didea.log.path=%s/system/log\n", workDir) +
+                       String.format("-Didea.log.path=%s\n", logsDir) +
                        String.format("-Duser.home=%s\n", homeDir);
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
