@@ -149,13 +149,13 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                      JBUIScale.scale(20));
 
     Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+                     IconButtonTableCellRenderer.getPreferredWidth(this, ActivateDeviceFileExplorerWindowValue.class));
 
     Tables.setWidths(columnModel.getColumn(removeViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, removeViewColumnIndex(), 0));
+                     IconButtonTableCellRenderer.getPreferredWidth(this, RemoveValue.class));
 
     Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
+                     IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
   }

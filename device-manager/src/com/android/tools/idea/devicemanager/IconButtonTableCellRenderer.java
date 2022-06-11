@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.JTable;
@@ -36,6 +37,11 @@ public class IconButtonTableCellRenderer implements TableCellRenderer {
   public IconButtonTableCellRenderer(@Nullable Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
     myButton.setToolTipText(tooltipText);
+  }
+
+  public static int getPreferredWidth(@NotNull JTable table, @NotNull Class<?> c) {
+    IconButtonTableCellRenderer renderer = (IconButtonTableCellRenderer)table.getDefaultRenderer(c);
+    return renderer.myButton.getTableCellComponent(table, false, false).getPreferredSize().width + JBUIScale.scale(8);
   }
 
   @Override
