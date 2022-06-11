@@ -463,7 +463,7 @@ android-studio/lib/asm-analysis-7.1.jar
 android-studio/lib/asm-commons-7.1.jar
 android-studio/lib/asm-tree-7.1.jar
 android-studio/lib/asm-util-7.1.jar
-android-studio/lib/build-marker-AI-221.4501.155.2211.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-221.4906.8.2211.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/dbus-java-3.2.1.jar
@@ -2602,6 +2602,9 @@ android-studio/plugins/java/lib/sa-jdwp.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
+android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
+android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
+android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/ml-models-local/lib/ml-models-local.jar

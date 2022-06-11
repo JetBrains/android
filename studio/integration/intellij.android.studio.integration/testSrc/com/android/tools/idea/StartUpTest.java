@@ -62,6 +62,7 @@ public class StartUpTest {
         "Configuration Script",
         "Copyright",
         "Design Tools",
+        "Eclipse Keymap",
         "EditorConfig",
         "Emoji Picker",
         "Firebase App Indexing",
@@ -94,6 +95,7 @@ public class StartUpTest {
         "Machine Learning Local Models",
         "Markdown",
         "Mercurial",
+        "NetBeans Keymap",
         "Properties",
         "Refactoring Detector",
         "Settings Repository",
@@ -107,6 +109,7 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
+        "Visual Studio Keymap",
         "WebP Support",
         "YAML",
       }, plugins);
