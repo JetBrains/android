@@ -62,9 +62,11 @@ public class AndroidStudio implements AutoCloseable {
     installation.getStderr().reset();
     pb.redirectOutput(installation.getStdout().getPath().toFile());
     pb.redirectError(installation.getStderr().getPath().toFile());
-    ProcessHandle process = pb.start().toHandle();
-    int port = waitForDriverServer(installation.getIdeaLog());
-    return new AndroidStudio(process, port);
+    // We execute it and let the process instance go, as it reflects
+    // the shell process, not the idea one.
+    pb.start();
+    // Now we attach to the real one from the logs
+    return attach(installation);
   }
 
   static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {

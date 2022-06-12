@@ -63,10 +63,6 @@ public class OpenProjectTest {
       System.out.println("Indexing took " + matcher.group(1));
       matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", 180, TimeUnit.SECONDS);
       System.out.println("Sync took " + matcher.group(1));
-      // TODO: we shouldn't need to kill as the close should kill it, but it seems to be only killing
-      // the parent process and leaving Studio running in a weird state. This does not seem to happen
-      // with other tests.
-      studio.kill(0);
     }
   }
 }
