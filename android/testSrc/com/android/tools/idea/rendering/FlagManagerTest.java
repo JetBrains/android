@@ -17,22 +17,44 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.DOT_PNG;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 
 import com.android.ide.common.resources.LocaleManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.util.Function;
 import icons.StudioIcons;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import javax.swing.Icon;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 
-@SuppressWarnings("javadoc")
-public class FlagManagerTest extends TestCase {
+public class FlagManagerTest {
+  @ClassRule
+  public static final ApplicationRule app = new ApplicationRule();
+
+  @Before
+  public void setUp(){
+    IconLoader.activate();
+  }
+
+  @After
+  public void tearDown() {
+    IconLoader.deactivate();
+    IconLoader.clearCacheInTests();
+  }
+
+  @Test
   public void testGetFlagImage() {
     FlagManager manager = FlagManager.get();
     Icon us = manager.getFlag("US");
@@ -85,6 +107,7 @@ public class FlagManagerTest extends TestCase {
     assertSame(ca, manager.getFlagForFolderName("values-en"));
   }
 
+  @Test
   public void testNonIso3166DefaultLocale() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=91988
     Locale previous = Locale.getDefault();
@@ -98,6 +121,7 @@ public class FlagManagerTest extends TestCase {
     }
   }
 
+  @Test
   public void testAvailableIcons() {
     // Icons we have from WindowBuilder (which are really the famfamfam icons;
     // see http://www.famfamfam.com/lab/icons/flags)
@@ -174,22 +198,24 @@ public class FlagManagerTest extends TestCase {
     }
   }
 
+  @Test
   public void testLanguageNameMapper() {
     Function<Object,String> mapper = FlagManager.getLanguageNameMapper();
     assertEquals("en: English", mapper.fun("en"));
     assertEquals("es: Spanish", mapper.fun("es"));
   }
 
+  @Test
   public void testRegionNameMapper() {
     Function<Object,String> mapper = FlagManager.getRegionNameMapper();
     assertEquals("US: United States", mapper.fun("US"));
     assertEquals("MX: Mexico", mapper.fun("MX"));
   }
 
+  @Test
   public void testMissingFlag() {
     Icon icon = FlagManager.get().getFlag("AQ");
     assertNotNull(icon);
-/* b/235275157
     assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
 
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("AQ"));
@@ -199,9 +225,9 @@ public class FlagManagerTest extends TestCase {
     icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("WO")); // Not used in ISO 3166-1
     assertNotNull(icon);
       assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
-b/235275157 */
   }
 
+  @Test
   public void testKnownFlag() {
     Icon icon = FlagManager.get().getFlag("US");
     assertNotNull(icon);
