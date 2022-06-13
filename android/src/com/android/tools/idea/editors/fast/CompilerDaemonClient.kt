@@ -41,6 +41,12 @@ sealed class CompilationResult {
   data class DaemonError(val code: Int): CompilationResult()
 
   /**
+   * An expected compilation error caused by normal user actions. For example, a syntax error would trigger
+   * this. This is recoverable by the user updating the code.
+   */
+  data class CompilationError(val e: Throwable? = null): CompilationResult()
+
+  /**
    * An exception happened while trying to execute the request. This could have happened before the request arrive to the daemon.
    * [e] will contain the exception if available.
    */

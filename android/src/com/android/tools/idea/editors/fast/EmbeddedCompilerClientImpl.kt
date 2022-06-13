@@ -44,8 +44,21 @@ import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.ExecutionException
 
 private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
+
+private fun Throwable?.isCompilationError(): Boolean =
+  this is LiveEditUpdateException
+  && when (error) {
+    LiveEditUpdateException.Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
+    LiveEditUpdateException.Error.COMPILATION_ERROR -> true
+    LiveEditUpdateException.Error.UNABLE_TO_INLINE,
+    LiveEditUpdateException.Error.INTERNAL_ERROR,
+    LiveEditUpdateException.Error.KNOWN_ISSUE -> false
+  }
+
+class NonRetriableException(cause: Throwable): Exception(cause)
 
 /**
  * Retries the [retryBlock] [retryTimes] or until it does not throw an exception. The block will be executed in a
@@ -75,6 +88,10 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
       lastException = t
     }
     catch (t: Throwable) {
+      ((t as? ExecutionException)?.cause as? NonRetriableException)?.cause?.let { nonRetriableException ->
+        throw nonRetriableException
+      }
+
       Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Retrying after error (retry $it)", t)
       lastException = t
     }
@@ -135,6 +152,10 @@ class EmbeddedCompilerClientImpl(
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
         catch (e: LiveEditUpdateException) {
+          if (e.isCompilationError() || e.cause.isCompilationError()) {
+            throw NonRetriableException(e)
+          }
+
           if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE || !useInlineAnalysis()) {
             throw e
           }
@@ -200,7 +221,10 @@ class EmbeddedCompilerClientImpl(
         result.complete(CompilationResult.CompilationAborted())
       }
       catch (t: Throwable) {
-        result.complete(CompilationResult.RequestException(t))
+        if (t.isCompilationError() || t.cause.isCompilationError())
+          result.complete(CompilationResult.CompilationError(t))
+        else
+          result.complete(CompilationResult.RequestException(t))
       }
 
       result.await()

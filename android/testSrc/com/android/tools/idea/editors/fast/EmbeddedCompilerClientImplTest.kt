@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
@@ -70,7 +71,7 @@ internal class EmbeddedCompilerClientImplTest {
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
-      assertTrue(result.toString(), result is CompilationResult.RequestException)
+      assertTrue(result.toString(), result is CompilationResult.CompilationError)
       assertTrue(outputDirectory.toFileNameSet().isEmpty())
     }
   }
@@ -163,6 +164,24 @@ internal class EmbeddedCompilerClientImplTest {
     }
     assertEquals(230L, result)
     assertEquals(attempts - 1, executedRetries)
+
+    class TestException: Exception()
+    executedRetries = 0
+    try {
+      retryInNonBlockingReadAction(attempts) {
+        executedRetries++
+        // Do not execute all attempts, just throw a NonRetryableException after 5 attempts
+        // to avoid more retries.
+        if (executedRetries == 5) throw NonRetriableException(TestException())
+        throw IllegalStateException()
+      }
+    }
+    catch (t: TestException) {
+      assertEquals(5, executedRetries)
+    }
+    catch (t: Throwable) {
+      fail("Unexpected exception ${t.message}")
+    }
   }
 
   /**
@@ -185,7 +204,7 @@ internal class EmbeddedCompilerClientImplTest {
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
-      assertTrue((result as CompilationResult.RequestException)?.e?.cause is LiveEditUpdateException)
+      assertTrue((result as CompilationResult.CompilationError).e is LiveEditUpdateException)
     }
   }
 }

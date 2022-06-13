@@ -25,7 +25,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.notification.Notification
@@ -100,16 +99,6 @@ data class DisableReason(val title: String, val description: String? = null, val
  * A [DisableReason] to be used when calling [FastPreviewManager.disable] if it was disabled by the user.
  */
 val ManualDisabledReason = DisableReason("User disabled")
-
-private fun Throwable?.isSyntaxError(): Boolean =
-  this is LiveEditUpdateException
-  && error == LiveEditUpdateException.Error.ANALYSIS_ERROR
-  && (message?.startsWith("Analyze Error.") ?: false)
-
-/**
- * Returns true if the [CompilationResult.RequestException] is from a syntax error.
- */
-private fun CompilationResult.RequestException.isSyntaxError(): Boolean = e.isSyntaxError() || e?.cause.isSyntaxError()
 
 /**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
@@ -436,17 +425,15 @@ class FastPreviewManager private constructor(
         // Handle RequestException but do not disable the compilation if it's because of a syntax error. This might be caused by the
         // user still typing.
         is CompilationResult.RequestException ->
-          if (!result.isSyntaxError())
-            DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
-                          description = result.e?.message,
-                          throwable = result.e)
-          else null
+          DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
+                        description = result.e?.message,
+                        throwable = result.e)
         is CompilationResult.DaemonStartFailure -> DisableReason(title = message("fast.preview.disabled.reason.unable.start"),
                                                                  throwable = result.e)
         is CompilationResult.DaemonError -> DisableReason(
           title = message("fast.preview.disabled.reason.unable.compile.compiler.error.title"),
           description = message("fast.preview.disabled.reason.unable.compile.compiler.error.description"))
-        is CompilationResult.CompilationAborted -> null
+        is CompilationResult.CompilationAborted, is CompilationResult.CompilationError -> null
         is CompilationResult.Success -> throw IllegalStateException("Result is not an error, no disable reason")
       }
       if (reason != null) disable(reason)
