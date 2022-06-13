@@ -125,8 +125,6 @@ public class UpdateTest {
       Map<String, String> env = createEnvironment(patchMachinery.getFileServerOrigin());
 
       try (AndroidStudio studio = install.run(display, env)) {
-        display.debugTakeScreenshot("before");
-
         String version = studio.version();
         assertTrue(version.endsWith(PatchMachinery.FAKE_CURRENT_BUILD_NUMBER));
 
@@ -139,7 +137,7 @@ public class UpdateTest {
         install.emitLogs();
       }
 
-      install.getIdeaLog().waitForMatchingLine(".*---- IDE SHUTDOWN ----.*", 20, TimeUnit.SECONDS);
+      install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(PatchMachinery.FAKE_UPDATED_BUILD_NUMBER));
