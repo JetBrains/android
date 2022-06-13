@@ -23,6 +23,8 @@ import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker.InterceptionCriteria
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.Protocol
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
@@ -139,14 +141,16 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
   }
 
   private fun createOriginCategoryPanel(rule: RuleData): JPanel {
-    val protocolComboBox = BorderlessComboBox(DefaultCommonComboBoxModel("", listOf("https", "http"))).apply {
+    val protocolComboBox = CommonComboBox(DefaultCommonComboBoxModel("", enumValues<Protocol>().toList())).apply {
       isEditable = false
       selectedIndex = 0
+      selectedItem = rule.criteria.protocol
       addActionListener {
-        val newProtocol = selectedItem?.toString() ?: ""
-        if (rule.criteria.protocol != newProtocol) {
-          rule.criteria.protocol = newProtocol
-          usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PROTOCOL)
+        (selectedItem as? Protocol)?.let {
+          if (rule.criteria.protocol != it) {
+            rule.criteria.protocol = it
+            usageTracker.trackRuleUpdated(InterceptionCriteria.URL_PROTOCOL)
+          }
         }
       }
       name = "protocolComboBox"
@@ -183,11 +187,16 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
         }
       }
     }
-    val methodComboBox = BorderlessComboBox(DefaultCommonComboBoxModel("", listOf("GET", "POST"))).apply {
+    val methodComboBox = CommonComboBox(DefaultCommonComboBoxModel("", enumValues<Method>().toList())).apply {
       isEditable = false
       selectedIndex = 0
+      selectedItem = rule.criteria.method
       addActionListener {
-        rule.criteria.method = selectedItem?.toString() ?: ""
+        (selectedItem as? Method)?.let {
+          if (rule.criteria.method != it) {
+            rule.criteria.method = it
+          }
+        }
       }
       name = "methodComboBox"
     }

@@ -51,6 +51,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import java.awt.Component
 import java.awt.event.FocusEvent
@@ -284,12 +285,12 @@ class RuleDetailsViewTest {
     assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
     client.verifyLatestCommand {
       it.interceptRuleUpdated.rule.criteria.also { criteria ->
-        assertThat(criteria.protocol).isEqualTo("http")
+        assertThat(criteria.protocol).isEqualTo(InterceptCriteria.Protocol.PROTOCOL_HTTP)
         assertThat(criteria.host).isEqualTo(url)
         assertThat(criteria.port).isEqualTo("8080")
         assertThat(criteria.path).isEqualTo("/path")
         assertThat(criteria.query).isEqualTo("title=Query_string&action=edit")
-        assertThat(criteria.method).isEqualTo("POST")
+        assertThat(criteria.method).isEqualTo(InterceptCriteria.Method.METHOD_POST)
       }
     }
   }
