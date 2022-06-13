@@ -112,23 +112,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void dialogDoesntAddKeyInSameFolder() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.getAddKeyButton().click();
-
-    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
-    dialog.getDefaultValueTextField().enterText("action_settings");
-    dialog.getKeyTextField().enterText("action_settings");
-    dialog.getOkButton().click();
-
-    // TODO(b/232444069): Test this when testing NewStringKeyDialog and remove this test.
-    dialog.waitUntilErrorLabelFound(".*" + toResourceName("action_settings already exists in app/src/main/res") + ".*");
-    dialog.getCancelButton().click();
-  }
-
-  @Test
   public void removeKeyWithDeleteHandler() throws Exception {
     importSimpleApplication();
 
