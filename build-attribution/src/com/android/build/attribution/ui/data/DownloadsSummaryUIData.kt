@@ -18,9 +18,8 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 
 class DownloadsSummaryUIData(
-  downloadsData: DownloadsAnalyzer.Result
+  downloadsData: DownloadsAnalyzer.ActiveResult
 ) {
-  val shouldShowOnUi: Boolean = downloadsData.analyzerActive
   val isEmpty: Boolean = downloadsData.repositoryResults.isEmpty()
   val sumOfRequests: Int = downloadsData.repositoryResults.sumOf { it.successRequestsCount + it.failedRequestsCount + it.missedRequestsCount }
   val sumOfDataBytes: Long = downloadsData.repositoryResults.sumOf { it.successRequestsBytesDownloaded + it.failedRequestsBytesDownloaded }

@@ -66,7 +66,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getJavaVersion(): Int? = null
     override fun isGCSettingSet(): Boolean? = null
     override fun buildUsesConfigurationCache(): Boolean = false
-    override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.Result(repositoryResults = emptyList())
+    override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

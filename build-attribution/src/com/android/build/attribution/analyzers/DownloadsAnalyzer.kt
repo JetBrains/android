@@ -85,7 +85,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
   }
 
   override fun calculateResult(): Result {
-    if (gradleCanProvideDownloadEvents != true) return Result.analyzerNotActive
+    if (gradleCanProvideDownloadEvents != true) return GradleDoesNotProvideEvents
     val resultList = processedEvents.groupBy { it.repository }.map { (repo, events) ->
       val groupedByStatus = events.groupBy { it.status }
       val successDownloads = groupedByStatus.getOrDefault(DownloadStatus.SUCCESS, emptyList())
@@ -105,20 +105,18 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
     }
 
     LOG.debug("Downloads stats for this build: ", resultList)
-    return Result(repositoryResults = resultList)
+    return ActiveResult(repositoryResults = resultList)
   }
 
   private fun detectRepository(uri: URI): Repository = KnownRepository.values().find { it.matches(uri) } ?: OtherRepository(uri.authority!!)
 
-  data class Result(
+  sealed class Result: AnalyzerResult
+  data class ActiveResult(
     val repositoryResults: List<RepositoryResult>
-  ) : AnalyzerResult {
-    val analyzerActive: Boolean get() = this !== analyzerNotActive
+  ) : Result()
 
-    companion object {
-      val analyzerNotActive = Result(emptyList())
-    }
-  }
+  object AnalyzerIsDisabled : Result()
+  object GradleDoesNotProvideEvents: Result()
 
   enum class DownloadStatus {
     SUCCESS, MISSED, FAILURE

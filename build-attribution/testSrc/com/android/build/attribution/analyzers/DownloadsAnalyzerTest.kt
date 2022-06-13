@@ -199,8 +199,7 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
       BuildAttributionManager::class.java
     ) as BuildAttributionManagerImpl).analyzersProxy.getDownloadsAnalyzerResult()
 
-    Truth.assertThat(result.analyzerActive).isTrue()
-    val testRepositoryResult = result.repositoryResults.map { TestingRepositoryResult(it) }
+    val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }
     Truth.assertThat(testRepositoryResult).containsExactly(
       // Only one missed because HEAD request is not reported by gradle currently.
       TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server1.authority), 0, 1, 1),

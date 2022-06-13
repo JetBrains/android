@@ -21,7 +21,7 @@ import org.junit.Test
 
 class DownloadsSummaryUIDataTest {
 
-  val downloadsData = DownloadsAnalyzer.Result(repositoryResults = listOf(
+  private val downloadsData = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
     DownloadsAnalyzer.RepositoryResult(
       repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
       successRequestsCount = 5,

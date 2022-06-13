@@ -218,6 +218,6 @@ class BuildEventsAnalyzersProxy(
   }
 
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
-    return downloadsAnalyzer?.result ?: DownloadsAnalyzer.Result.analyzerNotActive
+    return downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled
   }
 }

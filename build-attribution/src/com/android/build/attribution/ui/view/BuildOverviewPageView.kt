@@ -75,9 +75,8 @@ class BuildOverviewPageView(
     add(htmlTextLabelWithFixedLines(text, linksHandler))
   }
 
-  private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData):String {
-    if (!downloadsData.shouldShowOnUi) return ""
-    if (downloadsData.isEmpty) return ""
+  private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData?):String {
+    if (downloadsData == null || downloadsData.isEmpty) return ""
     val tooltipDetails = StringUtil.escapeXmlEntities("""<html>
     This build had ${downloadsData.sumOfRequests} network ${pluralize("request", downloadsData.sumOfRequests)},<br/>
     downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in ${durationStringHtml(downloadsData.sumOfTimeMs)}.

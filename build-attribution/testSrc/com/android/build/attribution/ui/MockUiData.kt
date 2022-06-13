@@ -71,7 +71,7 @@ class MockUiData(
   override var annotationProcessors = mockAnnotationProcessorsData()
   override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
   override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
-  override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.Result(repositoryResults = emptyList())
+  override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,

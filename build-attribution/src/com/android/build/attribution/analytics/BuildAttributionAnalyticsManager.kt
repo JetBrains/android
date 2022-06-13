@@ -103,8 +103,10 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.configurationCacheCompatibilityData =
       transformConfigurationCacheCompatibilityData(analysisResult.getConfigurationCachingCompatibility())
     analyzersDataBuilder.jetifierUsageData = transformJetifierUsageData(analysisResult.getJetifierUsageResult())
-    analysisResult.getDownloadsAnalyzerResult().takeIf { it.analyzerActive }?.let {
-      analyzersDataBuilder.downloadsAnalysisData = transformDownloadsAnalyzerData(it)
+    analysisResult.getDownloadsAnalyzerResult().let {
+      if (it is DownloadsAnalyzer.ActiveResult) {
+        analyzersDataBuilder.downloadsAnalysisData = transformDownloadsAnalyzerData(it)
+      }
     }
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
@@ -275,7 +277,7 @@ class BuildAttributionAnalyticsManager(
     }
       .build()
 
-  private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.Result): BuildDownloadsAnalysisData =
+  private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.ActiveResult): BuildDownloadsAnalysisData =
     BuildDownloadsAnalysisData.newBuilder().apply {
       addAllRepositories(downloadsAnalyzerResult.repositoryResults.map { repoResult ->
         BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {

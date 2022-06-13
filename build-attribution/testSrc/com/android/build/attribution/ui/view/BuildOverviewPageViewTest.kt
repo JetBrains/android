@@ -140,7 +140,7 @@ class BuildOverviewPageViewTest {
   @Test
   fun testDownloadsOverviewInfo() {
     val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.Result(repositoryResults = listOf(
+      downloadsData = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
         DownloadsAnalyzer.RepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
           successRequestsCount = 5,
@@ -182,9 +182,17 @@ class BuildOverviewPageViewTest {
   }
 
   @Test
-  fun testInfoContentForNotActiveDownloadsAnalyzer() {
+  fun testInfoContentForDownloadsAnalyzerDisabled() {
     val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.Result.analyzerNotActive
+      downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  @Test
+  fun testInfoContentForDownloadsAnalyzerWhenNoDataBecauseOfGradle() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents
     }
     verifyFileDownloadsInfoNotVisible(mockData)
   }
@@ -192,7 +200,7 @@ class BuildOverviewPageViewTest {
   @Test
   fun testInfoContentForEmptyDownloadsAnalyzer() {
     val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.Result(emptyList())
+      downloadsData = DownloadsAnalyzer.ActiveResult(emptyList())
     }
     verifyFileDownloadsInfoNotVisible(mockData)
   }

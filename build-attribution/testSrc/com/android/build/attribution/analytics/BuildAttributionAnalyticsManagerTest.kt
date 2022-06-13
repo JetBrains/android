@@ -161,7 +161,7 @@ class BuildAttributionAnalyticsManagerTest {
         )
       )
 
-      override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.Result(repositoryResults = listOf(
+      override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
         DownloadsAnalyzer.RepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
           successRequestsCount = 5,

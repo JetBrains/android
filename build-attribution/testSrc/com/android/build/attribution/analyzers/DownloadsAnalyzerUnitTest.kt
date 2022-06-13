@@ -37,16 +37,9 @@ import java.net.URI
 class DownloadsAnalyzerUnitTest {
 
   @Test
-  fun testNotActiveAnalyzerResult() {
-    val result = DownloadsAnalyzer.Result.analyzerNotActive
-    Truth.assertThat(result.repositoryResults).isEmpty()
-    Truth.assertThat(result.analyzerActive).isFalse()
-  }
-
-  @Test
   fun testDownloadsAnalyzerReceivingEvents() {
     val result = testDownloadsAnalyzer()
-    Truth.assertThat(result.repositoryResults).containsExactly(
+    Truth.assertThat((result as DownloadsAnalyzer.ActiveResult).repositoryResults).containsExactly(
         DownloadsAnalyzer.RepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
           successRequestsCount = 5,
@@ -92,7 +85,6 @@ class DownloadsAnalyzerUnitTest {
           failedRequestsBytesDownloaded = 0
         )
     )
-    Truth.assertThat(result.analyzerActive).isTrue()
   }
 
   private fun testDownloadsAnalyzer(): DownloadsAnalyzer.Result {
@@ -202,7 +194,7 @@ class DownloadsAnalyzerUnitTest {
   fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
     agpVersionFromBuild = "4.3",
     gradleVersion = "7.2",
-    expectAnalyzerActive = false
+    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
 
   @Test
@@ -210,14 +202,14 @@ class DownloadsAnalyzerUnitTest {
     // This would mean some real old AGP as we added it at least in 4.3
     agpVersionFromBuild = null,
     gradleVersion = "7.2",
-    expectAnalyzerActive = false
+    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
 
   @Test
   fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() = runTestWithNoEventsForAgpAndGradleVersions(
     agpVersionFromBuild = "4.3",
     gradleVersion = null,
-    expectAnalyzerActive = false
+    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
 
   @Test
@@ -225,17 +217,17 @@ class DownloadsAnalyzerUnitTest {
     // Case for when we assume Gradle version base on AGP version received from build.
     agpVersionFromBuild = "7.3",
     gradleVersion = null,
-    expectAnalyzerActive = true
+    expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )
 
   @Test
   fun testDownloadsAnalyzerWithOldAGPButRecentGradle() = runTestWithNoEventsForAgpAndGradleVersions(
     agpVersionFromBuild = "4.3",
     gradleVersion = "7.3",
-    expectAnalyzerActive = true
+    expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )
 
-  private fun runTestWithNoEventsForAgpAndGradleVersions(agpVersionFromBuild: String?, gradleVersion: String?, expectAnalyzerActive: Boolean) {
+  private fun runTestWithNoEventsForAgpAndGradleVersions(agpVersionFromBuild: String?, gradleVersion: String?, expectAnalyzerResult: DownloadsAnalyzer.Result) {
     val pluginContainer = PluginContainer()
     val taskContainer = TaskContainer()
     val analyzer = DownloadsAnalyzer()
@@ -264,8 +256,7 @@ class DownloadsAnalyzerUnitTest {
       )
     )
 
-    Truth.assertThat(analyzer.result.analyzerActive).isEqualTo(expectAnalyzerActive)
-    Truth.assertThat(analyzer.result.repositoryResults).isEmpty()
+    Truth.assertThat(analyzer.result).isEqualTo(expectAnalyzerResult)
   }
 }
 
