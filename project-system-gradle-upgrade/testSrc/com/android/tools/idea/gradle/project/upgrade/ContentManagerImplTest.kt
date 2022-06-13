@@ -755,6 +755,18 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testCheckboxTooltipText() {
+    assertThat(MANDATORY_INDEPENDENT.checkboxToolTipText(true, false)).isNull()
+    assertThat(MANDATORY_CODEPENDENT.checkboxToolTipText(true, false)).isNull()
+    assertThat(OPTIONAL_INDEPENDENT.checkboxToolTipText(true, false)).isNull()
+    assertThat(OPTIONAL_CODEPENDENT.checkboxToolTipText(true, false)).isNull()
+    assertThat(MANDATORY_INDEPENDENT.checkboxToolTipText(false, true)).isEqualTo("Cannot be deselected while Upgrade is selected")
+    assertThat(MANDATORY_CODEPENDENT.checkboxToolTipText(false, false)).isEqualTo("Cannot be selected while Upgrade prerequisites is unselected")
+    assertThat(MANDATORY_CODEPENDENT.checkboxToolTipText(false, true)).isEqualTo("Cannot be deselected while Recommended post-upgrade steps is selected")
+    assertThat(OPTIONAL_CODEPENDENT.checkboxToolTipText(false, false)).isEqualTo("Cannot be selected while Upgrade is unselected")
+  }
+
+  @Test
   fun testUpgradeLabelText() {
     assertThat((null as GradleVersion?).upgradeLabelText()).contains("unknown version")
     assertThat(GradleVersion.parse("4.1.0").upgradeLabelText()).contains("version 4.1.0")
