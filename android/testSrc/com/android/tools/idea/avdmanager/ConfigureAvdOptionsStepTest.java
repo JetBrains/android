@@ -51,6 +51,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBLabel;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -81,6 +82,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     RepositoryPackages packages = new RepositoryPackages();
+    IconLoader.activate();
 
     Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
     // Q image (API 29)
@@ -186,6 +188,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     BatchInvoker.clearOverrideStrategy();
+    IconLoader.deactivate();
     super.tearDown();
   }
 
@@ -274,9 +277,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-/* b/235275213
     assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Default_32.png"));
-b/235275213 */
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
@@ -287,9 +288,7 @@ b/235275213 */
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-/* b/235275213
     assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.contains("Default_32.png"));
-b/235275213 */
 
     optionsModel = new AvdOptionsModel(myExtensionsAvdInfo);
 
