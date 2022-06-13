@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.MockUiData
@@ -43,6 +44,17 @@ class BuildAnalyzerViewModelTest {
   }
 
   @Test
+  fun testInitialDataSetListOrderWithDownloadsEnabled() {
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
+    assertThat(model.availableDataSets).containsExactly(
+      BuildAnalyzerViewModel.DataSet.OVERVIEW,
+      BuildAnalyzerViewModel.DataSet.TASKS,
+      BuildAnalyzerViewModel.DataSet.WARNINGS,
+      BuildAnalyzerViewModel.DataSet.DOWNLOADS
+    ).inOrder()
+  }
+
+  @Test
   fun testChangeDataSetSelectionNotifiesListener() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     assertThat(callsCount).isEqualTo(1)
@@ -66,7 +78,22 @@ class BuildAnalyzerViewModelTest {
     val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
       dataSetSelectionListener = listenerMock
     }
-    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-    assertThat(callsCount).isEqualTo(0)
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+  }
+
+  /**
+   * This test is needed to make sure we show downloads page in dropdown if flag is true even if analyzer did not run
+   * because of older gradle version. Initial intention was to not show the page in that case but as we changed it, let's better test.
+   */
+  @Test
+  fun testDownloadsPageShownInComboBoxWhenNoDataBecauseOfGradle() {
+    mockData.downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents
+    assertThat(model.availableDataSets).contains(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
+  }
+
+  @Test
+  fun testDownloadsPageNotShownInComboBoxWhenAnalyzerIsDisabled() {
+    mockData.downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled
+    assertThat(model.availableDataSets).doesNotContain(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
   }
 }

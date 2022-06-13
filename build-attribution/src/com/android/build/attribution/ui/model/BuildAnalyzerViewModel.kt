@@ -16,15 +16,25 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import org.jetbrains.kotlin.idea.util.ifTrue
 
 class BuildAnalyzerViewModel(
   val reportUiData: BuildAttributionReportUiData,
   val warningSuppressions: BuildAttributionWarningsFilter
 ) {
   enum class DataSet(val uiName: String) {
-    OVERVIEW("Overview"), TASKS("Tasks"), WARNINGS("Warnings")
+    OVERVIEW("Overview"), TASKS("Tasks"), WARNINGS("Warnings"), DOWNLOADS("Downloads")
   }
+
+  val availableDataSets: List<DataSet>
+    get() = listOfNotNull(
+      DataSet.OVERVIEW,
+      DataSet.TASKS,
+      DataSet.WARNINGS,
+      (reportUiData.downloadsData != DownloadsAnalyzer.AnalyzerIsDisabled).ifTrue { DataSet.DOWNLOADS }
+    )
 
   /**
    * Listener to be called on selection change.
@@ -50,4 +60,5 @@ class BuildAnalyzerViewModel(
   val overviewPageModel: BuildOverviewPageModel = BuildOverviewPageModel(reportUiData, warningSuppressions)
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
   val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)
+  val downloadsInfoPageModel: DownloadsInfoPageModel = DownloadsInfoPageModel(reportUiData.downloadsData)
 }

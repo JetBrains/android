@@ -63,7 +63,9 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to false,
       "tasks-view-additional-controls" to false,
       "warnings-view" to false,
-      "warnings-view-additional-controls" to false
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
@@ -83,7 +85,9 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to true,
       "tasks-view-additional-controls" to true,
       "warnings-view" to false,
-      "warnings-view-additional-controls" to false
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyZeroInteractions(mockHandlers)
@@ -103,11 +107,35 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to false,
       "tasks-view-additional-controls" to false,
       "warnings-view" to true,
-      "warnings-view-additional-controls" to true
+      "warnings-view-additional-controls" to true,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyZeroInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testViewChangedToDownloads() {
+    // Act
+    model.selectedData = BuildAnalyzerViewModel.DataSet.DOWNLOADS
+
+    // Assert
+    val expectedElementsVisibility = mapOf(
+      "build-overview" to false,
+      "build-overview-additional-controls" to false,
+      "tasks-view" to false,
+      "tasks-view-additional-controls" to false,
+      "warnings-view" to false,
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to true,
+      "downloads-info-view-additional-controls" to true,
+    )
+    assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
+    Mockito.verifyZeroInteractions(mockHandlers)
+    assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
   }
 
   @Test

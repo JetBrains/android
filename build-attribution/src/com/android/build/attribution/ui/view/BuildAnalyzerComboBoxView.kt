@@ -19,7 +19,7 @@ import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
-import com.intellij.ui.EnumComboBoxModel
+import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -42,7 +42,7 @@ class BuildAnalyzerComboBoxView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val dataSetCombo = ComboBox(EnumComboBoxModel(BuildAnalyzerViewModel.DataSet::class.java)).apply {
+  val dataSetCombo = ComboBox(CollectionComboBoxModel(model.availableDataSets)).apply {
     name = "dataSetCombo"
     renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
     selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
@@ -61,6 +61,7 @@ class BuildAnalyzerComboBoxView(
         BuildAnalyzerViewModel.DataSet.OVERVIEW -> BuildOverviewPageView(model.overviewPageModel, actionHandlers)
         BuildAnalyzerViewModel.DataSet.TASKS -> TasksPageView(model.tasksPageModel, actionHandlers)
         BuildAnalyzerViewModel.DataSet.WARNINGS -> WarningsPageView(model.warningsPageModel, actionHandlers, this)
+        BuildAnalyzerViewModel.DataSet.DOWNLOADS -> DownloadsInfoPageView(model.downloadsInfoPageModel, actionHandlers)
       }
   }
 

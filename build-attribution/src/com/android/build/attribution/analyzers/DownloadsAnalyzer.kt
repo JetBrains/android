@@ -28,7 +28,7 @@ import java.net.URI
 private val LOG = Logger.getInstance(DownloadsAnalyzer::class.java)
 
 /** Minimal version of gradle that provides file download events. */
-private val minGradleVersionProvidingDownloadEvents = GradleVersion.parse("7.3")
+val minGradleVersionProvidingDownloadEvents = GradleVersion.parse("7.3")
 
 /**
  * The version of AGP that requires gradle at least 7.3.
