@@ -21,9 +21,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
-import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.adtui.model.DefaultConfigurableDurationData;
 import com.android.tools.adtui.model.DefaultDataSeries;
@@ -34,10 +34,10 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -45,29 +45,26 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-@org.junit.Ignore("b/235269148")
 public class RangeSelectionComponentTest {
 
   private static final double DELTA = 1e-3;
-  private Disposable myRootDisposable;
+
+  @ClassRule
+  public static final ApplicationRule appRule = new ApplicationRule();
 
   @Before
   public void setup() {
-    myRootDisposable = Disposer.newDisposable();
-    MockApplication app = MockApplication.setUp(myRootDisposable);
-    app.registerService(AdtUiCursorsProvider.class, new TestAdtUiCursorsProvider());
+    ServiceContainerUtil.registerServiceInstance(
+      ApplicationManager.getApplication(),
+      AdtUiCursorsProvider.class,
+      new TestAdtUiCursorsProvider());
     AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
     AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-  }
-
-  @After
-  public void tearDown() {
-    Disposer.dispose(myRootDisposable);
   }
 
   @Test
