@@ -387,6 +387,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @RunsInEdt
   @Test
   fun testTrackedValuesOfDeviceOptions() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
     val (testTracker, model) = simpleTrackingTestSetup()
 
     val deviceProperty = model.properties["", "Device"] // Which parameter doesn't matter in this context, but best to test with Device
@@ -482,6 +483,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   }
 
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {

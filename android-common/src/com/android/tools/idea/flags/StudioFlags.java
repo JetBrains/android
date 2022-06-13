@@ -1155,7 +1155,7 @@ public final class StudioFlags {
     COMPOSE, "preview.element.injector.enable",
     "Enable injecting DeviceSpec Language",
     "If enabled, the DeviceSpec Language will be injected in @Preview.device string values",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_SPRING_PICKER = Flag.create(

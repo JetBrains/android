@@ -145,6 +145,8 @@ internal class DeviceConfigTest {
 
   @Test
   fun deviceSpecStringInLegacyFormat() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
+
     // Example of DeviceSpec string when new DeviceSpec Language is NOT in use, chinSize ignored
     var config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40f)
     assertEquals("spec:shape=Round,width=100,height=200,unit=dp,dpi=300", config.deviceSpec())

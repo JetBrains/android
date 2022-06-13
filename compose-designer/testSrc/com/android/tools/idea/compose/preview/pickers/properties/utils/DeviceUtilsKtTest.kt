@@ -41,6 +41,8 @@ internal class DeviceUtilsKtTest {
 
   @Test
   fun deviceToDeviceConfig() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
+
     val device = MutableDeviceConfig().createDeviceInstance()
     val screen = device.defaultHardware.screen
 
