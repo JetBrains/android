@@ -237,10 +237,11 @@ class ToolWindowModel(
         get() = statusMessage.text
     }
     class CaughtException(
-      override val statusMessage: StatusMessage
+      val errorMessage: String
     ): UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
+      override val statusMessage: StatusMessage = StatusMessage(Severity.ERROR, errorMessage.lines().first())
       override val runTooltip: String
         get() = statusMessage.text
     }
@@ -527,7 +528,7 @@ class ToolWindowModel(
       }
       catch (e: Exception) {
         processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
-        uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error")))
+        uiState.set(UIState.CaughtException(e.message ?: "Unknown error"))
       }
     }
 
@@ -555,7 +556,7 @@ class ToolWindowModel(
         .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK))
     }
     catch (e: Exception) {
-      uiState.set(UIState.CaughtException(StatusMessage(Severity.ERROR, e.message ?: "Unknown error during revert.")))
+      uiState.set(UIState.CaughtException(e.message ?: "Unknown error during revert."))
       processor?.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
       LOG.error("Error during revert.", e)
     }
@@ -920,6 +921,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
           sb.append("</p>")
           label.text = sb.toString()
           detailsPanel.add(label)
+          detailsPanel.addRevertInfo(showRevertButton = false, markRevertAsDefault = false)
         }
         uiState is ToolWindowModel.UIState.UpgradeSyncFailed -> {
           val sb = StringBuilder()
@@ -947,7 +949,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
             }
           }
           detailsPanel.add(label)
-          detailsPanel.addRevertInfo(markRevertAsDefault = true)
+          detailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = true)
         }
         uiState is ToolWindowModel.UIState.UpgradeSyncSucceeded -> {
           val sb = StringBuilder()
@@ -964,7 +966,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
           }
           label.text = sb.toString()
           detailsPanel.add(label)
-          detailsPanel.addRevertInfo(markRevertAsDefault = false)
+          detailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = false)
         }
         uiState is ToolWindowModel.UIState.AllDone -> {
           val sb = StringBuilder()
@@ -1030,25 +1032,29 @@ class ContentManagerImpl(val project: Project): ContentManager {
       detailsPanel.repaint()
     }
 
-    private fun JBPanel<JBPanel<*>>.addRevertInfo(markRevertAsDefault: Boolean) {
-      val revertButton = JButton("Revert Project Files").apply {
-        name = "revert project button"
-        toolTipText = "Revert all project files to a state recorded just before running last upgrade."
-        putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, markRevertAsDefault)
-        addActionListener { this@View.model.runRevert() }
-      }
-      val localHistoryLine = HyperlinkLabel().apply {
-        name = "open local history link"
-        setTextWithHyperlink("You can review the applied changes in <hyperlink>'Local History' dialog</hyperlink>.")
-        addHyperlinkListener {
-          val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
-          // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
-          val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
-          dialog.show()
+    private fun JBPanel<JBPanel<*>>.addRevertInfo(showRevertButton: Boolean, markRevertAsDefault: Boolean) {
+      HyperlinkLabel()
+        .apply {
+          name = "open local history link"
+          setTextWithHyperlink("You can review the applied changes in <hyperlink>'Local History' dialog</hyperlink>.")
+          addHyperlinkListener {
+            val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
+            // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
+            val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
+            dialog.show()
+          }
         }
+        .also { hyperlinkLabel -> add(hyperlinkLabel) }
+      if (showRevertButton) {
+        JButton("Revert Project Files")
+          .apply {
+            name = "revert project button"
+            toolTipText = "Revert all project files to a state recorded just before running last upgrade."
+            putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, markRevertAsDefault)
+            addActionListener { this@View.model.runRevert() }
+          }
+          .also { revertButton -> add(revertButton) }
       }
-      add(localHistoryLine)
-      add(revertButton)
     }
   }
 

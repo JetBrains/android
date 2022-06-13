@@ -895,6 +895,12 @@ class ContentManagerImplTest {
     model.uiState.set(UpgradeSyncSucceeded)
     assertThat(view.revertButtonVisible()).isTrue()
     assertThat(view.localHistoryLinkVisible()).isTrue()
+    model.uiState.set(ReadyToRun)
+    assertThat(view.revertButtonVisible()).isFalse()
+    assertThat(view.localHistoryLinkVisible()).isFalse()
+    model.uiState.set(CaughtException("argh"))
+    assertThat(view.revertButtonVisible()).isFalse()
+    assertThat(view.localHistoryLinkVisible()).isTrue()
   }
 
   @Test
@@ -912,7 +918,7 @@ class ContentManagerImplTest {
 
     val stateList = listOf(
       AllDone, Blocked,
-      CaughtException(StatusMessage(Severity.ERROR, "one")), CaughtException(StatusMessage(Severity.ERROR, "two")),
+      CaughtException("one"), CaughtException("two"),
       InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
       Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       UpgradeSyncFailed("one"), UpgradeSyncFailed("two"),
