@@ -27,7 +27,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
@@ -36,6 +36,12 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.testFramework.DisposableRule
+import org.jetbrains.android.AndroidTestBase
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
@@ -47,15 +53,23 @@ import kotlin.system.measureTimeMillis
  * - Start using new NewProjectModel etc to initialise TemplateParameters and set parameter values.
  * - Fix clean model syncing, and hook up clean lint checks.
  */
-class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : AndroidGradleTestCase() {
+class TemplateTest {
+  private var runTemplateCoverageOnly: Boolean = false
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   // Set of templates tested with unit test - Used to detect templates without tests
   private val templatesChecked = mutableSetOf<String>()
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     UsageTracker.setWriterForTest(usageTracker)
 
     /**
@@ -65,20 +79,16 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
      *
      * @see RepositoryUrlManager.forceRepositoryChecksInTests
      */
-    IdeComponents(null, testRootDisposable).replaceApplicationService(
+    IdeComponents(null, disposableRule.disposable).replaceApplicationService(
       RepositoryUrlManager::class.java,
       RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true)
     )
   }
 
-  override fun tearDown() {
-    try {
-      usageTracker.close()
-      UsageTracker.cleanAfterTesting()
-    }
-    finally {
-      super.tearDown()
-    }
+  @After
+  fun tearDown() {
+    usageTracker.close()
+    UsageTracker.cleanAfterTesting()
   }
 
   /**
@@ -102,7 +112,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
     if (DISABLED || isBroken(name)) {
       return
     }
-    ensureSdkManagerAvailable()
+    AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     // Name must be title-cased
@@ -128,7 +138,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectChecker.checkProject(project, projectName, avoidModifiedModuleName, *customizers)
+      projectChecker.checkProject(projectRule.project, projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }
@@ -150,16 +160,19 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
   //--- Activity templates ---
   @TemplateCheck
+  @Test
   fun testNewBasicActivity() {
     checkCreateTemplate("Basic Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("Basic Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewBasicActivityMaterial3() {
     StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
     try {
@@ -173,146 +186,175 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testNewEmptyActivity() {
     checkCreateTemplate("Empty Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewEmptyActivityWithKotlin() {
     checkCreateTemplate("Empty Activity", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewViewModelActivity() {
     checkCreateTemplate("Fragment + ViewModel")
   }
 
   @TemplateCheck
+  @Test
   fun testNewViewModelActivityWithKotlin() {
     checkCreateTemplate("Fragment + ViewModel", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewTabbedActivity() {
     checkCreateTemplate("Tabbed Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewTabbedActivityWithKotlin() {
     checkCreateTemplate("Tabbed Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewNavigationDrawerActivity() {
     checkCreateTemplate("Navigation Drawer Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewNavigationDrawerActivityWithKotlin() {
     checkCreateTemplate("Navigation Drawer Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewPrimaryDetailFlow() {
     checkCreateTemplate("Primary/Detail Flow")
   }
 
   @TemplateCheck
+  @Test
   fun testNewPrimaryDetailFlowWithKotlin() {
     checkCreateTemplate("Primary/Detail Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewFullscreenActivity() {
     checkCreateTemplate("Fullscreen Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewFullscreenActivityWithKotlin() {
     checkCreateTemplate("Fullscreen Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewLoginActivity() {
     checkCreateTemplate("Login Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewLoginActivityWithKotlin() {
     checkCreateTemplate("Login Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewScrollingActivity() {
     checkCreateTemplate("Scrolling Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewScrollingActivityWithKotlin() {
     checkCreateTemplate("Scrolling Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewSettingsActivity() {
     checkCreateTemplate("Settings Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewSettingsActivityWithKotlin() {
     checkCreateTemplate("Settings Activity", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testBottomNavigationActivity() {
     checkCreateTemplate("Bottom Navigation Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testBottomNavigationActivityWithKotlin() {
     checkCreateTemplate("Bottom Navigation Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testGoogleAdMobAdsActivity() {
     checkCreateTemplate("Google AdMob Ads Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testGoogleAdMobAdsActivityWithKotlin() {
     checkCreateTemplate("Google AdMob Ads Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testGoogleMapsActivity() {
     checkCreateTemplate("Google Maps Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testGoogleMapsActivityWithKotlin() {
     checkCreateTemplate("Google Maps Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testGooglePayActivity() {
     checkCreateTemplate("Google Pay Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testGooglePayActivityWithKotlin() {
     checkCreateTemplate("Google Pay Activity", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testGameActivity(){
     checkCreateTemplate("Game Activity (C++)", avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testGameActivityWithKotlin(){
     checkCreateTemplate("Game Activity (C++)", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testComposeActivity() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
@@ -322,6 +364,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testComposeActivityMaterial3() {
     StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
     try {
@@ -336,21 +379,25 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testResponsiveActivity() {
     checkCreateTemplate("Responsive Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testResponsiveActivityWithKotlin() {
     checkCreateTemplate("Responsive Activity", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewBlankWearActivity() {
     checkCreateTemplate("Blank Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewComposeWearActivity() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
@@ -360,193 +407,231 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testNewBlankWearActivityWithKotlin() {
     checkCreateTemplate("Blank Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewTvActivity() {
     checkCreateTemplate("Android TV Blank Activity")
   }
 
   @TemplateCheck
+  @Test
   fun testNewTvActivityWithKotlin() {
     checkCreateTemplate("Android TV Blank Activity", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewNativeCppActivity() {
     checkCreateTemplate("Native C++")
   }
 
   @TemplateCheck
+  @Test
   fun testNewNativeCppActivityWithKotlin() {
     checkCreateTemplate("Native C++", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Fragment templates ---
   @TemplateCheck
+  @Test
   fun testNewListFragment() {
     checkCreateTemplate("Fragment (List)")
   }
 
   @TemplateCheck
+  @Test
   fun testNewListFragmentWithKotlin() {
     checkCreateTemplate("Fragment (List)", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewModalBottomSheet() {
     checkCreateTemplate("Modal Bottom Sheet")
   }
 
   @TemplateCheck
+  @Test
   fun testNewModalBottomSheetWithKotlin() {
     checkCreateTemplate("Modal Bottom Sheet", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewBlankFragment() {
     checkCreateTemplate("Fragment (Blank)")
   }
 
   @TemplateCheck
+  @Test
   fun testNewBlankFragmentWithKotlin() {
     checkCreateTemplate("Fragment (Blank)", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewSettingsFragment() {
     checkCreateTemplate("Settings Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testNewSettingsFragmentWithKotlin() {
     checkCreateTemplate("Settings Fragment", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewViewModelFragment() {
     checkCreateTemplate("Fragment (with ViewModel)")
   }
 
   @TemplateCheck
+  @Test
   fun testNewViewModelFragmentWithKotlin() {
     checkCreateTemplate("Fragment (with ViewModel)", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewScrollingFragment() {
     checkCreateTemplate("Scrolling Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testNewScrollingFragmentWithKotlin() {
     checkCreateTemplate("Scrolling Fragment", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewFullscreenFragment() {
     checkCreateTemplate("Fullscreen Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testNewFullscreenFragmentWithKotlin() {
     checkCreateTemplate("Fullscreen Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testNewGoogleMapsFragment() {
     checkCreateTemplate("Google Maps Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testNewGoogleMapsFragmentWithKotlin() {
     checkCreateTemplate("Google Maps Fragment", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewGoogleAdMobFragment() {
     checkCreateTemplate("Google AdMob Ads Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testNewGoogleAdMobFragmentWithKotlin() {
     checkCreateTemplate("Google AdMob Ads Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
+  @Test
   fun testLoginFragment() {
     checkCreateTemplate("Login Fragment")
   }
 
   @TemplateCheck
+  @Test
   fun testLoginFragmentWithKotlin() {
     checkCreateTemplate("Login Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Other templates ---
   @TemplateCheck
+  @Test
   fun testNewAppWidget() {
     checkCreateTemplate("App Widget")
   }
 
   @TemplateCheck
+  @Test
   fun testNewBroadcastReceiver() {
     checkCreateTemplate("Broadcast Receiver")
   }
 
   @TemplateCheck
+  @Test
   fun testNewBroadcastReceiverWithKotlin() {
     checkCreateTemplate("Broadcast Receiver", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewContentProvider() {
     checkCreateTemplate("Content Provider")
   }
 
   @TemplateCheck
+  @Test
   fun testNewContentProviderWithKotlin() {
     checkCreateTemplate("Content Provider", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewSliceProvider() {
     checkCreateTemplate("Slice Provider")
   }
 
   @TemplateCheck
+  @Test
   fun testNewSliceProviderWithKotlin() {
     checkCreateTemplate("Slice Provider", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewCustomView() {
     checkCreateTemplate("Custom View")
   }
 
   @TemplateCheck
+  @Test
   fun testNewIntentService() {
     checkCreateTemplate("Service (IntentService)")
   }
 
   @TemplateCheck
+  @Test
   fun testNewIntentServiceWithKotlin() {
     checkCreateTemplate("Service (IntentService)", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewService() {
     checkCreateTemplate("Service")
   }
 
   @TemplateCheck
+  @Test
   fun testNewServiceWithKotlin() {
     checkCreateTemplate("Service", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testNewFolders() {
     checkCreateTemplate("AIDL Folder", templateStateCustomizer = withNewLocation("foo"))
     checkCreateTemplate("Assets Folder", templateStateCustomizer = withNewLocation("src/main/assets"))
@@ -561,11 +646,13 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testAndroidManifest() {
     checkCreateTemplate("Android Manifest File")
   }
 
   @TemplateCheck
+  @Test
   fun testNewFiles() {
     checkCreateTemplate("AIDL File")
     checkCreateTemplate("App Actions XML File (deprecated)")
@@ -575,35 +662,42 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  @Test
   fun testWatchFace() {
     checkCreateTemplate("Watch Face")
   }
 
   @TemplateCheck
+  @Test
   fun testWatchFaceWithKotlin() {
     checkCreateTemplate("Watch Face", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testAutomotiveMessagingService() {
     checkCreateTemplate("Messaging Service")
   }
 
   @TemplateCheck
+  @Test
   fun testAutomotiveMessagingServiceWithKotlin() {
     checkCreateTemplate("Messaging Service", withKotlin)
   }
 
   @TemplateCheck
+  @Test
   fun testAutomotiveMediaService() {
     checkCreateTemplate("Media Service")
   }
 
   @TemplateCheck
+  @Test
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media Service", withKotlin)
   }
 
+  @Test
   fun testWizardUiContext() {
     TemplateResolver.getAllTemplates().filter { it.uiContexts.contains(WizardUiContext.NewProjectExtraDetail) }.forEach {
       // NewProjectExtraDetail should simultaneously declare NewProject
@@ -611,9 +705,10 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
     }
   }
 
+  @Test
   fun testAllTemplatesCovered() {
     // Create a placeholder version of this class that just collects all the templates it will test when it is run.
-    val templateTest = TemplateTest(runTemplateCoverageOnly = true)
+    val templateTest = TemplateTest().apply { runTemplateCoverageOnly = true }
 
     // Find all methods annotated with @TemplateCheck and run them (will just add the template name to a list)
     templateTest::class.memberFunctions

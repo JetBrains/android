@@ -49,7 +49,7 @@ import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -105,19 +105,21 @@ data class ProjectChecker(
   }
 
   private fun Project.updateGradleAndSyncIfNeeded(projectRoot: File) {
-    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
-    val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
-    val origContent = gradleFile.readText()
-    val newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy())
-    gradleFile.writeText(origContent, newContent)
+    runWriteActionAndWait {
+      AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
+      val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
+      val origContent = gradleFile.readText()
+      val newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy())
+      gradleFile.writeText(origContent, newContent)
 
-    val settingsFile = File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE)
-    val settingsOrigContent = settingsFile.readText()
+      val settingsFile = File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE)
+      val settingsOrigContent = settingsFile.readText()
 
-    val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
-      .run { updatePluginsResolutionManagement(this, newContent) }
+      val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
+        .run { updatePluginsResolutionManagement(this, newContent) }
 
-    settingsFile.writeText(settingsOrigContent, settingsNewContent)
+      settingsFile.writeText(settingsOrigContent, settingsNewContent)
+    }
 
     refreshProjectFiles()
     if (syncProject) {
@@ -144,7 +146,7 @@ data class ProjectChecker(
   /**
    * Renders project, module and possibly activity template. Also checks if logging was correct after each rendering step.
    */
-  private fun Project.create() = runWriteAction {
+  private fun Project.create() = runWriteActionAndWait {
     val moduleName = moduleState.name!!
 
     val projectRoot = moduleState.projectTemplateDataBuilder.topOut!!
