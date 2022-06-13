@@ -185,6 +185,11 @@ class ToolWindowModel(
       override val layoutState = LayoutState.READY
       override val runTooltip = "Upgrade Blocked"
     }
+    object NoStepsSelected : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
+      override val layoutState = LayoutState.READY
+      override val runTooltip = "No Steps Selected"
+    }
     object Loading : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
@@ -308,11 +313,12 @@ class ToolWindowModel(
         }
         AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
       }
-      if (processorsForCheckedPresentations().any { it.isBlocked }) {
-        uiState.set(UIState.Blocked)
-      }
-      else {
-        uiState.set(UIState.ReadyToRun)
+      processorsForCheckedPresentations().let { processors ->
+        when {
+          processors.isEmpty() -> uiState.set(UIState.NoStepsSelected)
+          processors.any { it.isBlocked } -> uiState.set(UIState.Blocked)
+          else -> uiState.set(UIState.ReadyToRun)
+        }
       }
     }
   }

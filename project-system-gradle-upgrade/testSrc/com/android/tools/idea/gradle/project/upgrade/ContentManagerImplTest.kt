@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Blo
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loading
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ProjectFilesNotCleanWarning
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
@@ -570,6 +571,26 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testToolWindowOKButtonsAreDisabledWithNothingSelected() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
+    assertThat(mandatoryCodependentNode.isChecked).isTrue()
+    assertThat(view.okButton.isEnabled).isTrue()
+    assertThat(view.previewButton.isEnabled).isTrue()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+    view.tree.setNodeState(mandatoryCodependentNode, false)
+    assertThat(view.okButton.isEnabled).isFalse()
+    assertThat(view.previewButton.isEnabled).isFalse()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+  }
+
+  @Test
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
@@ -871,7 +892,7 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       is CaughtException,
       is InvalidVersionError,
-      Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       is UpgradeSyncFailed,
       UpgradeSyncSucceeded ->
         this.hashCode()
