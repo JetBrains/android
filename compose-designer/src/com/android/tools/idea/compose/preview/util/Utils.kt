@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Segment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
@@ -33,50 +29,21 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   return SmartPointerManager.createPointer(bodyPsiElement)
 }
 
-/**
- * Returns an index indicating how close the given model is to the given [ComposePreviewElementInstance] 0 meaning they are equal and higher the
- * more dissimilar they are. This allows that, when re-using models, the most similar model is re-used. When the user is just switching
- * groups or selecting a specific model, this allows switching to the existing preview faster.
- */
-@VisibleForTesting
-fun modelAffinity(e0: ComposePreviewElement?, e1: ComposePreviewElement): Int {
-  if (e0 == null) return  3 // There is no PreviewElement associated to this method
-
-  return when {
-    // These are the same
-    e0 == e1 -> 0
-
-    // The method and display settings are the same
-    e0.composableMethodFqn == e1.composableMethodFqn &&
-      e0.displaySettings == e1.displaySettings->  1
-
-    // The name of the @Composable method matches but other settings might be different
-    e0.composableMethodFqn == e1.composableMethodFqn ->  2
-
-    // No match
-    else -> 4
-  }
+private fun <T : PreviewElement, M> calcAffinityMatrix(
+  elements: List<T>, models: List<M>, modelToPreview: (M) -> T?, calcAffinity: (T, T?) -> Int): List<List<Int>> {
+  val modelElements = models.map { modelToPreview(it) }
+  return elements.map { element -> modelElements.map { calcAffinity(element, it) } }
 }
 
-internal fun modelAffinity(model: NlModel, element: ComposePreviewElementInstance): Int {
-  val modelPreviewElement = if (!Disposer.isDisposed(model)) {
-    model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT)
-  } else null
-
-  // If modelPreviewElement is null, There is no PreviewElement associated to this method
-  return modelAffinity(modelPreviewElement ?: return 3, element)
-}
-
-private fun calcAffinityMatrix(models: List<NlModel>, elements: List<ComposePreviewElementInstance>) =
-  elements.map { element -> models.map { modelAffinity(it, element) } }
-
 /**
- * Matches [ComposePreviewElementInstance]s with the most similar [NlModel]s. For a [List] of [ComposePreviewElementInstance] ([elements]) returns a
- * [List] of the same size with the indices of the best matched [NlModel]s. The indices are for the input [models] [List]. If there are less
- * [models] than [elements] then indices for some [ComposePreviewElementInstance]s will be set to -1.
+ * Matches [PreviewElement]s with the most similar models. For a [List] of [PreviewElement] ([elements]) returns a [List] of the same
+ * size with the indices of the best matched models. The indices are for the input [models] [List]. If there are less [models] than
+ * [elements] then indices for some [PreviewElement]s will be set to -1.
  */
-internal fun matchElementsToModels(models: List<NlModel>, elements: List<ComposePreviewElementInstance>): List<Int> {
-  val affinityMatrix = calcAffinityMatrix(models, elements)
+internal fun <T : PreviewElement, M> matchElementsToModels(
+  models: List<M>, elements: List<T>, modelToPreview: (M) -> T?, calcAffinity: (T, T?) -> Int
+): List<Int> {
+  val affinityMatrix = calcAffinityMatrix(elements, models, modelToPreview, calcAffinity)
   if (affinityMatrix.isEmpty()) {
     return emptyList()
   }

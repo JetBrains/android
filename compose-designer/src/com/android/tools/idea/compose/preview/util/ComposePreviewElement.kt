@@ -384,7 +384,7 @@ interface PreviewElement : PreviewNode {
    */
   val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
 
-  /** [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview */
+  /** [SmartPsiElementPointer] to the preview body. This is the code that will be run during preview */
   val previewBodyPsi: SmartPsiElementPointer<PsiElement>?
 
   /** [PsiFile] containing this PreviewElement. null if there is not source file, like in synthetic preview elements */
@@ -645,25 +645,25 @@ interface FilePreviewElementFinder {
 }
 
 /**
- * Returns the source offset within the file of the [ComposePreviewElement].
+ * Returns the source offset within the file of the [PreviewElement].
  * We try to read the position of the method but fallback to the position of the annotation if the method body is not valid anymore.
  * If the passed element is null or the position can not be read, this method will return -1.
  *
  * This property needs a [ReadAction] to be read.
  */
-private val ComposePreviewElement?.sourceOffset: Int
+private val PreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
-private val sourceOffsetComparator = compareBy<ComposePreviewElement> { it.sourceOffset }
-private val displayPriorityComparator = compareBy<ComposePreviewElement> { it.displaySettings.displayPositioning }
-private val lexicographicalNameComparator = compareBy<ComposePreviewElement> {it.displaySettings.name }
+private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
+private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySettings.displayPositioning }
+private val lexicographicalNameComparator = compareBy<PreviewElement> {it.displaySettings.name }
 
 /**
- * Sorts the [ComposePreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
- * When Multipreview is enabled, different Previews may have the same [ComposePreviewElement.previewElementDefinitionPsi] value,
+ * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
+ * When Multipreview is enabled, different Previews may have the same [PreviewElement.previewElementDefinitionPsi] value,
  * and those will be ordered lexicographically between them, as the actual Previews may be defined in different files and/or
  * in a not structured way, so it is not possible to order them based on code source offsets.
  */
-fun <T : ComposePreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
+fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
   sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator).thenComparing(lexicographicalNameComparator))
 }

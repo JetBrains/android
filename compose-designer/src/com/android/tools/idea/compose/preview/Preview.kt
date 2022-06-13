@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -151,14 +152,18 @@ val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
  */
 private class PreviewElementDataContext(private val project: Project,
                                         private val composePreviewManager: ComposePreviewManager,
-                                        private val previewElement: ComposePreviewElement) : DataContext {
+                                        private val previewElement: ComposePreviewElementInstance) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-    COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+    COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
     CommonDataKeys.PROJECT.name -> project
     else -> null
   }
 }
+
+internal fun NlModel.toPreviewElement(): ComposePreviewElementInstance? = if (!Disposer.isDisposed(this)) {
+  dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+} else null
 
 /**
  * Returns true if change of values of any [LayoutlibSceneManager] properties would require necessary re-inflation. Namely, if we change
@@ -851,7 +856,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       filePreviewElements.find { element ->
         element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
       }?.let { selectedPreviewElement ->
-        surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
+        surface.models.find { it.toPreviewElement() == selectedPreviewElement }
       }?.let {
         surface.scrollToVisible(it, true)
       }
@@ -926,13 +931,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       .buildString()
 
-  private fun getPreviewDataContextForPreviewElement(previewElement: ComposePreviewElement) =
+  private fun getPreviewDataContextForPreviewElement(previewElement: ComposePreviewElementInstance) =
     PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
 
-  private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: ComposePreviewElement,
+  private fun configureLayoutlibSceneManagerForPreviewElement(displaySettings: PreviewDisplaySettings,
                                                               layoutlibSceneManager: LayoutlibSceneManager) =
     configureLayoutlibSceneManager(layoutlibSceneManager,
-                                   showDecorations = previewElement.displaySettings.showDecoration,
+                                   showDecorations = displaySettings.showDecoration,
                                    isInteractive = interactiveMode.isStartingOrReady(),
                                    requestPrivateClassLoader = usePrivateClassLoader())
 
@@ -986,6 +991,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::onAfterRender,
         this::toPreviewXmlString,
         this::getPreviewDataContextForPreviewElement,
+        NlModel::toPreviewElement,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     }
@@ -1002,6 +1008,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       this::onAfterRender,
       this::toPreviewXmlString,
       this::getPreviewDataContextForPreviewElement,
+      NlModel::toPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
@@ -1090,10 +1097,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // configured and that we are showing the right size for components. For example, if the user switches on/off
           // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
           refreshProgressIndicator.text = message("refresh.progress.indicator.reusing.existing.previews")
-          surface.refreshExistingPreviewElements(refreshProgressIndicator) { previewElement, sceneManager ->
+          surface.refreshExistingPreviewElements(
+            refreshProgressIndicator,
+            NlModel::toPreviewElement,
+          ) { displaySettings, sceneManager ->
             // When showing decorations, show the full device size
             configureLayoutlibSceneManager(sceneManager,
-                                           showDecorations = previewElement.displaySettings.showDecoration,
+                                           showDecorations = displaySettings.showDecoration,
                                            isInteractive = interactiveMode.isStartingOrReady(),
                                            requestPrivateClassLoader = usePrivateClassLoader())
           }

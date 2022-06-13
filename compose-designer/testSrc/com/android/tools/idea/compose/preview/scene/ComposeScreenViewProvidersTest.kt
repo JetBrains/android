@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
@@ -62,7 +62,7 @@ class ComposeScreenViewProvidersTest {
     )
     model.setDataContext {
       when (it) {
-        COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
         else -> null
       }
     }

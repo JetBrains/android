@@ -25,25 +25,23 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
-import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
-import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -66,7 +64,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.UUID
 
 /**
  * List of available layouts for the Compose Preview Surface.
@@ -173,19 +170,20 @@ internal fun createPinnedDesignSurfaceBuilder(
 )
 
 /**
- * Refresh the preview with the existing [ComposePreviewElement]s.
+ * Refresh the preview with the existing [PreviewElement]s.
  *
  * @param progressIndicator [ProgressIndicator] that runs while the refresh is in progress. When cancelled, this method should return early.
  * @param configureLayoutlibSceneManager helper called when the method needs to reconfigure a [LayoutlibSceneManager].
  */
 @Slow
-internal suspend fun NlDesignSurface.refreshExistingPreviewElements(
+internal suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
   progressIndicator: ProgressIndicator,
-  configureLayoutlibSceneManager: (ComposePreviewElement, LayoutlibSceneManager) -> LayoutlibSceneManager
+  modelToPreview: NlModel.() -> T?,
+  configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
 ) {
   val previewElementsToSceneManagers = models.mapNotNull {
-    val sceneManager = getSceneManager(it) as? LayoutlibSceneManager ?: return@mapNotNull null
-    val previewElement = it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) ?: return@mapNotNull null
+    val sceneManager = getSceneManager(it) ?: return@mapNotNull null
+    val previewElement = modelToPreview(it) ?: return@mapNotNull null
     previewElement to sceneManager
   }
   previewElementsToSceneManagers
@@ -194,88 +192,88 @@ internal suspend fun NlDesignSurface.refreshExistingPreviewElements(
       progressIndicator.text = message("refresh.progress.indicator.rendering.preview", index + 1, previewElementsToSceneManagers.size)
       val (previewElement, sceneManager) = pair
       // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(previewElement, sceneManager).requestComposeRender()
-    }
-}
-
-private fun NlDesignSurface.logSurfaceStatus(log: Logger) {
-  // Log any rendering errors
-  sceneManagers.forEach {
-    val modelName = it.model.modelDisplayName
-    it.renderResult?.let { result ->
-      val renderLogger = result.logger
-      log.debug("""modelName="$modelName" result
-                  | $result
-                  | hasErrors=${renderLogger.hasErrors()}
-                  | missingClasses=${renderLogger.missingClasses}
-                  | messages=${renderLogger.messages.asLogString()}
-                  | exceptions=${renderLogger.brokenClasses.values}
-                """.trimMargin())
-      }
+      configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager).requestComposeRender()
     }
 }
 
 /**
- * Syncs the [NlDesignSurface] with the [ComposePreviewElementInstance] from the given [PreviewElementInstanceProvider]. It returns all the
- * [ComposePreviewElementInstance] processed by this method.
+ * Returns a number indicating how [el1] [ComposePreviewElementInstance] is to the [el2] [ComposePreviewElementInstance]. 0 meaning they
+ * are equal and higher the number the more dissimilar they are. This allows for, when re-using models, the model with the most similar
+ * [ComposePreviewElementInstance] is re-used. When the user is just switching groups or selecting a specific model, this allows switching
+ * to the existing preview faster.
+ */
+fun calcComposeElementsAffinity(el1: ComposePreviewElementInstance, el2: ComposePreviewElementInstance?): Int {
+  if (el2 == null) return 3
+
+  return when {
+    // These are the same
+    el1 == el2 -> 0
+
+    // The method and display settings are the same
+    el1.composableMethodFqn == el2.composableMethodFqn &&
+    el1.displaySettings == el2.displaySettings -> 1
+
+    // The name of the @Composable method matches but other settings might be different
+    el1.composableMethodFqn == el2.composableMethodFqn -> 2
+
+    // No match
+    else -> 4
+  }
+}
+
+/**
+ * Syncs the [NlDesignSurface] with the [PreviewElement]s from the given [PreviewElementProvider]. It returns all the
+ * [PreviewElement] processed by this method.
  *
- * @param quickRefresh if true, the preview surfaces for the same [ComposePreviewElement]s do not get reinflated, allowing to save time for the static
- * to animated preview transition.
- * @param previewElementProvider the [PreviewElementInstanceProvider] to load the [ComposePreviewElementInstance] from.
- * @param log the [Logger] to log the debug information of the refresh.
- * @param psiFile the [PsiFile] containing the [ComposePreviewElement]s.
+ * @param reinflate if true all the [PreviewElement]s will be forcefully reinflated.
+ * @param previewElementProvider the [PreviewElementProvider] to load the [PreviewElement]s from.
+ * @param debugLogger the [DebugLogger] to log the debug information of the refresh.
+ * @param psiFile the [PsiFile] containing the [PreviewElement]s.
  * @param parentDisposable a [Disposable] used as a parent for the elements generated by this call.
  * @param progressIndicator [ProgressIndicator] that runs while the refresh is in progress. When cancelled, this method should return early.
  * @param onRenderCompleted method called when all the elements created/updated by this call have finished rendering.
- * @param previewElementToXml helper to convert [ComposePreviewElementInstance] to the XML output used by the surface.
+ * @param previewElementToXml helper to convert [PreviewElement] to the XML output used by the surface.
  * @param dataContextProvider helper to provide [DataContext] elements that will be used by this surface.
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a [LayoutlibSceneManager].
  */
-internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
-  quickRefresh: Boolean,
-  previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>,
-  log: Logger,
+internal suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
+  reinflate: Boolean,
+  previewElementProvider: PreviewElementProvider<T>,
+  debugLogger: PreviewElementDebugLogger<T>?,
   psiFile: PsiFile,
   parentDisposable: Disposable,
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
-  previewElementToXml: (ComposePreviewElementInstance) -> String,
-  dataContextProvider: (ComposePreviewElementInstance) -> DataContext,
-  configureLayoutlibSceneManager: (ComposePreviewElement, LayoutlibSceneManager) -> LayoutlibSceneManager): List<ComposePreviewElementInstance> {
-  val refreshId = if (log.isDebugEnabled) UUID.randomUUID().toString() else ""
-  val stopwatch = if (log.isDebugEnabled) StopWatch() else null
+  previewElementToXml: (T) -> String,
+  dataContextProvider: (T) -> DataContext,
+  modelToPreview: NlModel.() -> T?,
+  calcAffinity: (el1: T, el2: T?) -> Int,
+  applyToConfiguration: T.(Configuration) -> Unit,
+  configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
   val previewElementsList = previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
-  val modelIndices = matchElementsToModels(existingModels, previewElementsList)
+  val modelIndices = matchElementsToModels(existingModels, previewElementsList, modelToPreview, calcAffinity)
   // Now we generate all the models (or reuse) for the PreviewElements.
   val models = previewElementsList
-    .map { Pair(it, previewElementToXml(it)) }
-    .mapIndexed { idx, it ->
-      val (previewElement, fileContents) = it
+    .mapIndexed { idx, previewElement ->
+      val fileContents = previewElementToXml(previewElement)
 
-      if (log.isDebugEnabled) {
-        log.debug("""[$refreshId] Preview found at ${stopwatch?.duration?.toMillis()}ms
-              displayName=${previewElement.displaySettings.name}
-              methodName=${previewElement.composableMethodFqn}
-
-              $fileContents
-          """.trimIndent())
-      }
+      debugLogger?.logPreviewElement(previewElement, fileContents)
       if (progressIndicator.isCanceled) return@updatePreviewsAndRefresh previewElementsList // Return early if user cancels the refresh
 
       val model = if (modelIndices[idx] >= 0) {
         // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
         // more details.
         val reusedModel = existingModels[modelIndices[idx]]
-        val affinity = modelAffinity(reusedModel, previewElement)
-        // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
+        val affinity = calcAffinity(previewElement, modelToPreview(reusedModel))
+        // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (reinflate=false)
         // we can skip reinflate and therefore refresh much quicker
-        val forceReinflate = !(affinity == 0 && quickRefresh)
+        val forceReinflate = reinflate || affinity != 0
 
-        log.debug("[$refreshId] Re-using model ${reusedModel.virtualFile.name}")
+        debugLogger?.log("Re-using model ${reusedModel.virtualFile.name}")
         reusedModel.updateFileContentBlocking(fileContents)
         // Reconfigure the model by setting the new display name and applying the configuration values
         reusedModel.modelDisplayName = previewElement.displaySettings.name
@@ -283,8 +281,8 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(
-          previewElement,
-          addModelWithoutRender(reusedModel) as LayoutlibSceneManager).also {
+          previewElement.displaySettings,
+          addModelWithoutRender(reusedModel)).also {
           if (forceReinflate) {
             it.forceReinflate()
           }
@@ -293,7 +291,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
       }
       else {
         val now = System.currentTimeMillis()
-        log.debug("[$refreshId] No models to reuse were found. New model $now.")
+        debugLogger?.log("No models to reuse were found. New model $now.")
         val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFile.virtualFile }
         val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
         runBlocking(AndroidDispatchers.workerThread) {
@@ -310,7 +308,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
             }
             .build()
           configureLayoutlibSceneManager(
-            previewElement,
+            previewElement.displaySettings,
             addModelWithoutRender(newModel) as LayoutlibSceneManager)
           newModel
         }
@@ -327,7 +325,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
 
       (navigationHandler as PreviewNavigationHandler).setDefaultLocation(model, defaultFile, offset)
 
-      previewElement.applyTo(model.configuration)
+      previewElement.applyToConfiguration(model.configuration)
 
       model to previewElement
     }
@@ -337,7 +335,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
 
   // Remove and dispose pre-existing models that were not used.
   // This will happen if the user removes one or more previews.
-  if (log.isDebugEnabled) log.debug("[$refreshId] Removing ${existingModels.size} model(s)")
+  debugLogger?.log("Removing ${existingModels.size} model(s)")
   existingModels.forEach {
     removeModel(it)
     Disposer.dispose(it)
@@ -346,7 +344,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
   val newSceneManagers = models
     .map {
       val (model, _) = it
-      getSceneManager(model) as LayoutlibSceneManager
+      getSceneManager(model)!!
     }
 
   // Relayout the scene views and repaint, so that the updated lists of previews is shown before the render starts.
@@ -365,10 +363,58 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
   }
   onRenderCompleted()
 
-  if (log.isDebugEnabled) {
-    log.debug("[$refreshId] Render completed in ${stopwatch?.duration?.toMillis()}ms")
-    logSurfaceStatus(log)
-  }
+  debugLogger?.logRenderComplete(this)
 
   return models.map { it.second }
+}
+
+/**
+ * Class to wrap [ComposePreviewElementInstance]-specific debug logging functionality.
+ */
+private class ComposeDebugLogger(log: Logger) : PreviewElementDebugLogger<ComposePreviewElementInstance>(log) {
+
+  override fun logPreviewElement(previewElement: ComposePreviewElementInstance, previewXmlContent: String) {
+    log("""Preview found at ${stopwatch.duration.toMillis()}ms
+        displayName=${previewElement.displaySettings.name}
+        methodName=${previewElement.composableMethodFqn}
+
+        $previewXmlContent
+     """.trimIndent())
+  }
+}
+
+/**
+ * Compose-specific implementation of [updatePreviewsAndRefresh].
+ *
+ * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get reinflated, allowing to save time for the
+ * static to animated preview transition.
+ */
+internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
+  quickRefresh: Boolean,
+  previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>,
+  log: Logger,
+  psiFile: PsiFile,
+  parentDisposable: Disposable,
+  progressIndicator: ProgressIndicator,
+  onRenderCompleted: () -> Unit,
+  previewElementToXml: (ComposePreviewElementInstance) -> String,
+  dataContextProvider: (ComposePreviewElementInstance) -> DataContext,
+  modelToPreview: NlModel.() -> ComposePreviewElementInstance?,
+  configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<ComposePreviewElementInstance> {
+  val debugLogger = if (log.isDebugEnabled) ComposeDebugLogger(log) else null
+  return updatePreviewsAndRefresh(
+    !quickRefresh,
+    previewElementProvider,
+    debugLogger,
+    psiFile,
+    parentDisposable,
+    progressIndicator,
+    onRenderCompleted,
+    previewElementToXml,
+    dataContextProvider,
+    modelToPreview,
+    ::calcComposeElementsAffinity,
+    ComposePreviewElementInstance::applyTo,
+    configureLayoutlibSceneManager
+  )
 }

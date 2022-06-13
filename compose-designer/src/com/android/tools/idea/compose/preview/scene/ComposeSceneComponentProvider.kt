@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.PxBounds
@@ -88,7 +88,7 @@ class ComposeSceneComponentProvider: SceneManager.SceneComponentHierarchyProvide
     val viewInfo = component.viewInfo ?: return listOf()
 
     if (LOG.isDebugEnabled) {
-      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.displaySettings?.name?.let {
+      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name?.let {
         LOG.debug(" ${it} component=${component} model=${component.model}")
       }
     }

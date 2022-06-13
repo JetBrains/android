@@ -20,7 +20,7 @@ import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -58,7 +58,7 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER = object : ScreenViewProvider {
         }.build()
       }
       .withShapePolicy {
-        (if (COMPOSE_PREVIEW_ELEMENT.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
+        (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
           DEVICE_CONFIGURATION_SHAPE_POLICY
         else
           SQUARE_SHAPE_POLICY).getShape(it)
@@ -85,7 +85,7 @@ internal val COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER = object : ScreenViewProvide
         }.build()
       }
       .withShapePolicy {
-        (if (COMPOSE_PREVIEW_ELEMENT.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
+        (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
           DEVICE_CONFIGURATION_SHAPE_POLICY
         else
           SQUARE_SHAPE_POLICY).getShape(it)

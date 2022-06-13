@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIE
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -192,7 +193,7 @@ class ComposePreviewRepresentationProvider(
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>(
   "$PREFIX.Manager")
-internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<ComposePreviewElement>(
+internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<ComposePreviewElementInstance>(
   "$PREFIX.PreviewElement")
 
 /**

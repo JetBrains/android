@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.PIN_EMOJI
 import com.android.tools.idea.compose.preview.PinnedPreviewElementManager
 import com.android.tools.idea.compose.preview.PreviewElementProvider
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.refactoring.project
 
-fun DataContext.getPreviewElementInstance(): ComposePreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT) as? ComposePreviewElementInstance
+fun DataContext.getPreviewElementInstance(): ComposePreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance
 
 internal object UnpinAllPreviewElementsAction
   : ToggleAction(message("action.unpin.all.title"), message("action.unpin.all.description"), AllIcons.General.Pin_tab) {
@@ -91,7 +91,7 @@ internal class PinPreviewElementAction(private val dataContextProvider: () -> Da
     super.update(e)
 
     // Only instances can be pinned (except pinned ones)
-    val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) is ComposePreviewElementInstance
+    val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) is ComposePreviewElementInstance
     e.presentation.isVisible = isInstance
     e.presentation.isEnabled = isInstance
   }

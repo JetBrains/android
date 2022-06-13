@@ -21,12 +21,13 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
@@ -67,22 +68,22 @@ import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-private class PreviewElementDataContext(private val project: Project,
-                                        private val composePreviewManager: ComposePreviewManager,
-                                        private val previewElement: ComposePreviewElement) : DataContext {
+private class TestPreviewElementDataContext(private val project: Project,
+                                            private val composePreviewManager: ComposePreviewManager,
+                                            private val previewElement: ComposePreviewElementInstance) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-    COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+    COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
     CommonDataKeys.PROJECT.name -> project
     else -> null
   }
 }
 
-private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: ComposePreviewElement,
+private fun configureLayoutlibSceneManagerForPreviewElement(displaySettings: PreviewDisplaySettings,
                                                             layoutlibSceneManager: LayoutlibSceneManager) =
   configureLayoutlibSceneManager(
     layoutlibSceneManager,
-    showDecorations = previewElement.displaySettings.showDecoration,
+    showDecorations = displaySettings.showDecoration,
     isInteractive = false,
     requestPrivateClassLoader = false
   )
@@ -226,8 +227,9 @@ class ComposePreviewViewImplTest {
         },
         ::previewElementInstanceToString,
         {
-          PreviewElementDataContext(project, composePreviewManager, it)
+          TestPreviewElementDataContext(project, composePreviewManager, it)
         },
+        NlModel::toPreviewElement,
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }

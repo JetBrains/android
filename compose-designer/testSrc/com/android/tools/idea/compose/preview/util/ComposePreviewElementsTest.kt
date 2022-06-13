@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.idea.compose.preview.calcComposeElementsAffinity
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertArrayEquals
@@ -119,7 +120,7 @@ $t
 
     val result = listOf(composable2, composable1, composable0b)
       .shuffled()
-      .sortedBy { modelAffinity(composable0, it) }
+      .sortedBy { calcComposeElementsAffinity(it, composable0) }
       .toTypedArray()
 
     // The more similar, the lower result of modelAffinity.

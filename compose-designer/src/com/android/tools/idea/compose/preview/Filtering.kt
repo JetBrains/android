@@ -28,7 +28,7 @@ import com.google.common.annotations.VisibleForTesting
 @VisibleForTesting
 class GroupNameFilteredPreviewProvider<P: ComposePreviewElement>(private val delegate: PreviewElementProvider<P>, var groupName: String? = null) :
   PreviewElementProvider<P> {
-  private val filteredPreviewElementProvider = FilteredPreviewElementProvider<P>(
+  private val filteredPreviewElementProvider = FilteredPreviewElementProvider(
     delegate) {
     groupName == null || groupName == it.displaySettings.group
   }

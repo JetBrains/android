@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.scene
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
@@ -67,7 +67,7 @@ fun updateAnimationInspectorToolbarIcon(viewObj: Any,
 class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val previewElementInstance = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? ComposePreviewElementInstance) ?: return
+    val previewElementInstance = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance) ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {
       AnimationToolingUsageTracker.getInstance(designSurface)
