@@ -20,7 +20,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -110,8 +110,8 @@ class ComposePreviewRepresentationTest {
     })
 
     val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
-    val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> =
+    val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
     }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> composeView }
     Disposer.register(fixture.testRootDisposable, preview)

@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.preview.PIN_EMOJI
 import com.android.tools.idea.compose.preview.PinnedPreviewElementManager
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.refactoring.project
 
-fun DataContext.getPreviewElementInstance(): PreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
+fun DataContext.getPreviewElementInstance(): ComposePreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT) as? ComposePreviewElementInstance
 
 internal object UnpinAllPreviewElementsAction
   : ToggleAction(message("action.unpin.all.title"), message("action.unpin.all.description"), AllIcons.General.Pin_tab) {
@@ -57,7 +57,7 @@ internal object UnpinAllPreviewElementsAction
 
 internal class PinAllPreviewElementsAction(
   private val isPinned: () -> Boolean,
-  private val previewElementProvider: PreviewElementProvider<PreviewElementInstance>)
+  private val previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>)
   : ToggleAction(message("action.pin.file.title"), message("action.pin.file.description"), AllIcons.General.Pin_tab) {
   override fun isSelected(e: AnActionEvent): Boolean = isPinned()
 
@@ -91,7 +91,7 @@ internal class PinPreviewElementAction(private val dataContextProvider: () -> Da
     super.update(e)
 
     // Only instances can be pinned (except pinned ones)
-    val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) is PreviewElementInstance
+    val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) is ComposePreviewElementInstance
     e.presentation.isVisible = isInstance
     e.presentation.isEnabled = isInstance
   }

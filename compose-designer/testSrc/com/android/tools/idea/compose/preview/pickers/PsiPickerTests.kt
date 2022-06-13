@@ -29,7 +29,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.dev
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks
@@ -53,7 +53,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-private fun PreviewElement.annotationText(): String = ReadAction.compute<String, Throwable> {
+private fun ComposePreviewElement.annotationText(): String = ReadAction.compute<String, Throwable> {
   previewElementDefinitionPsi?.element?.text ?: ""
 }
 

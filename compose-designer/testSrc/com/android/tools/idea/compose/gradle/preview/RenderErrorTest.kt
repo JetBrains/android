@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -62,8 +62,8 @@ class RenderErrorTest {
     val composePreviewRepresentation: ComposePreviewRepresentation
 
     val previewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> =
+    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile).asSequence()
     }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)

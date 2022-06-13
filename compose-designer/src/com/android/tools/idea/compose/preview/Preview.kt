@@ -37,8 +37,8 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.FpsCalculator
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.invalidateCompositions
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
@@ -158,11 +158,11 @@ val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
  * [NlModel] associated preview data
  * @param project the [Project] used by the current view.
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
- * @param previewElement the [PreviewElement] associated to this model
+ * @param previewElement the [ComposePreviewElement] associated to this model
  */
 private class PreviewElementDataContext(private val project: Project,
                                         private val composePreviewManager: ComposePreviewManager,
-                                        private val previewElement: PreviewElement) : DataContext {
+                                        private val previewElement: ComposePreviewElement) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
     COMPOSE_PREVIEW_ELEMENT.name -> previewElement
@@ -255,11 +255,11 @@ private const val LAYOUT_KEY = "previewLayout"
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
+ * @param previewProvider [PreviewElementProvider] to obtain the [ComposePreviewElement]s.
  * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   previewProvider: PreviewElementProvider<PreviewElement>,
+                                   previewProvider: PreviewElementProvider<ComposePreviewElement>,
                                    override val preferredInitialVisibility: PreferredVisibility,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware,
@@ -358,10 +358,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
-  override val interactivePreviewElementInstance: PreviewElementInstance?
+  override val interactivePreviewElementInstance: ComposePreviewElementInstance?
     get() = previewElementProvider.instanceFilter
 
-  override suspend fun startInteractivePreview(element: PreviewElementInstance) {
+  override suspend fun startInteractivePreview(element: ComposePreviewElementInstance) {
     if (interactiveMode.isStartingOrReady()) return
     LOG.debug("New single preview element focus: $element")
     val isFromAnimationInspection = animationInspection.get()
@@ -442,7 +442,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val animationInspection = AtomicBoolean(false)
 
-  override var animationInspectionPreviewElementInstance: PreviewElementInstance?
+  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
     set(value) {
       if ((!animationInspection.get() && value != null) || (animationInspection.get() && value == null)) {
         if (value != null) {
@@ -576,9 +576,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val defaultSurfaceBackground: Color = surface.background
 
   /**
-   * List of [PreviewElement] being rendered by this editor
+   * List of [ComposePreviewElement] being rendered by this editor
    */
-  private var renderedElements: List<PreviewElement> = emptyList()
+  private var renderedElements: List<ComposePreviewElement> = emptyList()
 
   /**
    * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
@@ -1001,7 +1001,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun updateNotifications(parentEditor: FileEditor) = composeWorkBench.updateNotifications(parentEditor)
 
-  private fun toPreviewXmlString(instance: PreviewElementInstance): String =
+  private fun toPreviewXmlString(instance: ComposePreviewElementInstance): String =
     instance.toPreviewXml()
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
@@ -1014,10 +1014,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       .buildString()
 
-  private fun getPreviewDataContextForPreviewElement(previewElement: PreviewElement) =
+  private fun getPreviewDataContextForPreviewElement(previewElement: ComposePreviewElement) =
     PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
 
-  private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: PreviewElement,
+  private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: ComposePreviewElement,
                                                               layoutlibSceneManager: LayoutlibSceneManager) =
     configureLayoutlibSceneManager(layoutlibSceneManager,
                                    showDecorations = previewElement.displaySettings.showDecoration,
@@ -1034,11 +1034,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements. The call will block until all
-   * the given [PreviewElement]s have completed rendering. If [quickRefresh] is true the preview surfaces for the same [PreviewElement]s do
+   * the given [ComposePreviewElement]s have completed rendering. If [quickRefresh] is true the preview surfaces for the same [ComposePreviewElement]s do
    * not get reinflated, this allows to save time for e.g. static to animated preview transition. A [ProgressIndicator] that runs while
    * refresh is in progress is given, and this method should return early if the indicator is cancelled.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
+  private suspend fun doRefreshSync(filePreviewElements: List<ComposePreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val psiFile = runReadAction {
       val element = psiFilePointer.element

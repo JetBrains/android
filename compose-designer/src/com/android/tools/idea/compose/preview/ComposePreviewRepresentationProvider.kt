@@ -33,8 +33,8 @@ import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStatic
 import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -166,8 +166,8 @@ class ComposePreviewRepresentationProvider(
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> =
+    val previewProvider = object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
         filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
@@ -192,7 +192,7 @@ class ComposePreviewRepresentationProvider(
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>(
   "$PREFIX.Manager")
-internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<PreviewElement>(
+internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<ComposePreviewElement>(
   "$PREFIX.PreviewElement")
 
 /**

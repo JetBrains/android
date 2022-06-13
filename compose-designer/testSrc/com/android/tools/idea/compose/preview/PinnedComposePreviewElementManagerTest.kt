@@ -1,8 +1,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -17,14 +17,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private suspend fun <P: PreviewElement> PreviewElementProvider<P>.toDebugString(): String =
+private suspend fun <P: ComposePreviewElement> PreviewElementProvider<P>.toDebugString(): String =
   previewElements().map { it.composableMethodFqn }.sorted().joinToString("\n")
 
 private const val COMPOSABLE_ANNOTATION_PACKAGE =  "androidx.compose.runtime"
 private const val COMPOSABLE_ANNOTATION_FQN =  "$COMPOSABLE_ANNOTATION_PACKAGE.Composable"
 private const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 
-internal class PinnedPreviewElementManagerTest {
+internal class PinnedComposePreviewElementManagerTest {
   @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = PREVIEW_TOOLING_PACKAGE,
                                        composableAnnotationPackage = COMPOSABLE_ANNOTATION_PACKAGE)
@@ -100,12 +100,12 @@ internal class PinnedPreviewElementManagerTest {
     assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
     assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
     // Pin Preview1
-    pinnedPreviewManager.pin(elementsInFile1[0] as PreviewElementInstance)
+    pinnedPreviewManager.pin(elementsInFile1[0] as ComposePreviewElementInstance)
     assertEquals(1, pinnedPreviewElementProvider.previewElements().count())
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
 
     // Pin Preview2
-    pinnedPreviewManager.pin(elementsInFile2[0] as PreviewElementInstance)
+    pinnedPreviewManager.pin(elementsInFile2[0] as ComposePreviewElementInstance)
     assertEquals(startModificationCount + 2, pinnedPreviewManager.modificationCount)
     assertEquals(
       """
@@ -116,7 +116,7 @@ internal class PinnedPreviewElementManagerTest {
     )
     assertEquals(2, modifications)
 
-    pinnedPreviewManager.unpin(elementsInFile1[0] as PreviewElementInstance)
+    pinnedPreviewManager.unpin(elementsInFile1[0] as ComposePreviewElementInstance)
     assertEquals(startModificationCount + 3, pinnedPreviewManager.modificationCount)
     assertEquals(
       "com.test.TestKt.Preview3",
@@ -124,7 +124,7 @@ internal class PinnedPreviewElementManagerTest {
     )
     assertEquals(3, modifications)
 
-    pinnedPreviewManager.unpin(elementsInFile2[0] as PreviewElementInstance)
+    pinnedPreviewManager.unpin(elementsInFile2[0] as ComposePreviewElementInstance)
     assertEquals(startModificationCount + 4, pinnedPreviewManager.modificationCount)
     assertEquals(
       "",
@@ -143,8 +143,8 @@ internal class PinnedPreviewElementManagerTest {
 
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
-    assertTrue(pinnedPreviewManager.pin(elementsInFile1[0] as PreviewElementInstance))
-    assertTrue(pinnedPreviewManager.pin(elementsInFile2[0] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.pin(elementsInFile1[0] as ComposePreviewElementInstance))
+    assertTrue(pinnedPreviewManager.pin(elementsInFile2[0] as ComposePreviewElementInstance))
     assertEquals(
       """
         TestKt.Preview1
@@ -172,16 +172,16 @@ internal class PinnedPreviewElementManagerTest {
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     val startModificationCount = pinnedPreviewManager.modificationCount
-    assertFalse(pinnedPreviewManager.unpin(elementsInFile[0] as PreviewElementInstance))
-    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.unpin(elementsInFile[0] as ComposePreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as ComposePreviewElementInstance))
     assertFalse(pinnedPreviewManager.isPinned(file1))
     assertEquals("There were no pinned elements, no modifications expected", startModificationCount, pinnedPreviewManager.modificationCount)
     assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
-    assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as PreviewElementInstance))
-    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as ComposePreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as ComposePreviewElementInstance))
     assertTrue(pinnedPreviewManager.isPinned(file1))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
-    assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as ComposePreviewElementInstance))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertEquals(1, pinnedPreviewElementProvider.previewElements().count())
   }
@@ -194,17 +194,17 @@ internal class PinnedPreviewElementManagerTest {
     var modifications = 0
     pinnedPreviewManager.addListener { modifications++ }
     assertFalse(pinnedPreviewManager.unpin(listOf(
-      elementsInFile[0] as PreviewElementInstance,
-      elementsInFile[1] as PreviewElementInstance)))
+      elementsInFile[0] as ComposePreviewElementInstance,
+      elementsInFile[1] as ComposePreviewElementInstance)))
     assertTrue(pinnedPreviewManager.pin(listOf(
-      elementsInFile[0] as PreviewElementInstance,
-      elementsInFile[1] as PreviewElementInstance)))
+      elementsInFile[0] as ComposePreviewElementInstance,
+      elementsInFile[1] as ComposePreviewElementInstance)))
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
     assertEquals(2, pinnedPreviewElementProvider.previewElements().count())
     modifications = 0
     assertTrue(pinnedPreviewManager.unpin(listOf(
-      elementsInFile[0] as PreviewElementInstance,
-      elementsInFile[1] as PreviewElementInstance)))
+      elementsInFile[0] as ComposePreviewElementInstance,
+      elementsInFile[1] as ComposePreviewElementInstance)))
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
     assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
   }
@@ -218,17 +218,17 @@ internal class PinnedPreviewElementManagerTest {
     assertFalse(pinnedPreviewManager.unpinAll())
     assertEquals("unpinAll should not trigger a modification when there are no elements", 0, modifications)
     assertTrue(pinnedPreviewManager.pin(listOf(
-      elementsInFile[0] as PreviewElementInstance,
-      elementsInFile[1] as PreviewElementInstance)))
+      elementsInFile[0] as ComposePreviewElementInstance,
+      elementsInFile[1] as ComposePreviewElementInstance)))
     modifications = 0
     assertTrue(pinnedPreviewManager.isPinned(file1))
-    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
-    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[1] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as ComposePreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[1] as ComposePreviewElementInstance))
     assertTrue(pinnedPreviewManager.unpinAll())
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
     assertFalse(pinnedPreviewManager.isPinned(file1))
-    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
-    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[1] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as ComposePreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[1] as ComposePreviewElementInstance))
     assertFalse(pinnedPreviewManager.unpinAll())
   }
 }

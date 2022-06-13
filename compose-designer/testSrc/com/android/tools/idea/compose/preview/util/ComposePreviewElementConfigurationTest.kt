@@ -30,7 +30,6 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import kotlin.math.sqrt
@@ -89,9 +88,9 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 }
 
 /**
- * Tests checking [PreviewElement] being applied to a [Configuration].
+ * Tests checking [ComposePreviewElement] being applied to a [Configuration].
  */
-class PreviewElementConfigurationTest() {
+class ComposePreviewElementConfigurationTest() {
   @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
                                        composableAnnotationPackage = "androidx.compose.runtime")
@@ -127,9 +126,9 @@ class PreviewElementConfigurationTest() {
     configManager.defaultDevice
     val configuration = Configuration.create(configManager, null, FolderConfiguration.createDefault())
 
-    SinglePreviewElementInstance("NoSize",
-                                 PreviewDisplaySettings("Name", null, false, false, null), null, null,
-                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+    SingleComposePreviewElementInstance("NoSize",
+                                        PreviewDisplaySettings("Name", null, false, false, null), null, null,
+                                        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
     ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
@@ -139,9 +138,9 @@ class PreviewElementConfigurationTest() {
       assertEquals(1000, screenSize.width)
       assertEquals(2000, screenSize.height)
     }
-    SinglePreviewElementInstance("WithSize",
-                                 PreviewDisplaySettings("Name", null, false, false, null), null, null,
-                                 PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
+    SingleComposePreviewElementInstance("WithSize",
+                                        PreviewDisplaySettings("Name", null, false, false, null), null, null,
+                                        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
                                                                   null)
     ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
@@ -153,10 +152,10 @@ class PreviewElementConfigurationTest() {
       assertEquals(234, screenSize.height)
     }
 
-    SinglePreviewElementInstance("WithSizeAndDecorations",
-                                 PreviewDisplaySettings("Name", null, true, false, null), null,
-                                 null,
-                                 PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
+    SingleComposePreviewElementInstance("WithSizeAndDecorations",
+                                        PreviewDisplaySettings("Name", null, true, false, null), null,
+                                        null,
+                                        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
                                                                   null, null, null)
     ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,

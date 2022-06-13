@@ -34,12 +34,12 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
 }
 
 /**
- * Returns an index indicating how close the given model is to the given [PreviewElementInstance] 0 meaning they are equal and higher the
+ * Returns an index indicating how close the given model is to the given [ComposePreviewElementInstance] 0 meaning they are equal and higher the
  * more dissimilar they are. This allows that, when re-using models, the most similar model is re-used. When the user is just switching
  * groups or selecting a specific model, this allows switching to the existing preview faster.
  */
 @VisibleForTesting
-fun modelAffinity(e0: PreviewElement?, e1: PreviewElement): Int {
+fun modelAffinity(e0: ComposePreviewElement?, e1: ComposePreviewElement): Int {
   if (e0 == null) return  3 // There is no PreviewElement associated to this method
 
   return when {
@@ -58,7 +58,7 @@ fun modelAffinity(e0: PreviewElement?, e1: PreviewElement): Int {
   }
 }
 
-internal fun modelAffinity(model: NlModel, element: PreviewElementInstance): Int {
+internal fun modelAffinity(model: NlModel, element: ComposePreviewElementInstance): Int {
   val modelPreviewElement = if (!Disposer.isDisposed(model)) {
     model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT)
   } else null
@@ -67,15 +67,15 @@ internal fun modelAffinity(model: NlModel, element: PreviewElementInstance): Int
   return modelAffinity(modelPreviewElement ?: return 3, element)
 }
 
-private fun calcAffinityMatrix(models: List<NlModel>, elements: List<PreviewElementInstance>) =
+private fun calcAffinityMatrix(models: List<NlModel>, elements: List<ComposePreviewElementInstance>) =
   elements.map { element -> models.map { modelAffinity(it, element) } }
 
 /**
- * Matches [PreviewElementInstance]s with the most similar [NlModel]s. For a [List] of [PreviewElementInstance] ([elements]) returns a
+ * Matches [ComposePreviewElementInstance]s with the most similar [NlModel]s. For a [List] of [ComposePreviewElementInstance] ([elements]) returns a
  * [List] of the same size with the indices of the best matched [NlModel]s. The indices are for the input [models] [List]. If there are less
- * [models] than [elements] then indices for some [PreviewElementInstance]s will be set to -1.
+ * [models] than [elements] then indices for some [ComposePreviewElementInstance]s will be set to -1.
  */
-internal fun matchElementsToModels(models: List<NlModel>, elements: List<PreviewElementInstance>): List<Int> {
+internal fun matchElementsToModels(models: List<NlModel>, elements: List<ComposePreviewElementInstance>): List<Int> {
   val affinityMatrix = calcAffinityMatrix(models, elements)
   if (affinityMatrix.isEmpty()) {
     return emptyList()

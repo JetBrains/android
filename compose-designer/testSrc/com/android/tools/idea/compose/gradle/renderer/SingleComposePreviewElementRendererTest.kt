@@ -20,14 +20,14 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Paths
 
-class SinglePreviewElementRendererTest {
+class SingleComposePreviewElementRendererTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
@@ -39,7 +39,7 @@ class SinglePreviewElementRendererTest {
     assertNull(
       renderPreviewElement(
         projectRule.androidFacet(":app"),
-        SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")
       ).get()
     )
   }
@@ -51,7 +51,7 @@ class SinglePreviewElementRendererTest {
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")
+      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")
     ).get()!!
     assertImageSimilar(
       Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
@@ -68,7 +68,7 @@ class SinglePreviewElementRendererTest {
   fun testDefaultPreviewRenderingWithBackground() {
     val defaultRenderWithBackground = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.MainActivityKt.DefaultPreview",
         showBackground = true,
         backgroundColor = "#F00"
@@ -86,7 +86,7 @@ class SinglePreviewElementRendererTest {
   fun testDefaultPreviewRenderingWithDifferentLocale() {
     val defaultRenderWithLocale = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.MainActivityKt.DefaultPreview",
         configuration = PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
       )
@@ -108,7 +108,7 @@ class SinglePreviewElementRendererTest {
   fun testPreviewWithUnsignedTypes() {
     val withUnsignedTypesRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
         showBackground = true,
       )
@@ -129,7 +129,7 @@ class SinglePreviewElementRendererTest {
   fun testEmptyRender() {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()!!
+      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()!!
 
     assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
   }

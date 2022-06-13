@@ -256,20 +256,20 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
 }
 
 /**
- * If specified in the [PreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Pair] as long as
+ * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Pair] as long as
  * the device frame is disabled (i.e. `showDecorations` is false).
  */
 @AndroidDpCoordinate
-private fun PreviewElement.getCustomDeviceSize(): Dimension? =
+private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
   if (!displaySettings.showDecoration && configuration.width != -1 && configuration.height != -1) {
     Dimension(configuration.width, configuration.height)
   }
   else null
 
 /**
- * Applies the [PreviewElement] settings to the given [renderConfiguration].
+ * Applies the [ComposePreviewElement] settings to the given [renderConfiguration].
  */
-fun PreviewElement.applyTo(renderConfiguration: Configuration) {
+fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
   configuration.applyTo(renderConfiguration,
                         { it.configurationManager.highestApiTarget },
                         { it.configurationManager.devices },
@@ -288,10 +288,10 @@ fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configur
 }
 
 @TestOnly
-fun PreviewElement.applyConfigurationForTest(renderConfiguration: Configuration,
-                                             highestApiTarget: (Configuration) -> IAndroidTarget?,
-                                             devicesProvider: (Configuration) -> Collection<Device>,
-                                             defaultDeviceProvider: (Configuration) -> Device?) {
+fun ComposePreviewElement.applyConfigurationForTest(renderConfiguration: Configuration,
+                                                    highestApiTarget: (Configuration) -> IAndroidTarget?,
+                                                    devicesProvider: (Configuration) -> Collection<Device>,
+                                                    defaultDeviceProvider: (Configuration) -> Device?) {
   configuration.applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, getCustomDeviceSize())
 }
 
@@ -342,7 +342,7 @@ enum class DisplayPositioning {
 }
 
 /**
- * Settings that modify how a [PreviewElement] is rendered
+ * Settings that modify how a [ComposePreviewElement] is rendered
  *
  * @param name display name of this preview element
  * @param group name that allows multiple previews in separate groups
@@ -375,9 +375,6 @@ data class PreviewParameter(val name: String,
  * Definition of a preview element
  */
 interface PreviewElement : PreviewNode {
-  /** Fully Qualified Name of the composable method */
-  val composableMethodFqn: String
-
   /** Settings that affect how the [PreviewElement] is presented in the preview surface */
   val displaySettings: PreviewDisplaySettings
 
@@ -395,22 +392,29 @@ interface PreviewElement : PreviewNode {
     get() = runReadAction {
       previewBodyPsi?.containingFile ?: previewElementDefinitionPsi?.containingFile
     }
+}
+
+/**
+ * Definition of a Composable preview element
+ */
+interface ComposePreviewElement : PreviewElement {
+  /** Fully Qualified Name of the composable method */
+  val composableMethodFqn: String
 
   /** Preview element configuration that affects how LayoutLib resolves the resources */
   val configuration: PreviewConfiguration
 }
-
 /**
- * Definition of a preview element template. This element can dynamically spawn one or more [PreviewElementInstance]s.
+ * Definition of a preview element template. This element can dynamically spawn one or more [ComposePreviewElementInstance]s.
  */
-interface PreviewElementTemplate : PreviewElement {
-  fun instances(): Sequence<PreviewElementInstance>
+interface ComposePreviewElementTemplate : ComposePreviewElement {
+  fun instances(): Sequence<ComposePreviewElementInstance>
 }
 
 /**
  * Definition of a preview element
  */
-abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
+abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSerializable {
   /**
    * Unique identifier that can be used for filtering.
    */
@@ -448,7 +452,7 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as PreviewElementInstance
+    other as ComposePreviewElementInstance
 
     return composableMethodFqn == other.composableMethodFqn &&
            instanceId == other.instanceId &&
@@ -463,11 +467,11 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-class SinglePreviewElementInstance(override val composableMethodFqn: String,
-                                   override val displaySettings: PreviewDisplaySettings,
-                                   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-                                   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                   override val configuration: PreviewConfiguration) : PreviewElementInstance() {
+class SingleComposePreviewElementInstance(override val composableMethodFqn: String,
+                                          override val displaySettings: PreviewDisplaySettings,
+                                          override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                                          override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                                          override val configuration: PreviewConfiguration) : ComposePreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
@@ -480,23 +484,25 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    backgroundColor: String? = null,
                    displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
                    configuration: PreviewConfiguration = nullConfiguration) =
-      SinglePreviewElementInstance(composableMethodFqn,
-                                   PreviewDisplaySettings(
-                                     displayName,
-                                     groupName,
-                                     showDecorations,
-                                     showBackground,
-                                     backgroundColor,
-                                     displayPositioning),
-                                   null, null,
-                                   configuration)
+      SingleComposePreviewElementInstance(
+        composableMethodFqn,
+        PreviewDisplaySettings(
+          displayName,
+          groupName,
+          showDecorations,
+          showBackground,
+          backgroundColor,
+          displayPositioning),
+        null,
+        null,
+        configuration)
   }
 }
 
-private class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
-                                                 parameterName: String,
-                                                 val providerClassFqn: String,
-                                                 val index: Int) : PreviewElementInstance(), PreviewElement by basePreviewElement {
+private class ParametrizedComposePreviewElementInstance(private val basePreviewElement: ComposePreviewElement,
+                                                        parameterName: String,
+                                                        val providerClassFqn: String,
+                                                        val index: Int) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
   override val instanceId: String = "$composableMethodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
@@ -519,31 +525,31 @@ private class ParametrizedPreviewElementInstance(private val basePreviewElement:
 }
 
 /**
- * If the [PreviewElement] is a [ParametrizedPreviewElementInstance], returns the provider class FQN and the target value index.
+ * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the provider class FQN and the target value index.
  */
-internal fun PreviewElement.previewProviderClassAndIndex() =
-  if (this is ParametrizedPreviewElementInstance) Pair(providerClassFqn, index) else null
+internal fun ComposePreviewElement.previewProviderClassAndIndex() =
+  if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null
 
 /**
- * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
+ * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on parameters.
  */
-class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
-                                         val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
+class ParametrizedComposePreviewElementTemplate(private val basePreviewElement: ComposePreviewElement,
+                                                val parameterProviders: Collection<PreviewParameter>) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
   /**
-   * Returns a [Sequence] of "instantiated" [PreviewElement]s. The will be [PreviewElement] populated with data from the parameter
+   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be [ComposePreviewElement] populated with data from the parameter
    * providers.
    */
-  override fun instances(): Sequence<PreviewElementInstance> {
+  override fun instances(): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     val file = basePreviewElement.containingFile ?: return sequenceOf()
     if (parameterProviders.size > 1) {
-      Logger.getInstance(ParametrizedPreviewElementTemplate::class.java).warn(
+      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java).warn(
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
     val moduleRenderContext = ModuleRenderContext.forFile(file)
-    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader,
+    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedComposePreviewElementTemplate::class.java.classLoader,
                                                                 moduleRenderContext, this)
     try {
       return parameterProviders.map { previewParameter ->
@@ -560,15 +566,15 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
           val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), previewParameter.limit)
 
           return (0 until providerCount).map { index ->
-            ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
-                                               parameterName = previewParameter.name,
-                                               index = index,
-                                               providerClassFqn = previewParameter.providerClassFqn)
+            ParametrizedComposePreviewElementInstance(basePreviewElement = basePreviewElement,
+                                                      parameterName = previewParameter.name,
+                                                      index = index,
+                                                      providerClassFqn = previewParameter.providerClassFqn)
           }.asSequence()
         }
         catch (e: Throwable) {
           Logger.getInstance(
-            ParametrizedPreviewElementTemplate::class.java).debug {
+            ParametrizedComposePreviewElementTemplate::class.java).debug {
             "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider"
           }
         }
@@ -585,7 +591,7 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as ParametrizedPreviewElementTemplate
+    other as ParametrizedComposePreviewElementTemplate
 
     return basePreviewElement == other.basePreviewElement &&
            parameterProviders == other.parameterProviders
@@ -596,15 +602,15 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
 }
 
 /**
- * A [PreviewElementProvider] that instantiates any [PreviewElementTemplate]s in the [delegate].
+ * A [PreviewElementProvider] that instantiates any [ComposePreviewElementTemplate]s in the [delegate].
  */
-class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<PreviewElement>)
-  : PreviewElementProvider<PreviewElementInstance> {
-  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<ComposePreviewElement>)
+  : PreviewElementProvider<ComposePreviewElementInstance> {
+  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     delegate.previewElements().flatMap {
       when (it) {
-        is PreviewElementTemplate -> it.instances()
-        is PreviewElementInstance -> sequenceOf(it)
+        is ComposePreviewElementTemplate -> it.instances()
+        is ComposePreviewElementInstance -> sequenceOf(it)
         else -> {
           Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java).warn(
             "Class was not instance or template ${it::class.qualifiedName}")
@@ -615,7 +621,7 @@ class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElemen
 }
 
 /**
- * Interface to be implemented by classes able to find [PreviewElement]s on [VirtualFile]s.
+ * Interface to be implemented by classes able to find [ComposePreviewElement]s on [VirtualFile]s.
  */
 interface FilePreviewElementFinder {
   /**
@@ -631,33 +637,33 @@ interface FilePreviewElementFinder {
   fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
-   * Returns all the [PreviewElement]s present in the passed Kotlin [VirtualFile].
+   * Returns all the [ComposePreviewElement]s present in the passed Kotlin [VirtualFile].
    *
    * This method always runs on smart mode.
    */
-  suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement>
+  suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<ComposePreviewElement>
 }
 
 /**
- * Returns the source offset within the file of the [PreviewElement].
+ * Returns the source offset within the file of the [ComposePreviewElement].
  * We try to read the position of the method but fallback to the position of the annotation if the method body is not valid anymore.
  * If the passed element is null or the position can not be read, this method will return -1.
  *
  * This property needs a [ReadAction] to be read.
  */
-private val PreviewElement?.sourceOffset: Int
+private val ComposePreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
-private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
-private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySettings.displayPositioning }
-private val lexicographicalNameComparator = compareBy<PreviewElement> {it.displaySettings.name }
+private val sourceOffsetComparator = compareBy<ComposePreviewElement> { it.sourceOffset }
+private val displayPriorityComparator = compareBy<ComposePreviewElement> { it.displaySettings.displayPositioning }
+private val lexicographicalNameComparator = compareBy<ComposePreviewElement> {it.displaySettings.name }
 
 /**
- * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
- * When Multipreview is enabled, different Previews may have the same [PreviewElement.previewElementDefinitionPsi] value,
+ * Sorts the [ComposePreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
+ * When Multipreview is enabled, different Previews may have the same [ComposePreviewElement.previewElementDefinitionPsi] value,
  * and those will be ordered lexicographically between them, as the actual Previews may be defined in different files and/or
  * in a not structured way, so it is not possible to order them based on code source offsets.
  */
-fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
+fun <T : ComposePreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
   sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator).thenComparing(lexicographicalNameComparator))
 }

@@ -19,8 +19,8 @@ import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -35,12 +35,12 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
 /**
- * Returns a [CompletableFuture] that creates a [RenderTask] for a single [PreviewElementInstance]. It is the
+ * Returns a [CompletableFuture] that creates a [RenderTask] for a single [ComposePreviewElementInstance]. It is the
  * responsibility of a client of this function to dispose the resulting [RenderTask] when no loner needed.
  */
 @VisibleForTesting
 fun createRenderTaskFuture(facet: AndroidFacet,
-                           previewElement: PreviewElementInstance,
+                           previewElement: ComposePreviewElementInstance,
                            privateClassLoader: Boolean = false,
                            classesToPreload: Collection<String> = emptyList()): CompletableFuture<RenderTask> {
   val project = facet.module.project
@@ -68,12 +68,12 @@ fun createRenderTaskFuture(facet: AndroidFacet,
 }
 
 /**
- * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
  * This method will render the element asynchronously and will return immediately.
  */
 @VisibleForTesting
 fun renderPreviewElementForResult(facet: AndroidFacet,
-                                  previewElement: PreviewElementInstance,
+                                  previewElement: ComposePreviewElementInstance,
                                   privateClassLoader: Boolean = false,
                                   executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val renderTaskFuture = createRenderTaskFuture(facet, previewElement, privateClassLoader)
@@ -88,10 +88,10 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
 }
 
 /**
- * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
  * This method will render the element asynchronously and will return immediately.
  */
 fun renderPreviewElement(facet: AndroidFacet,
-                         previewElement: PreviewElementInstance): CompletableFuture<BufferedImage?> {
+                         previewElement: ComposePreviewElementInstance): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement).thenApply { it?.renderedImage?.copy }
 }

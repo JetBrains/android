@@ -17,47 +17,46 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * Interface to be implemented by classes providing a list of [PreviewElement]
+ * Interface to be implemented by classes providing a list of [ComposePreviewElement]
  */
-interface PreviewElementProvider<P: PreviewElement> {
+interface PreviewElementProvider<P: ComposePreviewElement> {
   /**
-   * Returns a [Sequence] of [PreviewElement]s.
+   * Returns a [Sequence] of [ComposePreviewElement]s.
    */
   suspend fun previewElements(): Sequence<P>
 }
 
 /**
- * Interface to be implemented by classes providing instances of [PreviewElement] as [PreviewElementInstance].
+ * Interface to be implemented by classes providing instances of [ComposePreviewElement] as [ComposePreviewElementInstance].
  */
-interface PreviewElementInstanceProvider: PreviewElementProvider<PreviewElementInstance> {
+interface PreviewElementInstanceProvider: PreviewElementProvider<ComposePreviewElementInstance> {
   /**
-   * Returns a [Sequence] of [PreviewElementInstance]s.
+   * Returns a [Sequence] of [ComposePreviewElementInstance]s.
    */
-  override suspend fun previewElements(): Sequence<PreviewElementInstance>
+  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance>
 }
 
 /**
- * [PreviewElementProvider] that does not contain [PreviewElement]s.
+ * [PreviewElementProvider] that does not contain [ComposePreviewElement]s.
  */
 object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
-  override suspend fun previewElements(): Sequence<PreviewElementInstance> = emptySequence()
+  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = emptySequence()
 }
 
 /**
  * Returns the list of available group names in this [PreviewElementProvider]. If this provider does any filtering, the groups
  * returned here will be the ones after the filtering is applied.
  */
-fun Sequence<PreviewElement>.groupNames(): Set<String> =
+fun Sequence<ComposePreviewElement>.groupNames(): Set<String> =
   mapNotNull { it.displaySettings.group }
     .filter { it.isNotBlank() }
     .toSet()
@@ -65,8 +64,8 @@ fun Sequence<PreviewElement>.groupNames(): Set<String> =
 /**
  * A [PreviewElementProvider] that applies a filter to the result.
  */
-class FilteredPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
-                                     private val filter: (P) -> Boolean) : PreviewElementProvider<P> {
+class FilteredPreviewElementProvider<P: ComposePreviewElement>(private val delegate: PreviewElementProvider<P>,
+                                                               private val filter: (P) -> Boolean) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
 }
 
@@ -74,8 +73,8 @@ class FilteredPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
  * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents
  * will only be updated when the given [modificationTracker] updates.
  */
-class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
-                                                        private val modificationTracker: ModificationTracker) : PreviewElementProvider<P> {
+class MemoizedPreviewElementProvider<P: ComposePreviewElement>(private val delegate: PreviewElementProvider<P>,
+                                                               private val modificationTracker: ModificationTracker) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()
   @GuardedBy("cachedPreviewElementLock")
@@ -103,7 +102,7 @@ class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
   }
 
   /**
-   * Returns the latest value of the [PreviewElement]s contained in the [delegate]. If the [modificationTracker] has not changed,
+   * Returns the latest value of the [ComposePreviewElement]s contained in the [delegate]. If the [modificationTracker] has not changed,
    * this property will return a cached value.
    *
    * _This call might be [Slow]. Do not call on the UI thread._

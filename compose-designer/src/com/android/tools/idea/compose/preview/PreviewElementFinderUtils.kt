@@ -24,12 +24,12 @@ import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewParameter
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
@@ -103,15 +103,15 @@ fun UAnnotation?.isMultiPreviewAnnotation() =
   this?.let { !it.isPreviewAnnotation() && it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null } == true
 
 /**
- * Given a Composable method, return a sequence of [PreviewElement] corresponding to its Preview annotations
+ * Given a Composable method, return a sequence of [ComposePreviewElement] corresponding to its Preview annotations
  */
 internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
-  getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? PreviewElement }
+  getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement }
 
 /**
  * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's MultiPreview graph.
  * Notes:
- *  - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but specifically a [PreviewElement].
+ *  - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but specifically a [ComposePreviewElement].
  *  - When [includeAllNodes] is true, the returned sequence will also include nodes corresponding to the MultiPreview annotations
  *  and the root composable [uMethod]. These nodes, will be not just a [PreviewNode], but specifically a [MultiPreviewNode]
  */
@@ -219,7 +219,7 @@ private fun buildParentAnnotationInfo(name: String?, id: Int, maxRelatedId: Int)
   "$name ${id.toString().padStart(maxRelatedId.toString().length, '0')}"
 
 /**
- * Converts the [UAnnotation] to a [PreviewElement] if the annotation is a `@Preview` annotation or returns null
+ * Converts the [UAnnotation] to a [ComposePreviewElement] if the annotation is a `@Preview` annotation or returns null
  * if it's not.
  */
 internal fun UAnnotation.toPreviewElement(uMethod: UMethod? = getContainingComposableUMethod(),
@@ -277,13 +277,13 @@ private val UMethod.qualifiedName: String
   get() = "${(this.uastParent as UClass).qualifiedName}.${this.name}"
 
 /**
- * Converts the given [previewAnnotation] to a [PreviewElement].
+ * Converts the given [previewAnnotation] to a [ComposePreviewElement].
  */
 private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               annotatedMethod: UMethod,
                                               rootAnnotation: UAnnotation,
                                               overrideGroupName: String? = null,
-                                              parentAnnotationInfo: String? = null): PreviewElement? {
+                                              parentAnnotationInfo: String? = null): ComposePreviewElement? {
   fun getPreviewName(nameParameter: String?) = when {
     nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
     parentAnnotationInfo != null -> "${annotatedMethod.name} - $parentAnnotationInfo"
@@ -317,13 +317,13 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                                backgroundColorString)
 
   val parameters = getPreviewParameters(annotatedMethod.uastParameters)
-  val basePreviewElement = SinglePreviewElementInstance(composableMethod,
-                                                        displaySettings,
-                                                        rootAnnotation.toSmartPsiPointer(),
-                                                        annotatedMethod.uastBody.toSmartPsiPointer(),
-                                                        attributesToConfiguration(previewAnnotation, defaultValues))
+  val basePreviewElement = SingleComposePreviewElementInstance(composableMethod,
+                                                               displaySettings,
+                                                               rootAnnotation.toSmartPsiPointer(),
+                                                               annotatedMethod.uastBody.toSmartPsiPointer(),
+                                                               attributesToConfiguration(previewAnnotation, defaultValues))
   return if (!parameters.isEmpty()) {
-    ParametrizedPreviewElementTemplate(basePreviewElement, parameters)
+    ParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
   }
   else {
     basePreviewElement

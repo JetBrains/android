@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.DisplayPositioning
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -72,7 +72,7 @@ private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
 @RunWith(Parameterized::class)
-class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -521,13 +521,13 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     elements[0].let {
-      assertFalse(it is ParametrizedPreviewElementTemplate)
+      assertFalse(it is ParametrizedComposePreviewElementTemplate)
       assertEquals("NoParameter", it.displaySettings.name)
     }
     // The next two are the same just using the annotation parameter explicitly in one of them.
     // The resulting PreviewElement should be the same with different name.
     listOf("SingleParameter" to elements[1], "SingleParameterNoName" to elements[2])
-      .map { (name, previewElement) -> name to previewElement as ParametrizedPreviewElementTemplate }
+      .map { (name, previewElement) -> name to previewElement as ParametrizedComposePreviewElementTemplate }
       .forEach { (name, previewElement) ->
         assertEquals(name, previewElement.displaySettings.name)
         assertEquals(1, previewElement.parameterProviders.size)
@@ -537,7 +537,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
           assertEquals(Int.MAX_VALUE, parameter.limit)
         }
       }
-    (elements[3] as ParametrizedPreviewElementTemplate).let {
+    (elements[3] as ParametrizedComposePreviewElementTemplate).let {
       assertEquals("MultiParameter", it.displaySettings.name)
       assertEquals(2, it.parameterProviders.size)
       it.parameterProviders.single { param -> "aInt" == param.name }.let { parameter ->
@@ -590,7 +590,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       }
       .map {
         // Override positioning for testing for those preview starting with Top
-        object : PreviewElement by it {
+        object : ComposePreviewElement by it {
           override val displaySettings: PreviewDisplaySettings =
             PreviewDisplaySettings(
               it.displaySettings.name,
@@ -673,7 +673,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       }
       .map {
         // Override positioning for testing for those preview starting with Top
-        object : PreviewElement by it {
+        object : ComposePreviewElement by it {
           override val displaySettings: PreviewDisplaySettings =
             PreviewDisplaySettings(
               it.displaySettings.name,

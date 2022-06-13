@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -42,7 +42,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
+    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? ComposePreviewElementInstance) ?: return
 
     AndroidCoroutineScope(manager).launch {
       manager.startInteractivePreview(instanceId)

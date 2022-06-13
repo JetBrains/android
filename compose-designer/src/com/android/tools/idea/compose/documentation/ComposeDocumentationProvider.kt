@@ -24,7 +24,7 @@ import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.utils.reflection.qualifiedName
@@ -169,10 +169,10 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
 
-  private fun previewFromMethodName(fqName: String): SinglePreviewElementInstance {
+  private fun previewFromMethodName(fqName: String): SingleComposePreviewElementInstance {
     val scheme = EditorColorsManager.getInstance().globalScheme
     val background = scheme.getColor(EditorColors.DOCUMENTATION_COLOR) ?: scheme.defaultBackground
-    return SinglePreviewElementInstance(
+    return SingleComposePreviewElementInstance(
       composableMethodFqn = fqName,
       displaySettings = PreviewDisplaySettings(
         name = "",

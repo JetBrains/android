@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import org.junit.Assert.assertEquals
@@ -45,9 +45,9 @@ internal class ComposeSceneUpdateListenerTest {
     }
   }
 
-  val composable = SinglePreviewElementInstance("composableMethodName",
-                                                PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                                PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+  val composable = SingleComposePreviewElementInstance("composableMethodName",
+                                                       PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                       PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
   )
 
   @Test

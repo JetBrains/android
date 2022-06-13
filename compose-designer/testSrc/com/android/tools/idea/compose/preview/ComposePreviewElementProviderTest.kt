@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.intellij.openapi.util.SimpleModificationTracker
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class PreviewElementProviderTest {
+class ComposePreviewElementProviderTest {
   @Test
   fun testFilteredProvider() = runBlocking {
-    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
-      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
-      SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
+    val staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
+      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
+      SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     var filterWord = "internal"
@@ -48,22 +48,22 @@ class PreviewElementProviderTest {
 
   @Test
   fun testMemoized() = runBlocking {
-    var staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
-      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
-      SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
+    var staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
+      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
+      SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     val modificationTracker = SimpleModificationTracker()
-    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<PreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<PreviewElementInstance> = staticPreviewProvider.previewElements()
+    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = staticPreviewProvider.previewElements()
     }, modificationTracker)
 
     // Before the first refresh, the list is empty
     assertEquals(3, memoized.previewElements().count())
 
     staticPreviewProvider = StaticPreviewProvider(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1")
+      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1")
     ))
     // Updated the source but did not "refresh" by chaging the modification stamp
     assertEquals(3, memoized.previewElements().count())

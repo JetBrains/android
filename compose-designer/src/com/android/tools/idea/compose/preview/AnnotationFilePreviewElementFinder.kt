@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.progress.ProgressManager
@@ -48,11 +48,11 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
-  override suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> {
+  override suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<ComposePreviewElement> {
     val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
     return findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) { methods ->
       val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
-      val previewElements = previewNodes.filterIsInstance<PreviewElement>().distinct()
+      val previewElements = previewNodes.filterIsInstance<ComposePreviewElement>().distinct()
 
       if (previewElements.isNotEmpty()) {
         MultiPreviewUsageTracker.getInstance(psiFile.androidFacet).logEvent(

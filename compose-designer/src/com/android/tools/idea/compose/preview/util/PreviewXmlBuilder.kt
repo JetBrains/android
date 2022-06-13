@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.xml.XmlBuilder
 
 /**
- * Interface to serialize [PreviewElement]s to XML.
+ * Interface to serialize [ComposePreviewElement]s to XML.
  */
 interface PreviewXmlBuilder {
   /**
@@ -88,7 +88,7 @@ private class PreviewXmlBuilderImpl : PreviewXmlBuilder {
  */
 interface XmlSerializable {
   /**
-   * Generates the XML string wrapper for one [PreviewElement].
+   * Generates the XML string wrapper for one [ComposePreviewElement].
    * @param xmlBuilder output [PreviewXmlBuilderImpl] used to output the resulting XML.
    */
   fun toPreviewXml(xmlBuilder: PreviewXmlBuilder = PreviewXmlBuilderImpl()): PreviewXmlBuilder

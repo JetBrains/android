@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.ApiStatus
@@ -109,14 +109,14 @@ interface ComposePreviewManager: Disposable {
   var groupFilter: PreviewGroup
 
   /**
-   * Represents the [PreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
+   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
    */
-  val interactivePreviewElementInstance: PreviewElementInstance?
+  val interactivePreviewElementInstance: ComposePreviewElementInstance?
 
   /**
-   * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
+   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
    */
-  var animationInspectionPreviewElementInstance: PreviewElementInstance?
+  var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
 
   /**
    * Returns true if the current preview has the live literals feature available.
@@ -140,9 +140,9 @@ interface ComposePreviewManager: Disposable {
   val previewedFile: PsiFile?
 
   /**
-   * Starts the interactive preview focusing in the given [PreviewElementInstance] [instance].
+   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance].
    */
-  suspend fun startInteractivePreview(instance: PreviewElementInstance)
+  suspend fun startInteractivePreview(instance: ComposePreviewElementInstance)
 
   /**
    * Stops the interactive preview.

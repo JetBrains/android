@@ -17,17 +17,17 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.properties.Delegates
 
-class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : PreviewElementInstanceProvider {
+class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewElement>) : PreviewElementInstanceProvider {
   private val LOG = Logger.getInstance(PreviewFilters::class.java)
 
   /**
-   * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
+   * Filter to be applied for the group filtering. This allows multiple [ComposePreviewElement]s belonging to the same group
    */
   private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(previewProvider)
 
@@ -37,7 +37,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
   private val instantiatedElementProvider = PreviewElementTemplateInstanceProvider(groupNameFilteredProvider)
 
   /**
-   * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
+   * Filter to be applied for the preview to display a single [ComposePreviewElement]. Used in interactive mode to focus on a
    * single element.
    */
   private val singleElementFilteredProvider = SinglePreviewElementInstanceFilteredPreviewProvider(instantiatedElementProvider)
@@ -62,10 +62,10 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
     }.toSet()
 
   /**
-   * [PreviewElementInstance] to select or null if no instance should be selected. If the instance does not exist all instances are
+   * [ComposePreviewElementInstance] to select or null if no instance should be selected. If the instance does not exist all instances are
    * returned.
    */
-  var instanceFilter: PreviewElementInstance?
+  var instanceFilter: ComposePreviewElementInstance?
     set(value) {
       singleElementFilteredProvider.instance = value
     }
@@ -79,7 +79,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
   }
 
   @Slow
-  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     singleElementFilteredProvider.previewElements()
 
 }

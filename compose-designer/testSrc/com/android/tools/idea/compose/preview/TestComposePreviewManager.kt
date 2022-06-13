@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 
 class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
@@ -38,14 +38,14 @@ class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.In
 
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
-  override var interactivePreviewElementInstance: PreviewElementInstance? = null
+  override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
     private set
-  override var animationInspectionPreviewElementInstance: PreviewElementInstance? = null
+  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasLiveLiterals: Boolean = false
   override val isLiveLiteralsEnabled: Boolean = false
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
-  override suspend fun startInteractivePreview(instance: PreviewElementInstance) {
+  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
     interactivePreviewElementInstance = instance
   }
 

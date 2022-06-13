@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.BuildListener
@@ -78,7 +78,7 @@ internal fun UFile.method(name: String): UMethod? =
     .filter { it.name == name }
     .singleOrNull()
 
-internal class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) : PreviewElementProvider<P> {
+internal class StaticPreviewProvider<P : ComposePreviewElement>(private val collection: Collection<P>) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
 

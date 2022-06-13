@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.pickers.properties.utils.createDeviceInstance
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -55,7 +55,7 @@ class ComposeScreenViewProvidersTest {
       .createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
 
-    var previewElement = SinglePreviewElementInstance.forTesting(
+    var previewElement = SingleComposePreviewElementInstance.forTesting(
       "TestMethod",
       displayName = "displayName",
       showDecorations = true
@@ -74,7 +74,7 @@ class ComposeScreenViewProvidersTest {
     }
 
     // When showDecorations is false, the scene view should always use a square shape
-    previewElement = SinglePreviewElementInstance.forTesting(
+    previewElement = SingleComposePreviewElementInstance.forTesting(
       "TestMethod",
       displayName = "displayName",
       showDecorations = false

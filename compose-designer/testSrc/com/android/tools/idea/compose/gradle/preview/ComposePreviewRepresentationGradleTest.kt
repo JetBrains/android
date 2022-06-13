@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -482,8 +482,8 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
-    val previewRepresentation = ComposePreviewRepresentation(psiFile, object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> =
+    val previewRepresentation = ComposePreviewRepresentation(psiFile, object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile).asSequence()
     }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
