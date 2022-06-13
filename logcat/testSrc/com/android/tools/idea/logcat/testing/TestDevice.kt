@@ -42,7 +42,7 @@ internal class TestDevice(
   val avdNamePre31: String = "",
 ) {
 
-  var deviceInfo = DeviceInfo(serialNumber, state.state, emptyList())
+  var deviceInfo = DeviceInfo(serialNumber, state)
   val device = when {
     !serialNumber.isEmulatorSerial() -> Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
     avdName.isNotEmpty() -> Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
