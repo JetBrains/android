@@ -38,6 +38,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
@@ -124,6 +125,16 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   override fun isIconRequired() = true
+
+  override fun setUp() {
+    super.setUp()
+    IconLoader.activate()
+  }
+
+  override fun tearDown() {
+    IconLoader.deactivate()
+    super.tearDown()
+  }
 
   fun testKotlinKapt() {
     prepareProjectForImport(TestProjectToSnapshotPaths.KOTLIN_KAPT)
