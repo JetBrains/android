@@ -21,10 +21,12 @@ import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
+import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.InvokeComponentRequestBuilder;
-import com.android.tools.asdriver.tests.PatchMachinery;
 import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,10 +39,19 @@ import org.junit.rules.TemporaryFolder;
 
 public class UpdateTest {
 
+  public static final String PRODUCT_CODE = "AI";
+  public static final String PRODUCT_PREFIX = PRODUCT_CODE + "-";
+
+  // TODO: form all of these dynamically.
+  private static final String FAKE_API_VERSION = "213.7172.25";
+  public static final String FAKE_CURRENT_BUILD_NUMBER = "213.7172.25.2113.31337";
+  public static final String FAKE_UPDATED_BUILD_NUMBER = "213.7172.25.2113.8473230";
+
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
+
   /**
-   * Our hermetic test environment will not be able to resolve Internet URLs, so we have to route
+   * Our hermetic test environment will not be able to resolve internet URLs, so we have to route
    * those requests to our own {@code FileServer}. This skips downloading anything from https://plugins.jetbrains.com/.
    * This will cause our file server to get requests like "/files/brokenPlugins.json" and "/plugins/list".
    */
@@ -50,12 +61,12 @@ public class UpdateTest {
 
   /**
    * Creates the environment to use when running Studio.
-   *
+   * <p>
    * Inherits the {@code PATH} environment variable from the parent process. We do this so that
    * Python is in our {@code PATH}, otherwise {@link com.intellij.util.Restarter} won't know that
    * we can automatically update and will instead give the user instructions on how to run a shell
    * script to perform the update.
-   *
+   * <p>
    * Also sets the variables needed to point to the local server.
    */
   private Map<String, String> createEnvironment(String fileServerOrigin) {
@@ -88,48 +99,230 @@ public class UpdateTest {
     studio.invokeComponent(updateButtonBuilder);
   }
 
-  private void invokeUpdateFlow(AndroidStudio studio) {
-    studio.executeAction("CheckForUpdate");
-    invokeUpdateButton(studio);
+  /**
+   * Creates {@code updates.xml}, which is what Android Studio requests at start-up to figure out
+   * if it can be updated.
+   */
+  public Path createUpdatesXml(Path tempDir) throws IOException {
+    Path updatesXml = tempDir.resolve("updates.xml");
+    StringBuilder sb = new StringBuilder();
+    String apiVersion = PRODUCT_PREFIX + FAKE_API_VERSION;
+    String fakeUpdatedBuild = PRODUCT_PREFIX + FAKE_UPDATED_BUILD_NUMBER;
+    sb.append("<?xml version=\"1.0\" ?><products>\n");
+    sb.append("<product name=\"Android Studio\">\n");
+    sb.append("<code>AI</code>\n");
+    sb.append(
+      "<channel feedback=\"https://code.google.com/p/android/issues/entry?template=Android+Studio+bug\" id=\"AI-1-eap\" majorVersion=\"1\" name=\"Android Studio updates\" status=\"eap\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\">\n");
+    sb.append(
+      String.format("<build apiVersion=\"%s\" number=\"%s\" version=\"Dolphin | 2021.3.1 Canary 9\">\n", apiVersion, fakeUpdatedBuild));
+    sb.append("<message><![CDATA[<html> Fake channel for updating </html>]]></message>\n");
+    sb.append("<button download=\"true\" name=\"Download\" url=\"https://developer.android.com/r/studio-ui/download-canary.html\"/>\n");
+    sb.append("<button name=\"Release Notes\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\"/>\n");
+    sb.append(String.format("<patch from=\"%s\" size=\"1234\"/> <!-- 2021.3.1.9 -->\n", FAKE_CURRENT_BUILD_NUMBER));
+    sb.append("</build>\n");
+    sb.append("</channel>\n");
+    sb.append("</product>\n");
+    sb.append("</products>\n");
 
-    // This will activate the update link inside the NotificationActionPanel in the "Welcome"
-    // window. The Unicode character in this string is an ellipsis. The string corresponds to
-    // IdeBundle.message("updates.notification.update.action").
-    studio.invokeComponent("Update\u2026");
+    Files.writeString(updatesXml, sb.toString(), StandardCharsets.UTF_8);
+    System.out.println("Created " + updatesXml);
 
-    // This button is in a DialogWindowWrapper. The string corresponds to
-    // IdeBundle.message("updates.download.and.restart.button").
-    studio.invokeComponent("Update and Restart");
-    invokeUpdateButton(studio);
+    return updatesXml;
+  }
 
-    // This link is an HTML hyperlink inside a Notification.
-    String notificationDisplayId = "ide.update.suggest.restart";
-    studio.invokeComponent(notificationDisplayId);
+  /**
+   * Creates files that Android Studio requests from jetbrains.com and dl.google.com. In a hermetic
+   * test environment, such internet sites are unreachable.
+   * <p>
+   * If Android Studio attempts to contact an unresolvable domain while updating, it will get stuck
+   * on "Check for updates" until the timeout (20 seconds) is hit. Such a timeout doesn't
+   * <i>necessarily</i> cause a test failure, but it can change the UI in unexpected ways (e.g. the
+   * update-checker may run in a background task which may spawn an extra dialog when Android
+   * Studio is closed).
+   * <p>
+   * Similarly, if Android Studio attempts to download a file which is not found (i.e. the server
+   * returns a 404), tests <i>may</i> still succeed, but the UI and timings may be subtly
+   * different.
+   * <p>
+   * As a result, this function is used to produce files whose sole purpose is to be downloaded and
+   * ideally ignored. In other words, the contents of each file only need to pass validation. This
+   * property is what makes them "fake" files. If "real" files are needed, they should be set up by
+   * the test that requires them.
+   */
+  private void createFakePluginAndUpdateFiles(Path tempDir, FileServer fileServer) throws IOException {
+    Path updateArtifacts = tempDir.resolve("update_artifacts");
+    Files.createDirectories(updateArtifacts);
+
+    // Creates addons_list-1.xml through addons_list-5.xml
+    for (int i = 1; i <= 5; i++) {
+      Path addonsFile = createFakeAddonsFile(updateArtifacts, i);
+      fileServer.registerFile("/" + addonsFile.getFileName(), addonsFile);
+    }
+
+    Path repoFile22 = createFakeRepositoryFile(updateArtifacts, "repository2-2.xml", "02", "02");
+    fileServer.registerFile("/" + repoFile22.getFileName(), repoFile22);
+
+    Path repoFile23 = createFakeRepositoryFile(updateArtifacts, "repository2-3.xml", "02", "03");
+    fileServer.registerFile("/" + repoFile23.getFileName(), repoFile23);
+
+    // Note: as long as the "idea.plugins.host" system property is specified, Android Studio will
+    // make a request for "/plugins/list" rather than "/files/pluginsXMLIds.json".
+    Path pluginList = createFakePluginList(updateArtifacts);
+    fileServer.registerFile("/plugins/list/", pluginList);
+
+    Path brokenPlugins = createFakeBrokenPlugins(updateArtifacts);
+    fileServer.registerFile("/files/brokenPlugins.json", brokenPlugins);
+  }
+
+  /**
+   * @see UpdateTest#createFakePluginAndUpdateFiles
+   */
+  private Path createFakeBrokenPlugins(Path parentDir) throws IOException {
+    // All we need is an empty JSON array
+    String contents = "[]";
+
+    Path dest = parentDir.resolve("brokenPlugins.json");
+    Files.writeString(dest, contents, StandardCharsets.UTF_8);
+    return dest;
+  }
+
+  /**
+   * @see UpdateTest#createFakePluginAndUpdateFiles
+   */
+  private Path createFakePluginList(Path parentDir) throws IOException {
+    String contents = "<?xml version='1.0' encoding='UTF-8'?><plugin-repository></plugin-repository>";
+
+    Path dest = parentDir.resolve("plugin_list.xml");
+    Files.writeString(dest, contents, StandardCharsets.UTF_8);
+    return dest;
+  }
+
+  /**
+   * Creates a fake repositoryX-Y.xml file. This file must contain a remote package in order to
+   * pass validation (see {@link com.android.repository.impl.manager.RemoteRepoLoaderImpl#parseSource}).
+   *
+   * @see UpdateTest#createFakePluginAndUpdateFiles
+   */
+  private Path createFakeRepositoryFile(Path parentDir, String fileName, String majorVersion, String minorVersion) throws IOException {
+    String remotePackage = null;
+    if (majorVersion.equals("02")) {
+      // repository2-3.xml differs slightly from repository2-2.xml.
+      String v3SpecificBits = "   <extension-level>1</extension-level>\n" +
+                              "   <base-extension>true</base-extension>\n";
+
+      // android-Tiramisu was chosen arbitrarily; the specific platform used here isn't significant
+      remotePackage = "<remotePackage path=\"platforms;android-Tiramisu\">\n" +
+                      "  <!--Generated from bid:8250781, branch:git_tm-preview2-release-->\n" +
+                      "  <type-details xsi:type=\"sdk:platformDetailsType\">\n" +
+                      "   <api-level>32</api-level>\n" +
+                      "   <codename>Tiramisu</codename>\n" +
+                      (minorVersion.equals("02") ? "" : v3SpecificBits) +
+                      "   <layoutlib api=\"15\"/>\n" +
+                      "  </type-details>\n" +
+                      "  <revision>\n" +
+                      "   <major>2</major>\n" +
+                      "  </revision>\n" +
+                      "  <display-name>Android SDK Platform Tiramisu</display-name>\n" +
+                      "  <uses-license ref=\"android-sdk-license\"/>\n" +
+                      "  <channelRef ref=\"channel-0\"/>\n" +
+                      "  <archives>\n" +
+                      "   <archive>\n" +
+                      "    <!--Built on: Thu Mar  3 20:46:47 2022.-->\n" +
+                      "    <complete>\n" +
+                      "     <size>67290653</size>\n" +
+                      "     <checksum type=\"sha1\">2ac79862a909392d68d8ad503c45809e725d71f6</checksum>\n" +
+                      "     <url>platform-Tiramisu_r02.zip</url>\n" +
+                      "    </complete>\n" +
+                      "   </archive>\n" +
+                      "  </archives>\n" +
+                      " </remotePackage>\n";
+    }
+
+    if (remotePackage == null) {
+      throw new IllegalArgumentException(String.format("Major and minor versions not recognized: %s %s", majorVersion, minorVersion));
+    }
+
+    String contents =
+      "<?xml version=\"1.0\" ?>\n" +
+      "<sdk:sdk-repository " +
+      String.format("xmlns:common=\"http://schemas.android.com/repository/android/common/%s\" ", majorVersion) +
+      String.format("xmlns:generic=\"http://schemas.android.com/repository/android/generic/%s\" ", majorVersion) +
+      String.format("xmlns:sdk=\"http://schemas.android.com/sdk/android/repo/repository2/%s\" ", minorVersion) +
+      String.format("xmlns:sdk-common=\"http://schemas.android.com/sdk/android/repo/common/%s\" ", minorVersion) +
+      "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+      " <license id=\"android-sdk-license\" type=\"text\">\n" +
+      " </license>\n" +
+      " <channel id=\"channel-0\">stable</channel>\n" +
+      " <channel id=\"channel-1\">beta</channel>\n" +
+      " <channel id=\"channel-2\">dev</channel>\n" +
+      " <channel id=\"channel-3\">canary</channel>\n" +
+      remotePackage +
+      "</sdk:sdk-repository>\n";
+
+    Path dest = parentDir.resolve(fileName);
+    Files.writeString(dest, contents, StandardCharsets.UTF_8);
+    return dest;
+  }
+
+  /**
+   * @see UpdateTest#createFakePluginAndUpdateFiles
+   */
+  private Path createFakeAddonsFile(Path parentDir, int index) throws IOException {
+    String addonsContents =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+      String.format("<sdk:sdk-addons-list xmlns:sdk=\"http://schemas.android.com/sdk/android/addons-list/%d\">\n", index) +
+      "</sdk:sdk-addons-list>\n";
+
+    Path dest = parentDir.resolve(String.format("addons_list-%d.xml", index));
+    Files.writeString(dest, addonsContents, StandardCharsets.UTF_8);
+    return dest;
   }
 
   @Test
   public void updateTest() throws Exception {
     Path tempDir = tempFolder.newFolder("update-test").toPath();
 
-    try (Display display = new XvfbServer()) {
+    try (Display display = new XvfbServer();
+         FileServer fileServer = new FileServer()) {
+      fileServer.start();
       AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
       install.createFirstRunXml();
       install.copySdk(TestUtils.getLatestAndroidPlatform());
-      install.setBuildNumber(PatchMachinery.PRODUCT_PREFIX + PatchMachinery.FAKE_CURRENT_BUILD_NUMBER);
+      install.setBuildNumber(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER);
 
-      PatchMachinery patchMachinery = new PatchMachinery(tempDir, install);
-      patchMachinery.setupPatch(tempDir);
-      patchMachinery.createFakePluginAndUpdateFiles();
+      Patcher patcher = new Patcher(tempDir, install.getStudioDir());
+      Path patchFile = patcher.createPatch(FAKE_CURRENT_BUILD_NUMBER, FAKE_UPDATED_BUILD_NUMBER);
+      fileServer.registerFile("/" + patchFile.getFileName(), patchFile);
 
-      setPluginHost(install, patchMachinery.getFileServerOrigin());
-      Map<String, String> env = createEnvironment(patchMachinery.getFileServerOrigin());
+      Path updatesXml = createUpdatesXml(tempDir);
+      fileServer.registerFile("/" + updatesXml.getFileName(), updatesXml);
+
+      createFakePluginAndUpdateFiles(tempDir, fileServer);
+
+      setPluginHost(install, fileServer.getOrigin());
+      Map<String, String> env = createEnvironment(fileServer.getOrigin());
 
       try (AndroidStudio studio = install.run(display, env)) {
         String version = studio.version();
-        assertTrue(version.endsWith(PatchMachinery.FAKE_CURRENT_BUILD_NUMBER));
+        assertTrue(version.endsWith(FAKE_CURRENT_BUILD_NUMBER));
 
         System.out.println("Updating Android Studio");
-        invokeUpdateFlow(studio);
+        studio.executeAction("CheckForUpdate");
+        invokeUpdateButton(studio);
+
+        // This will activate the update link inside the NotificationActionPanel in the "Welcome"
+        // window. The Unicode character in this string is an ellipsis. The string corresponds to
+        // IdeBundle.message("updates.notification.update.action").
+        studio.invokeComponent("Update\u2026");
+
+        // This button is in a DialogWindowWrapper. The string corresponds to
+        // IdeBundle.message("updates.download.and.restart.button").
+        studio.invokeComponent("Update and Restart");
+        invokeUpdateButton(studio);
+
+        // This link is an HTML hyperlink inside a Notification.
+        String notificationDisplayId = "ide.update.suggest.restart";
+        studio.invokeComponent(notificationDisplayId);
 
         // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
         studio.waitForProcess();
@@ -140,7 +333,7 @@ public class UpdateTest {
       install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
-        assertTrue(version.endsWith(PatchMachinery.FAKE_UPDATED_BUILD_NUMBER));
+        assertTrue(version.endsWith(FAKE_UPDATED_BUILD_NUMBER));
       } finally {
         install.emitLogs();
       }

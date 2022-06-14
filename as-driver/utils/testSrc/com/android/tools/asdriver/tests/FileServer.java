@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 /**
  * A file server originally created to serve files for updating Android Studio.
  */
-public class FileServer {
+public class FileServer implements AutoCloseable {
 
   private HttpServer server;
 
@@ -64,11 +64,9 @@ public class FileServer {
     return String.format("http://%s:%d", address.getHostName(), address.getPort());
   }
 
-  /**
-   * @param delay The maximum time in seconds to wait until exchanges have finished.
-   */
-  public void stop(int delay) {
-    server.stop(delay);
+  @Override
+  public void close() {
+    server.stop(3);
   }
 
   /**
