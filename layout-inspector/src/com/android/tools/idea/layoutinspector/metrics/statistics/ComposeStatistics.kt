@@ -25,11 +25,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
  */
 class ComposeStatistics {
   /**
-   * True if the reflection library was available for a compose application
-   */
-  var reflectionLibraryAvailable = true
-
-  /**
    * How many clicks on a ComposeNode from the image did the user perform
    */
   private var imageClicks = 0
@@ -58,7 +53,6 @@ class ComposeStatistics {
    * Start a new session by resetting all counters.
    */
   fun start() {
-    reflectionLibraryAvailable = true
     imageClicks = 0
     componentTreeClicks = 0
     goToSourceFromPropertyValueClicks = 0
@@ -68,7 +62,7 @@ class ComposeStatistics {
    * Save the session data recorded since [start].
    */
   fun save(data: DynamicLayoutInspectorCompose.Builder) {
-    data.kotlinReflectionAvailable = reflectionLibraryAvailable
+    data.kotlinReflectionAvailable = true // unused
     data.imageClicks = imageClicks
     data.componentTreeClicks = componentTreeClicks
     data.goToSourceFromPropertyValueClicks = goToSourceFromPropertyValueClicks

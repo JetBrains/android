@@ -28,14 +28,12 @@ class ComposeStatisticsTest {
   fun testStart() {
     val compose = ComposeStatistics()
     compose.gotoSourceFromPropertyValue(mock<ComposeViewNode>())
-    compose.reflectionLibraryAvailable = false
     compose.selectionMadeFromComponentTree(mock<ComposeViewNode>())
     compose.selectionMadeFromComponentTree(mock<ComposeViewNode>())
     compose.selectionMadeFromImage(mock<ComposeViewNode>())
     compose.start()
     val data = DynamicLayoutInspectorCompose.newBuilder()
     compose.save(data)
-    assertThat(data.kotlinReflectionAvailable).isTrue()
     assertThat(data.imageClicks).isEqualTo(0)
     assertThat(data.componentTreeClicks).isEqualTo(0)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(0)
@@ -49,7 +47,6 @@ class ComposeStatisticsTest {
     val compose = ComposeStatistics()
     compose.start()
 
-    compose.reflectionLibraryAvailable = false
     compose.gotoSourceFromPropertyValue(mock<ComposeViewNode>())
     compose.gotoSourceFromPropertyValue(mock<ComposeViewNode>())
     compose.gotoSourceFromPropertyValue(mock<ViewNode>())
@@ -60,7 +57,6 @@ class ComposeStatisticsTest {
     compose.selectionMadeFromImage(mock<ViewNode>())
     val data = DynamicLayoutInspectorCompose.newBuilder()
     compose.save(data)
-    assertThat(data.kotlinReflectionAvailable).isFalse()
     assertThat(data.imageClicks).isEqualTo(1)
     assertThat(data.componentTreeClicks).isEqualTo(2)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(2)
