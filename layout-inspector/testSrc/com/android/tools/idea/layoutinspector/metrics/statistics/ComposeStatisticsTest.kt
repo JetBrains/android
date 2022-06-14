@@ -33,7 +33,7 @@ class ComposeStatisticsTest {
     compose.selectionMadeFromImage(mock<ComposeViewNode>())
     compose.start()
     val data = DynamicLayoutInspectorCompose.newBuilder()
-    compose.save(data)
+    compose.save { data }
     assertThat(data.imageClicks).isEqualTo(0)
     assertThat(data.componentTreeClicks).isEqualTo(0)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(0)
@@ -56,7 +56,7 @@ class ComposeStatisticsTest {
     compose.selectionMadeFromImage(mock<ComposeViewNode>())
     compose.selectionMadeFromImage(mock<ViewNode>())
     val data = DynamicLayoutInspectorCompose.newBuilder()
-    compose.save(data)
+    compose.save { data }
     assertThat(data.imageClicks).isEqualTo(1)
     assertThat(data.componentTreeClicks).isEqualTo(2)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(2)
@@ -72,7 +72,7 @@ class ComposeStatisticsTest {
     compose.updateRecompositionStats(RecompositionData(5, 10, 1.1f), 1.1f)
     compose.updateRecompositionStats(RecompositionData(17, 103, 4.1f), 9.1f)
     val data = DynamicLayoutInspectorCompose.newBuilder()
-    compose.save(data)
+    compose.save { data }
     assertThat(data.maxRecompositionCount).isEqualTo(34)
     assertThat(data.maxRecompositionSkips).isEqualTo(103)
     assertThat(data.maxRecompositionHighlight).isWithin(0.01f).of(9.10f)

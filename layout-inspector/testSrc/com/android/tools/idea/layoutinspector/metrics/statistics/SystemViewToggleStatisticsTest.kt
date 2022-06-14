@@ -33,7 +33,7 @@ class SystemViewToggleStatisticsTest {
     systemViewToggle.selectionMade()
     systemViewToggle.start()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
-    systemViewToggle.save(data)
+    systemViewToggle.save { data }
     assertThat(data.clicksWithHiddenSystemViews).isEqualTo(0)
     assertThat(data.clicksWithVisibleSystemViews).isEqualTo(0)
   }
@@ -51,7 +51,7 @@ class SystemViewToggleStatisticsTest {
     treeSettings.hideSystemNodes = false
     systemViewToggle.selectionMade()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
-    systemViewToggle.save(data)
+    systemViewToggle.save { data }
     assertThat(data.clicksWithHiddenSystemViews).isEqualTo(3)
     assertThat(data.clicksWithVisibleSystemViews).isEqualTo(1)
   }

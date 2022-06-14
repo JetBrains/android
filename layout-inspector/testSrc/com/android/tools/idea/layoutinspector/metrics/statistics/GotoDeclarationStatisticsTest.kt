@@ -34,17 +34,18 @@ class GotoDeclarationStatisticsTest {
     goto.gotoSourceFromDoubleClick()
     goto.gotoSourceFromDoubleClick()
     goto.gotoSourceFromDoubleClick()
-    val data = DynamicLayoutInspectorGotoDeclaration.newBuilder()
-    goto.save(data)
-    assertThat(data.clicksMenuAction).isEqualTo(1)
-    assertThat(data.keyStrokesShortcut).isEqualTo(2)
-    assertThat(data.doubleClicks).isEqualTo(3)
+    val data1 = DynamicLayoutInspectorGotoDeclaration.newBuilder()
+    goto.save { data1 }
+    assertThat(data1.clicksMenuAction).isEqualTo(1)
+    assertThat(data1.keyStrokesShortcut).isEqualTo(2)
+    assertThat(data1.doubleClicks).isEqualTo(3)
 
+    val data2 = DynamicLayoutInspectorGotoDeclaration.newBuilder()
     goto.start()
-    goto.save(data)
-    assertThat(data.clicksMenuAction).isEqualTo(0)
-    assertThat(data.keyStrokesShortcut).isEqualTo(0)
-    assertThat(data.doubleClicks).isEqualTo(0)
+    goto.save { data2 }
+    assertThat(data2.clicksMenuAction).isEqualTo(0)
+    assertThat(data2.keyStrokesShortcut).isEqualTo(0)
+    assertThat(data2.doubleClicks).isEqualTo(0)
   }
 
   private fun mockKeyShortcut(): AnActionEvent {

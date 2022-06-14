@@ -43,9 +43,13 @@ class SystemViewToggleStatistics(private val treeSettings: TreeSettings) {
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorSystemNode.Builder) {
-    data.clicksWithHiddenSystemViews = hiddenSystemViewClicks
-    data.clicksWithVisibleSystemViews = visibleSystemViewClicks
+  fun save(dataSupplier: () -> DynamicLayoutInspectorSystemNode.Builder) {
+    if (hiddenSystemViewClicks > 0 || visibleSystemViewClicks > 0) {
+      dataSupplier().let {
+        it.clicksWithHiddenSystemViews = hiddenSystemViewClicks
+        it.clicksWithVisibleSystemViews = visibleSystemViewClicks
+      }
+    }
   }
 
   /**

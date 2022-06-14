@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Accumulators for various actions of interest.
@@ -43,12 +44,12 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   }
 
   fun save(data: DynamicLayoutInspectorSession.Builder) {
-    live.save(data.liveBuilder)
-    rotation.save(data.rotationBuilder)
-    memory.save(data.memoryBuilder)
-    compose.save(data.composeBuilder)
-    system.save(data.systemBuilder)
-    goto.save(data.gotoDeclarationBuilder)
+    live.save { data.liveBuilder }
+    rotation.save { data.rotationBuilder }
+    memory.save { data.memoryBuilder }
+    compose.save { data.composeBuilder }
+    system.save { data.systemBuilder }
+    goto.save { data.gotoDeclarationBuilder }
   }
 
   fun selectionMadeFromImage(view: ViewNode?) {
@@ -84,4 +85,11 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   fun resetRecompositionCountsClick() {
     compose.resetRecompositionCountsClick()
   }
+
+  /**
+   * Number of memory measurements
+   */
+  @get:TestOnly
+  val memoryMeasurements: Int
+    get() = memory.measurements
 }

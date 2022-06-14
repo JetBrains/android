@@ -54,10 +54,14 @@ class LiveModeStatistics {
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorLiveMode.Builder) {
-    data.refreshButtonClicks = refreshButtonClicks
-    data.clicksWithLiveUpdates = clicksWithLiveUpdates
-    data.clicksWithoutLiveUpdates = clicksWithoutLiveUpdates
+  fun save(dataSupplier: () -> DynamicLayoutInspectorLiveMode.Builder) {
+    if (refreshButtonClicks > 0 || clicksWithLiveUpdates > 0 || clicksWithoutLiveUpdates > 0) {
+      dataSupplier().let {
+        it.refreshButtonClicks = refreshButtonClicks
+        it.clicksWithLiveUpdates = clicksWithLiveUpdates
+        it.clicksWithoutLiveUpdates = clicksWithoutLiveUpdates
+      }
+    }
   }
 
   /**

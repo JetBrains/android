@@ -315,9 +315,9 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
     }
   }
 
-  fun notifyModified() {
-    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
-    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+  fun notifyModified(structuralChange: Boolean = false) {
+    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, structuralChange) }
+    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, structuralChange) } }
   }
 
   fun clear() {

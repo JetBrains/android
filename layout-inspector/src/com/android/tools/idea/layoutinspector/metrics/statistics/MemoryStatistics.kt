@@ -60,6 +60,12 @@ class MemoryStatistics(model: InspectorModel) {
    */
   private var largestModelTime: Long = 0
 
+  /**
+   * For testing: how many measurements was performed.
+   */
+  var measurements = 0
+    private set
+
   fun start() {
     initialHasSkiaImages = false
     initialModelSize = 0L
@@ -67,18 +73,24 @@ class MemoryStatistics(model: InspectorModel) {
     largestHasSkiaImages = false
     largestModelSize = 0L
     largestModelTime = 0L
+    measurements = 0
   }
 
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorMemory.Builder) {
-    data.initialSnapshotBuilder.skiaImage = initialHasSkiaImages
-    data.initialSnapshotBuilder.captureSizeMb = initialModelSize / ONE_MB
-    data.initialSnapshotBuilder.measurementDurationMs = initialModelTime
-    data.largestSnapshotBuilder.skiaImage = largestHasSkiaImages
-    data.largestSnapshotBuilder.captureSizeMb = largestModelSize / ONE_MB
-    data.largestSnapshotBuilder.measurementDurationMs = largestModelTime
+  fun save(dataSupplier: () -> DynamicLayoutInspectorMemory.Builder) {
+    if (initialHasSkiaImages || initialModelSize > 0 || initialModelTime > 0 ||
+        largestHasSkiaImages || largestModelSize > 0 || largestModelTime > 0) {
+      dataSupplier().let {
+        it.initialSnapshotBuilder.skiaImage = initialHasSkiaImages
+        it.initialSnapshotBuilder.captureSizeMb = initialModelSize / ONE_MB
+        it.initialSnapshotBuilder.measurementDurationMs = initialModelTime
+        it.largestSnapshotBuilder.skiaImage = largestHasSkiaImages
+        it.largestSnapshotBuilder.captureSizeMb = largestModelSize / ONE_MB
+        it.largestSnapshotBuilder.measurementDurationMs = largestModelTime
+      }
+    }
   }
 
   fun recordModelSize(hasSkiaImages: Boolean, size: Long, time: Long) {
@@ -92,5 +104,6 @@ class MemoryStatistics(model: InspectorModel) {
       largestModelSize = size
       largestModelTime = time
     }
+    measurements++
   }
 }

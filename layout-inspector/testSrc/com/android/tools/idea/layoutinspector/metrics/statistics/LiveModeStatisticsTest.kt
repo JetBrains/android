@@ -30,7 +30,7 @@ class LiveModeStatisticsTest {
     liveMode.selectionMade()
     liveMode.start(true)
     val data = DynamicLayoutInspectorLiveMode.newBuilder()
-    liveMode.save(data)
+    liveMode.save { data }
     assertThat(data.refreshButtonClicks).isEqualTo(0)
     assertThat(data.clicksWithLiveUpdates).isEqualTo(0)
     assertThat(data.clicksWithoutLiveUpdates).isEqualTo(0)
@@ -53,7 +53,7 @@ class LiveModeStatisticsTest {
     liveMode.selectionMade()
     liveMode.selectionMade()
     val data = DynamicLayoutInspectorLiveMode.newBuilder()
-    liveMode.save(data)
+    liveMode.save { data }
     assertThat(data.refreshButtonClicks).isEqualTo(2)
     assertThat(data.clicksWithLiveUpdates).isEqualTo(3)
     assertThat(data.clicksWithoutLiveUpdates).isEqualTo(4)
