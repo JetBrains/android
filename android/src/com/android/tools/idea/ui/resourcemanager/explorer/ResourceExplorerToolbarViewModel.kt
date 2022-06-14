@@ -129,6 +129,7 @@ class ResourceExplorerToolbarViewModel(
         ResourceType.INTEGER,
         ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
         ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+        else -> {}
       }
     }
 

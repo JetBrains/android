@@ -431,6 +431,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           failedTestCases++
         }
         AndroidTestCaseResult.SKIPPED -> skippedTestCases++
+        else -> {}
       }
       updateProgress()
       myResultsTableView.refreshTable()

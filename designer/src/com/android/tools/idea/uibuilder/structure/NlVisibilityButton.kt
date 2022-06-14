@@ -164,6 +164,7 @@ class ButtonPresentation {
 
   private fun update() {
     when (visibility) {
+      null -> {}
       Visibility.NONE -> {
         if (hideNone) {
           hoverIcon = AlphaIcon(StudioIcons.LayoutEditor.Properties.VISIBLE, 0.5f)

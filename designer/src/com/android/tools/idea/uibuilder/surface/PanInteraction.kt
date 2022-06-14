@@ -65,6 +65,7 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
       is MouseMovedEvent -> updateMouseScrollEvent(event)
       is MouseDraggedEvent -> updateMouseScrollEvent(event)
       is MouseReleasedEvent -> updateMouseScrollEvent(event)
+      else -> {}
     }
   }
 

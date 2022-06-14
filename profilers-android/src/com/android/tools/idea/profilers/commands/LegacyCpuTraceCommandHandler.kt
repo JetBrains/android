@@ -74,6 +74,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> startTrace(command)
       Commands.Command.CommandType.STOP_CPU_TRACE -> stopTrace(command)
+      else -> {}
     }
 
     return Transport.ExecuteResponse.getDefaultInstance()

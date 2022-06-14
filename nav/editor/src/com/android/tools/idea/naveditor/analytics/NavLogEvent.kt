@@ -254,12 +254,12 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
       }
       if (component.isAction) {
         val actionRoot = if (component.parent?.isNavigation == true) component.parent else component.parent?.parent
-        @Suppress("NON_EXHAUSTIVE_WHEN")
         when (component.getActionType(actionRoot)) {
           ActionType.GLOBAL -> globalActions++
           ActionType.SELF -> selfActions++
           ActionType.REGULAR -> regularActions++
           ActionType.EXIT -> exitActions++
+          else -> {}
         }
       }
     }

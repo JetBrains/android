@@ -155,6 +155,7 @@ fun getPossibleConfigurationNames(
       configurationNames.add("test" + capitalize(buildTypeName) + API_SUFFIX)
       configurationNames.add("test" + capitalize(buildTypeName) + IMPLEMENTATION_SUFFIX)
     }
+    else -> {}
   }
 
   productFlavorNames.forEach { productFlavorName ->

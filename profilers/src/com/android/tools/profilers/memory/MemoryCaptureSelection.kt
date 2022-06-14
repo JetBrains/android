@@ -259,6 +259,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
       ClassGrouping.ARRANGE_BY_CLASS -> filterMetadata.view = FilterMetadata.View.MEMORY_CLASS
       ClassGrouping.ARRANGE_BY_PACKAGE -> filterMetadata.view = FilterMetadata.View.MEMORY_PACKAGE
       ClassGrouping.ARRANGE_BY_CALLSTACK -> filterMetadata.view = FilterMetadata.View.MEMORY_CALLSTACK
+      else -> {}
     }
     filterMetadata.setFeaturesUsed(filter.isMatchCase, filter.isRegex)
     selectedHeapSet?.let {
