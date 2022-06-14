@@ -267,9 +267,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
           for (ResourceType type : ResourceType.values()) {
             if (visitor.shouldVisitResourceType(type)) {
               ListMultimap<String, ResourceItem> map = getMap(namespace, type);
-              for (ResourceItem item : map.values()) {
-                if (visitor.visit(item) == ResourceVisitor.VisitResult.ABORT) {
-                  return ResourceVisitor.VisitResult.ABORT;
+              if (map != null) {
+                for (ResourceItem item : map.values()) {
+                  if (visitor.visit(item) == ResourceVisitor.VisitResult.ABORT) {
+                    return ResourceVisitor.VisitResult.ABORT;
+                  }
                 }
               }
             }
@@ -283,7 +285,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   @Override
-  @NotNull
+  @Nullable
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
     if (repositoriesForNamespace.size() == 1) {
@@ -304,18 +306,23 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
 
     if (map == null) {
-      // Create a new map.
-      // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-      // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
-      // places even with the same qualifiers.
-      map = type == ResourceType.STYLEABLE || type == ResourceType.ID ?
-            ArrayListMultimap.create() : new PerConfigResourceMap(myResourceComparator);
       for (SingleNamespaceResourceRepository repository : repositoriesForNamespace) {
         ListMultimap<String, ResourceItem> items = getResourcesUnderLock(repository, namespace, type);
-        map.putAll(items);
+        if (!items.isEmpty()) {
+          if (map == null) {
+            // Create a new map.
+            // We only add a duplicate item if there isn't an item with the same qualifiers, and it
+            // is not a styleable or an id. Styleables and ids are allowed to be defined in multiple
+            // places even with the same qualifiers.
+            map = type == ResourceType.STYLEABLE || type == ResourceType.ID ?
+                  ArrayListMultimap.create() : new PerConfigResourceMap(myResourceComparator);
+            myCachedMaps.put(namespace, type, map);
+          }
+          map.putAll(items);
 
-        if (repository instanceof LocalResourceRepository) {
-          myResourceNames.put(repository, type, ImmutableSet.copyOf(items.keySet()));
+          if (repository instanceof LocalResourceRepository) {
+            myResourceNames.put(repository, type, ImmutableSet.copyOf(items.keySet()));
+          }
         }
       }
     }
@@ -346,6 +353,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
         assert unreconciledRepository instanceof LocalResourceRepository;
         myResourceNames.put(unreconciledRepository, type, ImmutableSet.copyOf(unreconciledResources.keySet()));
+        if (map.isEmpty()) {
+          myCachedMaps.remove(namespace, type);
+        }
       }
 
       myUnreconciledResources.remove(namespace, type);
@@ -354,13 +364,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     if (stopwatch != null) {
       LOG.debug(String.format(Locale.US,
                               "Merged %d resources of type %s in %s for %s.",
-                              map.size(),
+                              map == null ? 0 : map.size(),
                               type,
                               stopwatch,
                               getClass().getSimpleName()));
     }
-
-    myCachedMaps.put(namespace, type, map);
 
     return map;
   }
@@ -510,7 +518,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
    * for MultiResourceRepository because the latter always copies data to immutable containers
    * before exposing it to callers.
    */
-  private static class PerConfigResourceMap implements ListMultimap<String, ResourceItem> {
+  private static class PerConfigResourceMap implements ListMultimap<@NotNull String, @NotNull ResourceItem> {
     private final Map<String, List<ResourceItem>> myMap = new HashMap<>();
     private int mySize = 0;
     @NotNull private final ResourceItemComparator myComparator;
@@ -593,7 +601,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
     @Override
     public boolean isEmpty() {
-      return myMap.isEmpty();
+      return mySize == 0;
     }
 
     @Override
@@ -613,7 +621,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     }
 
     @Override
-    public boolean put(@Nullable String key, @Nullable ResourceItem item) {
+    public boolean put(@NotNull String key, @NotNull ResourceItem item) {
       List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
       int oldSize = list.size();
       list.add(item);
@@ -627,10 +635,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     }
 
     @Override
-    public boolean putAll(@Nullable String key, @NotNull Iterable<? extends ResourceItem> items) {
-      List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
-      int oldSize = list.size();
+    public boolean putAll(@NotNull String key, @NotNull Iterable<? extends ResourceItem> items) {
       if (items instanceof Collection) {
+        if (((Collection<?>)items).isEmpty()) {
+          return false;
+        }
+        List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+        int oldSize = list.size();
         //noinspection unchecked
         boolean added = list.addAll((Collection<? extends ResourceItem>)items);
         mySize += list.size() - oldSize;
@@ -638,10 +649,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       }
 
       boolean added = false;
+      List<ResourceItem> list = null;
+      int oldSize = 0;
       for (ResourceItem item : items) {
+        if (list == null) {
+          list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+          oldSize = list.size();
+        }
         added = list.add(item);
       }
-      mySize += list.size() - oldSize;
+      if (list != null) {
+        mySize += list.size() - oldSize;
+      }
       return added;
     }
 
@@ -650,10 +669,12 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       for (Map.Entry<? extends String, ? extends Collection<? extends ResourceItem>> entry : multimap.asMap().entrySet()) {
         String key = entry.getKey();
         Collection<? extends ResourceItem> items = entry.getValue();
-        List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
-        int oldSize = list.size();
-        list.addAll(items);
-        mySize += list.size() - oldSize;
+        if (!items.isEmpty()) {
+          List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+          int oldSize = list.size();
+          list.addAll(items);
+          mySize += list.size() - oldSize;
+        }
       }
 
       return !multimap.isEmpty();
@@ -723,7 +744,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         }
         else {
           List<ResourceItem> nested = myResourceItems.get(index);
-          // Iterate backwards since it is likely to require less iterations.
+          // Iterate backwards since it is likely to require fewer iterations.
           int i = nested.size();
           while (--i >= 0) {
             if (myComparator.myPriorityComparator.compare(item, nested.get(i)) > 0) {
