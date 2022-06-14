@@ -84,6 +84,22 @@ internal class AndroidExtraModelProviderWorker(
         when (syncOptions) {
           is SyncProjectActionOptions -> {
             val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
+            // First : make sure that we are using the same AGP version across all the android projects.
+            val agpVersionsAndGradleBuilds = modules.mapNotNull {
+              when (it) {
+                is BasicV2AndroidModuleGradleProject -> it.versions.agp to getRootProject(it.gradleProject).name
+                is BasicV1AndroidModuleGradleProject -> if (it.legacyV1AgpVersion!= null) {
+                  it.legacyV1AgpVersion.agp to getRootProject(it.gradleProject).name
+                } else {
+                  null
+                }
+                is BasicNonAndroidIncompleteGradleModule -> null
+              }
+            }
+            // Fail Sync if we do not use the same AGP version across all the android projects.
+            if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
+              throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
+
             val canFetchV2Models = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>().isNotEmpty()
 
             val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
@@ -119,6 +135,12 @@ internal class AndroidExtraModelProviderWorker(
         IdeAndroidSyncError::class.java
       )
     }
+  }
+
+  private fun getRootProject(gradleProject: BasicGradleProject): BasicGradleProject {
+    var parentProject = gradleProject
+    while (parentProject.parent != null) parentProject = parentProject.parent!!
+    return parentProject
   }
 
   inner class SyncProjectActionWorker(
