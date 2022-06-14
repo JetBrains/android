@@ -38,7 +38,9 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/app-inspection/inspectors/network/ide:app-inspection.inspectors.network.ide[module, test]",
         "//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view[module, test]",
         "//tools/adt/idea/app-inspection/inspectors/network/model:app-inspection.inspectors.network.model[module, test]",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module, test]",
@@ -52,5 +54,8 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/codenavigation[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )

@@ -10,7 +10,9 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="network_inspector_java_proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.network.ide" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.inspectors.network.view" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.inspectors.network.model" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" scope="TEST" />
@@ -24,5 +26,8 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="codenavigation" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
   </component>
 </module>

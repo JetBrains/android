@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineDispatcher
@@ -56,25 +57,10 @@ class TestNetworkInspectorServices(
   override val client: NetworkInspectorClient = object : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
     override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
-  }
+  },
+  override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker()
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
   override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
   override val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-  override val usageTracker = object : NetworkInspectorTracker {
-    override fun trackMigrationDialogSelected() = Unit
-    override fun trackConnectionDetailsSelected() = Unit
-    override fun trackRequestTabSelected() = Unit
-    override fun trackResponseTabSelected() = Unit
-    override fun trackCallstackTabSelected() = Unit
-    override fun trackRuleCreated() = Unit
-    override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) = Unit
-    override fun trackResponseIntercepted(
-      statusCode: Boolean,
-      headerAdded: Boolean,
-      headerReplaced: Boolean,
-      bodyReplaced: Boolean,
-      bodyModified: Boolean
-    ) = Unit
-  }
 }
