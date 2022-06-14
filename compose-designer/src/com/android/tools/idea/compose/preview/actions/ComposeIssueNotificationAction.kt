@@ -323,12 +323,10 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
           StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }
         ),
         listOfNotNull(
-          if (it is ComposePreviewStatusNotification.NeedsBuild)
-            actionLink(
-              message("action.build.and.refresh.title")
-                .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
-              BuildAndRefresh(composePreviewManager), e.dataContext)
-          else null,
+          actionLink(
+            message("action.build.and.refresh.title")
+              .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
+            BuildAndRefresh(composePreviewManager), e.dataContext),
           if (isAutoDisabled)
             actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), e.dataContext)
           else null,
