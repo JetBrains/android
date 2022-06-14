@@ -514,12 +514,12 @@ class EmulatorViewTest {
     ui.mouse.moveTo(135, 190)
     ui.mouse.press(135, 190)
 
-    ui.keyboard.release(VK_CONTROL)
-
     // Here we expect the GRPC call from `press()`, as `moveTo()` should not send any GRPC call.
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).contains("pressure") // Should have non-zero pressure.
+
+    ui.keyboard.release(VK_CONTROL)
   }
 
   @Test
@@ -578,12 +578,13 @@ class EmulatorViewTest {
     val params = listOf(Pair(FakeMouse.Button.RIGHT, "buttons: 2"), Pair(FakeMouse.Button.MIDDLE, "buttons: 4"))
     for ((button, expected) in params) {
       ui.mouse.press(135, 190, button)
-      ui.mouse.release()
 
       emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
         assertWithMessage(button.name).that(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
         assertWithMessage(button.name).that(shortDebugString(it.request)).contains(expected)
       }
+
+      ui.mouse.release()
 
       emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
         assertWithMessage(button.name).that(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
@@ -605,17 +606,19 @@ class EmulatorViewTest {
     ui.render()
 
     ui.mouse.press(135, 190, FakeMouse.Button.RIGHT)
-    ui.mouse.dragDelta(5, 0)
-    ui.mouse.release()
 
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
       assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
     }
+
+    ui.mouse.dragDelta(5, 0)
 
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
       assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
       assertThat(shortDebugString(it.request)).contains("buttons: 2")
     }
+
+    ui.mouse.release()
 
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
       assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
