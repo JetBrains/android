@@ -33,6 +33,7 @@ import javax.swing.ActionMap;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class Popup extends ActionGroupPopup {
 
@@ -63,7 +64,7 @@ final class Popup extends ActionGroupPopup {
   }
 
   @Override
-  protected void disposeAllParents(@NotNull InputEvent event) {
+  protected void disposeAllParents(@Nullable InputEvent event) {
     // There is case when a tooltip is scheduled to show, but the popup is already closed (disposeAllParents is called).
     HelpTooltip.dispose(getList());
     super.disposeAllParents(event);
