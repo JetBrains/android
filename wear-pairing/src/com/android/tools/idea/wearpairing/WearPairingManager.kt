@@ -519,7 +519,9 @@ internal fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
 }
 
 private fun IDevice.getDeviceName(unknown: String): String {
-  val deviceName = "${getManufacturer(this, "")} ${getModel(this, "")}"
+  val model = getModel(this, "")
+  val manufacturer = getManufacturer(this, "")
+  val deviceName = if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
   return deviceName.ifBlank { unknown }
 }
 

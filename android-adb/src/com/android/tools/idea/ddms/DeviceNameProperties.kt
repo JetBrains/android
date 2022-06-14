@@ -39,7 +39,10 @@ data class DeviceNameProperties(val model: String?,
         return model
       }
 
-      return "$manufacturer $model"
+      return if (model.startsWith(manufacturer, true))
+        model
+      else
+        "$manufacturer $model"
     }
   }
 }

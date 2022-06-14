@@ -58,6 +58,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.File;
+import java.util.Locale;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -268,7 +269,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     if (model.endsWith(suffix)) {
       model = model.substring(0, model.length() - suffix.length());
     }
-    if (!StringUtil.isEmpty(manufacturer)) {
+    if (!StringUtil.isEmpty(manufacturer) && !model.toUpperCase(Locale.US).startsWith(manufacturer.toUpperCase(Locale.US))) {
       deviceNameBuilder.append(manufacturer);
       deviceNameBuilder.append(" ");
     }

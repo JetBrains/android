@@ -40,7 +40,8 @@ internal data class Device private constructor(
       manufacturer: String,
       model: String,
     ): Device {
-      return Device(deviceId = serialNumber, name = "$manufacturer $model", serialNumber, isOnline, release, sdk, model)
+      val deviceName = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
+      return Device(deviceId = serialNumber, name = deviceName, serialNumber, isOnline, release, sdk, model)
     }
 
     fun createEmulator(

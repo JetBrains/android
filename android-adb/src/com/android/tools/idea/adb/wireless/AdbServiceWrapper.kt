@@ -58,7 +58,10 @@ data class AdbOnlineDevice(val id: String, val properties: Map<String, String>) 
       // TODO: Use DeviceNameRenderer class when it has moved out of android.core module
       val manufacturer = properties[IDevice.PROP_DEVICE_MANUFACTURER] ?: ""
       val model = properties[IDevice.PROP_DEVICE_MODEL] ?: id
-      return "${manufacturer} ${model}"
+      return if (model.startsWith(manufacturer, true))
+        model
+      else
+        "$manufacturer $model"
     }
 }
 

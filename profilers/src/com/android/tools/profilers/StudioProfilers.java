@@ -75,6 +75,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -992,7 +993,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (model.endsWith(suffix)) {
       model = model.substring(0, model.length() - suffix.length());
     }
-    if (!StringUtil.isEmpty(manufacturer)) {
+    if (!StringUtil.isEmpty(manufacturer) && !model.toUpperCase(Locale.US).startsWith(manufacturer.toUpperCase(Locale.US))) {
       deviceNameBuilder.append(manufacturer);
       deviceNameBuilder.append(" ");
     }

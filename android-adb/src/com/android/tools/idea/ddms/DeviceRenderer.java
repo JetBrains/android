@@ -27,6 +27,7 @@ import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.StudioIcons;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import javax.swing.JList;
 import javax.swing.JTable;
@@ -95,8 +96,13 @@ public class DeviceRenderer {
 
   @NotNull
   private static String getDeviceName(@NotNull DeviceNameProperties deviceNameProperties) {
-    return String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(deviceNameProperties.getManufacturer(), false, ""),
-                         DevicePropertyUtil.getModel(deviceNameProperties.getModel(), ""));
+    String manufacturer = DevicePropertyUtil.getManufacturer(deviceNameProperties.getManufacturer(), false, "");
+    String model = DevicePropertyUtil.getModel(deviceNameProperties.getModel(), "");
+    if (model.toUpperCase(Locale.US).startsWith(manufacturer.toUpperCase(Locale.US))) {
+      return String.format("%1$s ", model);
+    } else {
+      return String.format("%1$s %2$s ", manufacturer, model);
+    }
   }
 
   public static boolean shouldShowSerialNumbers(@NotNull List<IDevice> devices, @NotNull DeviceNamePropertiesProvider provider) {
