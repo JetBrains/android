@@ -911,13 +911,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> CUSTOM_JAVA_NEW_CLASS_DIALOG = Flag.create(
-    EDITOR, "custom.new.class.dialog",
-    "Enable custom New Class dialog",
-    "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
-    false
-  );
-
   public static final Flag<Boolean> TWEAK_COLOR_SCHEME = Flag.create(
     EDITOR, "tweak.color.scheme",
     "Change the default color scheme",

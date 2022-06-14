@@ -20,7 +20,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
@@ -32,8 +31,6 @@ import com.android.tools.idea.stats.ConsentDialog;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.ide.fileTemplates.FileTemplate;
-import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -73,10 +70,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     checkInstallation();
     setUpNewFilePopupActions(actionManager);
     disableGroovyLanguageInjection();
-
-    if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
-      replaceNewClassDialog(actionManager);
-    }
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
@@ -217,17 +210,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
         getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
     });
-  }
-
-  private static void replaceNewClassDialog(ActionManager actionManager) {
-    Actions.replaceAction(actionManager, "NewClass", new CreateClassAction());
-
-    // Update the text for the file creation templates.
-    FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    for (String templateName : new String[]{"Singleton", "Class", "Interface", "Enum", "AnnotationType"}) {
-      FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
-      template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
-    }
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
