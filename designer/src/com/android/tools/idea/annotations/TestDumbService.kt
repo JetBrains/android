@@ -86,8 +86,6 @@ class TestDumbService(
 
   override fun suspendIndexingAndRun(activityName: String, activity: Runnable) {}
 
-  override fun isSuspendedDumbMode(): Boolean = false
-
   override fun runWithWaitForSmartModeDisabled(runnable: Runnable) {}
 
   override fun unsafeRunWhenSmart(runnable: Runnable) {}
