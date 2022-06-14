@@ -615,11 +615,14 @@ internal class AndroidExtraModelProviderWorker(
    * Checks if we can request the V2 models in parallel.
    * We need to make sure we only request the models in parallel if:
    * - we are fetching android models
-   * - and using at least AGP 7.3.0-alpha-04.
+   * - using a stable AGP version higher than or equal to AGP 7.2.0 and lower than AGP 7.3.0-alpha01, or
+   * - using at least AGP 7.3.0-alpha-04.
    *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
    */
   private fun canUseParallelSync(gradlePluginVersion: GradleVersion?): Boolean {
-    return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 3, 0, "alpha", 4, true)
+    return gradlePluginVersion != null &&
+           ((gradlePluginVersion >= GradleVersion(7, 2, 0) && gradlePluginVersion < "7.3.0-alpha01") ||
+           gradlePluginVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
