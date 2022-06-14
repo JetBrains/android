@@ -124,6 +124,9 @@ iml_module(
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
         "//tools/adt/idea/threading-checker:intellij.android.threading-checker[module]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
 

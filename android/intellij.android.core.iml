@@ -144,5 +144,8 @@
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
     <orderEntry type="module" module-name="intellij.android.threading-checker" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
   </component>
 </module>

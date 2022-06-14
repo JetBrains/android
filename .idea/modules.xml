@@ -17,6 +17,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/adblib/android.sdktools.adblib.iml" filepath="$PROJECT_DIR$/../../base/adblib/android.sdktools.adblib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/adblib-ddmlibcompatibility/android.sdktools.adblib.ddmlibcompatibility.iml" filepath="$PROJECT_DIR$/../../base/adblib-ddmlibcompatibility/android.sdktools.adblib.ddmlibcompatibility.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/adblib-tools/android.sdktools.adblib.tools.iml" filepath="$PROJECT_DIR$/../../base/adblib-tools/android.sdktools.adblib.tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/device-provisioner/android.sdktools.device-provisioner.iml" filepath="$PROJECT_DIR$/../../base/device-provisioner/android.sdktools.device-provisioner.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/testing/android.sdktools.analytics-testing.iml" filepath="$PROJECT_DIR$/../../analytics-library/testing/android.sdktools.analytics-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/apkparser/analyzer/android.sdktools.analyzer.iml" filepath="$PROJECT_DIR$/../../base/apkparser/analyzer/android.sdktools.analyzer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" filepath="$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" />
