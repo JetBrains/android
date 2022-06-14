@@ -72,6 +72,9 @@ PROJECT                       : project
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :app
+        CONENT_ENTRY                  : file://<PROJECT>/app
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -226,18 +229,24 @@ PROJECT                       : project
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONENT_ENTRY                  : file://<PROJECT>/app/AndroidManifest.xml
+        CONENT_ENTRY                  : file://<PROJECT>/app/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/assets
             JavaResource                  : file://<PROJECT>/app/assets
-            JavaResource                  : file://<PROJECT>/app/res
-            JavaSource                    : file://<PROJECT>/app/src
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/res
+            JavaResource                  : file://<PROJECT>/app/res
+        CONENT_ENTRY                  : file://<PROJECT>/app/rs [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src
+            JavaSource                    : file://<PROJECT>/app/src
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/aidl [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             Generated                     : true

@@ -158,9 +158,11 @@ import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.util.io.systemIndependentPath
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -174,6 +176,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -183,6 +186,7 @@ import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChange
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CompilerArgumentsCacheHolder
+import org.jetbrains.kotlin.idea.roots.findAll
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -1694,44 +1698,115 @@ private fun createGradleModuleDataNode(
   return moduleDataNode
 }
 
+/**
+ * This method is a replica of GradleProjectResolver#mergeSourceSetContentRoots.
+ */
 private fun mergeContentRoots(projectDataNode: DataNode<ProjectData>) {
-  val modules = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
-  val sourceSets = modules.flatMap{ ExternalSystemApiUtil.findAll(it, GradleSourceSetData.KEY) }
-  val roots = (modules + sourceSets).flatMap { ExternalSystemApiUtil.findAll(it, ProjectKeys.CONTENT_ROOT) }
+  val weightMap = mutableMapOf<String, Int>()
 
-  val orderedRoots =
-    roots.map {it.data.rootPath to it.parent}.sortedBy { it.first }
-
-  val mapping = sequence<Pair<String, String>> {
-    var currentNode: DataNode<*>? = null
-    var currentRoot: String = ""
-    for ((root, rootNode) in orderedRoots) {
-      if (rootNode != currentNode || !root.startsWith(currentRoot + "/")) {
-        yield(root to root)
-        currentNode = rootNode
-        currentRoot = root
-      } else {
-        yield(root to currentRoot)
+  val moduleNodes = projectDataNode.findAll(ProjectKeys.MODULE)
+  moduleNodes.forEach { moduleNode ->
+    moduleNode.node.findAll(ProjectKeys.CONTENT_ROOT).forEach { rootNode ->
+      var file: File? = File(rootNode.data.rootPath)
+      while (file != null) {
+        weightMap[file.path] = weightMap.getOrDefault(file.path, 0) + 1
+        file = file.parentFile
       }
     }
-  }.toMap()
 
-  val groupedRoots = roots.groupBy { mapping[it.data.rootPath]!! to it.parent!! }
-  val result = groupedRoots.map {(key, nodes) ->
-    key.second to (ContentRootData(GRADLE_SYSTEM_ID, key.first).also { contentRoot ->
-      nodes
-        .flatMap { node ->
-          ExternalSystemSourceType.values().flatMap { type ->
-            node.data.getPaths(type).map { type to it }
-          }
+    moduleNode.node.findAll(GradleSourceSetData.KEY).forEach { sourceSetNode ->
+      val set = mutableSetOf<String>()
+      sourceSetNode.node.findAll(ProjectKeys.CONTENT_ROOT).forEach { rootNode ->
+        var file: File? = File(rootNode.data.rootPath)
+        while (file != null) {
+          set.add(file!!.path)
+          file = file!!.parentFile
         }
-        .forEach { (rootType, root) -> contentRoot.storePath(rootType, root.path, root.packagePrefix) }
-    })
+      }
+      set.forEach { path ->
+        weightMap[path] = weightMap.getOrDefault(path, 0) + 1
+      }
+    }
   }
 
-  roots.forEach { it.clear(true) }
-  result.forEach {(parent, data) ->
-    parent.addChild(DataNode(ProjectKeys.CONTENT_ROOT, data, null))
+  moduleNodes.forEach { moduleNode ->
+    mergeModuleContentRoots(weightMap, moduleNode.node)
+    moduleNode.node.findAll(GradleSourceSetData.KEY).forEach {  sourceSetNode ->
+      mergeModuleContentRoots(weightMap, sourceSetNode.node)
+    }
+  }
+}
+
+/**
+ * This method is a replica of GradleProjectResolver#mergeModuleContentRoots.
+ */
+private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: DataNode<*>) {
+  val buildDir = File((moduleNode.data as ModuleData).linkedExternalProjectPath).resolve("build")
+  val sourceSetRoots: MultiMap<String, ContentRootData> = MultiMap.create()
+  val contentRootsNodes = moduleNode.findAll(ProjectKeys.CONTENT_ROOT)
+  if (contentRootsNodes.size <= 1) return
+
+  contentRootsNodes.forEach { contentRootNode ->
+    var root = File(contentRootNode.data.rootPath)
+    if (FileUtil.isAncestor(buildDir, root, true)) return@forEach
+
+    while (weightMap.containsKey(root.parent) && weightMap[root.parent]!! <= 1) {
+      root = root.parentFile
+    }
+
+    var mergedContentRoot: ContentRootData? = null
+    val rootPath = toCanonicalPath(root.path)
+    val paths = sourceSetRoots.keySet()
+
+    paths.forEach { path ->
+      if (FileUtil.isAncestor(rootPath, path, true)) {
+        val values = sourceSetRoots.remove(path)
+        if (values != null) {
+          sourceSetRoots.put(rootPath, values)
+        }
+      }
+      else if (FileUtil.isAncestor(path, rootPath, false)) {
+        val contentRoots = sourceSetRoots.get(path)
+        contentRoots.forEach { rootData ->
+          if (StringUtil.equals(rootData.rootPath, path)) {
+            mergedContentRoot = rootData
+            return@forEach
+          }
+        }
+        if (mergedContentRoot == null) {
+          mergedContentRoot = contentRoots.iterator().next()
+        }
+        return@forEach
+      }
+      if (sourceSetRoots.size() == 1) return@forEach
+    }
+
+    if (mergedContentRoot == null) {
+      mergedContentRoot = ContentRootData(GradleConstants.SYSTEM_ID, root.path)
+      sourceSetRoots.putValue(mergedContentRoot!!.rootPath, mergedContentRoot)
+    }
+
+    ExternalSystemSourceType.values().forEach { sourceType ->
+      contentRootNode.data.getPaths(sourceType).forEach { sourceRoot ->
+        mergedContentRoot!!.storePath(sourceType, sourceRoot.path, sourceRoot.packagePrefix)
+      }
+    }
+
+    contentRootNode.node.clear(true)
+  }
+
+  sourceSetRoots.entrySet().forEach { entry ->
+    val ideContentRoot = ContentRootData(GradleConstants.SYSTEM_ID, entry.key)
+
+    entry.value.forEach { rootData ->
+      ExternalSystemSourceType.values().forEach { sourceType ->
+        rootData.getPaths(sourceType).forEach { root ->
+          ideContentRoot.storePath(sourceType, root.path, root.packagePrefix)
+        }
+      }
+    }
+
+    moduleNode.createChild(ProjectKeys.CONTENT_ROOT, ideContentRoot)
   }
 }
 

@@ -865,7 +865,7 @@ public class MlLightClassTest extends AndroidTestCase {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
     VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "ml/broken.tflite", new byte[]{1, 2, 3});
 
-    GlobalSearchScope searchScope = myFixture.addClass("public class MainActivity {}").getResolveScope();
+    GlobalSearchScope searchScope = myFixture.addFileToProject("src/MainActivity.java", "public class MainActivity {}").getResolveScope();
     assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", searchScope))
       .named("Class for valid model")
       .isNotNull();
