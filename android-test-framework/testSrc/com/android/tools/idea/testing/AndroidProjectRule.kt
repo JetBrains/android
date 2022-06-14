@@ -17,9 +17,11 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.tools.idea.testing.flags.override
 import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -255,6 +257,10 @@ class AndroidProjectRule private constructor(
     val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
     // Reset user home directory.
     System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
+
+    // Disable antivirus checks on Windows.
+    StudioFlags.ANTIVIRUS_METRICS_ENABLED.override(false, testRootDisposable)
+    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.override(false, testRootDisposable)
 
     fixture.setUp()
     // Initialize an Android manifest
