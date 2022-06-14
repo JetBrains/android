@@ -53,11 +53,12 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
 
   fun run(scenario: HProfBuilder.() -> Unit,
           baselineFileName: String,
-          nominatedClassNames: List<String>?) {
+          nominatedClassNames: List<String>?,
+          shouldMapClassNames: Boolean = true) {
     val hprofFile = tmpFolder.newFile()
     HProfTestUtils.createHProfOnFile(hprofFile,
                                      scenario,
-                                     { c -> mapClassName(c) })
+                                     { c -> if (shouldMapClassNames) mapClassName(c) else c.name })
     compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames)
   }
 
@@ -117,6 +118,9 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         ),
         dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
           includeDominatorTree = false
+        ),
+        innerClassOptions = AnalysisConfig.InnerClassOptions(
+          includeInnerClassSection = false
         )
       ).let { adjustConfig(it) }
       val analysisContext = AnalysisContext(

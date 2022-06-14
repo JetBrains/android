@@ -194,6 +194,22 @@ class HeapAnalysisTest {
     }.run(scenario, "testDominatorTreeFlameGraph.txt", null)
   }
 
+  @Test
+  fun testInnerClassSection() {
+    val scenario: HProfBuilder.() -> Unit = {
+      class A(val x: Any) {
+        inner class B
+      }
+      val a = A(listOf("some", "strings", "that", "are", "retained"))
+      val b = a.B()
+      val c = listOf(b)
+      addRootGlobalJNI(c)
+    }
+    object : HProfScenarioRunner(tmpFolder, remapInMemory) {
+      override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithInnerClassSectionOnly()
+    }.run(scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false)
+  }
+
   private fun configWithDisposerTreeSummaryOnly() = AnalysisConfig(
     AnalysisConfig.PerClassOptions(
       classNames = listOf(),
@@ -213,6 +229,9 @@ class HeapAnalysisTest {
     ),
     dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
       includeDominatorTree = false,
+    ),
+    innerClassOptions = AnalysisConfig.InnerClassOptions(
+      includeInnerClassSection = false
     )
   )
 
@@ -236,9 +255,37 @@ class HeapAnalysisTest {
     dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
       includeDominatorTree = true,
       minNodeSize = 0
+    ),
+    innerClassOptions = AnalysisConfig.InnerClassOptions(
+      includeInnerClassSection = false
     )
   )
 
+  private fun configWithInnerClassSectionOnly() = AnalysisConfig(
+    AnalysisConfig.PerClassOptions(
+      classNames = listOf(),
+      includeClassList = false,
+    ),
+    AnalysisConfig.HistogramOptions(includeByCount = false,
+                                    includeBySize = false,
+                                    includeSummary = false),
+    AnalysisConfig.DisposerOptions(
+      includeDisposerTree = false,
+      includeDisposerTreeSummary = false,
+      includeDisposedObjectsSummary = false,
+      includeDisposedObjectsDetails = false,
+      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
+        nodeCutoff = 0
+      )
+    ),
+    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
+      includeDominatorTree = false,
+      minNodeSize = 0
+    ),
+    innerClassOptions = AnalysisConfig.InnerClassOptions(
+      includeInnerClassSection = true
+    )
+  )
 
   /**
    * Adds disposer to the hprof. Disposer is simplified and contains only ourTree static field, all other static fields are omitted.

@@ -53,7 +53,7 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
     appendln()
     appendln("Top 10 by bytes count:")
     val entriesByBytes = entries.sortedByDescending { it.totalBytes }
-    for (i in 0 until 10) {
+    for (i in 0 until min(10, entries.size)) {
       val entry = entriesByBytes[i]
       appendln(formatEntryLine(i + 1, entry))
     }
