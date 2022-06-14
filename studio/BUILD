@@ -785,7 +785,6 @@ java_test(
         ":updater.jar",
     ],
     tags = [
-        "manual",  # b/234170016
         "no_mac",
         "no_windows",
     ],
