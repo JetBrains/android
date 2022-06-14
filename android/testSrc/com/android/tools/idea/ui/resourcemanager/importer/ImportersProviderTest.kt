@@ -13,6 +13,9 @@
 // limitations under the License.
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.testutils.ignore.IgnoreTestRule;
+import com.android.testutils.ignore.IgnoreWithCondition;
+import com.android.testutils.ignore.OnLinux;
 import com.android.tools.idea.ui.resourcemanager.plugin.RasterResourceImporter
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,12 +31,16 @@ class ImportersProviderTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
+
   @Test
   fun extensionPointExists() {
     assertNotNull(ApplicationManager.getApplication().extensionArea.getExtensionPoint<ResourceImporter>("com.android.resourceImporter"))
     assertTrue { ImportersProvider().importers.filterIsInstance<RasterResourceImporter>().any() }
   }
 
+  @IgnoreWithCondition(reason = "b/235869541", condition = OnLinux::class)
   @Test
   fun getSupportedFileTypes() {
     assertTrue(ImportersProvider().getImportersForExtension("png").any { it is RasterResourceImporter })

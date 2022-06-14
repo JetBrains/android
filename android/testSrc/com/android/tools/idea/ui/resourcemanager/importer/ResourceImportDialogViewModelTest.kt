@@ -17,6 +17,9 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
+import com.android.testutils.ignore.IgnoreTestRule;
+import com.android.testutils.ignore.IgnoreWithCondition;
+import com.android.testutils.ignore.OnLinux;
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -49,6 +52,9 @@ class ResourceImportDialogViewModelTest {
 
   @get:Rule
   val rule = AndroidProjectRule.withAndroidModel()
+
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
 
   @Test
   fun importMoreAssets() {
@@ -127,6 +133,7 @@ class ResourceImportDialogViewModelTest {
     assertNull(viewModel.getValidationInfo())
   }
 
+  @IgnoreWithCondition(reason = "b/235869541", condition = OnLinux::class)
   @Test
   fun fixNameWhenImporting() {
     var validFile: VirtualFile? = null
