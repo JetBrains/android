@@ -53,7 +53,7 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
     val inspector = LayoutInspector.get(event) ?: return
     val treeSettings = inspector.treeSettings
     treeSettings.hideSystemNodes = state
-    inspector.stats.hideSystemNodes = state
+    inspector.currentClient.stats.hideSystemNodes = state
 
     if (state) {
       val model = inspector.layoutInspectorModel

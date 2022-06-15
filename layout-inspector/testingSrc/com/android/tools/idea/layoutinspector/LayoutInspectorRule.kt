@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -118,7 +117,7 @@ fun LegacyClientProvider(
   }
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
                parentDisposable, treeLoaderOverride)
 }
 
@@ -254,8 +253,7 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    val stats = SessionStatisticsImpl(inspectorModel)
-    inspector = LayoutInspector(launcher, inspectorModel, stats, treeSettings, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(launcher, inspectorModel, treeSettings, MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it
     }

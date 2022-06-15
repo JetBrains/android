@@ -57,7 +57,7 @@ fun AppInspectionClientProvider(
   val apiServices = getApiServices()
 
   AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-                               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+                               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
                                inspector.treeSettings, parentDisposable, apiServices).apply {
     launchMonitor = getMonitor()
   }

@@ -47,9 +47,9 @@ class LinePainterTest {
   fun testSystemNodeWithMultipleChildren() {
     val model = InspectorModel(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(mock(), model, mock(), treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(mock(), model, treeSettings, MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
-    val treeModel = treePanel.tree!!.model
+    val treeModel = treePanel.tree.model
     treePanel.setToolContext(inspector)
 
     val window = window(ROOT, ROOT) {

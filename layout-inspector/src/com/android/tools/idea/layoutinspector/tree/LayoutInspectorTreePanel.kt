@@ -163,7 +163,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       inspectorModel?.apply {
         val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
-        layoutInspector?.stats?.selectionMadeFromComponentTree(view)
+        layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
       }
     }
     inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
@@ -243,7 +243,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun doubleClick() {
     val model = inspectorModel ?: return
-    layoutInspector?.stats?.gotoSourceFromDoubleClick()
+    layoutInspector?.currentClient?.stats?.gotoSourceFromDoubleClick()
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
@@ -259,7 +259,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun resetRecompositionCountsFromTableHeaderClick() {
     resetRecompositionCounts()
-    layoutInspector?.stats?.resetRecompositionCountsClick()
+    layoutInspector?.currentClient?.stats?.resetRecompositionCountsClick()
   }
 
   fun resetRecompositionCounts() {
@@ -387,7 +387,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.apply {
       if (node.view !== selection) {
         setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
-        layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
+        layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(node.view)
       }
     }
   }
@@ -439,7 +439,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
     updateRecompositionColumnVisibility()
     inspectorModel?.let { model ->
-      layoutInspector?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
+      layoutInspector?.currentClient?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
     }
     // Make an explicit update of the toolbar now (the tree expand actions may have been enabled/disabled)
     invokeLater { toolWindowCallback?.updateActions() }

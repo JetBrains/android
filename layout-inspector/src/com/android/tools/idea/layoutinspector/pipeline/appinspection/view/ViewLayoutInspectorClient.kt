@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -86,6 +87,7 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  */
 class ViewLayoutInspectorClient(
   private val model: InspectorModel,
+  private val stats: SessionStatistics,
   private val processDescriptor: ProcessDescriptor,
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
@@ -120,6 +122,7 @@ class ViewLayoutInspectorClient(
       apiServices: AppInspectionApiServices,
       process: ProcessDescriptor,
       model: InspectorModel,
+      stats: SessionStatistics,
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
       fireError: (String) -> Unit,
@@ -130,7 +133,7 @@ class ViewLayoutInspectorClient(
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent,
+      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent,
                                        launchMonitor)
     }
   }
@@ -354,8 +357,8 @@ class ViewLayoutInspectorClient(
     }
     catch (cancellationException: CancellationException) {
       snapshotMetadata.saveDuration = System.currentTimeMillis() - start
-      LayoutInspectorMetrics(project, processDescriptor, null, snapshotMetadata)
-        .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED)
+      LayoutInspectorMetrics(project, processDescriptor, snapshotMetadata)
+        .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED, stats)
       // Delete the file in case we wrote out partial data
       Files.delete(path)
     }

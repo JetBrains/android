@@ -64,11 +64,12 @@ private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
 class LayoutInspectorFileEditor(val project: Project, private val path: Path) : UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorMetrics? = null
+  private var stats: SessionStatistics = DisconnectedClient.stats
 
   override fun getFile() = VfsUtil.findFile(path, true)
 
   override fun dispose() {
-    metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA)
+    metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA, stats)
   }
 
   private var component: JComponent? = null
@@ -82,7 +83,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     modificationCount = file?.modificationCount ?: -1
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
-    var stats: SessionStatistics? = null
     var snapshotLoader: SnapshotLoader? = null
     val startTime = System.currentTimeMillis()
     var metadata: SnapshotMetadata? = null
@@ -96,8 +96,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val model = InspectorModel(project)
-
-      metadata = snapshotLoader?.loadFile(path, model) ?: throw Exception()
+      stats = SessionStatisticsImpl(model)
+      metadata = snapshotLoader?.loadFile(path, model, stats) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
           get() = snapshotLoader.propertiesProvider
@@ -112,16 +112,16 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
 
         override val process = snapshotLoader.processDescriptor
 
+        override val stats: SessionStatistics
+          get() = this@LayoutInspectorFileEditor.stats
+
         override val isConnected
           get() = true
       }
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
-
-      stats = SessionStatisticsImpl(model)
-
-      val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
+      val layoutInspector = LayoutInspector(client, model, treeSettings)
       val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, layoutInspector, viewSettings, workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
       workbench.init(deviceViewPanel, layoutInspector, listOf(
@@ -135,13 +135,13 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       StartupManager.getInstance(project).runAfterOpened {
         invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
       }
-      metrics = LayoutInspectorMetrics(project, snapshotLoader.processDescriptor, stats, snapshotMetadata = metadata)
-      metrics?.logEvent(SNAPSHOT_LOADED)
+      metrics = LayoutInspectorMetrics(project, snapshotLoader.processDescriptor, snapshotMetadata = metadata)
+      metrics?.logEvent(SNAPSHOT_LOADED, stats)
     }
     catch (exception: Exception) {
       // TODO: better error panel
       Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
-      LayoutInspectorMetrics(project, snapshotLoader?.processDescriptor, stats, metadata).logEvent(SNAPSHOT_LOAD_ERROR)
+      LayoutInspectorMetrics(project, snapshotLoader?.processDescriptor, metadata).logEvent(SNAPSHOT_LOAD_ERROR, stats)
       val status = object : StatusText() {
         override fun isStatusVisible() = true
       }

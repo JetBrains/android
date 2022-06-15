@@ -33,7 +33,6 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -43,6 +42,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -113,8 +113,7 @@ DONE.
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
     val process = LEGACY_DEVICE.createProcess()
-    return LegacyClient(process, isInstantlyAutoConnected = false, model,
-                        LayoutInspectorMetrics(model.project, process, SessionStatisticsImpl(model)),
+    return LegacyClient(process, isInstantlyAutoConnected = false, model, LayoutInspectorMetrics(model.project, process),
                         disposableRule.disposable).apply {
       launchMonitor = mock()
     }

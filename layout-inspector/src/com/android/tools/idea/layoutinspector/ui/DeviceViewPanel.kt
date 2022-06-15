@@ -192,7 +192,6 @@ class DeviceViewPanel(
   private val contentPanel = DeviceViewContentPanel(
     inspectorModel = layoutInspector.layoutInspectorModel,
     deviceModel = deviceModel,
-    stats = layoutInspector.stats,
     treeSettings = layoutInspector.treeSettings,
     viewSettings = viewSettings,
     currentClient = { layoutInspector.currentClient },

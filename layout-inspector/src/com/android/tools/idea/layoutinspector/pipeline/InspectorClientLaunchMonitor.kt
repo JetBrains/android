@@ -76,8 +76,9 @@ class InspectorClientLaunchMonitor(
   }
 
   private fun logAttachError(errorCode: AttachErrorCode) {
-    LayoutInspectorMetrics(null, client?.process, null, null).logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress, errorCode)
+    val stats = client?.stats ?: DisconnectedClient.stats
+    LayoutInspectorMetrics(null, client?.process, null).logEvent(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, stats, currentProgress, errorCode)
   }
 
   fun stop() {

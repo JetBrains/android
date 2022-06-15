@@ -92,7 +92,8 @@ DONE.
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(projectRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    val stats = SessionStatisticsImpl(newModel)
+    snapshotLoader.loadFile(savePath, newModel, stats)
 
     val window = newModel.windows[windowName]!!
     window.refreshImages(1.0)
@@ -131,15 +132,15 @@ DONE.
 
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
-    val treeSettings = FakeTreeSettings()
-    val stats = SessionStatisticsImpl(model)
     val process = LEGACY_DEVICE.createProcess()
     val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
-                                    LayoutInspectorMetrics(projectRule.project, process, stats), disposableRule.disposable).apply {
+                                    LayoutInspectorMetrics(projectRule.project, process),
+                                    disposableRule.disposable).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners
-    LayoutInspector(legacyClient, model, stats, treeSettings)
+    val treeSettings = FakeTreeSettings()
+    LayoutInspector(legacyClient, model, treeSettings)
     return legacyClient
   }
 

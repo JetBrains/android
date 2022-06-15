@@ -235,8 +235,8 @@ class TreeSettingsActionsTest {
     whenever(treePanel.component).thenReturn(component)
     whenever(inspector.layoutInspectorModel).thenReturn(model)
     whenever(inspector.currentClient).thenReturn(client)
-    whenever(inspector.stats).thenReturn(stats)
     whenever(inspector.treeSettings).thenReturn(treeSettings)
+    whenever(client.stats).thenReturn(stats)
     Mockito.doAnswer { capabilities }.whenever(client).capabilities
     Mockito.doAnswer { isConnected }.whenever(client).isConnected
 

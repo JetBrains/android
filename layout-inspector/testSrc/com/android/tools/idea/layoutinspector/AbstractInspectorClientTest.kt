@@ -21,6 +21,7 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
@@ -97,7 +98,9 @@ class AbstractInspectorClientTest {
     verify(monitor, times(0)).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
-  class MyClient(disposable: Disposable) : AbstractInspectorClient(MODERN_DEVICE.createProcess(), true, disposable) {
+  class MyClient(
+    disposable: Disposable
+  ) : AbstractInspectorClient(MODERN_DEVICE.createProcess(), true, DisconnectedClient.stats, disposable) {
     override fun doConnect(): ListenableFuture<Nothing> = immediateFuture(null)
 
     override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)

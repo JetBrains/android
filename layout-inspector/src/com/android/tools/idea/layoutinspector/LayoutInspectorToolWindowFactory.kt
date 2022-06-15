@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
@@ -115,10 +116,9 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
-        val stats = SessionStatisticsImpl(model)
-        val metrics = LayoutInspectorMetrics(project, null, stats)
+        val metrics = LayoutInspectorMetrics(project, null)
         launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
-        val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
+        val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
         val deviceModel = DeviceModel(processesModel)
         val foregroundProcessDetection = createForegroundProcessDetection(
@@ -242,7 +242,7 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged) {
       if (isWindowVisible) {
-        LayoutInspectorMetrics(project).logEvent(DynamicLayoutInspectorEventType.OPEN)
+        LayoutInspectorMetrics(project).logEvent(DynamicLayoutInspectorEventType.OPEN, DisconnectedClient.stats)
       }
       else if (clientLauncher.activeClient.isConnected) {
         toolWindowManager.notifyByBalloon(

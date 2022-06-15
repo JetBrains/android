@@ -190,7 +190,7 @@ class InspectorClientLauncher(
             latch.await(1, TimeUnit.MINUTES)
             // The current selected process changed out from under us, abort the whole thing.
             if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
-              metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED)
+              metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
               return
             }
             // This client didn't work, try the next
@@ -205,7 +205,7 @@ class InspectorClientLauncher(
           catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process
             client.disconnect()
-            metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED)
+            metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
             throw cancellationException
           }
           catch (ignored: Exception) {

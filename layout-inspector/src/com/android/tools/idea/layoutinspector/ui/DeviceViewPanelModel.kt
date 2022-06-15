@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -49,7 +48,6 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
 
 class DeviceViewPanelModel(
   private val model: InspectorModel,
-  private val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null
 ) {
@@ -156,7 +154,7 @@ class DeviceViewPanelModel(
   }
 
   fun refresh() {
-    stats.currentMode3D = isRotated
+    client?.invoke()?.stats?.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0

@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project
 class LayoutInspectorMetrics(
   private val project: Project?,
   private var process: ProcessDescriptor? = null,
-  val stats: SessionStatistics? = null,
   private val snapshotMetadata: SnapshotMetadata? = null
 ) {
 
@@ -45,6 +44,7 @@ class LayoutInspectorMetrics(
 
   fun logEvent(
     eventType: DynamicLayoutInspectorEventType,
+    stats: SessionStatistics,
     errorState: AttachErrorState? = null,
     errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
     autoConnectInfo: DynamicLayoutInspectorAutoConnectInfo? = null
@@ -61,7 +61,7 @@ class LayoutInspectorMetrics(
       kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
       dynamicLayoutInspectorEventBuilder.apply {
         type = eventType
-        if (stats != null && eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
+        if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
           stats.save(sessionBuilder)
         }
         snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }

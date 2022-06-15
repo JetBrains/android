@@ -96,7 +96,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 
@@ -129,7 +129,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 
@@ -211,7 +211,7 @@ class AppInspectionSnapshotSupportTest {
     // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 

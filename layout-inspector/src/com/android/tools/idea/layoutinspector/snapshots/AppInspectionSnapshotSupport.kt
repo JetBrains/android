@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionPropertiesProvider
@@ -27,6 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
@@ -51,7 +53,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
-  override fun loadFile(file: Path, model: InspectorModel): SnapshotMetadata {
+  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
     propertiesProvider = AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
@@ -71,6 +73,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
       val rootIds = response.windowRoots.idsList
       val allComposeInfo = snapshot.composeInfoList.associateBy { it.viewId }
       val metrics = LayoutInspectorMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
+      fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) = metrics.logEvent(eventType, stats)
       rootIds.map { allWindows[it] }.forEach { windowInfo ->
         // should always be true
         if (windowInfo != null) {
@@ -78,7 +81,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
           val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
-          val treeLoader = AppInspectionTreeLoader(model.project, metrics::logEvent, SkiaParserImpl({}))
+          val treeLoader = AppInspectionTreeLoader(model.project, ::logEvent, SkiaParserImpl({}))
           val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
           capabilities.addAll(treeData.dynamicCapabilities)
           model.update(treeData.window, rootIds, treeData.generation)
