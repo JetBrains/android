@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialo
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -45,7 +46,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class RefactoringFlowTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /**
    * Verifies user can link project with Kotlin.
@@ -99,8 +100,10 @@ public class RefactoringFlowTest {
 
     editor.moveBetween("Pers", "on person");
 
+    guiTest.robot().waitForIdle();
     //Doing Invoking menu path twice to display refactor dialog box
     ideFrame.invokeMenuPath("Refactor", "Rename...");
+    guiTest.robot().waitForIdle();
     ideFrame.invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
