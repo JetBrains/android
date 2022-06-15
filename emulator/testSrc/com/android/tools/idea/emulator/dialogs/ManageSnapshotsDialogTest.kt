@@ -213,7 +213,7 @@ class ManageSnapshotsDialogTest {
     // Remove the two selected snapshots.
     performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-    assertThat(table.items.size == 3)
+    assertThat(table.items.size).isEqualTo(3)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.snapshotId).isEqualTo(incompatibleSnapshotId)
@@ -224,7 +224,7 @@ class ManageSnapshotsDialogTest {
     // Remove the incompatible snapshot.
     performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-    assertThat(table.items.size == 2)
+    assertThat(table.items.size).isEqualTo(2)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
