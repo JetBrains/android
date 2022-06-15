@@ -24,7 +24,6 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
-import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport
@@ -56,21 +55,14 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import com.intellij.util.WaitFor
 import junit.framework.TestCase
 import junit.framework.TestCase.assertTrue
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
 /**
@@ -135,7 +127,7 @@ internal fun getModifiedModuleName(moduleName: String, avoidModifiedModuleName: 
  * @param moduleState  the module state, containing kotlin support info for template render event
  */
 internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName: String, formFactor: FormFactor, moduleState: ModuleTemplateData) {
-  val usage = usageTracker.usages.last()!!
+  val usage = usageTracker.usages.last { it.studioEvent.kind == EventKind.TEMPLATE_RENDER }!!
   assertEquals(EventKind.TEMPLATE_RENDER, usage.studioEvent.kind)
 
   val templateRenderer = titleToTemplateRenderer(templateName, formFactor)
@@ -154,49 +146,6 @@ internal fun verifyLanguageFiles(projectDir: File, language: Language) {
   val allPaths = Files.walk(projectDir.toPath()).toList()
   val wrongLanguageExtension = if (language == Language.Kotlin) ".java" else ".kt"
   assertTrue(allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
-}
-
-internal fun invokeGradleForProjectDir(projectRoot: File) {
-  val connection = (GradleConnector.newConnector() as DefaultGradleConnector).apply {
-    forProjectDirectory(projectRoot)
-    daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS)
-  }.connect()
-  val buildLauncher = connection.newBuild().forTasks("assembleDebug")
-  val commandLineArguments = mutableListOf<String>()
-  GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments)
-  buildLauncher.withArguments(commandLineArguments)
-  val baos = ByteArrayOutputStream()
-  try {
-    buildLauncher.setStandardOutput(baos).setStandardError(baos).run()
-  }
-  // Use the following commented out code to debug the generated project in case of a failure.
-  catch (e: Exception) {
-    //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-    //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-    //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-    throw RuntimeException(baos.toString("UTF-8"), e)
-  }
-  finally {
-    shutDownGradleConnection(connection, projectRoot)
-  }
-}
-
-internal fun shutDownGradleConnection(connection: ProjectConnection, projectRoot: File) {
-  connection.close()
-  // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-  // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
-  // break tear-down, when it tries to delete the project.
-  if (SystemInfo.isWindows) {
-    println("Windows: Attempting to delete project Root - $projectRoot")
-    object : WaitFor(60000) {
-      override fun condition(): Boolean {
-        if (!FileUtil.delete(projectRoot)) {
-          println("Windows: delete project Root failed - time = ${System.currentTimeMillis()}")
-        }
-        return projectRoot.mkdir()
-      }
-    }
-  }
 }
 
 internal fun lintIfNeeded(project: Project) {

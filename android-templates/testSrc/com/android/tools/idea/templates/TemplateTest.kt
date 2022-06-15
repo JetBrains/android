@@ -138,7 +138,7 @@ class TemplateTest {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectChecker.checkProject(projectRule.project, projectName, avoidModifiedModuleName, *customizers)
+      projectChecker.checkProject(projectRule, projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }

@@ -15,6 +15,7 @@ public final class TestProjectPaths {
   public static final String APPLICATION_ID_VARIANT_API_BROKEN = "projects/applicationIdViaVariantApiBroken";
 
   public static final String BASIC = "projects/basic";
+  public static final String NO_MODULES = "projects/projectWithNoModules";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String BUILD_ANALYZER_CHECK_JETIFIER = "projects/buildAnalyzer/checkJetifier";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
