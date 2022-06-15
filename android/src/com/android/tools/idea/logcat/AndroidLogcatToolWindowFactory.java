@@ -25,7 +25,6 @@ import com.android.tools.idea.run.ShowLogcatListener;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ProjectTopics;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunContentManager;
@@ -36,8 +35,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.colors.ColorSettingsPages;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
@@ -53,7 +50,6 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -105,7 +101,6 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
 
     MessageBusConnection busConnection = project.getMessageBus().connect(toolWindow.getDisposable());
     busConnection.subscribe(ToolWindowManagerListener.TOPIC, new MyToolWindowManagerListener(project, logcatView));
-    busConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
@@ -271,52 +266,6 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
   }
 
-  private static class MyAndroidPlatformListener implements ModuleRootListener {
-    private final Project myProject;
-    private final AndroidLogcatView myView;
-
-    private AndroidPlatform myPrevPlatform;
-
-    private MyAndroidPlatformListener(@NotNull AndroidLogcatView view) {
-      myProject = view.getProject();
-      myView = view;
-      myPrevPlatform = getPlatform();
-    }
-
-    @Override
-    public void rootsChanged(@NotNull ModuleRootEvent event) {
-      final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(getToolWindowId());
-      if (window == null) {
-        return;
-      }
-
-      if (window.isDisposed() || !window.isVisible()) {
-        return;
-      }
-
-      AndroidPlatform newPlatform = getPlatform();
-
-      if (!Objects.equals(myPrevPlatform, newPlatform)) {
-        myPrevPlatform = newPlatform;
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (!window.isDisposed() && window.isVisible()) {
-            myView.activate();
-          }
-        });
-      }
-    }
-
-    @Nullable
-    private AndroidPlatform getPlatform() {
-      AndroidPlatform newPlatform = null;
-      final List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
-      if (!facets.isEmpty()) {
-        final AndroidFacet facet = facets.get(0);
-        newPlatform = AndroidPlatform.getInstance(facet.getModule());
-      }
-      return newPlatform;
-    }
-  }
 
   @NotNull
   private Logger thisLogger() {
