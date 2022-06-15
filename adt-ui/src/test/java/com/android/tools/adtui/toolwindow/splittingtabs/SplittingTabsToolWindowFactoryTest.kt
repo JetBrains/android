@@ -26,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.ProjectRule
@@ -35,9 +36,11 @@ import com.intellij.ui.content.Content
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.KeyStroke
 import kotlin.test.fail
 
 
@@ -135,6 +138,8 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(toolWindow.tabActionList).hasSize(1)
     assertThat(toolWindow.tabActionList[0]).isInstanceOf(NewTabAction::class.java)
     assertThat(toolWindow.tabActionList[0].templatePresentation.text).isEqualTo("New Tab")
+    assertThat(toolWindow.tabActionList[0].shortcutSet.shortcuts).asList()
+      .containsExactly(KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), null))
   }
 
   @Test

@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
 abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
@@ -39,8 +40,11 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     stateManager.registerToolWindow(toolWindow)
 
     val contentManager = toolWindow.contentManager
-    (toolWindow as ToolWindowEx).setTabActions(
-      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(project, contentManager) })
+    val newTabAction = NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) {
+      createNewTab(project, contentManager)
+    }
+    newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
+    (toolWindow as ToolWindowEx).setTabActions(newTabAction)
 
     val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
     if (toolWindowState.tabStates.isEmpty()) {
