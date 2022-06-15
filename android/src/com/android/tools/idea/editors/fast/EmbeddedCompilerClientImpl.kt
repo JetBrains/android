@@ -92,14 +92,17 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
         throw nonRetriableException
       }
 
-      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Retrying after error (retry $it)", t)
+      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).debug("Retrying after error (retry $it)", t)
       lastException = t
     }
     if (result.isCompleted) return result.getCompleted()
     indicator.checkCanceled()
     Thread.sleep((50 * it).coerceAtMost(200).toLong())
   }
-  lastException?.let { throw it } ?: throw ProcessCanceledException()
+  lastException?.let {
+    Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Compile request failed with exception", it)
+    throw it
+  } ?: throw ProcessCanceledException()
 }
 
 /**
