@@ -286,8 +286,7 @@ class BuildAttributionUiAnalytics(
           else AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, pageId = "")
         }
         BuildAnalyzerViewModel.DataSet.DOWNLOADS ->
-          //TODO (b/218505954): add page to analytics
-          AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE, "")
+          AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.DOWNLOADS_INFO, "")
       }
     )
   }
