@@ -143,11 +143,7 @@ public class StringResourceTable extends FrozenColumnTable<StringResourceTableMo
 
     int maxColumnWidth = JBUI.scale(200);
 
-    if (columnWidth > maxColumnWidth) {
-      return maxColumnWidth;
-    }
-
-    return columnWidth;
+    return Math.min(columnWidth, maxColumnWidth);
   }
 
   private int getPreferredHeaderWidth(int viewColumnIndex) {
