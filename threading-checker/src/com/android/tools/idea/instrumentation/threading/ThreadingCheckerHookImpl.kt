@@ -45,6 +45,13 @@ class ThreadingCheckerHookImpl : ThreadingCheckerHook {
     recordViolation("Methods annotated with @UiThread should be called on the UI thread")
   }
 
+  override fun verifyOnWorkerThread() {
+    if (!SwingUtilities.isEventDispatchThread()) {
+      return
+    }
+    recordViolation("Methods annotated with @WorkerThread should not be called on the UI thread")
+  }
+
   private fun recordViolation(warningMessage: String) {
     val stackTrace = Thread.currentThread().stackTrace
     // Index of an annotated method. We need to skip Thread#getStackTrace, ThreadingCheckerHookImpl#recordViolation,

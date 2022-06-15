@@ -47,7 +47,7 @@ class ThreadingCheckerHookImplTest : LightPlatformTestCase() {
   }
 
   @Test
-  fun testVerifyOnUiThread_addsViolation_whenCalledFromNonUiThread() {
+  fun testVerifyOnUiThread_addsViolation_whenCalledFromWorkerThread() {
     val expectedViolatingMethod =
       "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest\$checkForUiThreadOnWorkerThread\$1#invokeSuspend"
     checkForUiThreadOnWorkerThread()
@@ -71,8 +71,35 @@ class ThreadingCheckerHookImplTest : LightPlatformTestCase() {
   }
 
   @Test
+  fun testVerifyOnWorkerThread_addsViolation_whenCalledFromUiThread() {
+    val expectedViolatingMethod =
+      "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest#testVerifyOnWorkerThread_addsViolation_whenCalledFromUiThread"
+    ThreadingCheckerTrampoline.verifyOnWorkerThread()
+
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
+    Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
+    UIUtil.dispatchAllInvocationEvents()
+    Truth.assertThat(notifications).hasSize(1)
+
+    ThreadingCheckerTrampoline.verifyOnWorkerThread()
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
+    Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
+    UIUtil.dispatchAllInvocationEvents()
+    Truth.assertThat(notifications).hasSize(1)
+  }
+
+  @Test
   fun testVerifyOnUiThread_doesNotAddViolation_whenCalledFromUiThread() {
     ThreadingCheckerTrampoline.verifyOnUiThread()
+    Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
+    Truth.assertThat(notifications).isEmpty()
+  }
+
+  @Test
+  fun testVerifyOnWorkerThread_doesNotAddViolation_whenCalledFromWorkerThread() {
+    runBlocking (workerThread) {
+      ThreadingCheckerTrampoline.verifyOnWorkerThread()
+    }
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
     Truth.assertThat(notifications).isEmpty()
   }
