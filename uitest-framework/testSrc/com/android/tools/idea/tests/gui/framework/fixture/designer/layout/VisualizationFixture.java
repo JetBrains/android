@@ -50,6 +50,6 @@ public class VisualizationFixture extends ToolWindowFixture {
   }
 
   public void openProblemsPanel() {
-    ActionButtonFixture.findByIcon(StudioIcons.Common.WARNING, myRobot, myToolWindow.getComponent()).click();
+    ActionButtonFixture.findByIcon(StudioIcons.Common.WARNING_INLINE, myRobot, myToolWindow.getComponent()).click();
   }
 }
