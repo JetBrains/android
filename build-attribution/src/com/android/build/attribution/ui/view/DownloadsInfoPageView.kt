@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.DownloadsInfoPageModel
 import com.intellij.openapi.ui.setEmptyState
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
@@ -47,6 +48,8 @@ class DownloadsInfoPageView(
       maximumSize = JBUI.size(800, Int.MAX_VALUE)
       alignmentX = Component.LEFT_ALIGNMENT
 
+      val pageHeaderText = "This table shows time Gradle took to download artifacts from repositories."
+      add(htmlTextLabelWithFixedLines(pageHeaderText), BorderLayout.NORTH)
       add(createScrollPane(resultsTable), BorderLayout.CENTER)
     })
   }
