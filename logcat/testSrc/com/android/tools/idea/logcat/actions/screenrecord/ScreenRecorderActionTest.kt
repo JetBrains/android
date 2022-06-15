@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions.screenrecord
 import com.android.adblib.testing.FakeAdbLibSession
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.actions.screenrecord.ScreenRecorderAction.Companion.SDK_KEY
 import com.android.tools.idea.logcat.actions.screenrecord.ScreenRecorderAction.Companion.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
@@ -31,7 +32,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.`when`
 
 /**
  * Tests for [ScreenRecorderAction]
@@ -75,7 +75,7 @@ class ScreenRecorderActionTest {
 
   @Test
   fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
-    `when`(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
+    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
     userData[SERIAL_NUMBER_KEY.name] = "device"
     val event = TestActionEvent { userData[it] }
     val action = ScreenRecorderAction(project, project, FakeAdbLibSession(), coroutineContext = coroutineContext)
@@ -90,7 +90,7 @@ class ScreenRecorderActionTest {
     userData[SERIAL_NUMBER_KEY.name] = "device"
     userData[SDK_KEY.name] = 30
     userData[AVD_NAME_KEY.name] = null
-    `when`(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
+    whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
     val event = TestActionEvent { userData[it] }
     val action = ScreenRecorderAction(project, project, FakeAdbLibSession(), coroutineContext = coroutineContext)
 
