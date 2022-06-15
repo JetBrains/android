@@ -188,6 +188,9 @@ class ManageSnapshotsDialogTest {
     // Wait for the snapshot to be created and the snapshot list to be updated.
     waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 4 }
     val secondSnapshot = checkNotNull(table.selectedObject)
+    // Edit the second snapshot without making any changes.
+    editSnapshot(actionsPanel, secondSnapshot.displayName, secondSnapshot.description, false)
+    assertThat(isUseToBoot(table, 1)).isTrue() // The first snapshot is still used to boot.
     // Create third snapshot.
     ui.clickOn(takeSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
