@@ -18,14 +18,15 @@ package com.android.tools.idea.editors.strings.action
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -61,9 +62,7 @@ class NewStringKeyDialogTest {
     val dialog = NewStringKeyDialog(facet, listOf())
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      val cancelButton: JButton = fakeUi.getComponent { it.name == CANCEL_BUTTON_ID }
-      fakeUi.clickOn(cancelButton)
+      dialogWrapper.rootPane.getDescendant<JButton> { it.name == CANCEL_BUTTON_ID }.doClick()
     }
 
     assertThat(dialog.isOK).isFalse()
@@ -73,11 +72,7 @@ class NewStringKeyDialogTest {
   fun emptyKey() {
     val dialog = NewStringKeyDialog(facet, listOf())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      val okButton: JButton = fakeUi.getComponent { it.name == OK_BUTTON_ID }
-      fakeUi.clickOn(okButton)
-    }
+    createModalDialogAndInteractWithIt({ dialog.show() }) { it.clickOk() }
 
     val validationInfo = dialog.doValidate()
     assertThat(validationInfo).isNotNull()
@@ -90,12 +85,9 @@ class NewStringKeyDialogTest {
     val bogusResourceName = "bogus resource name with spaces"
     val dialog = NewStringKeyDialog(facet, listOf())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      fakeUi.keyField.text = bogusResourceName
-
-      val okButton: JButton = fakeUi.getComponent { it.name == OK_BUTTON_ID }
-      fakeUi.clickOn(okButton)
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      it.keyField.text = bogusResourceName
+      it.clickOk()
     }
 
     val validationInfo = dialog.doValidate()
@@ -110,12 +102,9 @@ class NewStringKeyDialogTest {
     val resourceName = "my_excellent_resource_name"
     val dialog = NewStringKeyDialog(facet, listOf())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      fakeUi.keyField.text = resourceName
-
-      val okButton: JButton = fakeUi.getComponent { it.name == OK_BUTTON_ID }
-      fakeUi.clickOn(okButton)
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      it.keyField.text = resourceName
+      it.clickOk()
     }
 
     val validationInfo = dialog.doValidate()
@@ -136,12 +125,10 @@ class NewStringKeyDialogTest {
     val resourceName = "my_excellent_resource_name"
     val dialog = NewStringKeyDialog(facet, listOf(StringResourceKey(resourceName, resourceDirectory)))
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      fakeUi.keyField.text = resourceName
-      fakeUi.defaultValueField.text = "This is such an amazing default value!"
-      val okButton: JButton = fakeUi.getComponent { it.name == OK_BUTTON_ID }
-      fakeUi.clickOn(okButton)
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      it.keyField.text = resourceName
+      it.defaultValueField.text = "This is such an amazing default value!"
+      it.clickOk()
     }
 
     val validationInfo = dialog.doValidate()
@@ -155,12 +142,10 @@ class NewStringKeyDialogTest {
     val resourceName = "my_excellent_resource_name"
     val dialog = NewStringKeyDialog(facet, listOf())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
-      val fakeUi = FakeUi(dialogWrapper.rootPane)
-      fakeUi.keyField.text = resourceName
-      fakeUi.defaultValueField.text = "This is such an amazing default value!"
-      val okButton: JButton = fakeUi.getComponent { it.name == OK_BUTTON_ID }
-      fakeUi.clickOn(okButton)
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      it.keyField.text = resourceName
+      it.defaultValueField.text = "This is such an amazing default value!"
+      it.clickOk()
     }
 
     val validationInfo = dialog.doValidate()
@@ -168,11 +153,15 @@ class NewStringKeyDialogTest {
     assertThat(dialog.isOK).isTrue()
   }
 
-  private val FakeUi.keyField: EditorTextField
-    get() = getComponent { it.name == KEY_FIELD_ID }
+  private val DialogWrapper.keyField: EditorTextField
+    get() = rootPane.getDescendant { it.name == KEY_FIELD_ID }
 
-  private val FakeUi.defaultValueField: EditorTextField
-    get() = getComponent { it.name == DEFAULT_VALUE_FIELD_ID }
+  private val DialogWrapper.defaultValueField: EditorTextField
+    get() = rootPane.getDescendant { it.name == DEFAULT_VALUE_FIELD_ID }
+
+  private fun DialogWrapper.clickOk() {
+    rootPane.getDescendant<JButton> { it.name == OK_BUTTON_ID }.doClick()
+  }
 
   companion object {
     private const val OK_BUTTON_ID = "okButton"

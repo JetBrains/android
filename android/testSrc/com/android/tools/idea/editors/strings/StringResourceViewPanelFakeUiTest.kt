@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.strings.action.AddKeyAction
 import com.android.tools.idea.editors.strings.action.AddLocaleAction
@@ -56,7 +57,7 @@ class StringResourceViewPanelFakeUiTest {
 
   @Test
   fun toolbarConstructedProperly() {
-    val toolbar: ActionToolbar = fakeUi.getComponent { it.component.name == "toolbar" }
+    val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
     assertThat(toolbar.actions).hasSize(8)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)

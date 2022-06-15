@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.editors.strings.StringResourceData
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
@@ -168,34 +169,21 @@ class AddKeyActionTest {
     private const val NEW_DEFAULT_VALUE = "A new great default value!"
 
     private var DialogWrapper.key
-      get() = getKeyField().text
+      get() = keyField.text
       set(value) {
-        getKeyField().text = value
+        keyField.text = value
       }
-
     private var DialogWrapper.defaultValue
-      get() = getDefaultValueField().text
+      get() = defaultValueField.text
       set(value) {
-        getDefaultValueField().text = value
+        defaultValueField.text = value
       }
-
-    private fun DialogWrapper.getKeyField(): EditorTextField =
-        getTextComponent(KEY_FIELD_ID) { it.name }
-    private fun DialogWrapper.getDefaultValueField(): EditorTextField =
-        getTextComponent(DEFAULT_VALUE_FIELD_ID) { it.name }
+    private val DialogWrapper.keyField: EditorTextField
+      get() = rootPane.getDescendant {it.name == KEY_FIELD_ID}
+    private val DialogWrapper.defaultValueField: EditorTextField
+      get() = rootPane.getDescendant {it.name == DEFAULT_VALUE_FIELD_ID}
     private fun DialogWrapper.clickOk() {
-      getTextComponent<JButton>(OK_BUTTON_ID) { it.name }.doClick()
-    }
-
-    private inline fun <reified T> DialogWrapper.getTextComponent(
-        text: String?,
-        getText: (T) -> String?
-    ): T {
-      val components = TreeWalker(rootPane).descendants().toList()
-      return TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull {
-        getText(it) == text
-      }
-          ?: fail("${T::class.simpleName} '$text' not found in $components")
+      rootPane.getDescendant<JButton> {it.name == OK_BUTTON_ID}.doClick()
     }
   }
 }

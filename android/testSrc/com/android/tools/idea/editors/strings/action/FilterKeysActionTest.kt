@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
@@ -307,26 +308,16 @@ class FilterKeysActionTest {
     private val US_SPANISH_LOCALE = Locale.create("es-rUS")
 
     private var DialogWrapper.text
-      get() = getTextField().text
+      get() = textField.text
       set(value) {
-        getTextField().text = value
+        textField.text = value
       }
 
-    private fun DialogWrapper.getTextField(): JTextField =
-      getTextComponent(null) { it.name }
+    private val DialogWrapper.textField: JTextField
+      get() = rootPane.getDescendant {it.name == null}
 
     private fun DialogWrapper.click(text: String) {
-      getTextComponent<JButton>(text) { it.text }.doClick()
-    }
-
-    private inline fun <reified T> DialogWrapper.getTextComponent(
-      text: String?,
-      getText: (T) -> String?
-    ): T {
-      val components = TreeWalker(rootPane).descendants().toList()
-      return TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull {
-        getText(it) == text
-      } ?: fail("${T::class.simpleName} '$text' not found in $components")
+      rootPane.getDescendant<JButton> { it.text == text }.doClick()
     }
   }
 }
