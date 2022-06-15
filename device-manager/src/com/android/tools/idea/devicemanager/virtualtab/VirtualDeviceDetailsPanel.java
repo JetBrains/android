@@ -19,21 +19,30 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
 import com.android.tools.idea.devicemanager.ScreenDiagram;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private final @NotNull VirtualDevice myDevice;
+  private final @NotNull AsyncVirtualDeviceDetailsBuilder myBuilder;
+  private final @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> myNewSummarySectionCallback;
+
   private @Nullable InfoSection myPropertiesSection;
 
   @VisibleForTesting
@@ -41,6 +50,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     @VisibleForTesting final @NotNull JLabel myApiLevelLabel;
     @VisibleForTesting final @NotNull JLabel myResolutionLabel;
     @VisibleForTesting final @NotNull JLabel myDpLabel;
+    @VisibleForTesting final @NotNull JLabel myAbiListLabel;
     @VisibleForTesting @Nullable JLabel myErrorLabel;
     @VisibleForTesting @Nullable JLabel mySnapshotLabel;
 
@@ -50,12 +60,23 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       myApiLevelLabel = addNameAndValueLabels("API level");
       myResolutionLabel = addNameAndValueLabels("Resolution");
       myDpLabel = addNameAndValueLabels("dp");
+      myAbiListLabel = addNameAndValueLabels("ABI list");
     }
   }
 
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @Nullable Project project) {
+    this(device, new AsyncVirtualDeviceDetailsBuilder(project, device), VirtualDeviceDetailsPanel::newSummarySectionCallback);
+  }
+
+  @VisibleForTesting
+  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device,
+                            @NotNull AsyncVirtualDeviceDetailsBuilder builder,
+                            @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> newSummarySectionCallback) {
     super(device.getName());
+
     myDevice = device;
+    myBuilder = builder;
+    myNewSummarySectionCallback = newSummarySectionCallback;
 
     myScreenDiagram = new ScreenDiagram(device);
     initPropertiesSection();
@@ -67,19 +88,25 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
 
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
-      myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, project);
+      myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
     }
 
     init();
   }
 
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section) {
+    return new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
+      InfoSection.setText(section.myResolutionLabel, device.getResolution());
+      InfoSection.setText(section.myDpLabel, device.getDp());
+      InfoSection.setText(section.myAbiListLabel, device.getAbis());
+    });
+  }
+
   @Override
   protected void initSummarySection() {
     SummarySection summarySection = new SummarySection();
-
     InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
-    InfoSection.setText(summarySection.myResolutionLabel, myDevice.getResolution());
-    InfoSection.setText(summarySection.myDpLabel, myDevice.getDp());
 
     AvdInfo device = myDevice.getAvdInfo();
 
@@ -88,6 +115,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       InfoSection.setText(summarySection.myErrorLabel, device.getErrorMessage());
     }
     else {
+      // TODO Ensure this actually displays the snapshot to boot with
       Object snapshot = device.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
@@ -97,6 +125,8 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
 
     summarySection.setLayout();
+    Futures.addCallback(myBuilder.buildAsync(), myNewSummarySectionCallback.apply(summarySection), EdtExecutorService.getInstance());
+
     mySummarySection = summarySection;
   }
 
@@ -131,5 +161,11 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   @NotNull SummarySection getSummarySection() {
     assert mySummarySection != null;
     return (SummarySection)mySummarySection;
+  }
+
+  @VisibleForTesting
+  @NotNull InfoSection getPropertiesSection() {
+    assert myPropertiesSection != null;
+    return myPropertiesSection;
   }
 }

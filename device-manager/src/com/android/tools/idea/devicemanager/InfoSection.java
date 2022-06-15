@@ -18,16 +18,19 @@ package com.android.tools.idea.devicemanager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
@@ -137,8 +140,25 @@ public class InfoSection extends JBPanel<InfoSection> {
     label.setText(String.join(", ", values));
   }
 
+  @VisibleForTesting
+  public final @NotNull Object getNames() {
+    return getText(myNameLabels);
+  }
+
+  @VisibleForTesting
+  public final @NotNull Object getValues() {
+    return getText(myValueLabels);
+  }
+
+  @VisibleForTesting
+  private static @NotNull Object getText(@NotNull Collection<@NotNull JLabel> labels) {
+    return labels.stream()
+      .map(JLabel::getText)
+      .collect(Collectors.toList());
+  }
+
   @Override
-  public @NotNull String toString() {
+  public final @NotNull String toString() {
     Formatter formatter = new Formatter();
     formatter.format("%s%n", myHeadingLabel.getText());
 

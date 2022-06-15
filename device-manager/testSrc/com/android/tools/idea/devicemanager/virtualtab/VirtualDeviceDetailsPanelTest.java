@@ -16,19 +16,22 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
-import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -36,73 +39,98 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceDetailsPanelTest {
+  private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
+
   @Test
-  public void newVirtualDeviceDetailsPanel() {
-    Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_ANDROID_API, "30");
+  public void initSummarySection() throws Exception {
+    // Arrange
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
+    VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
 
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini/file"),
-                                  Paths.get("data/folder/path"),
-                                  Mockito.mock(SystemImage.class),
-                                  properties,
-                                  AvdStatus.OK);
-
-    VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_3_API_30"))
-      .setName("Pixel 3 API 30")
-      .setTarget("Android 11.0 Google APIs")
+    Device device = new VirtualDevice.Builder()
+      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setName("Pixel 5 API 31")
+      .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
-      .setAndroidVersion(new AndroidVersion(30))
-      .setResolution(new Resolution(1080, 2160))
+      .setResolution(new Resolution(1080, 2340))
       .setDensity(440)
-      .setAvdInfo(avdInfo)
+      .addAllAbis(List.of("x86_64", "arm64-v8a"))
+      .setAvdInfo(myAvd)
       .build();
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, null);
+    AsyncVirtualDeviceDetailsBuilder builder = mock(device);
+    CountDownLatch latch = new CountDownLatch(1);
+
+    // Act
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
+                                                                    builder,
+                                                                    section -> newSummarySectionCallback(section, latch));
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
     SummarySection section = panel.getSummarySection();
 
-    assertEquals("30", section.myApiLevelLabel.getText());
-    assertEquals("1080 × 2160", section.myResolutionLabel.getText());
-    assertEquals("393 × 786", section.myDpLabel.getText());
-    assertNull(section.myErrorLabel);
-    assertNull(section.mySnapshotLabel);
+    assertEquals("31", section.myApiLevelLabel.getText());
+    assertEquals("1080 × 2340", section.myResolutionLabel.getText());
+    assertEquals("393 × 851", section.myDpLabel.getText());
+    assertEquals("x86_64, arm64-v8a", section.myAbiListLabel.getText());
+  }
+
+  private static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section,
+                                                                                    @NotNull CountDownLatch latch) {
+    return new CountDownLatchFutureCallback<>(VirtualDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
   @Test
-  public void newVirtualDeviceDetailsPanelError() {
-    Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_ANDROID_API, "30");
-    properties.put(AvdManager.AVD_INI_TAG_ID, "google_apis_playstore");
-    properties.put(AvdManager.AVD_INI_TAG_DISPLAY, "Google Play");
-    properties.put(AvdManager.AVD_INI_ABI_TYPE, "x86");
+  public void initSummarySectionStatusDoesntEqualOk() {
+    // Arrange
+    Object configIni = Paths.get(System.getProperty("user.home"), ".android", "avd", "Pixel_5_API_31.avd", "config.ini");
 
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini/file"),
-                                  Paths.get("data/folder/path"),
-                                  Mockito.mock(SystemImage.class),
-                                  properties,
-                                  AvdStatus.ERROR_IMAGE_MISSING);
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.ERROR_PROPERTIES);
+    Mockito.when(myAvd.getErrorMessage()).thenReturn("Failed to parse properties from " + configIni);
 
-    VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_3_API_30"))
-      .setName("Pixel 3 API 30")
-      .setTarget("Android 11.0 Google APIs")
-      .setCpuArchitecture("x86_64")
-      .setAndroidVersion(new AndroidVersion(30))
-      .setResolution(new Resolution(1080, 2160))
-      .setDensity(440)
-      .setAvdInfo(avdInfo)
-      .build();
+    VirtualDevice virtualDevice = TestVirtualDevices.pixel5Api31(myAvd);
+    AsyncVirtualDeviceDetailsBuilder builder = mock(virtualDevice);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, null);
-    SummarySection section = panel.getSummarySection();
+    // Act
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
+                                                                    builder,
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
 
-    assertEquals("30", section.myApiLevelLabel.getText());
-    assertEquals("1080 × 2160", section.myResolutionLabel.getText());
-    assertEquals("393 × 786", section.myDpLabel.getText());
-    assertNotNull(section.myErrorLabel);
-    assertEquals("Missing system image for Google Play x86 Pixel_3_API_30.", section.myErrorLabel.getText());
-    assertNull(section.mySnapshotLabel);
+    // Assert
+    assert panel.getSummarySection().myErrorLabel != null;
+    assertEquals("Failed to parse properties from " + configIni, panel.getSummarySection().myErrorLabel.getText());
+  }
+
+  @Test
+  public void initPropertiesSection() {
+    // Arrange
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
+
+    Mockito.when(myAvd.getProperties()).thenReturn(Map.of("fastboot.chosenSnapshotFile", "",
+                                                          "runtime.network.speed", "full",
+                                                          "hw.accelerometer", "yes"));
+
+    VirtualDevice virtualDevice = TestVirtualDevices.pixel5Api31(myAvd);
+    AsyncVirtualDeviceDetailsBuilder builder = mock(virtualDevice);
+
+    // Act
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
+                                                                    builder,
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
+
+    // Assert
+    InfoSection section = panel.getPropertiesSection();
+
+    assertEquals(List.of("fastboot.chosenSnapshotFile", "runtime.network.speed", "hw.accelerometer"), section.getNames());
+    assertEquals(List.of("", "full", "yes"), section.getValues());
+  }
+
+  private static @NotNull AsyncVirtualDeviceDetailsBuilder mock(@NotNull Device device) {
+    AsyncVirtualDeviceDetailsBuilder builder = Mockito.mock(AsyncVirtualDeviceDetailsBuilder.class);
+    Mockito.when(builder.buildAsync()).thenReturn(Futures.immediateFuture(device));
+
+    return builder;
   }
 }

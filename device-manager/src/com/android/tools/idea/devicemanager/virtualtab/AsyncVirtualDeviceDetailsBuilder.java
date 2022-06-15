@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +39,10 @@ final class AsyncVirtualDeviceDetailsBuilder {
   private final @Nullable Project myProject;
   private final @NotNull VirtualDevice myDevice;
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
+
+  AsyncVirtualDeviceDetailsBuilder(@Nullable Project project, @NotNull VirtualDevice device) {
+    this(project, device, new DeviceManagerAndroidDebugBridge());
+  }
 
   @VisibleForTesting
   AsyncVirtualDeviceDetailsBuilder(@Nullable Project project,
@@ -50,7 +53,7 @@ final class AsyncVirtualDeviceDetailsBuilder {
     myBridge = bridge;
   }
 
-  @NotNull Future<@NotNull Device> buildAsync() {
+  @NotNull ListenableFuture<@NotNull Device> buildAsync() {
     Executor executor = AppExecutorUtil.getAppExecutorService();
 
     // noinspection UnstableApiUsage
@@ -89,18 +92,20 @@ final class AsyncVirtualDeviceDetailsBuilder {
   private @NotNull Device build(@Nullable IDevice device) {
     AvdInfo avd = myDevice.getAvdInfo();
 
-    return new VirtualDevice.Builder()
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setKey(myDevice.getKey())
-      .setType(myDevice.getType())
       .setName(myDevice.getName())
-      .setOnline(myDevice.isOnline())
       .setTarget(myDevice.getTarget())
       .setCpuArchitecture(myDevice.getCpuArchitecture())
-      .setAndroidVersion(myDevice.getAndroidVersion())
-      .setSizeOnDisk(myDevice.getSizeOnDisk())
       .setResolution(getResolution(avd))
-      .setDensity(getProperty(avd, "hw.lcd.density").orElse(-1))
-      .setAvdInfo(myDevice.getAvdInfo())
+      .setDensity(getProperty(avd, "hw.lcd.density").orElse(-1));
+
+    if (device != null) {
+      builder.addAllAbis(device.getAbis());
+    }
+
+    return builder
+      .setAvdInfo(avd)
       .build();
   }
 
@@ -128,5 +133,9 @@ final class AsyncVirtualDeviceDetailsBuilder {
     catch (NumberFormatException exception) {
       return OptionalInt.empty();
     }
+  }
+
+  @Nullable Project getProject() {
+    return myProject;
   }
 }

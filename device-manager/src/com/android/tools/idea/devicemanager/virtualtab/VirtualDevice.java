@@ -22,6 +22,7 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
+import java.util.Collection;
 import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +87,11 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder setDensity(int density) {
       myDensity = density;
+      return this;
+    }
+
+    @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
+      myAbis.addAll(abis);
       return this;
     }
 
