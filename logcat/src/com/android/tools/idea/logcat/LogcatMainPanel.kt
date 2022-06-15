@@ -533,7 +533,7 @@ internal class LogcatMainPanel(
     messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
 
-  private fun MouseEvent.getHintFilter(): String? {
+  private fun MouseEvent.getFilterHint(): FilterHint? {
     val position = editor.xyToLogicalPosition(Point(x, y))
     val offset = editor.logicalPositionToOffset(position)
     var filterHint: FilterHint? = null
@@ -541,7 +541,7 @@ internal class LogcatMainPanel(
       filterHint = it.getUserData(LOGCAT_FILTER_HINT_KEY)
       filterHint == null
     }
-    return filterHint?.getFilter()
+    return filterHint
   }
 
   override fun getFilter(): String = headerPanel.filter
@@ -560,9 +560,9 @@ internal class LogcatMainPanel(
     contentComponent.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (e.isControlDown && e.button == BUTTON1) {
-          val hintFilter = e.getHintFilter()
-          if (hintFilter != null) {
-            val newFilter = toggleFilterTerm(logcatFilterParser, headerPanel.filter, hintFilter)
+          val filterHint = e.getFilterHint()
+          if (filterHint != null) {
+            val newFilter = toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter())
             if (newFilter != null) {
               headerPanel.filter = newFilter
             }
@@ -572,13 +572,15 @@ internal class LogcatMainPanel(
     })
     contentComponent.addMouseMotionListener(object : MouseAdapter() {
       override fun mouseMoved(e: MouseEvent) {
+        val filterHint = e.getFilterHint()
         if (e.isControlDown) {
-          val hintFilter = e.getHintFilter()
-          if (hintFilter != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, hintFilter) != null) {
+          if (filterHint != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) != null) {
             contentComponent.cursor = HAND_CURSOR
             return
           }
         }
+        contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
+
         contentComponent.cursor = TEXT_CURSOR
       }
     })
