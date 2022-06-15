@@ -22,8 +22,8 @@ import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
+import com.android.adblib.deviceProperties
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.adblib.tools.getprop
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
 import kotlinx.coroutines.Dispatchers
@@ -127,7 +127,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
 
   private suspend fun getDeviceProperties(device: DeviceInfo): Map<String, String> {
     val deviceServices = AdbLibService.getSession(project).deviceServices
-    val props = deviceServices.getprop(DeviceSelector.fromSerialNumber(device.serialNumber))
+    val props = deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(device.serialNumber)).all()
     return props.associate { it.name to it.value }
   }
 

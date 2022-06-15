@@ -20,12 +20,12 @@ import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
+import com.android.adblib.deviceProperties
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.adblib.tools.getprop
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -411,16 +411,16 @@ internal class EmulatorToolWindowManager private constructor(
   @AnyThread
   private suspend fun physicalDeviceConnected(deviceSerialNumber: String, adbSession: AdbLibSession) {
     try {
-      val properties = adbSession.deviceServices.getprop(DeviceSelector.fromSerialNumber(deviceSerialNumber))
-      var title = properties.find { it.name == "ro.kernel.qemu.avd_name" }?.value?.replace('_', ' ')
+      val properties = adbSession.deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(deviceSerialNumber)).allReadonly()
+      var title = properties["ro.kernel.qemu.avd_name"]?.replace('_', ' ')
       if (title == null) {
-        title = properties.find { it.name == "ro.product.model" }?.value ?: deviceSerialNumber
-        val manufacturer = properties.find { it.name == "ro.product.manufacturer" }?.value
+        title = properties["ro.product.model"] ?: deviceSerialNumber
+        val manufacturer = properties["ro.product.manufacturer"]
         if (!manufacturer.isNullOrBlank()) {
           title = "$manufacturer $title"
         }
       }
-      val deviceAbi = properties.find { it.name == "ro.product.cpu.abi" }?.value
+      val deviceAbi = properties["ro.product.cpu.abi"]
       if (deviceAbi == null) {
         thisLogger().warn("Unable to determine ABI of $title")
         return
