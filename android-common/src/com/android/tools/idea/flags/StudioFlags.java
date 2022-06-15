@@ -349,9 +349,9 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
-    NELE, "visual.lint.always.run", "Run visual lint always",
-    "Enable so that visual lint always runs for select configurations.",
-    false);
+    NELE, "visual.lint.always.run", "Run visual lint in the layout editor",
+    "Enable so that visual lint always runs in the background of the layout editor for select configurations.",
+    true);
 
   public static final Flag<Boolean> NELE_INCLUDE_QUALIFIERS_FOR_TRAFFIC_LIGHTS = Flag.create(
     NELE, "include.qualifiers.for.traffic.lights", "Include errors from qualifier variants in traffic lights",

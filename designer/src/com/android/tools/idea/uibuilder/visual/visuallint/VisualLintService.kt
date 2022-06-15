@@ -115,6 +115,7 @@ fun inflate(model: NlModel): CompletableFuture<RenderResult> {
         if (exception != null || result == null) {
           logger.error("INFLATE", "Error inflating views for visual lint on background", exception, null, null)
         }
+        newTask.dispose()
       }
     }
 }
