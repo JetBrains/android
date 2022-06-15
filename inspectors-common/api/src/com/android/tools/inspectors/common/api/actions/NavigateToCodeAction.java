@@ -22,8 +22,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
