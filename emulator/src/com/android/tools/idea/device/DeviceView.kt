@@ -174,9 +174,9 @@ class DeviceView(
 
         override fun onNewFrameAvailable() {
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            connected = true
-            if (frameNumber == 0L) {
+            if (!connected) {
               hideLongRunningOperationIndicatorInstantly()
+              connected = true
             }
             if (width != 0 && height != 0) {
               repaint()
