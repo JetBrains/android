@@ -196,68 +196,25 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * search starting from the root component, or null if no components satisfy the predicate.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? {
-    if (type.isInstance(root) && predicate(root as T)) {
-      return root
-    }
-    if (root is Container) {
-      val queue = ArrayDeque<Container>()
-      queue.add(root)
-      while (queue.isNotEmpty()) {
-        val container = queue.remove()
-        for (child in container.components) {
-          if (type.isInstance(child) && predicate(child as T)) {
-            return child
-          }
-          if (child is Container) {
-            queue.add(child)
-          }
-        }
-      }
-    }
-    return null
-  }
+  fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? = root.findDescendant(type, predicate)
 
-  inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
-    findComponent(T::class.java) { predicate(it) }
+  inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
 
-  fun <T: Any> findComponent(type: Class<T>, predicate: Predicate<T>): T? = findComponent(type, predicate::test)
+  fun <T: Any> findComponent(type: Class<T>, predicate: Predicate<T>): T? = root.findDescendant(type, predicate::test)
 
-  inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
-    findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
+  inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T = root.getDescendant(predicate)
 
-  fun <T: Any> getComponent(type: Class<T>, predicate: Predicate<T>): T = findComponent(type, predicate::test) ?: throw AssertionError()
+  fun <T: Any> getComponent(type: Class<T>, predicate: Predicate<T>): T = root.getDescendant(type, predicate::test)
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first
    * order.
    */
-  @Suppress("UNCHECKED_CAST")
-  fun <T: Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
-    val result = mutableListOf<T>()
-    if (type.isInstance(root) && predicate(root as T)) {
-      result.add(root)
-    }
-    if (root is Container) {
-      val queue = ArrayDeque<Container>()
-      queue.add(root)
-      while (queue.isNotEmpty()) {
-        val container = queue.remove()
-        for (child in container.components) {
-          if (type.isInstance(child) && predicate(child as T)) {
-            result.add(child)
-          }
-          if (child is Container) {
-            queue.add(child)
-          }
-        }
-      }
-    }
-    return result
-  }
+  fun <T: Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> =
+    root.findAllDescendants(type, predicate).toList()
 
   inline fun <reified T: Any> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
-    findAllComponents(T::class.java) { predicate(it) }
+    root.findAllDescendants(predicate).toList()
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? = findTarget(root, x, y)
 
