@@ -41,7 +41,10 @@ class RotationStatistics {
    */
   private var componentTreeClicksIn2D = 0
 
-  private var currentMode3D = false
+  /**
+   * Currently in 3D or 2D mode.
+   */
+  var currentMode3D = false
 
   /**
    * Start a new session by resetting all counters.
@@ -66,20 +69,6 @@ class RotationStatistics {
         it.componentTreeClicksIn3D = componentTreeClicksIn3D
       }
     }
-  }
-
-  /**
-   * Log that the user switched to a 3D view.
-   */
-  fun toggledTo3D() {
-    currentMode3D = true
-  }
-
-  /**
-   * Log that the user switched to a 2D view.
-   */
-  fun toggledTo2D() {
-    currentMode3D = false
   }
 
   /**

@@ -224,7 +224,7 @@ class AppInspectionInspectorClient(
     }.asCompletableFuture()
 
   private suspend fun startFetchingInternal() {
-    metrics.stats?.live?.toggledToLive()
+    metrics.stats?.currentModeIsLive = true
     viewInspector?.startFetching(continuous = true)
   }
 
@@ -237,7 +237,7 @@ class AppInspectionInspectorClient(
       else {
         viewInspector?.updateScreenshotType(null, 1.0f)
       }
-      metrics.stats?.live?.toggledToRefresh()
+      metrics.stats?.currentModeIsLive = false
       viewInspector?.stopFetching()
     }.asCompletableFuture()
 
@@ -248,7 +248,7 @@ class AppInspectionInspectorClient(
   }
 
   private suspend fun refreshInternal() {
-    metrics.stats?.live?.toggledToRefresh()
+    metrics.stats?.currentModeIsLive = false
     viewInspector?.startFetching(continuous = false)
   }
 

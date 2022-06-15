@@ -93,7 +93,8 @@ class LayoutInspector private constructor(
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
       client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
-      stats.start(client.isCapturing)
+      stats.start()
+      stats.currentModeIsLive = client.isCapturing
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI

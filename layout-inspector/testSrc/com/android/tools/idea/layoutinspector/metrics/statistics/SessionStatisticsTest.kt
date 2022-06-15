@@ -62,7 +62,7 @@ class SessionStatisticsTest {
     val stats = SessionStatistics(model, FakeTreeSettings())
     val compose1 = model[COMPOSE1]
     model.notifyModified(structuralChange = true)
-    stats.start(isCapturing = false)
+    stats.start()
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     waitForCondition(10, TimeUnit.SECONDS) { stats.memoryMeasurements > 0 }

@@ -27,15 +27,15 @@ import org.jetbrains.annotations.TestOnly
  * Accumulators for various actions of interest.
  */
 class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
-  val live = LiveModeStatistics()
-  val rotation = RotationStatistics()
+  private val live = LiveModeStatistics()
+  private val rotation = RotationStatistics()
   private val memory = MemoryStatistics(model)
   private val compose = ComposeStatistics()
   private val system = SystemViewToggleStatistics(treeSettings)
   private val goto = GotoDeclarationStatistics()
 
-  fun start(isCapturing: Boolean) {
-    live.start(isCapturing)
+  fun start() {
+    live.start()
     rotation.start()
     memory.start()
     compose.start()
@@ -66,6 +66,10 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
     system.selectionMade()
   }
 
+  fun refreshButtonClicked() {
+    live.refreshButtonClicked()
+  }
+
   fun gotoSourceFromPropertyValue(view: ViewNode?) {
     compose.gotoSourceFromPropertyValue(view)
   }
@@ -85,6 +89,20 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   fun resetRecompositionCountsClick() {
     compose.resetRecompositionCountsClick()
   }
+
+  /**
+   * Live mode changed.
+   */
+  var currentModeIsLive : Boolean
+    get() = live.currentModeIsLive
+    set(value) { live.currentModeIsLive = value }
+
+  /**
+   * 3D mode changed.
+   */
+  var currentMode3D : Boolean
+    get() = rotation.currentMode3D
+    set(value) { rotation.currentMode3D = value }
 
   /**
    * Number of memory measurements

@@ -65,8 +65,11 @@ class DeviceViewPanelModel(
       }
     }
 
+  /** The distance the image was moved in x direction to rotate the image */
   @VisibleForTesting
   var xOff = 0.0
+
+  /** The distance the image was moved in y direction to rotate the image */
   @VisibleForTesting
   var yOff = 0.0
 
@@ -153,12 +156,7 @@ class DeviceViewPanelModel(
   }
 
   fun refresh() {
-    if (xOff == 0.0 && yOff == 0.0) {
-      stats.rotation.toggledTo2D()
-    }
-    else {
-      stats.rotation.toggledTo3D()
-    }
+    stats.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0

@@ -44,12 +44,12 @@ class RotationStatisticsTest {
     rotation.selectionMadeFromComponentTree()
     rotation.selectionMadeFromImage()
 
-    rotation.toggledTo3D()
+    rotation.currentMode3D = true
     rotation.selectionMadeFromImage()
     rotation.selectionMadeFromImage()
     rotation.selectionMadeFromImage()
 
-    rotation.toggledTo2D()
+    rotation.currentMode3D = false
     rotation.selectionMadeFromImage()
 
     val data = DynamicLayoutInspectorRotation.newBuilder()
