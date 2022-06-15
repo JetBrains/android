@@ -22,6 +22,7 @@ import com.android.tools.idea.common.error.IssuePanelService.Companion.getInstan
 import com.android.tools.idea.common.error.NlIssueSource
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,6 +48,10 @@ fun Collection<Issue>.getIssueTypeIcon(): Icon? {
 class ComposePreviewIssuePanelAction(
   private val modelProvider: () -> NlModel?,
   private val issueModelProvider: () -> IssueModel?): ToggleAction() {
+
+  init {
+    templatePresentation.text = message("action.open.issues.panel.title")
+  }
 
   // This action never changes state.
   override fun isSelected(e: AnActionEvent): Boolean = false
