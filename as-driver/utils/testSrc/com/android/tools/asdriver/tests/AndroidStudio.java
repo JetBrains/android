@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
@@ -139,6 +140,12 @@ public class AndroidStudio implements AutoCloseable {
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  public void invokeByIcon(String icon) {
+    InvokeComponentRequestBuilder updateButtonBuilder = new InvokeComponentRequestBuilder();
+    updateButtonBuilder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
+    invokeComponent(updateButtonBuilder);
   }
 
   public void invokeComponent(String componentText) {

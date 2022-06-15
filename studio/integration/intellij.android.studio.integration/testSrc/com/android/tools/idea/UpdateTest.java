@@ -22,14 +22,11 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
-import com.android.tools.asdriver.tests.InvokeComponentRequestBuilder;
 import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -86,17 +83,6 @@ public class UpdateTest {
     // to get requests like "/addons_list-5.xml" and "/repository2-2.xml".
     env.put("SDK_TEST_BASE_URL", endsInSlash);
     return env;
-  }
-
-  /**
-   * The "update button" that this method refers to is the icon in the bottom right of the
-   * "Welcome" window. It may have different icons depending on the state of the platform.
-   */
-  private void invokeUpdateButton(AndroidStudio studio) {
-    InvokeComponentRequestBuilder updateButtonBuilder = new InvokeComponentRequestBuilder();
-    updateButtonBuilder.addSvgIconMatch(new ArrayList<>(
-      Arrays.asList("ide/notification/ideUpdate.svg", "ide/notification/infoEvents.svg", "ide/notification/warningEvents.svg")));
-    studio.invokeComponent(updateButtonBuilder);
   }
 
   /**
@@ -278,6 +264,12 @@ public class UpdateTest {
     return dest;
   }
 
+  /**
+   * Note: we explicitly do NOT call the "CheckForUpdate" action as part of this test since the
+   * platform will already call it, and calling it more than once will produce a race condition
+   * where the notification panel with the "Update…" link may close on us before we can interact
+   * with it.
+   */
   @Test
   public void updateTest() throws Exception {
     Path tempDir = tempFolder.newFolder("update-test").toPath();
@@ -286,6 +278,11 @@ public class UpdateTest {
          FileServer fileServer = new FileServer()) {
       fileServer.start();
       AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
+      // Every time a notification shows up, NotificationsManagerImpl#createActionPanel is called.
+      // If this happens while the notification panel is already open, it will be closed and this
+      // test will be unable to proceed since it never tries reopening that panel. Thus, we need to
+      // ensure that a single notification is produced: the "Update available" notification.
+      install.preventProguardNotification();
       install.createFirstRunXml();
       install.copySdk(TestUtils.getLatestAndroidPlatform());
       install.setBuildNumber(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER);
@@ -307,8 +304,11 @@ public class UpdateTest {
         assertTrue(version.endsWith(FAKE_CURRENT_BUILD_NUMBER));
 
         System.out.println("Updating Android Studio");
-        studio.executeAction("CheckForUpdate");
-        invokeUpdateButton(studio);
+        // This invokes the "update button" in the bottom right of the "Welcome" window. It may
+        // have different icons depending on the state of the platform, but we only look for the
+        // "update" icon because the test's setup ensures that the only notification available is
+        // the update notification.
+        studio.invokeByIcon("ide/notification/ideUpdate.svg");
 
         // This will activate the update link inside the NotificationActionPanel in the "Welcome"
         // window. The Unicode character in this string is an ellipsis. The string corresponds to
@@ -318,11 +318,13 @@ public class UpdateTest {
         // This button is in a DialogWindowWrapper. The string corresponds to
         // IdeBundle.message("updates.download.and.restart.button").
         studio.invokeComponent("Update and Restart");
-        invokeUpdateButton(studio);
 
-        // This link is an HTML hyperlink inside a Notification.
-        String notificationDisplayId = "ide.update.suggest.restart";
-        studio.invokeComponent(notificationDisplayId);
+        // The "Restart" link is an HTML hyperlink inside a notification. Because of that:
+        //
+        // - It actually doesn't need to be showing for us to be able to invoke it (and as a
+        //   result, we make no effort to show it).
+        // - The text we're passing here is its display ID, not the text it renders with.
+        studio.invokeComponent("ide.update.suggest.restart");
 
         // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
         studio.waitForProcess();

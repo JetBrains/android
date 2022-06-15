@@ -148,6 +148,34 @@ public class AndroidStudioInstallation {
   }
 
   /**
+   * Prevents a notification about {@code .pro} files and "Shrinker Config" from popping up. This
+   * notification occurs as a result of two plugins trying to register the {@code .pro} file type.
+   *
+   * @see com.intellij.openapi.fileTypes.impl.ConflictingFileTypeMappingTracker#resolveConflict
+   */
+  public void preventProguardNotification() throws IOException {
+    Path filetypePaths = configDir.resolve("options/filetypes.xml");
+
+    if (filetypePaths.toFile().exists()) {
+      throw new IllegalStateException(
+        String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
+                      filetypePaths));
+    }
+
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      "<application>\n" +
+      "  <component name=\"FileTypeManager\" version=\"18\">\n" +
+      "    <extensionMap>\n" +
+      "      <removed_mapping ext=\"pro\" type=\"DeviceSpecFile\" />\n" +
+      "      <mapping ext=\"pro\" type=\"Shrinker Config File\" />\n" +
+      "    </extensionMap>\n" +
+      "  </component>\n" +
+      "</application>";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
+  /**
    * Copies an already-built SDK to a path where Android Studio will find it.
    *
    * TODO(b/234069426): change this function to <i>point</i> at the SDK rather than copying it
