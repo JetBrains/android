@@ -174,7 +174,7 @@ private fun CompletionResultSet.addHints() {
 }
 
 @VisibleForTesting
-internal fun String.getKeyVariants() = listOf("$this:", "-$this:", "$this~:", "-$this~:")
+internal fun String.getKeyVariants() = listOf("$this:", "-$this:", "$this~:", "-$this~:", "$this=:", "-$this=:")
 
 private fun String.toLookupElement(suffix: String = "") = LookupElementBuilder.create("$this$suffix")
 

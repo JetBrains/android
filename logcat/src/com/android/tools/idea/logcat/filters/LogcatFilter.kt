@@ -30,7 +30,7 @@ import java.util.regex.PatternSyntaxException
 /**
  * The top level filter that prepares and executes a [LogcatFilter]
  */
-internal class LogcatMasterFilter(val logcatFilter: LogcatFilter?) {
+internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
     if (logcatFilter == null) {
@@ -106,6 +106,14 @@ internal data class StringFilter(val string: String, val field: LogcatFilterFiel
 
 internal data class NegatedStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).contains(string, ignoreCase = true)
+}
+
+internal data class ExactStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = field.getValue(message) == string
+}
+
+internal data class NegatedExactStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = field.getValue(message) != string
 }
 
 internal data class RegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {

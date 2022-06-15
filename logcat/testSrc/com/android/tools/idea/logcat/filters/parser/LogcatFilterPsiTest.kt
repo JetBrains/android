@@ -147,6 +147,22 @@ class LogcatFilterPsiTest {
   }
 
   @Test
+  fun stringKeys_exact() {
+    for (key in STRING_KEYS) {
+      assertThat(parse("$key=: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isExact = true))
+      assertThat(parse("$key=:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isExact = true))
+    }
+  }
+
+  @Test
+  fun stringKeys_negatedExact() {
+    for (key in STRING_KEYS) {
+      assertThat(parse("-$key=: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
+      assertThat(parse("-$key=:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
+    }
+  }
+
+  @Test
   fun topLevelValue_unquoted() {
     val psi = parse("""
         bar b\ a\ r b\a\r
@@ -367,13 +383,15 @@ private data class KeyFilter(
   val key: String,
   val text: String,
   val isNegated: Boolean = false,
-  val isRegex: Boolean = false
+  val isRegex: Boolean = false,
+  val isExact: Boolean = false,
 ) : Filter {
   constructor(element: PsiElement) : this(
-    element.firstChild.text.trim(':', '-', '~'),
+    element.firstChild.text.trim(':', '-', '~', '='),
     element.lastChild.toText(),
     element.firstChild.text.startsWith('-'),
-    element.firstChild.text.endsWith("~:")
+    element.firstChild.text.endsWith("~:"),
+    element.firstChild.text.endsWith("=:"),
   )
 }
 

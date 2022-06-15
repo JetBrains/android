@@ -130,7 +130,9 @@ class LogcatFilterCompletionContributorTest {
       "tag:",
       "tag~:",
       "-tag:",
-      "-tag~:"
+      "-tag~:",
+      "tag=:",
+      "-tag=:",
     )
   }
 
@@ -155,6 +157,8 @@ class LogcatFilterCompletionContributorTest {
       "tag~:",
       "-tag:",
       "-tag~:",
+      "tag=:",
+      "-tag=:",
       "tag:favorite",
       "tag:history",
     )
@@ -397,7 +401,14 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings).containsExactly("package:", "package~:", "-package:", "-package~:")
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "package:",
+      "package~:",
+      "-package:",
+      "-package~:",
+      "package=:",
+      "-package=:",
+    )
   }
 
   @Test

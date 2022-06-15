@@ -137,6 +137,22 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_exactKey() {
+    for ((key, field) in KEYS) {
+      assertThat(logcatFilterParser().parse("$key=: Foo")).isEqualTo(ExactStringFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("$key=:Foo")).isEqualTo(ExactStringFilter("Foo", field))
+    }
+  }
+
+  @Test
+  fun parse_negatedExactKey() {
+    for ((key, field) in KEYS) {
+      assertThat(logcatFilterParser().parse("-$key=: Foo")).isEqualTo(NegatedExactStringFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("-$key=:Foo")).isEqualTo(NegatedExactStringFilter("Foo", field))
+    }
+  }
+
+  @Test
   fun parse_levelKeys() {
     for (logLevel in LogLevel.values()) {
       assertThat(logcatFilterParser().parse("level: $logLevel")).isEqualTo(LevelFilter(logLevel))

@@ -46,7 +46,7 @@ val KEYS: List<String>
 private val KEYS_REGEX
   get() = KEYS.joinToString("|")
 private val KEY_VALUE_REGEX
-  get() = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()
+  get() = "((-?($STRING_KEYS_REGEX)([~=])?)|($KEYS_REGEX)):.*".toRegex()
 
 /**
  * A wrapper around [LogcatFilterLexer] that allows to tweak its behavior.

@@ -164,6 +164,26 @@ class LogcatFilterTest {
   }
 
   @Test
+  fun exactFilter() {
+    val message = logCatMessage(tag = "MyTag1")
+
+    assertThat(ExactStringFilter("Tag", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("Tag1", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag1", TAG).matches(message)).isTrue()
+  }
+
+  @Test
+  fun negatedExactFilter() {
+    val message = logCatMessage(tag = "MyTag1")
+
+    assertThat(NegatedExactStringFilter("Tag", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("Tag1", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag1", TAG).matches(message)).isFalse()
+  }
+
+  @Test
   fun levelFilter() {
     val levelFilter = LevelFilter(INFO)
     for (logLevel in LogLevel.values()) {

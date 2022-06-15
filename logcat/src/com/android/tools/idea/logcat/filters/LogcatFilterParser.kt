@@ -258,7 +258,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   packageNamesProvider: PackageNamesProvider,
   androidProjectDetector: AndroidProjectDetector,
 ): LogcatFilter {
-  return when (val key = firstChild.text.trim(':', '-', '~')) {
+  return when (val key = firstChild.text.trim(':', '-', '~', '=')) {
     "level" -> LevelFilter(lastChild.asLogLevel())
     "age" -> AgeFilter(lastChild.asDuration(), clock)
     "is" -> createIsFilter(lastChild.text)
@@ -266,6 +266,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
       val value = lastChild.toText()
       val isNegated = firstChild.text.startsWith('-')
       val isRegex = firstChild.text.endsWith("~:")
+      val isExact = firstChild.text.endsWith("=:")
       val field: LogcatFilterField =
         when (key) {
           "tag" -> TAG
@@ -279,8 +280,10 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
 
       when {
         isNegated && isRegex -> NegatedRegexFilter(value, field)
+        isNegated && isExact -> NegatedExactStringFilter(value, field)
         isNegated -> NegatedStringFilter(value, field)
         isRegex -> RegexFilter(value, field)
+        isExact -> ExactStringFilter(value, field)
         // TODO(aalbert): Consider adding a NegatedProjectAppFilter for "-package:mine"
         key == "package" && value == "mine" && androidProjectDetector.isAndroidProject(project) -> ProjectAppFilter(packageNamesProvider)
         else -> StringFilter(value, field)
