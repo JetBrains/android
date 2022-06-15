@@ -25,7 +25,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -75,7 +75,7 @@ class TreeSettingsActionsTest {
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
-  private val stats = SessionStatistics(model)
+  private val stats = SessionStatisticsImpl(model)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
 

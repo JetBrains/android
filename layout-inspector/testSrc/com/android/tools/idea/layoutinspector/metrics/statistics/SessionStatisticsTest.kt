@@ -37,7 +37,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatistics(model {})
+    val stats = SessionStatisticsImpl(model {})
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
@@ -58,7 +58,7 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatistics(model)
+    val stats = SessionStatisticsImpl(model)
     val compose1 = model[COMPOSE1]
     model.notifyModified(structuralChange = true)
     stats.start()

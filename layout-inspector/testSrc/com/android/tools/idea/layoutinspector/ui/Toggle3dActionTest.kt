@@ -25,7 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -94,7 +94,7 @@ class Toggle3dActionTest {
     whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
-    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel), mock(), MoreExecutors.directExecutor())
+    inspector = LayoutInspector(launcher, inspectorModel, SessionStatisticsImpl(inspectorModel), mock(), MoreExecutors.directExecutor())
     viewModel = DeviceViewPanelModel(inspectorModel, inspector.stats, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)

@@ -45,6 +45,7 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.OLDER_LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -463,7 +464,7 @@ class DeviceViewPanelTest {
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val stats: SessionStatistics = mock()
+    val stats: SessionStatisticsImpl = mock()
     val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {} ,inspector, viewSettings, disposableRule.disposable)
@@ -506,7 +507,7 @@ class DeviceViewPanelTest {
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val stats: SessionStatistics = mock()
+    val stats: SessionStatisticsImpl = mock()
     val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable)
@@ -566,7 +567,7 @@ class DeviceViewPanelTest {
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatisticsImpl(model), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
 
@@ -604,7 +605,7 @@ class DeviceViewPanelTest {
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatisticsImpl(model), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
 
@@ -644,7 +645,7 @@ class DeviceViewPanelTest {
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatisticsImpl(model), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, settings, disposableRule.disposable)
@@ -694,7 +695,7 @@ class DeviceViewPanelTest {
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     whenever(launcher.activeClient).thenReturn(client)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatisticsImpl(model), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, settings, disposableRule.disposable)

@@ -26,18 +26,17 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -116,7 +115,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
-        val stats = SessionStatistics(model)
+        val stats = SessionStatisticsImpl(model)
         val metrics = LayoutInspectorMetrics(project, null, stats)
         launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)

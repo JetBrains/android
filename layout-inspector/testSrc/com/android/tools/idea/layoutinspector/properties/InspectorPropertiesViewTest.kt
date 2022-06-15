@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -197,7 +197,7 @@ class InspectorPropertiesViewTest {
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel) {
     val model = model {}
     val settings = FakeTreeSettings()
-    val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatistics(model), settings)
+    val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatisticsImpl(model), settings)
     model.maxRecomposition.count = 7
     model.maxRecomposition.skips = 14
     propertiesModel.layoutInspector = layoutInspector

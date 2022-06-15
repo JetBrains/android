@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -118,7 +119,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
 
-      stats = SessionStatistics(model)
+      stats = SessionStatisticsImpl(model)
 
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
       val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, layoutInspector, viewSettings, workbench)

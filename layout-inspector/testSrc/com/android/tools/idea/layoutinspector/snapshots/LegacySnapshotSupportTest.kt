@@ -29,7 +29,7 @@ import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -132,7 +132,7 @@ DONE.
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
     val treeSettings = FakeTreeSettings()
-    val stats = SessionStatistics(model)
+    val stats = SessionStatisticsImpl(model)
     val process = LEGACY_DEVICE.createProcess()
     val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
                                     LayoutInspectorMetrics(projectRule.project, process, stats), disposableRule.disposable).apply {

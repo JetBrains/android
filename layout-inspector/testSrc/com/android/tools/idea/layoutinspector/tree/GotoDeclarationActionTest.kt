@@ -21,6 +21,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -62,7 +63,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model)
+      val stats = SessionStatisticsImpl(model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -76,7 +77,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-2], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model)
+      val stats = SessionStatisticsImpl(model)
       val event = createEvent(model, stats, fromShortcut = true)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -91,7 +92,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model)
+      val stats = SessionStatisticsImpl(model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats

@@ -25,7 +25,80 @@ import org.jetbrains.annotations.TestOnly
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics(model: InspectorModel) {
+interface SessionStatistics {
+  /**
+   * Reset all state accumulators.
+   */
+  fun start()
+
+  /**
+   * Save all state accumulators.
+   */
+  fun save(data: DynamicLayoutInspectorSession.Builder)
+
+  /**
+   * A selection was made from the Layout Inspector Image.
+   */
+  fun selectionMadeFromImage(view: ViewNode?)
+
+  /**
+   * A selection was made from the Layout Inspector Component Tree.
+   */
+  fun selectionMadeFromComponentTree(view: ViewNode?)
+
+  /**
+   * The refresh button was activated.
+   */
+  fun refreshButtonClicked()
+
+  /**
+   * Navigate to source from a property value.
+   */
+  fun gotoSourceFromPropertyValue(view: ViewNode?)
+
+  /**
+   * Navigate to source from the component tree via a menu action.
+   */
+  fun gotoSourceFromTreeActionMenu(event: AnActionEvent)
+
+  /**
+   * Navigate to source from the component tree via a double click.
+   */
+  fun gotoSourceFromDoubleClick()
+
+  /**
+   * The recomposition numbers changed.
+   */
+  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float)
+
+  /**
+   * The recomposition numbers were reset.
+   */
+  fun resetRecompositionCountsClick()
+
+  /**
+   * Live mode changed.
+   */
+  var currentModeIsLive : Boolean
+
+  /**
+   * 3D mode changed.
+   */
+  var currentMode3D : Boolean
+
+  /**
+   * Whether the system nodes are currently being hidden.
+   */
+  var hideSystemNodes : Boolean
+
+  /**
+   * Number of memory measurements
+   */
+  @get:TestOnly
+  val memoryMeasurements: Int
+}
+
+class SessionStatisticsImpl(model: InspectorModel) : SessionStatistics {
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val memory = MemoryStatistics(model)
@@ -33,7 +106,7 @@ class SessionStatistics(model: InspectorModel) {
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
 
-  fun start() {
+  override fun start() {
     live.start()
     rotation.start()
     memory.start()
@@ -42,7 +115,7 @@ class SessionStatistics(model: InspectorModel) {
     goto.start()
   }
 
-  fun save(data: DynamicLayoutInspectorSession.Builder) {
+  override fun save(data: DynamicLayoutInspectorSession.Builder) {
     live.save { data.liveBuilder }
     rotation.save { data.rotationBuilder }
     memory.save { data.memoryBuilder }
@@ -51,69 +124,57 @@ class SessionStatistics(model: InspectorModel) {
     goto.save { data.gotoDeclarationBuilder }
   }
 
-  fun selectionMadeFromImage(view: ViewNode?) {
+  override fun selectionMadeFromImage(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromImage()
     compose.selectionMadeFromImage(view)
     system.selectionMade()
   }
 
-  fun selectionMadeFromComponentTree(view: ViewNode?) {
+  override fun selectionMadeFromComponentTree(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromComponentTree()
     compose.selectionMadeFromComponentTree(view)
     system.selectionMade()
   }
 
-  fun refreshButtonClicked() {
+  override fun refreshButtonClicked() {
     live.refreshButtonClicked()
   }
 
-  fun gotoSourceFromPropertyValue(view: ViewNode?) {
+  override fun gotoSourceFromPropertyValue(view: ViewNode?) {
     compose.gotoSourceFromPropertyValue(view)
   }
 
-  fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
+  override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
     goto.gotoSourceFromTreeActionMenu(event)
   }
 
-  fun gotoSourceFromDoubleClick() {
+  override fun gotoSourceFromDoubleClick() {
     goto.gotoSourceFromDoubleClick()
   }
 
-  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
+  override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
     compose.updateRecompositionStats(recompositions, maxHighlight)
   }
 
-  fun resetRecompositionCountsClick() {
+  override fun resetRecompositionCountsClick() {
     compose.resetRecompositionCountsClick()
   }
 
-  /**
-   * Live mode changed.
-   */
-  var currentModeIsLive : Boolean
+  override var currentModeIsLive : Boolean
     get() = live.currentModeIsLive
     set(value) { live.currentModeIsLive = value }
 
-  /**
-   * 3D mode changed.
-   */
-  var currentMode3D : Boolean
+  override var currentMode3D : Boolean
     get() = rotation.currentMode3D
     set(value) { rotation.currentMode3D = value }
 
-  /**
-   * Whether the system nodes are currently being hidden.
-   */
-  var hideSystemNodes : Boolean
+  override var hideSystemNodes : Boolean
     get() = system.hideSystemNodes
     set(value) { system.hideSystemNodes = value }
 
-  /**
-   * Number of memory measurements
-   */
   @get:TestOnly
-  val memoryMeasurements: Int
+  override val memoryMeasurements: Int
     get() = memory.measurements
 }
