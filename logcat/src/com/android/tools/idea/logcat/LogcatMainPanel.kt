@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StopLogc
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
@@ -490,6 +491,7 @@ internal class LogcatMainPanel(
   override fun getData(dataId: String): Any? {
     val device = connectedDevice.get()
     return when (dataId) {
+      LOGCAT_PRESENTER_ACTION.name -> this
       ScreenshotAction.SERIAL_NUMBER_KEY.name -> device?.serialNumber
       ScreenshotAction.SDK_KEY.name -> device?.sdk
       ScreenshotAction.MODEL_KEY.name -> device?.model

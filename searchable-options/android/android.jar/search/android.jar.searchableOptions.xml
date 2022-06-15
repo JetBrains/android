@@ -612,6 +612,15 @@
     <option name="history" path="ActionManager" hit="Test History" />
     <option name="test" path="ActionManager" hit="Test History" />
     <option name="tilt" path="ActionManager" hit="Tilt" />
+    <option name="formatting" path="ActionManager" hit="Toggle Logcat Formatting" />
+    <option name="logcat" path="ActionManager" hit="Toggle Logcat Formatting" />
+    <option name="toggle" path="ActionManager" hit="Toggle Logcat Formatting" />
+    <option name="and" path="ActionManager" hit="Toggle between Standard and Compact view" />
+    <option name="between" path="ActionManager" hit="Toggle between Standard and Compact view" />
+    <option name="compact" path="ActionManager" hit="Toggle between Standard and Compact view" />
+    <option name="standard" path="ActionManager" hit="Toggle between Standard and Compact view" />
+    <option name="toggle" path="ActionManager" hit="Toggle between Standard and Compact view" />
+    <option name="view" path="ActionManager" hit="Toggle between Standard and Compact view" />
     <option name="decorations" path="ActionManager" hit="Toggle literals decorations" />
     <option name="literals" path="ActionManager" hit="Toggle literals decorations" />
     <option name="toggle" path="ActionManager" hit="Toggle literals decorations" />

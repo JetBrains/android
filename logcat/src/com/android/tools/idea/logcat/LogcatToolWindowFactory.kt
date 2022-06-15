@@ -39,6 +39,7 @@ import java.awt.EventQueue
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
   init {
+    // TODO(b/236246692): Register from XML when Logcat V2 is mainstream.
     if (isLogcatV2Enabled()) {
       ColorSettingsPages.getInstance().apply {
         registerPage(LogcatColorSettingsPage())

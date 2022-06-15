@@ -38,7 +38,9 @@
         language="LogcatFilter"
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterSyntaxHighlighterFactory"
     />
-<!--    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>-->
+
+    <!-- TODO(b/236246692): Restore this registration when Logcat V2 is mainstream -->
+    <!--    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>-->
 
     <completion.contributor
         language="LogcatFilter"
@@ -67,4 +69,16 @@
     <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
 
   </extensions>
+
+  <actions>
+    <group id="Logcat.LogcatActions" text="Logcat">
+      <action id="Logcat.ToggleViewFormat"
+              class="com.android.tools.idea.logcat.actions.ToggleViewFormatAction"
+              text="Toggle Logcat Formatting"
+              description="Toggle between Standard and Compact view">
+        <keyboard-shortcut keymap="$default" first-keystroke="alt F"/>
+      </action>
+    </group>
+  </actions>
+
 </idea-plugin>

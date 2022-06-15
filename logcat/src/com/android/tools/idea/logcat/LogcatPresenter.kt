@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataKey
 
 /**
  * Encapsulates the presentation of Logcat messages.
@@ -88,4 +89,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun getFilter(): String
 
   fun setFilter(filter: String)
+
+  companion object {
+    val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
+  }
 }
