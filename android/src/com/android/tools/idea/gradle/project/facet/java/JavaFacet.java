@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.project.facet.java;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
-import static com.intellij.ProjectTopics.PROJECT_ROOTS;
-import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -28,14 +25,8 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,33 +80,6 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
   @NotNull
   public static String getFacetName() {
     return "Java-Gradle";
-  }
-
-  @Override
-  public void initFacet() {
-    MessageBusConnection connection = getModule().getProject().getMessageBus().connect(this);
-    connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (!isDisposed()) {
-            Project project = getModule().getProject();
-            runWriteCommandAction(project, () -> updateConfiguration());
-          }
-        });
-      }
-    });
-    updateConfiguration();
-  }
-
-  private void updateConfiguration() {
-    JavaFacetConfiguration config = getConfiguration();
-    try {
-      saveFacetConfiguration(config);
-    }
-    catch (WriteExternalException e) {
-      getLog().error("Unable to save contents of 'Java-Gradle' facet", e);
-    }
   }
 
   @NotNull
