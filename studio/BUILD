@@ -598,23 +598,6 @@ py_test(
     tags = ["no_windows"],  # b/233968084
 )
 
-py_test(
-    name = "startup_test",
-    srcs = [
-        "tests/startup_test.py",
-    ],
-    data = [
-        ":android-studio.linux.zip",
-        "//tools/vendor/google/testing/display:xvfb",
-    ],
-    python_version = "PY3",
-    tags = [
-        "block_network",
-        "no_mac",
-        "no_windows",
-    ],
-)
-
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
