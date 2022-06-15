@@ -35,11 +35,23 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyz
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
-import java.util.concurrent.CompletableFuture
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.lang.IllegalArgumentException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+
+/**
+ * Pool of 1 thread to trigger background visual linting analysis one at a time, and wait for its completion
+ */
+private val visualLintExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Service", 1)
+/**
+ * Pool of 1 thread to run all the visual linting analyzers triggered from one analysis
+ */
+private val visualLintAnalyzerExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Analyzer", 1)
 
 /**
  * Service that runs visual lints
@@ -65,40 +77,51 @@ class VisualLintService(project: Project) {
   }
 
   /**
-   * Run visual lint analysis and return the list of issues.
+   * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
+   * and adds the issues found to the [IssueModel]
    */
   fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel) {
-    issueModel.removeIssueProvider(issueProvider)
-    issueProvider.clear()
-    if (models.isEmpty()) {
-      return
-    }
+    runVisualLintAnalysis(models, issueModel, visualLintExecutorService)
+  }
 
-    issueModel.addIssueProvider(issueProvider, false)
-    val displayingModel = models[0]
-    displayingModel.addListener(object: ModelListener {
-      override fun modelChanged(model: NlModel) {
-        RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(RenderAsyncActionExecutor.RenderingPriority.LOW)
+  @VisibleForTesting
+  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel, executorService: ExecutorService) {
+    CompletableFuture.runAsync({
+      issueModel.removeIssueProvider(issueProvider)
+      issueProvider.clear()
+      if (models.isEmpty()) {
+        return@runAsync
       }
-    })
-    val modelsToAnalyze = WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet )
 
-    for (model in modelsToAnalyze) {
-      inflate(model).thenComposeAsync({ result ->
-        if (result == null) {
-          // already logged error above
-          return@thenComposeAsync CompletableFuture.completedFuture(null)
+      issueModel.addIssueProvider(issueProvider, false)
+      val displayingModel = models[0]
+      val listener = object : ModelListener {
+        override fun modelChanged(model: NlModel) {
+          RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(
+            RenderAsyncActionExecutor.RenderingPriority.LOW)
         }
-
-        updateHierarchy(result, model)
-        analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
-
-        return@thenComposeAsync CompletableFuture.completedFuture(null)
-      }, AppExecutorUtil.getAppExecutorService()).thenAccept {
-        // TODO: This might be triggered too frequently (4 times).
-        issueModel.updateErrorsList()
       }
-    }
+      displayingModel.addListener(listener)
+      try {
+        val modelsToAnalyze = WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file,
+                                                                      displayingModel.facet)
+        val latch = CountDownLatch(modelsToAnalyze.size)
+        for (model in modelsToAnalyze) {
+          inflate(model).handleAsync({ result, _ ->
+            if (result != null) {
+              updateHierarchy(result, model)
+              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
+            }
+            Disposer.dispose(model)
+            latch.countDown()
+          }, visualLintAnalyzerExecutorService)
+        }
+        latch.await()
+        issueModel.updateErrorsList()
+      } finally {
+        displayingModel.removeListener(listener)
+      }
+    }, executorService)
   }
 
   /**
