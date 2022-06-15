@@ -60,6 +60,8 @@
     <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.AndroidStudioStatisticsJobScheduler"/>
   </extensions>
 
   <actions>
