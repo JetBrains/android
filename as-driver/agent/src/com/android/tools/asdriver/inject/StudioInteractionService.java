@@ -145,7 +145,8 @@ public class StudioInteractionService {
     }
 
     if (elapsedTime >= timeoutMillis) {
-      throw new TimeoutException(String.format("Timed out after %dms", elapsedTime));
+      throw new TimeoutException(
+        String.format("Timed out after %dms to find and invoke a component with these matchers: %s", elapsedTime, matchers));
     }
   }
 
