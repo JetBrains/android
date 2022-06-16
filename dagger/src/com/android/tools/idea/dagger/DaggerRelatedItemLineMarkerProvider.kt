@@ -47,6 +47,20 @@ import javax.swing.Icon
  */
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
+  override fun getName(): String? {
+    return message("dagger.related.items")
+  }
+
+  override fun getId(): String {
+    // A custom ID is required for isEnabledByDefault to be called
+    return "disable.dagger"
+  }
+
+  override fun isEnabledByDefault(): Boolean {
+    // b/232089770: Dagger line markers are costly, so we provide a way to disable it by default.
+    return !System.getProperty("disable.dagger.relateditems.gutter.icons", "false").toBoolean()
+  }
+
   private class GotoItemWithAnalyticsTracking(
     fromElement: PsiElement,
     toElement: PsiElement,
