@@ -41,8 +41,6 @@ class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.In
   override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
     private set
   override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
-  override val hasLiveLiterals: Boolean = false
-  override val isLiveLiteralsEnabled: Boolean = false
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {

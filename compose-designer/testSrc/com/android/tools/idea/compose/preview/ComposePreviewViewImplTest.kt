@@ -84,10 +84,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: Comp
     layoutlibSceneManager,
     showDecorations = previewElement.displaySettings.showDecoration,
     isInteractive = false,
-    requestPrivateClassLoader = false,
-    isLiveLiteralsEnabled = false,
-    onLiveLiteralsFound = { },
-    resetLiveLiteralsFound = { }
+    requestPrivateClassLoader = false
   )
 
 private fun previewElementInstanceToString(previewElementInstance: ComposePreviewElementInstance): String =

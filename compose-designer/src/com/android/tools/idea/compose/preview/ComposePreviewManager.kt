@@ -119,16 +119,6 @@ interface ComposePreviewManager: Disposable {
   var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
 
   /**
-   * Returns true if the current preview has the live literals feature available.
-   */
-  val hasLiveLiterals: Boolean
-
-  /**
-   * Enables/disables live literals in the preview.
-   */
-  val isLiveLiteralsEnabled: Boolean
-
-  /**
    * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
    */
   val hasDesignInfoProviders: Boolean

@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
@@ -60,11 +59,6 @@ private val FIXED_COMPILER_ARGS = listOf(
   "-no-stdlib", "-no-reflect", // Included as part of the libraries classpath
   "-Xdisable-default-scripting-plugin",
   "-jvm-target", "1.8")
-
-/**
- * Arguments to pass to the compiler when we want Live Literals code generation to be enabled.
- */
-private val LIVE_LITERALS_ARGS = listOf("-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true")
 
 /**
  * Default class path locator that returns the classpath for the module source code (excluding dependencies).
@@ -232,15 +226,11 @@ internal class OutOfProcessCompilerDaemonClientImpl(version: String,
     val classPathArgs = if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
 
     val inputFilesArgs = files.map { it.virtualFile.path }.toList()
-    val liveLiteralsArgs = if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals)
-      LIVE_LITERALS_ARGS
-    else emptyList()
     val friendPaths = listOf(
       "-Xfriend-paths=${moduleClassPath.joinToString(",")}"
     )
     val outputAbsolutePath = outputDirectory.toAbsolutePath().toString()
     val args = FIXED_COMPILER_ARGS +
-               liveLiteralsArgs +
                classPathArgs +
                friendPaths +
                listOf("-d", outputAbsolutePath) +
