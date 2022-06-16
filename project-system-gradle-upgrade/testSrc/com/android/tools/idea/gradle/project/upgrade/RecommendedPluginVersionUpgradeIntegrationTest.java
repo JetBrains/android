@@ -129,7 +129,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
-    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
       androidPluginInfoMock.when(() -> AndroidPluginInfo.find(myProject)).thenReturn(myPluginInfo);
       assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));

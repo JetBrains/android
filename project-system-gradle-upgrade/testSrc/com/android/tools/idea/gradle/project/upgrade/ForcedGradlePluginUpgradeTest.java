@@ -91,9 +91,9 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
-    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any(), same(false));
+    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
     verify(myProcessor).run();
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -103,9 +103,9 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     // Simulate user accepting then cancelling the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
-    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(false);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(false);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any(), same(false));
+    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
     verify(myProcessor, never()).run();
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);

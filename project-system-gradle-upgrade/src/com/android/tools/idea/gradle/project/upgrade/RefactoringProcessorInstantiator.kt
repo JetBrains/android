@@ -34,7 +34,7 @@ class RefactoringProcessorInstantiator {
    * is true, the processor is assumed to be already configured.
    */
   @Slow
-  fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor, preserveProcessorConfigurations: Boolean = false): Boolean {
+  fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
     val java8Processor = processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? Java8DefaultRefactoringProcessor }
     if (java8Processor == null) {
       LOG.error("no Java8Default processor found in AGP Upgrade Processor")
@@ -62,9 +62,7 @@ class RefactoringProcessorInstantiator {
         dialog.show()
         return@invokeAndWaitIfNeeded false
       }
-      val dialog = AgpUpgradeRefactoringProcessorDialog(
-        processor, java8Processor!!, r8FullModeProcessor!!, hasChangesInBuildFiles, preserveProcessorConfigurations
-      )
+      val dialog = AgpUpgradeRefactoringProcessorDialog(processor, java8Processor!!, r8FullModeProcessor!!, hasChangesInBuildFiles)
       dialog.showAndGet()
     }
     return runProcessor
