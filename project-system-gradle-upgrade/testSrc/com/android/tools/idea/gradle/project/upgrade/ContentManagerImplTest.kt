@@ -578,12 +578,81 @@ class ContentManagerImplTest {
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
+    assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)
     assertThat(mandatoryCodependentNode.isChecked).isTrue()
     assertThat(view.okButton.isEnabled).isTrue()
     assertThat(view.previewButton.isEnabled).isTrue()
     assertThat(view.refreshButton.isEnabled).isTrue()
     assertThat(view.versionTextField.isEnabled).isTrue()
     view.tree.setNodeState(mandatoryCodependentNode, false)
+    assertThat(view.okButton.isEnabled).isFalse()
+    assertThat(view.previewButton.isEnabled).isFalse()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+  }
+
+  @Test
+  fun testToolWindowInitialStateForOptionalSteps() {
+    addMinimalBuildGradleToProject()
+    projectRule.fixture.addFileToProject("settings.gradle", "include ':app'")
+    projectRule.fixture.addFileToProject("app/build.gradle", """
+      plugins {
+        id 'com.android.application'
+      }
+
+      dependencies {
+        compile 'com.example:foo:1.0'
+      }
+    """.trimIndent())
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = ToolWindowModel(project, { currentAgpVersion }, GradleVersion.parse("4.2.0") )
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
+    assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)
+    assertThat(mandatoryCodependentNode.isChecked).isTrue()
+    val optionalIndependentNode = view.tree.getPathForRow(3).lastPathComponent as CheckedTreeNode
+    assertThat(optionalIndependentNode.userObject).isEqualTo(OPTIONAL_INDEPENDENT)
+    val deprecatedConfigurationsNode = view.tree.getPathForRow(4).lastPathComponent as CheckedTreeNode
+    val deprecatedConfigurationsUIPresentation = deprecatedConfigurationsNode.userObject as ToolWindowModel.StepUiPresentation
+    assertThat(deprecatedConfigurationsNode.isChecked).isFalse()
+    assertThat(deprecatedConfigurationsUIPresentation.treeText).isEqualTo("Replace deprecated configurations")
+    assertThat(view.okButton.isEnabled).isTrue()
+    assertThat(view.previewButton.isEnabled).isTrue()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+    view.tree.setNodeState(mandatoryCodependentNode, false)
+    assertThat(view.okButton.isEnabled).isFalse()
+    assertThat(view.previewButton.isEnabled).isFalse()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+  }
+
+  @Test
+  fun testToolWindowInitialStateForSameVersionUpgrade() {
+    addMinimalBuildGradleToProject()
+    projectRule.fixture.addFileToProject("settings.gradle", "include ':app'")
+    projectRule.fixture.addFileToProject("app/build.gradle", """
+      plugins {
+        id 'com.android.application'
+      }
+
+      dependencies {
+        compile 'com.example:foo:1.0'
+      }
+    """.trimIndent())
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = ToolWindowModel(project, { currentAgpVersion }, currentAgpVersion)
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    val optionalIndependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
+    assertThat(optionalIndependentNode.userObject).isEqualTo(OPTIONAL_INDEPENDENT)
+    assertThat(optionalIndependentNode.isChecked).isTrue()
+    assertThat(view.okButton.isEnabled).isTrue()
+    assertThat(view.previewButton.isEnabled).isTrue()
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.versionTextField.isEnabled).isTrue()
+    view.tree.setNodeState(optionalIndependentNode, false)
     assertThat(view.okButton.isEnabled).isFalse()
     assertThat(view.previewButton.isEnabled).isFalse()
     assertThat(view.refreshButton.isEnabled).isTrue()

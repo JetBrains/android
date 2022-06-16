@@ -507,7 +507,8 @@ class ToolWindowModel(
     populateNecessity(AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isEnabled = false } }.isEnabled = false
     populateNecessity(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT) { o -> CheckedTreeNode(o).also { it.isEnabled = false } }
     populateNecessity(AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = false } }
-    populateNecessity(AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = false } }
+    val hasAnyNodes = root.childCount > 0
+    populateNecessity(AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = !hasAnyNodes } }
     treeModel.nodeStructureChanged(root)
   }
 
