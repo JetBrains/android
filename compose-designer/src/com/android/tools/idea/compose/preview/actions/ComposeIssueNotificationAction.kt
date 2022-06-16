@@ -43,6 +43,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
@@ -211,7 +212,7 @@ private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePrevie
 private class ShowEventLogAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null)
+    EventLog.getEventLog(project)?.activate(null) ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
   }
 }
 
