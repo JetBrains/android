@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -465,6 +466,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
         CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import java.awt.datatransfer.DataFlavor;
@@ -45,13 +46,19 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     this(surface, CopyPasteManager.getInstance());
   }
 
-  @NotNull
-  protected abstract DataFlavor getFlavor();
-
   protected DesignSurfaceActionHandler(@NotNull DesignSurface surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
   }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
+  }
+
+  @NotNull
+  protected abstract DataFlavor getFlavor();
+
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
