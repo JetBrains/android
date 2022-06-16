@@ -51,6 +51,7 @@ import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -427,6 +428,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   // This class is used to prevent deleting folders that are actually the root project.
   // See: https://code.google.com/p/android/issues/detail?id=212522
   private static class NoOpDeleteProvider implements DeleteProvider {
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
     @Override
     public void deleteElement(@NotNull DataContext dataContext) {
     }
