@@ -85,12 +85,12 @@ public class AndroidStudioInstallation {
       throw new IllegalStateException("agent not found at " + agentZip);
     }
 
-    String vmOptions = String.format("-javaagent:%s\n", agentZip) +
-                       String.format("-Didea.config.path=%s/config\n", workDir) +
-                       String.format("-Didea.plugins.path=%s/config/plugins\n", workDir) +
-                       String.format("-Didea.system.path=%s/system\n", workDir) +
-                       String.format("-Didea.log.path=%s\n", logsDir) +
-                       String.format("-Duser.home=%s\n", homeDir);
+    String vmOptions = String.format("-javaagent:%s%n", agentZip) +
+                       String.format("-Didea.config.path=%s%n", configDir) +
+                       String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
+                       String.format("-Didea.system.path=%s/system%n", workDir) +
+                       String.format("-Didea.log.path=%s%n", logsDir) +
+                       String.format("-Duser.home=%s%n", homeDir);
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
 
@@ -103,13 +103,11 @@ public class AndroidStudioInstallation {
   }
 
   /**
-   * Emits the agent's stdout and stderr logs to the console. At the time of writing, this is
-   * useful because the logs aren't captured anywhere permanent, so this is potentially the only
-   * way to diagnose test failures until we come up with something more permanent.
-   *
-   * TODO(b/234144552): save off the log files rather than emitting them to stdout.
+   * Emits the agent's stdout and stderr logs to the console. When running a test locally, this can
+   * be helpful for viewing the logs without having to suspend any processes; without this, you
+   * would have to manually locate the randomly created temporary directories holding the logs.
    */
-  public void emitLogs() {
+  public void debugEmitLogs() {
     try {
       stdout.printContents();
       stderr.printContents();

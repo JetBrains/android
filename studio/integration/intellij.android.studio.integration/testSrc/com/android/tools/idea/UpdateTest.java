@@ -328,16 +328,12 @@ public class UpdateTest {
 
         // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
         studio.waitForProcess();
-      } finally {
-        install.emitLogs();
       }
 
       install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_UPDATED_BUILD_NUMBER));
-      } finally {
-        install.emitLogs();
       }
     }
   }
