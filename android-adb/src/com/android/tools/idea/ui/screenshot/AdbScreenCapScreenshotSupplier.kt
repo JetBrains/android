@@ -24,6 +24,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.AndroidAdbBundle
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.ui.screenshot.ScreenshotAction.ScreenshotOptions
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
@@ -40,10 +41,11 @@ private val COMMAND_TIMEOUT = INFINITE_DURATION
 internal class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
-  private val sdk: Int,
+  private val screenshotOptions: ScreenshotOptions,
 ) : ScreenshotSupplier, Disposable {
   private val coroutineScope = AndroidCoroutineScope(this)
   private val adbLibService = AdbLibService.getInstance(project)
+  private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.*)")
 
   @Slow
   override fun captureScreenshot(): ScreenshotImage {
@@ -52,7 +54,7 @@ internal class AdbScreenCapScreenshotSupplier(
       adbLibService.session.deviceServices.shell(
         deviceSelector,
         "screencap -p",
-        ByteArrayShellCollector(sdk < 24),
+        ByteArrayShellCollector(screenshotOptions.apiLevel < 24),
         commandTimeout = COMMAND_TIMEOUT,
       ).first()
     }
@@ -62,16 +64,21 @@ internal class AdbScreenCapScreenshotSupplier(
     }
 
     return runBlocking {
-      val roundScreen = dumpsysJob.await().contains("FLAG_ROUND")
+      val dumpsysOutput = dumpsysJob.await()
+      val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       val screenshotBytes = screenshotJob.await()
-      //val size = if (device.sdk < 24) screenshotBytes.removeCarriageReturn() else screenshotBytes.size
-
-      @Suppress("BlockingMethodInNonBlockingContext") // reading from memory is not blocking
+      @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes))
-                  ?: throw java.lang.IllegalStateException(AndroidAdbBundle.message("screenshot.error.decode"))
-      ScreenshotImage(image, 0, roundScreen)
+                  ?: throw RuntimeException(AndroidAdbBundle.message("screenshot.error.decode"))
+      screenshotOptions.createScreenshotImage(image, displayInfo)
     }
   }
+
+  /**
+   * Returns the first line starting with "DisplayDeviceInfo".
+   */
+  private fun extractDeviceDisplayInfo(dumpsysOutput: String): String =
+    deviceDisplayInfoRegex.find(dumpsysOutput)?.groupValues?.get(0) ?: ""
 
   override fun dispose() {}
 }

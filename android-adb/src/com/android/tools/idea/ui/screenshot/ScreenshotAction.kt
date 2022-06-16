@@ -18,9 +18,6 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.io.writeImage
-import com.android.resources.ScreenOrientation
-import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.AndroidAdbBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,8 +30,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import icons.StudioIcons
-import java.util.EnumSet
-import kotlin.math.min
+import java.awt.image.BufferedImage
 
 /**
  * Captures a screenshot of the device display.
@@ -44,17 +40,16 @@ class ScreenshotAction : DumbAwareAction(
   AndroidAdbBundle.message("screenshot.action.description"),
   StudioIcons.Logcat.Toolbar.SNAPSHOT) {
 
-  override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = e.getData(SERIAL_NUMBER_KEY) != null
+  override fun update(event: AnActionEvent) {
+    event.presentation.isEnabled = event.getData(SCREENSHOT_OPTIONS_KEY) != null
   }
 
-  override fun actionPerformed(e: AnActionEvent) {
-    val serialNumber = e.getData(SERIAL_NUMBER_KEY) ?: return
-    val sdk = e.getData(SDK_KEY) ?: return
-    val model = e.getData(MODEL_KEY) ?: return
-    val project = e.project ?: return
+  override fun actionPerformed(event: AnActionEvent) {
+    val project = event.project ?: return
+    val screenshotOptions = event.getData(SCREENSHOT_OPTIONS_KEY) ?: return
+    val serialNumber = screenshotOptions.serialNumber
 
-    val screenshotSupplier = AdbScreenCapScreenshotSupplier(project, serialNumber, sdk)
+    val screenshotSupplier = AdbScreenCapScreenshotSupplier(project, serialNumber, screenshotOptions)
     var disposable: Disposable? = screenshotSupplier
     object : ScreenshotTask(project, screenshotSupplier) {
 
@@ -68,9 +63,9 @@ class ScreenshotAction : DumbAwareAction(
           val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
           val screenshotImage = screenshot!!
           screenshotImage.image.writeImage(SdkConstants.EXT_PNG, backingFile)
-          val screenshotPostprocessor: ScreenshotPostprocessor = DeviceArtScreenshotPostprocessor()
-          val framingOptions = getFramingOptions(screenshotImage)
-          val defaultFrame = getDefaultFrame(framingOptions, screenshotImage, model)
+          val screenshotPostprocessor = screenshotOptions.screenshotPostprocessor
+          val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+          val defaultFrame = screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)
           val viewer: ScreenshotViewer = object : ScreenshotViewer(
             project,
             screenshotImage,
@@ -79,7 +74,7 @@ class ScreenshotAction : DumbAwareAction(
             screenshotPostprocessor,
             framingOptions,
             defaultFrame,
-            EnumSet.of(Option.ALLOW_IMAGE_ROTATION)) {
+            screenshotOptions.screenshotViewerOptions) {
 
             override fun doOKAction() {
               super.doOKAction()
@@ -114,34 +109,21 @@ class ScreenshotAction : DumbAwareAction(
   }
 
   companion object {
-    val SERIAL_NUMBER_KEY = DataKey.create<String>("ScreenshotDeviceSerialNumber")
-    val SDK_KEY = DataKey.create<Int>("ScreenshotDeviceSdk")
-    val MODEL_KEY = DataKey.create<String>("ScreenshotDeviceModel")
+    val SCREENSHOT_OPTIONS_KEY = DataKey.create<ScreenshotOptions>("ScreenshotOptions")
   }
-}
 
-/** Returns the list of available frames for the given image.  */
-private fun getFramingOptions(screenshotImage: ScreenshotImage): List<DeviceArtFramingOption> {
-  val imgAspectRatio = screenshotImage.width.toDouble() / screenshotImage.height
-  val orientation = if (imgAspectRatio >= 1 - ImageUtils.EPSILON) ScreenOrientation.LANDSCAPE else ScreenOrientation.PORTRAIT
-  val allDescriptors = DeviceArtDescriptor.getDescriptors(null)
-  return allDescriptors.filter { it.canFrameImage(screenshotImage.image, orientation) }.map { DeviceArtFramingOption(it) }
-}
+  interface ScreenshotOptions {
+    val serialNumber: String
+    val apiLevel: Int
+    val screenshotViewerOptions: Set<ScreenshotViewer.Option>
+    val screenshotPostprocessor: ScreenshotPostprocessor
 
-private fun getDefaultFrame(frames: List<FramingOption>, screenshotImage: ScreenshotImage, deviceModel: String?): Int {
-  if (deviceModel != null) {
-    val index = findFrameIndexForDeviceModel(frames, deviceModel)
-    if (index >= 0) {
-      return index
-    }
+    fun createScreenshotImage(image: BufferedImage, displayInfo: String): ScreenshotImage
+
+    /** Returns the list of available framing options for the given image. */
+    fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption>
+
+    /** Returns the index of the default framing option for the given image. */
+    fun getDefaultFramingOption(framingOptions: List<FramingOption>, screenshotImage: ScreenshotImage): Int
   }
-  // Assume that if the min resolution is > 1280, then we are on a tablet.
-  val defaultDevice = if (min(screenshotImage.width, screenshotImage.height) > 1280) "Generic Tablet" else "Generic Phone"
-  // If we can't find anything (which shouldn't happen since we should get the Generic Phone/Tablet),
-  // default to the first one.
-  return findFrameIndexForDeviceModel(frames, defaultDevice).coerceAtLeast(0)
-}
-
-private fun findFrameIndexForDeviceModel(frames: List<FramingOption>, deviceModel: String): Int {
-  return frames.indexOfFirst { it.displayName.equals(deviceModel, ignoreCase = true) }
 }

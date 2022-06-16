@@ -23,7 +23,7 @@ import java.awt.image.BufferedImage
 /**
  * Used in conjunction with [ScreenshotViewer].
  */
-internal interface ScreenshotPostprocessor {
+interface ScreenshotPostprocessor {
   /**
    * Adds a device frame to a screenshot image.
    *

@@ -17,14 +17,10 @@ package com.android.tools.idea.ddms.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.circularClip
 import com.android.tools.adtui.device.DeviceArtPainter
-import com.intellij.util.ui.ImageUtil.applyQualityRenderingHints
-import java.awt.AlphaComposite
 import java.awt.Color
-import java.awt.geom.Area
-import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
-import kotlin.math.max
 
 /**
  * A [ScreenshotPostprocessor] using [DeviceArtPainter].
@@ -39,30 +35,5 @@ class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
     val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor, false, false)
     return ImageUtils.cropBlank(framedImage, null) ?: throw IllegalArgumentException("The screenshot is completely transparent")
-  }
-
-  @Suppress("UndesirableClassUsage")
-  private fun circularClip(image: BufferedImage, backgroundColor: Color?): BufferedImage {
-    val mask = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-    mask.createGraphics().apply {
-      applyQualityRenderingHints(this)
-      val diameter = max(image.width, image.height).toDouble()
-      fill(Area(Ellipse2D.Double(0.0, 0.0, diameter, diameter)))
-      dispose()
-    }
-    val shapedImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-    shapedImage.createGraphics().apply {
-      applyQualityRenderingHints(this)
-      drawImage(image, 0, 0, null)
-      composite = AlphaComposite.getInstance(AlphaComposite.DST_IN)
-      drawImage(mask, 0, 0, null)
-      if (backgroundColor != null) {
-        color = backgroundColor
-        composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
-        fillRect(0, 0, image.width, image.height)
-      }
-      dispose()
-    }
-    return shapedImage
   }
 }

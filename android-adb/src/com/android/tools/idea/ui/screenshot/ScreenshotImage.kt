@@ -19,12 +19,14 @@ package com.android.tools.idea.ui.screenshot
 import com.android.tools.adtui.ImageUtils
 import java.awt.image.BufferedImage
 
-internal class ScreenshotImage(val image: BufferedImage, val screenRotationQuadrants: Int, val isRoundScreen: Boolean)  {
+class ScreenshotImage(val image: BufferedImage, val screenshotRotationQuadrants: Int, private val displayInfo: String)  {
   val width
     get() = image.width
 
   val height
     get() = image.height
+
+  val isRoundDisplay: Boolean = displayInfo.contains("FLAG_ROUND")
 
   /**
    * Returns the rotated screenshot.
@@ -34,8 +36,8 @@ internal class ScreenshotImage(val image: BufferedImage, val screenRotationQuadr
       return this
     }
     return ScreenshotImage(
-      ImageUtils.rotateByQuadrants(image, rotationQuadrants),
-      (screenRotationQuadrants + rotationQuadrants) and 0x03,
-      isRoundScreen)
+        ImageUtils.rotateByQuadrants(image, rotationQuadrants),
+        (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
+        displayInfo)
   }
 }

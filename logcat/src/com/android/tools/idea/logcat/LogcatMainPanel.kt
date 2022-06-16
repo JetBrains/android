@@ -76,6 +76,7 @@ import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
 import com.android.tools.idea.run.ClearLogcatListener
+import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
@@ -505,9 +506,7 @@ internal class LogcatMainPanel(
     val device = connectedDevice.get()
     return when (dataId) {
       LOGCAT_PRESENTER_ACTION.name -> this
-      ScreenshotAction.SERIAL_NUMBER_KEY.name -> device?.serialNumber
-      ScreenshotAction.SDK_KEY.name -> device?.sdk
-      ScreenshotAction.MODEL_KEY.name -> device?.model
+      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.sdk, it.model) }
       ScreenRecorderAction.SERIAL_NUMBER_KEY.name -> device?.serialNumber
       ScreenRecorderAction.AVD_NAME_KEY.name -> if (device?.isEmulator == true) device.deviceId else null
       ScreenRecorderAction.SDK_KEY.name -> device?.sdk

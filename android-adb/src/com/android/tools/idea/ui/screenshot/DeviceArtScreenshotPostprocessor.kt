@@ -34,7 +34,7 @@ internal class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
   @Slow
   override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {
-      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
+      return if (screenshotImage.isRoundDisplay) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
     val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor, false, false)

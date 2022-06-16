@@ -226,7 +226,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myScreenshotSupplier = screenshotSupplier;
     myScreenshotPostprocessor = screenshotPostprocessor;
     mySourceImageRef.set(screenshotImage);
-    myRotationQuadrants = screenshotImage.getScreenRotationQuadrants();
+    myRotationQuadrants = screenshotImage.getScreenshotRotationQuadrants();
     myDisplayedImageRef.set(screenshotImage.getImage());
 
     VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile);
@@ -252,7 +252,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
     else {
       // Clipping is only available for round device screenshots.
-      boolean canClipDeviceMask = screenshotImage.isRoundScreen();
+      boolean canClipDeviceMask = screenshotImage.isRoundDisplay();
       DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
       decorationOptions.addElement(DecorationOption.RECTANGULAR);
       if (canClipDeviceMask) {
@@ -359,8 +359,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private void updateImageRotation(int numQuadrants) {
-    assert numQuadrants >= 0;
-    myRotationQuadrants = (myRotationQuadrants + numQuadrants) % 4;
+    myRotationQuadrants = (myRotationQuadrants + numQuadrants) & 0x3;
     processScreenshot(numQuadrants);
   }
 
