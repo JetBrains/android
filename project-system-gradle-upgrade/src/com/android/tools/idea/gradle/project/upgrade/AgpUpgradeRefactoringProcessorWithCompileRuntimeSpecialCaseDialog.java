@@ -43,6 +43,11 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
   @NotNull private AgpUpgradeRefactoringProcessor myProcessor;
   @NotNull private CompileRuntimeConfigurationRefactoringProcessor myCompileRuntimeProcessor;
 
+  AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(@NotNull AgpUpgradeRefactoringProcessor processor) {
+    this(processor,
+         (CompileRuntimeConfigurationRefactoringProcessor)processor.getComponentRefactoringProcessors().stream()
+           .filter((x) -> x instanceof CompileRuntimeConfigurationRefactoringProcessor).findFirst().get());
+  }
   AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull CompileRuntimeConfigurationRefactoringProcessor compileRuntimeProcessor

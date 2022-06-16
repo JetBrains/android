@@ -30,6 +30,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.psi.PsiElement
+import org.jetbrains.annotations.VisibleForTesting
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
@@ -39,6 +40,20 @@ class AssistantInvokerImpl : AssistantInvoker {
     val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
+    val runProcessor = showAndGetDeprecatedConfigurationsUpgradeDialog(
+      processor, element, { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) })
+    if (runProcessor) {
+      DumbService.getInstance(project).smartInvokeLater { processor.run() }
+    }
+  }
+
+  @Slow
+  @VisibleForTesting
+  fun showAndGetDeprecatedConfigurationsUpgradeDialog(
+    processor: AgpUpgradeRefactoringProcessor,
+    element: PsiElement,
+    dialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog
+  ): Boolean {
     val compileRuntimeProcessor = processor.componentRefactoringProcessors
       .firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }
     if (compileRuntimeProcessor == null) {
@@ -49,12 +64,10 @@ class AssistantInvokerImpl : AssistantInvoker {
     processor.targets.add(wrappedElement)
     processor.ensureParsedModels()
     val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
-      val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
+      val dialog = dialogFactory(processor)
       dialog.showAndGet()
     }
-    if (runProcessor) {
-      DumbService.getInstance(project).smartInvokeLater { processor.run() }
-    }
+    return runProcessor
   }
 
   override fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
