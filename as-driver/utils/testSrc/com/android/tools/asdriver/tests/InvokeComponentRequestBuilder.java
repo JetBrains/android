@@ -57,22 +57,7 @@ public class InvokeComponentRequestBuilder {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    for (ASDriver.ComponentMatcher.Builder builder : internalBuilder.getMatchersBuilderList()) {
-      if (sb.length() > 0) {
-        sb.append(" -> ");
-      }
-      if (builder.hasComponentTextMatch()) {
-        sb.append(String.format("text==\"%s\"", builder.getComponentTextMatch().getText()));
-      } else if (builder.hasSvgIconMatch()) {
-        sb.append(String.format("icons==\"%s\"", builder.getSvgIconMatch().getIconList()));
-      } else if (builder.hasSwingClassRegexMatch()) {
-        sb.append(String.format("Swing-class regex==\"%s\"", builder.getSwingClassRegexMatch().getRegex()));
-      } else {
-        sb.append("UNRECOGNIZED MATCHER: ").append(builder.getDescriptorForType());
-      }
-    }
-    return sb.toString();
+    return internalBuilder.toString();
   }
 }
 
