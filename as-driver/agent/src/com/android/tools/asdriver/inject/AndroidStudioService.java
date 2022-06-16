@@ -116,7 +116,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ASDriver.InvokeComponentResponse.Builder builder = ASDriver.InvokeComponentResponse.newBuilder();
     try {
       StudioInteractionService studioInteractionService = new StudioInteractionService();
-      studioInteractionService.invokeComponent(request.getMatchersList());
+      studioInteractionService.findAndInvokeComponent(request.getMatchersList());
       builder.setResult(ASDriver.InvokeComponentResponse.Result.OK);
     }
     catch (InterruptedException | TimeoutException | InvocationTargetException e) {
