@@ -17,7 +17,6 @@ package com.android.tools.profilers
 
 import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.profilers.analytics.FeatureTracker
-import com.android.tools.profilers.appinspection.AppInspectionMigrationServices
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
@@ -184,8 +183,4 @@ interface IdeProfilerServices {
    */
   val traceProcessorService: TraceProcessorService
 
-  /**
-   * Returns the API for app inspection migration preferences.
-   */
-  val appInspectionMigrationServices: AppInspectionMigrationServices
 }

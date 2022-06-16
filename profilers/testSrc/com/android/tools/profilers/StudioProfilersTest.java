@@ -38,7 +38,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Arrays;
@@ -1283,8 +1282,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When energy flag is enabled and device is O, GetDirectStages returns Energy stage.
     Common.Device deviceOreo = createDevice(AndroidVersion.VersionCodes.O, "FakeDeviceO", Common.Device.State.ONLINE);
@@ -1296,7 +1294,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
     // When energy flag is disabled and device is O, GetDirectStages does not return Energy stage.
@@ -1305,8 +1302,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
     myIdeProfilerServices.enableCustomEventVisualization(true);
@@ -1315,7 +1311,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       CustomEventProfilerStage.class).inOrder();
 
     // When custom event flag is disabled and device is O, GetDirectStages does not return Custom Event stage.
@@ -1324,8 +1319,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
   }
 
   @Test
@@ -1349,8 +1343,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When energy flag is enabled and the session is O, GetDirectStages returns Energy stage.
     Common.Session sessionO = Common.Session.newBuilder()
@@ -1370,7 +1363,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
     // When energy flag is disabled and the session is pre-O, GetDirectStages does not return Energy stage.
@@ -1378,8 +1370,7 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
   }
 
   @Test

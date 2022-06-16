@@ -45,7 +45,6 @@ import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryCaptureStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
-import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.tests.memory.ReferenceWalker;
@@ -156,7 +155,7 @@ public class StudioProfilersViewTest {
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have the expected number of monitors
-    assertThat(points.size()).isEqualTo(4);
+    assertThat(points.size()).isEqualTo(3);
 
     // Test the first monitor goes to cpu profiler
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
@@ -170,14 +169,8 @@ public class StudioProfilersViewTest {
     myProfilers.setMonitoringStage();
 
     myUi.layout();
-    // Test the third monitor goes to network profiler
-    myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(myProfilers.getStage()).isInstanceOf(NetworkProfilerStage.class);
-    myProfilers.setMonitoringStage();
-
-    myUi.layout();
     // Test the fourth monitor goes to energy profiler
-    myUi.mouse.click(points.get(3).x + 1, points.get(3).y + 1);
+    myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(EnergyProfilerStage.class);
     myProfilers.setMonitoringStage();
   }
@@ -199,7 +192,7 @@ public class StudioProfilersViewTest {
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have the expected number of monitors
-    assertThat(points.size()).isEqualTo(4);
+    assertThat(points.size()).isEqualTo(3);
 
     // cpu monitor tooltip
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
@@ -217,16 +210,8 @@ public class StudioProfilersViewTest {
       monitor -> Truth.assertWithMessage("Only the Memory Monitor should be focused.")
         .that(monitor.isFocused()).isEqualTo(monitor == memoryMonitor));
 
-    // network monitor tooltip
-    myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitorTooltip.class);
-    ProfilerMonitor networMonitor = ((NetworkMonitorTooltip)stage.getTooltip()).getMonitor();
-    stage.getMonitors().forEach(
-      monitor -> Truth.assertWithMessage("Only the Network Monitor should be focused.")
-        .that(monitor.isFocused()).isEqualTo(monitor == networMonitor));
-
     // energy monitor tooltip
-    myUi.mouse.moveTo(points.get(3).x + 1, points.get(3).y + 1);
+    myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
     assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitorTooltip.class);
     ProfilerMonitor energyMonitor = ((EnergyMonitorTooltip)stage.getTooltip()).getMonitor();
     stage.getMonitors().forEach(
@@ -585,7 +570,7 @@ public class StudioProfilersViewTest {
   @Test
   public void menuShowsSupportedStagesForDebuggable() {
     assumeFalse(myIsTestingProfileable);
-    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, NetworkProfilerStage.class, EnergyProfilerStage.class);
+    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, EnergyProfilerStage.class);
   }
 
   @Test

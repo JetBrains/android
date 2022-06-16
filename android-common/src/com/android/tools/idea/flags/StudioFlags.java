@@ -129,11 +129,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILER_MIGRATION_TO_APPINSPECTION = Flag.create(
-    PROFILER, "profiler.migration.to.appinspection", "Enable migration support for network and system events profiling.",
-    "Show migration messaging to guide users to the App Inspection tool window",
-    true);
-
   public static final Flag<Boolean> PROFILEABLE_BUILDS = Flag.create(
     PROFILER, "profileable.builds", "Support building profileable apps",
     "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",

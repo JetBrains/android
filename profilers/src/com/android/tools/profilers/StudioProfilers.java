@@ -54,8 +54,6 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.network.NetworkProfiler;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -224,7 +222,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
-    profilersBuilder.add(new NetworkProfiler(this));
     if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
       profilersBuilder.add(new EnergyProfiler(this));
     }
@@ -940,9 +937,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MainMemoryProfilerStage.class);
-    if (!getIdeServices().getAppInspectionMigrationServices().isMigrationEnabled()) {
-      listBuilder.add(NetworkProfilerStage.class);
-    }
     // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
     boolean hasSession = mySelectedSession.getSessionId() != 0;
     boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()

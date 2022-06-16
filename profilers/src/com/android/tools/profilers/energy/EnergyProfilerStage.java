@@ -63,7 +63,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
   @NotNull private final EventMonitor myEventMonitor;
   @NotNull private final EnergyUsageLegends myLegends;
   @NotNull private final EnergyUsageLegends myUsageTooltipLegends;
-  @NotNull private final EnergyEventLegends myEventTooltipLegends;
   @NotNull private final RangeSelectionModel myRangeSelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
   @NotNull private final StateChartModel<Common.Event> myEventModel;
@@ -84,7 +83,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     myEventMonitor = new EventMonitor(profilers);
     myLegends = new EnergyUsageLegends(myDetailedUsage, getTimeline().getDataRange());
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, getTimeline().getTooltipRange());
-    myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), getTimeline().getTooltipRange());
 
     myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
@@ -181,11 +179,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
   @NotNull
   public EnergyUsageLegends getUsageTooltipLegends() {
     return myUsageTooltipLegends;
-  }
-
-  @NotNull
-  public EnergyEventLegends getEventTooltipLegends() {
-    return myEventTooltipLegends;
   }
 
   @NotNull
@@ -391,47 +384,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     @NotNull
     public SeriesLegend getLocationLegend() {
       return myLocationLegend;
-    }
-  }
-
-  public static class EnergyEventLegends extends LegendComponentModel {
-
-    @NotNull private final SeriesLegend myLocationLegend;
-    @NotNull private final SeriesLegend myWakeLockLegend;
-    @NotNull private final SeriesLegend myAlarmAndJobLegend;
-    @NotNull private final Range myRange;
-    @NotNull private final SingleUnitAxisFormatter myFormatter =
-      new SingleUnitAxisFormatter(1, 5, 5, "");
-
-    EnergyEventLegends(@NotNull DetailedEnergyEventsCount eventCount, @NotNull Range range) {
-      super(range);
-      myRange = range;
-      myLocationLegend = createSeriesLegend(eventCount.getLocationCountSeries());
-      myWakeLockLegend = createSeriesLegend(eventCount.getWakeLockCountSeries());
-      myAlarmAndJobLegend = createSeriesLegend(eventCount.getAlarmAndJobCountSeries());
-
-      add(myLocationLegend);
-      add(myWakeLockLegend);
-      add(myAlarmAndJobLegend);
-    }
-
-    private SeriesLegend createSeriesLegend(RangedContinuousSeries series) {
-      return new SeriesLegend(series, myFormatter, myRange, Interpolatable.SegmentInterpolator);
-    }
-
-    @NotNull
-    public Legend getWakeLockLegend() {
-      return myWakeLockLegend;
-    }
-
-    @NotNull
-    public Legend getLocationLegend() {
-      return myLocationLegend;
-    }
-
-    @NotNull
-    public Legend getAlarmAndJobLegend() {
-      return myAlarmAndJobLegend;
     }
   }
 }

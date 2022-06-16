@@ -21,7 +21,6 @@ import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
@@ -374,24 +373,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public TraceProcessorService getTraceProcessorService() {
     return myTraceProcessorService;
-  }
-
-  @Override
-  public @NotNull AppInspectionMigrationServices getAppInspectionMigrationServices() {
-    return new AppInspectionMigrationServices() {
-      @Override
-      public boolean isMigrationEnabled() { return false; }
-      @Override
-      public boolean isSystemEventsMigrationDialogEnabled() { return false; }
-      @Override
-      public void setSystemEventsMigrationDialogEnabled(boolean isSystemEventsMigrationDialogEnabled) { }
-      @Override
-      public boolean isNetworkProfilerMigrationDialogEnabled() { return false; }
-      @Override
-      public void setNetworkProfilerMigrationDialogEnabled(boolean isNetworkProfilerMigrationDialogEnabled) { }
-      @Override
-      public void openAppInspectionToolWindow(@NotNull String tabName) { }
-    };
   }
 
   public void setTraceProcessorService(@NotNull TraceProcessorService service) {

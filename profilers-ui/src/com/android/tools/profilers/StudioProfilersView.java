@@ -84,7 +84,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -95,7 +94,6 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
