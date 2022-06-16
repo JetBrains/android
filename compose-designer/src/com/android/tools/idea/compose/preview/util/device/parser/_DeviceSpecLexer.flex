@@ -26,8 +26,13 @@ EOL=\R
 WHITE_SPACE=\s+
 
 NUMERIC_T=[0-9]+(\.[0-9])?
-STRING_T=[:letter:]+([a-zA-Z_0-9]|[ \t\n\x0B\f\r])*
+STRING_T=([:letter:]|[:digit:]){1}([^:,=\"\\]|\\.)*
 
+%state DIMENSION_PARAM_VALUE
+%state STRING_PARAM
+%state STRING_VALUE
+
+// region CUSTOM STATE LOGIC
 %%
 <YYINITIAL> {
   {WHITE_SPACE}      { return WHITE_SPACE; }
@@ -39,24 +44,68 @@ STRING_T=[:letter:]+([a-zA-Z_0-9]|[ \t\n\x0B\f\r])*
   ","                { return COMMA; }
   "="                { return EQUALS; }
   ":"                { return COLON; }
-  "unit"             { return UNIT_KEYWORD; }
+
   "spec"             { return SPEC_KEYWORD; }
-  "id"               { return ID_KEYWORD; }
-  "name"             { return NAME_KEYWORD; }
+
   "landscape"        { return LANDSCAPE_KEYWORD; }
   "portrait"         { return PORTRAIT_KEYWORD; }
   "square"           { return SQUARE_KEYWORD; }
-  "width"            { return WIDTH_KEYWORD; }
-  "height"           { return HEIGHT_KEYWORD; }
-  "parent"           { return PARENT_KEYWORD; }
+
+  "unit"             { return UNIT_KEYWORD; }
   "orientation"      { return ORIENTATION_KEYWORD; }
   "isRound"          { return IS_ROUND_KEYWORD; }
-  "chinSize"         { return CHIN_SIZE_KEYWORD; }
   "dpi"              { return DPI_KEYWORD; }
+
+  "id"               { yypushback(yylength()); yybegin(STRING_PARAM); }
+  "name"             { yypushback(yylength()); yybegin(STRING_PARAM); }
+  "parent"           { yypushback(yylength()); yybegin(STRING_PARAM); }
+
+  "width"            { yypushback(yylength()); yybegin(DIMENSION_PARAM_VALUE); }
+  "height"           { yypushback(yylength()); yybegin(DIMENSION_PARAM_VALUE); }
+  "chinSize"         { yypushback(yylength()); yybegin(DIMENSION_PARAM_VALUE); }
 
   {NUMERIC_T}        { return NUMERIC_T; }
   {STRING_T}         { return STRING_T; }
-
 }
+
+<DIMENSION_PARAM_VALUE> {
+  ","                { yypushback(yylength()); yybegin(YYINITIAL); }
+  "px"               { return PX; }
+  "dp"               { return DP; }
+  "="                { return EQUALS; }
+  "width"            { return WIDTH_KEYWORD; }
+  "height"           { return HEIGHT_KEYWORD; }
+  "chinSize"         { return CHIN_SIZE_KEYWORD; }
+
+  {WHITE_SPACE}      { return WHITE_SPACE; }
+  {NUMERIC_T}        { return NUMERIC_T; }
+}
+
+/**
+ * Parse the parameter, there may be Whitespace
+ */
+<STRING_PARAM> {
+  "="                { yypushback(yylength()); yybegin(STRING_VALUE); }
+  ":"                { yypushback(yylength()); yybegin(STRING_VALUE); }
+
+  "id"               { return ID_KEYWORD; }
+  "name"             { return NAME_KEYWORD; }
+  "parent"           { return PARENT_KEYWORD; }
+
+  {WHITE_SPACE}      { return WHITE_SPACE; }
+}
+
+/**
+ * Parse string value without considering Whitespace token
+ */
+<STRING_VALUE> {
+  "="                { return EQUALS; }
+  ":"                { return COLON; }
+
+  ","                { yypushback(yylength()); yybegin(YYINITIAL); }
+
+  {STRING_T}         { return STRING_T; }
+}
+// endregion
 
 [^] { return BAD_CHARACTER; }

@@ -126,4 +126,113 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
       """.trimIndent())
     )
   }
+
+  /**
+   * Cases where a number is part of a string are parsed correctly depending on the context.
+   */
+  fun testSpecWithNumberInIdOrName() {
+    // ID, Name or parent with dimension value is considered a String token
+    assertEquals(
+      """
+        FILE
+          PsiElement(id)('id')
+          PsiElement(:)(':')
+          PsiElement(STRING_T)('1080.0px')
+      """.trimIndent(),
+      toParseTreeText("id:1080.0px")
+    )
+    assertEquals(
+      """
+        FILE
+          PsiElement(name)('name')
+          PsiElement(:)(':')
+          PsiElement(STRING_T)('1080.0px')
+      """.trimIndent(),
+      toParseTreeText("name:1080.0px")
+    )
+    assertEquals(
+      """
+        FILE
+          PsiElement(spec)('spec')
+          PsiElement(:)(':')
+          DeviceSpecSpecImpl(SPEC)
+            DeviceSpecParentParamImpl(PARENT_PARAM)
+              PsiElement(parent)('parent')
+              PsiElement(=)('=')
+              PsiElement(STRING_T)('1080.0px')
+      """.trimIndent(),
+      toParseTreeText("spec:parent=1080.0px")
+    )
+
+    // Same value on width parameter is a SIZE_T element with Numeric + px tokens
+    assertEquals(
+      """
+        FILE
+          PsiElement(spec)('spec')
+          PsiElement(:)(':')
+          DeviceSpecSpecImpl(SPEC)
+            DeviceSpecWidthParamImpl(WIDTH_PARAM)
+              PsiElement(width)('width')
+              PsiElement(=)('=')
+              DeviceSpecSizeTImpl(SIZE_T)
+                PsiElement(NUMERIC_T)('1080.0')
+                DeviceSpecUnitImpl(UNIT)
+                  PsiElement(px)('px')
+      """.trimIndent(),
+      toParseTreeText("spec:width=1080.0px")
+    )
+    assertEquals(
+      """
+        FILE
+          PsiElement(spec)('spec')
+          PsiElement(:)(':')
+          DeviceSpecSpecImpl(SPEC)
+            DeviceSpecWidthParamImpl(WIDTH_PARAM)
+              PsiElement(width)('width')
+              PsiElement(=)('=')
+              DeviceSpecSizeTImpl(SIZE_T)
+                PsiElement(NUMERIC_T)('1080')
+                DeviceSpecUnitImpl(UNIT)
+                  PsiElement(px)('px')
+      """.trimIndent(),
+      toParseTreeText("spec:width= 1080px ")
+    )
+
+    assertEquals(
+      """
+        FILE
+          PsiElement(spec)('spec')
+          PsiElement(:)(':')
+          DeviceSpecSpecImpl(SPEC)
+            DeviceSpecParentParamImpl(PARENT_PARAM)
+              PsiElement(parent)('parent')
+              PsiElement(=)('=')
+              PsiElement(STRING_T)('1024.0px by 1800.0px Custom')
+            PsiElement(,)(',')
+            DeviceSpecOrientationParamImpl(ORIENTATION_PARAM)
+              PsiElement(orientation)('orientation')
+              PsiElement(=)('=')
+              DeviceSpecOrientationTImpl(ORIENTATION_T)
+                PsiElement(landscape)('landscape')
+      """.trimIndent(),
+      toParseTreeText("spec:parent=1024.0px by 1800.0px Custom,orientation=landscape")
+    )
+
+    // Error on unsupported characters
+    assertEquals(
+      """
+        FILE
+          PsiElement(spec)('spec')
+          PsiElement(:)(':')
+          PsiElement(width)('width')
+          PsiElement(=)('=')
+          PsiErrorElement:NUMERIC_T expected, got 'e'
+            PsiElement(BAD_CHARACTER)('e')
+          PsiElement(NUMERIC_T)('1080')
+          PsiElement(px)('px')
+          PsiElement(BAD_CHARACTER)('e')
+      """.trimIndent(),
+      toParseTreeText("spec:width=e 1080px e")
+    )
+  }
 }

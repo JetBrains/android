@@ -15,6 +15,8 @@
  */
 
 /*
+ * MAKE SURE TO PRESERVE CUSTOM LOGIC IN _DeviceSpecLexer.flex WHEN DOING ANY CHANGES.
+ *
  * Defines the tokens in the device spec for the `device` parameter within the @Preview annotation.
  * The language allows to use existing devices via the 'id' or to define a new spec to be re-used in the preview. The spec
  * allows to only define a very limited set of values for the configuration.
@@ -63,7 +65,7 @@
     DPI_KEYWORD = 'dpi'
 
     NUMERIC_T = 'regexp:\d+(\.\d)?'
-    STRING_T = 'regexp:\p{Alpha}+(\w|\s)*'
+    STRING_T = 'regexp:\p{Alnum}{1}([^:,="\\]|\\.)*'
   ]
 }
 
