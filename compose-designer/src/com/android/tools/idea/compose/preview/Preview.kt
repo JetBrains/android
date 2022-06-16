@@ -84,6 +84,7 @@ import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
@@ -123,6 +124,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -836,24 +838,27 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Flow handling file changes.
       launch(workerThread) {
         val psiFile = psiFilePointer.element ?: return@launch
+        val lookupManager = LookupManager.getInstance(project)
         documentChangeFlow(psiFile, this@ComposePreviewRepresentation, LOG)
           .debounce {
             // The debounce timer is smaller when running with Fast Preview so the changes are more responsive to typing.
             if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
           }
           .conflate()
+          .filter { lookupManager.activeLookup == null } // Ignore changes while completion is active.
           .collectLatest {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
                 requestFastPreviewRefresh()
-              } catch(_: Throwable) {
+              }
+              catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
               return@collectLatest
             }
 
-          if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
-        }
+            if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
+          }
       }
     }
   }
