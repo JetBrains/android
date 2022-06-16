@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatib
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.BuildModel
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
@@ -80,10 +81,12 @@ internal class AndroidExtraModelProviderWorker(
           is SyncProjectActionOptions -> {
             val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
             val canFetchV2Models = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>().isNotEmpty()
+
+            val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
             val v2ModelBuildersSupportParallelSync =
               modules
                 .filterIsInstance<BasicV2AndroidModuleGradleProject>()
-                .all { canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp)) }
+                .all { canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp), gradleVersion) }
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
             SyncProjectActionWorker(
               syncOptions,
@@ -615,14 +618,16 @@ internal class AndroidExtraModelProviderWorker(
    * Checks if we can request the V2 models in parallel.
    * We need to make sure we only request the models in parallel if:
    * - we are fetching android models
+   * - we are using Gradle 7.4.2+ (https://github.com/gradle/gradle/issues/18587)
    * - using a stable AGP version higher than or equal to AGP 7.2.0 and lower than AGP 7.3.0-alpha01, or
    * - using at least AGP 7.3.0-alpha-04.
    *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
    */
-  private fun canUseParallelSync(gradlePluginVersion: GradleVersion?): Boolean {
-    return gradlePluginVersion != null &&
-           ((gradlePluginVersion >= GradleVersion(7, 2, 0) && gradlePluginVersion < "7.3.0-alpha01") ||
-           gradlePluginVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
+  private fun canUseParallelSync(agpVersion: GradleVersion?, gradleVersion: String): Boolean {
+    return org.gradle.util.GradleVersion.version(gradleVersion) >= org.gradle.util.GradleVersion.version("7.4.2") &&
+           agpVersion != null &&
+           ((agpVersion >= GradleVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
+            agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {

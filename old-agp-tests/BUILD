@@ -250,7 +250,6 @@ local_old_agp_test(
     shard_count = 5,
     tags = [
         "block-network",
-        "no_test_linux",  # TODO(b/236148714): Test is disabled for high flakiness.
         "no_test_mac",
         "no_test_windows",
     ],
