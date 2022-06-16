@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
@@ -148,13 +147,4 @@ fun inflate(model: NlModel): CompletableFuture<RenderResult> {
         newTask.dispose()
       }
     }
-}
-
-/** Helper function useful for debugging. */
-private fun printBounds(root: ViewInfo, builder: StringBuilder = StringBuilder()): String {
-  builder.append("  ${root.className}::wxh = (${root.right - root.left} x ${root.bottom - root.top}})\n")
-  root.children.forEach {
-    printBounds(it, builder)
-  }
-  return builder.toString()
 }
