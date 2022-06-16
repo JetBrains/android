@@ -257,7 +257,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     val hadAnyRepresentationsInitialized: Boolean
     synchronized(representations) {
       // Remove unaccepted
-      (representations.keys - providerNames).forEach { name ->
+      (representations.keys - (providerNames - newRepresentations.keys)).forEach { name ->
         representations.remove(name)?.let {
           Disposer.dispose(it)
         }
