@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
@@ -108,5 +109,14 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertTrue(isPreviewUsagesField.getBoolean(processor))
+  }
+
+  @Test
+  fun testOneArgumentConstructor() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor)
+    val field = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java.getDeclaredField("myCompileRuntimeProcessor")
+    field.isAccessible = true
+    assertEquals(processor.getCompileRuntimeProcessor(), field.get(dialog))
   }
 }

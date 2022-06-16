@@ -624,4 +624,14 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
     assertNull(processor.backFromPreviewAction)
     Disposer.dispose(dialog.disposable)
   }
+
+  @Test
+  fun testTwoArgConstructor() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val dialog = AgpUpgradeRefactoringProcessorDialog(processor, false)
+    val java8Field = AgpUpgradeRefactoringProcessorDialog::class.java.getDeclaredField("myJava8Processor").apply { isAccessible = true }
+    val r8Field = AgpUpgradeRefactoringProcessorDialog::class.java.getDeclaredField("myR8FullModeProcessor").apply { isAccessible = true }
+    assertEquals(processor.getJava8DefaultRefactoringProcessor(), java8Field.get(dialog))
+    assertEquals(processor.getR8FullModeDefaultRefactoringProcessor(), r8Field.get(dialog))
+  }
 }
