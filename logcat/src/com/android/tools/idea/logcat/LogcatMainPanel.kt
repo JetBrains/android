@@ -92,6 +92,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
+import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
@@ -127,6 +128,7 @@ import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
 import javax.swing.Icon
+import javax.swing.JComponent
 import kotlin.math.max
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
@@ -135,6 +137,17 @@ private const val MAX_PACKAGE_NAMES = 1000
 
 private val HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+
+// To avoid exposing LogcatMainPanel, we needed to make a factory that will return a JComponent. We
+// initially tried making LogcatMainPanel public, but that caused a chain-reaction of "package
+// protection level" issues.
+class LogcatMainPanelFactory {
+  companion object {
+    fun create(project: Project): JComponent {
+      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null)
+    }
+  }
+}
 
 /**
  * The top level Logcat panel.
@@ -499,6 +512,7 @@ internal class LogcatMainPanel(
       ScreenRecorderAction.AVD_NAME_KEY.name -> if (device?.isEmulator == true) device.deviceId else null
       ScreenRecorderAction.SDK_KEY.name -> device?.sdk
       EDITOR.name -> editor
+      PROJECT.name -> project
       else -> null
     }
   }
