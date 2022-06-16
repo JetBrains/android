@@ -40,6 +40,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -658,6 +659,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @NotNull
   private DeleteProvider createNonNlComponentDeleteProvider() {
     return new DeleteProvider() {
+      @NotNull
+      @Override
+      public ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
       @Override
       public void deleteElement(@NotNull DataContext dataContext) {
         deleteNonNlComponent(getSelectionPaths());
