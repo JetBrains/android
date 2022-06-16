@@ -62,7 +62,7 @@ class RefactoringProcessorInstantiator {
         dialog.show()
         return@invokeAndWaitIfNeeded false
       }
-      val dialog = AgpUpgradeRefactoringProcessorDialog(processor, java8Processor!!, r8FullModeProcessor!!, hasChangesInBuildFiles)
+      val dialog = AgpUpgradeRefactoringProcessorDialog(processor, hasChangesInBuildFiles)
       dialog.showAndGet()
     }
     return runProcessor

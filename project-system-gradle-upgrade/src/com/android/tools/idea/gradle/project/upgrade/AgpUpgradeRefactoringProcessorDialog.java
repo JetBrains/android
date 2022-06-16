@@ -58,6 +58,15 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   @NotNull private Java8DefaultRefactoringProcessor myJava8Processor;
   @NotNull private R8FullModeDefaultRefactoringProcessor myR8FullModeProcessor;
 
+  AgpUpgradeRefactoringProcessorDialog(@NotNull AgpUpgradeRefactoringProcessor processor, boolean hasChangedBuildFiles) {
+    this(processor,
+         (Java8DefaultRefactoringProcessor)processor.getComponentRefactoringProcessors().stream()
+           .filter((x) -> x instanceof Java8DefaultRefactoringProcessor).findFirst().get(),
+         (R8FullModeDefaultRefactoringProcessor)processor.getComponentRefactoringProcessors().stream()
+           .filter((x) -> x instanceof R8FullModeDefaultRefactoringProcessor).findFirst().get(),
+         hasChangedBuildFiles);
+  }
+
   AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
