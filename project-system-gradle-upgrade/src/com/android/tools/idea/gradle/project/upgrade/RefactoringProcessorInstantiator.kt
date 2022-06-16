@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.VisibleForTesting
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
@@ -34,7 +35,20 @@ class RefactoringProcessorInstantiator {
    * is true, the processor is assumed to be already configured.
    */
   @Slow
-  fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
+  fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean =
+    showAndGetAgpUpgradeDialog(
+      processor,
+      { p -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog(p) },
+      { p, changes -> AgpUpgradeRefactoringProcessorDialog(p, changes) }
+    )
+
+  @Slow
+  @VisibleForTesting
+  fun showAndGetAgpUpgradeDialog(
+    processor: AgpUpgradeRefactoringProcessor,
+    cannotUpgradeDialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog,
+    upgradeDialogFactory: (AgpUpgradeRefactoringProcessor, Boolean) -> AgpUpgradeRefactoringProcessorDialog
+  ): Boolean {
     val java8Processor = processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? Java8DefaultRefactoringProcessor }
     if (java8Processor == null) {
       LOG.error("no Java8Default processor found in AGP Upgrade Processor")
@@ -58,11 +72,11 @@ class RefactoringProcessorInstantiator {
           processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
           LOG.warn("cannot upgrade: classpath processor is always a no-op")
         }
-        val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
+        val dialog = cannotUpgradeDialogFactory(processor)
         dialog.show()
         return@invokeAndWaitIfNeeded false
       }
-      val dialog = AgpUpgradeRefactoringProcessorDialog(processor, hasChangesInBuildFiles)
+      val dialog = upgradeDialogFactory(processor, hasChangesInBuildFiles)
       dialog.showAndGet()
     }
     return runProcessor
