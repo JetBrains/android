@@ -19,6 +19,7 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.defaultTotalBuildDurationMs
+import com.android.build.attribution.ui.mockDownloadsData
 import com.android.build.attribution.ui.model.BuildOverviewPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.tools.adtui.TreeWalker
@@ -140,30 +141,7 @@ class BuildOverviewPageViewTest {
   @Test
   fun testDownloadsOverviewInfo() {
     val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
-        DownloadsAnalyzer.RepositoryResult(
-          repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
-          successRequestsCount = 5,
-          successRequestsTimeMs = 1000,
-          successRequestsBytesDownloaded = 300000,
-          missedRequestsCount = 0,
-          missedRequestsTimeMs = 0,
-          failedRequestsCount = 0,
-          failedRequestsTimeMs = 0,
-          failedRequestsBytesDownloaded = 0
-        ),
-        DownloadsAnalyzer.RepositoryResult(
-          repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
-          successRequestsCount = 1,
-          successRequestsTimeMs = 500,
-          successRequestsBytesDownloaded = 10000,
-          missedRequestsCount = 1,
-          missedRequestsTimeMs = 10,
-          failedRequestsCount = 1,
-          failedRequestsTimeMs = 5,
-          failedRequestsBytesDownloaded = 0
-        )
-      ))
+      downloadsData = mockDownloadsData()
     }
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)

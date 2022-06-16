@@ -149,6 +149,38 @@ class MockUiData(
   }
 }
 
+fun mockDownloadsData(): DownloadsAnalyzer.ActiveResult {
+  fun defaultDownloadResult(repository: DownloadsAnalyzer.Repository, status: DownloadsAnalyzer.DownloadStatus, duration: Long, bytes: Long): DownloadsAnalyzer.DownloadResult = DownloadsAnalyzer.DownloadResult(
+    timestamp = 0,
+    repository = repository,
+    url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+    status = status,
+    duration = duration,
+    bytes = bytes,
+    failureMessage = null
+  )
+  return DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
+    DownloadsAnalyzer.RepositoryResult(
+      repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
+      downloads = listOf(
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.GOOGLE, DownloadsAnalyzer.DownloadStatus.SUCCESS, 100, 60000),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.GOOGLE, DownloadsAnalyzer.DownloadStatus.SUCCESS, 100, 60000),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.GOOGLE, DownloadsAnalyzer.DownloadStatus.SUCCESS, 100, 60000),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.GOOGLE, DownloadsAnalyzer.DownloadStatus.SUCCESS, 400, 60000),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.GOOGLE, DownloadsAnalyzer.DownloadStatus.SUCCESS, 300, 60000)
+      )
+    ),
+    DownloadsAnalyzer.RepositoryResult(
+      repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
+      downloads = listOf(
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL, DownloadsAnalyzer.DownloadStatus.SUCCESS, 500, 10000),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL, DownloadsAnalyzer.DownloadStatus.MISSED, 10, 0),
+        defaultDownloadResult(DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL, DownloadsAnalyzer.DownloadStatus.FAILURE, 5, 0)
+      )
+    )
+  ))
+}
+
 class TestTaskUiData(
   override val module: String,
   override val name: String,

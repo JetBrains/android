@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.ui.mockDownloadsData
 import com.google.common.truth.Truth
 import org.junit.Test
 
@@ -40,30 +41,7 @@ class DownloadsInfoPageModelTest {
   /** Test the formatted content of the table. */
   @Test
   fun testTableValuesForNonEmptyResult() {
-    val downloadsData = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
-      DownloadsAnalyzer.RepositoryResult(
-        repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
-        successRequestsCount = 5,
-        successRequestsTimeMs = 1000,
-        successRequestsBytesDownloaded = 300000,
-        missedRequestsCount = 0,
-        missedRequestsTimeMs = 0,
-        failedRequestsCount = 0,
-        failedRequestsTimeMs = 0,
-        failedRequestsBytesDownloaded = 0
-      ),
-      DownloadsAnalyzer.RepositoryResult(
-        repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
-        successRequestsCount = 1,
-        successRequestsTimeMs = 500,
-        successRequestsBytesDownloaded = 10000,
-        missedRequestsCount = 1,
-        missedRequestsTimeMs = 10,
-        failedRequestsCount = 1,
-        failedRequestsTimeMs = 5,
-        failedRequestsBytesDownloaded = 0
-      )
-    ))
+    val downloadsData = mockDownloadsData()
     val model = DownloadsInfoPageModel(downloadsData)
 
     val tableModel = model.repositoriesTableModel
@@ -81,5 +59,18 @@ class DownloadsInfoPageModelTest {
       |Google|5|300 kB|1.0s|0|0.0s|
       |Maven Central|3|10 kB|0.5s|2|<0.1s|
     """.trimIndent())
+  }
+
+  @Test
+  fun testRequestsListContentOnSelectionChange() {
+    val downloadsData = mockDownloadsData()
+    val model = DownloadsInfoPageModel(downloadsData)
+
+    Truth.assertThat(model.requestsListModel.rowCount).isEqualTo(0)
+
+    // Select all
+    model.selectedRepositoriesUpdated(downloadsData.repositoryResults)
+
+    Truth.assertThat(model.requestsListModel.rowCount).isEqualTo(8)
   }
 }

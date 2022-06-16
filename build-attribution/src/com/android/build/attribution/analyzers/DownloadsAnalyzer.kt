@@ -20,6 +20,7 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
 import com.intellij.openapi.diagnostic.Logger
+import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
@@ -58,14 +59,25 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
       event.result.bytesDownloaded == 0L -> DownloadStatus.MISSED
       else -> DownloadStatus.SUCCESS
     }
+    val failureMessage: String? = (event.result as? FailureResult)?.let {
+      buildString { appendMessagesRecursively(it.failures) }
+    }
     processedEvents.add(DownloadResult(
       timestamp = event.eventTime,
       repository = repository,
-      path = event.descriptor.uri.path,
+      url = event.descriptor.uri.toString(),
       status = status,
       duration = event.result.let { it.endTime - it.startTime },
-      bytes = event.result.bytesDownloaded
+      bytes = event.result.bytesDownloaded,
+      failureMessage = failureMessage
     ))
+  }
+
+  private fun StringBuilder.appendMessagesRecursively(failures: List<Failure>) {
+    failures.forEach { failure ->
+      failure.message?.let { append(it).appendLine() }
+      appendMessagesRecursively(failure.causes)
+    }
   }
 
   override fun cleanupTempState() {
@@ -87,21 +99,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
   override fun calculateResult(): Result {
     if (gradleCanProvideDownloadEvents != true) return GradleDoesNotProvideEvents
     val resultList = processedEvents.groupBy { it.repository }.map { (repo, events) ->
-      val groupedByStatus = events.groupBy { it.status }
-      val successDownloads = groupedByStatus.getOrDefault(DownloadStatus.SUCCESS, emptyList())
-      val failedDownloads = groupedByStatus.getOrDefault(DownloadStatus.FAILURE, emptyList())
-      val missedDownloads = groupedByStatus.getOrDefault(DownloadStatus.MISSED, emptyList())
-      RepositoryResult(
-        repository = repo,
-        successRequestsCount = successDownloads.size,
-        successRequestsTimeMs = successDownloads.sumOf { it.duration },
-        successRequestsBytesDownloaded = successDownloads.sumOf { it.bytes },
-        missedRequestsCount = missedDownloads.size,
-        missedRequestsTimeMs = missedDownloads.sumOf { it.duration },
-        failedRequestsCount = failedDownloads.size,
-        failedRequestsTimeMs = failedDownloads.sumOf { it.duration },
-        failedRequestsBytesDownloaded = failedDownloads.sumOf { it.bytes }
-      )
+      RepositoryResult(repository = repo, downloads = events)
     }
 
     LOG.debug("Downloads stats for this build: ", resultList)
@@ -125,23 +123,41 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
   data class DownloadResult(
     val timestamp: Long,
     val repository: Repository,
-    val path: String,
+    val url: String,
     val status: DownloadStatus,
     val duration: Long,
-    val bytes: Long
+    val bytes: Long,
+    val failureMessage: String?
   )
 
   data class RepositoryResult(
     val repository: Repository,
-    val successRequestsCount: Int,
-    val successRequestsTimeMs: Long,
-    val successRequestsBytesDownloaded: Long,
-    val missedRequestsCount: Int,
-    val missedRequestsTimeMs: Long,
-    val failedRequestsCount: Int,
-    val failedRequestsTimeMs: Long,
+    val downloads: List<DownloadResult>
+  ) {
+    val successRequestsCount: Int
+    val successRequestsTimeMs: Long
+    val successRequestsBytesDownloaded: Long
+    val missedRequestsCount: Int
+    val missedRequestsTimeMs: Long
+    val failedRequestsCount: Int
+    val failedRequestsTimeMs: Long
     val failedRequestsBytesDownloaded: Long
-  )
+
+    init {
+      val groupedByStatus = downloads.groupBy { it.status }
+      val successDownloads = groupedByStatus.getOrDefault(DownloadStatus.SUCCESS, emptyList())
+      val failedDownloads = groupedByStatus.getOrDefault(DownloadStatus.FAILURE, emptyList())
+      val missedDownloads = groupedByStatus.getOrDefault(DownloadStatus.MISSED, emptyList())
+      successRequestsCount = successDownloads.size
+      successRequestsTimeMs = successDownloads.sumOf { it.duration }
+      successRequestsBytesDownloaded = successDownloads.sumOf { it.bytes }
+      missedRequestsCount = missedDownloads.size
+      missedRequestsTimeMs = missedDownloads.sumOf { it.duration }
+      failedRequestsCount = failedDownloads.size
+      failedRequestsTimeMs = failedDownloads.sumOf { it.duration }
+      failedRequestsBytesDownloaded = failedDownloads.sumOf { it.bytes }
+    }
+  }
 
   sealed interface Repository {
     val analyticsType: RepositoryType
@@ -156,6 +172,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
     override val analyticsType: RepositoryType,
     private val uri: URI
   ) : Repository {
+    //TODO (mlazeba): maybe reuse from Repository.kt:24 somehow?
     GOOGLE("Google", RepositoryType.GOOGLE, URI.create("https://dl.google.com/dl/android/maven2/")),
     MAVEN_CENTRAL("Maven Central", RepositoryType.MAVEN_CENTRAL, URI.create("https://repo.maven.apache.org/maven2/")),
     JCENTER("JCenter", RepositoryType.JCENTER, URI.create("https://jcenter.bintray.com/"));

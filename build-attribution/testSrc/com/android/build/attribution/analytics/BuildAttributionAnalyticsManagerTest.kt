@@ -17,6 +17,10 @@ package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.FAILURE
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.MISSED
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.SUCCESS
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.GOOGLE
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
@@ -163,26 +167,23 @@ class BuildAttributionAnalyticsManagerTest {
 
       override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
         DownloadsAnalyzer.RepositoryResult(
-          repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
-          successRequestsCount = 5,
-          successRequestsTimeMs = 400,
-          successRequestsBytesDownloaded = 200000,
-          missedRequestsCount = 0,
-          missedRequestsTimeMs = 0,
-          failedRequestsCount = 0,
-          failedRequestsTimeMs = 0,
-          failedRequestsBytesDownloaded = 0
+          repository = GOOGLE,
+          downloads = listOf(
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000)
+          )
         ),
         DownloadsAnalyzer.RepositoryResult(
           repository = DownloadsAnalyzer.OtherRepository("other.repo.one"),
-          successRequestsCount = 2,
-          successRequestsTimeMs = 100,
-          successRequestsBytesDownloaded = 1000,
-          failedRequestsCount = 1,
-          failedRequestsTimeMs = 20,
-          failedRequestsBytesDownloaded = 0,
-          missedRequestsTimeMs = 10,
-          missedRequestsCount = 1,
+          downloads = listOf(
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), FAILURE, 20, 0),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), MISSED, 10, 0)
+          )
         )
       ))
     }
@@ -314,3 +315,12 @@ class BuildAttributionAnalyticsManagerTest {
     return isTheSamePlugin(taskIdentifier.originPlugin, taskData.originPlugin) && taskIdentifier.taskClassName == "SampleTask"
   }
 }
+
+private fun defaultDownloadResult(repository: DownloadsAnalyzer.Repository, status: DownloadsAnalyzer.DownloadStatus, duration: Long, bytes: Long): DownloadsAnalyzer.DownloadResult = DownloadsAnalyzer.DownloadResult(
+  timestamp = 0,
+  repository = repository,
+  url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+  status = status,
+  duration = duration,
+  bytes = bytes,
+  failureMessage = null)

@@ -39,8 +39,8 @@ class DownloadsAnalyzerUnitTest {
   @Test
   fun testDownloadsAnalyzerReceivingEvents() {
     val result = testDownloadsAnalyzer()
-    Truth.assertThat((result as DownloadsAnalyzer.ActiveResult).repositoryResults).containsExactly(
-        DownloadsAnalyzer.RepositoryResult(
+    Truth.assertThat((result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { it.toExpectedRepositoryResult() }).containsExactly(
+        ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
           successRequestsCount = 5,
           successRequestsTimeMs = 450,
@@ -51,7 +51,7 @@ class DownloadsAnalyzerUnitTest {
           failedRequestsTimeMs = 0,
           failedRequestsBytesDownloaded = 0
         ),
-        DownloadsAnalyzer.RepositoryResult(
+        ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
           successRequestsCount = 0,
           successRequestsTimeMs = 0,
@@ -62,7 +62,7 @@ class DownloadsAnalyzerUnitTest {
           failedRequestsTimeMs = 0,
           failedRequestsBytesDownloaded = 0
         ),
-        DownloadsAnalyzer.RepositoryResult(
+        ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.OtherRepository("bad.repo.one"),
           successRequestsCount = 0,
           successRequestsTimeMs = 0,
@@ -73,7 +73,7 @@ class DownloadsAnalyzerUnitTest {
           failedRequestsTimeMs = 20,
           failedRequestsBytesDownloaded = 0
         ),
-        DownloadsAnalyzer.RepositoryResult(
+        ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.OtherRepository("bad.repo.two"),
           successRequestsCount = 0,
           successRequestsTimeMs = 0,
@@ -136,7 +136,7 @@ class DownloadsAnalyzerUnitTest {
         url = "https://bad.repo.one/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
         parent = sampleTaskDescriptor
       ),
-      downloadFailureStub(200, 220, 0) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
+      downloadFailureStub(200, 220, 0, listOf(failureStub("Failed request 1", listOf(failureStub("Caused by 1", emptyList()))))) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
     ))
     // 2.2) Request another badly configured repo, download fails.
     wrapper.receiveEvent(downloadFinishEventStub(
@@ -144,7 +144,7 @@ class DownloadsAnalyzerUnitTest {
         url = "https://bad.repo.two/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
         parent = sampleTaskDescriptor
       ),
-      downloadFailureStub(230, 240, 0) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
+      downloadFailureStub(230, 240, 0, listOf(failureStub("Failed request 2", emptyList()))) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
     ))
     // 2.3) Request maven central, but it could not be found there.
     wrapper.receiveEvent(downloadFinishEventStub(
@@ -280,11 +280,41 @@ private fun downloadSuccessStub(start: Long, end: Long, bytes: Long) = object : 
 
 private interface FailedDownloadResult : FileDownloadResult, FailureResult
 
-private fun downloadFailureStub(start: Long, end: Long, bytes: Long) = object : FailedDownloadResult {
+private fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) = object : FailedDownloadResult {
   override fun getStartTime(): Long = start
   override fun getEndTime(): Long = end
   override fun getBytesDownloaded(): Long = bytes
-  override fun getFailures(): MutableList<out Failure> {
+  override fun getFailures(): List<Failure> = failures
+}
+
+private fun failureStub(message: String, causes: List<Failure>) = object : Failure {
+  override fun getMessage(): String = message
+  override fun getCauses(): List<Failure> = causes
+  override fun getDescription(): String? {
     throw UnsupportedOperationException("Not expected to be used.")
   }
 }
+
+private data class ExpectedRepositoryResult(
+  val repository: DownloadsAnalyzer.Repository,
+  val successRequestsCount: Int,
+  val successRequestsTimeMs: Long,
+  val successRequestsBytesDownloaded: Long,
+  val missedRequestsCount: Int,
+  val missedRequestsTimeMs: Long,
+  val failedRequestsCount: Int,
+  val failedRequestsTimeMs: Long,
+  val failedRequestsBytesDownloaded: Long,
+)
+
+private fun DownloadsAnalyzer.RepositoryResult.toExpectedRepositoryResult() = ExpectedRepositoryResult(
+  repository,
+  successRequestsCount,
+  successRequestsTimeMs,
+  successRequestsBytesDownloaded,
+  missedRequestsCount,
+  missedRequestsTimeMs,
+  failedRequestsCount,
+  failedRequestsTimeMs,
+  failedRequestsBytesDownloaded
+)

@@ -15,15 +15,26 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.DownloadsInfoPageModel
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.setEmptyState
+import com.intellij.openapi.util.text.Formats
+import com.intellij.ui.CollectionListModel
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBList
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.BoxLayout
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
@@ -33,25 +44,34 @@ class DownloadsInfoPageView(
 ) : BuildAnalyzerDataPageView {
 
   private val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
-    setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
     setEmptyState(pageModel.repositoriesTableEmptyText)
+    selectionModel.addListSelectionListener {
+      if (it.valueIsAdjusting) return@addListSelectionListener
+      pageModel.selectedRepositoriesUpdated(selectedObjects)
+    }
+  }
+
+  private val requestsList = TableView(pageModel.requestsListModel).apply {
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    setShowGrid(false)
+    tableHeader.reorderingAllowed = false
+    setEmptyState("Select one or more repositories on the left to see requests info.")
   }
 
   override val component: JPanel = JPanel().apply {
     name = "downloads-info-view"
     border = JBUI.Borders.empty(20)
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    add(JPanel().apply {
-      layout = BorderLayout(0, JBUI.scale(10))
-      maximumSize = JBUI.size(800, Int.MAX_VALUE)
-      alignmentX = Component.LEFT_ALIGNMENT
+    layout = BorderLayout(0, JBUI.scale(10))
 
-      val pageHeaderText = "This table shows time Gradle took to download artifacts from repositories."
-      add(htmlTextLabelWithFixedLines(pageHeaderText), BorderLayout.NORTH)
-      add(createScrollPane(resultsTable), BorderLayout.CENTER)
-    })
+    val pageHeaderText = "This table shows time Gradle took to download artifacts from repositories."
+    add(JBLabel(pageHeaderText), BorderLayout.NORTH)
+    val splitter = OnePixelSplitter(0.4f)
+    splitter.firstComponent = createScrollPane(resultsTable)
+    splitter.secondComponent = createScrollPane(requestsList)
+    add(splitter, BorderLayout.CENTER)
   }
 
   override val additionalControls: JPanel = JPanel().apply { name = "downloads-info-view-additional-controls" }

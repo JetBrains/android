@@ -18,9 +18,17 @@ package com.android.build.attribution.ui.model
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.minGradleVersionProvidingDownloadEvents
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.warningIcon
 import com.intellij.openapi.util.text.Formats
+import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
+import java.util.Comparator
+import javax.swing.JTable
+import javax.swing.JToolTip
+import javax.swing.SwingConstants
+import javax.swing.table.TableCellRenderer
 
 class DownloadsInfoPageModel(
   private val downloadsData: DownloadsAnalyzer.Result
@@ -32,6 +40,14 @@ class DownloadsInfoPageModel(
     is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is $minGradleVersionProvidingDownloadEvents."
     is DownloadsAnalyzer.ActiveResult -> "There was no attempt to download files during this build."
     is DownloadsAnalyzer.AnalyzerIsDisabled -> error("UI Should not be available for this state.")
+  }
+
+  val requestsListModel: ListTableModel<DownloadsAnalyzer.DownloadResult> = RequestsListTableModel().apply {
+    isSortable = true
+  }
+
+  fun selectedRepositoriesUpdated(repositories: List<DownloadsAnalyzer.RepositoryResult>) {
+    requestsListModel.items = repositories.flatMap { it.downloads }
   }
 }
 
@@ -64,4 +80,73 @@ private class RepositoriesTableModel(result: DownloadsAnalyzer.Result) : ListTab
   private fun DownloadsAnalyzer.RepositoryResult.totalAmountOfTime() = successRequestsTimeMs + failedRequestsTimeMs + missedRequestsTimeMs
   private fun DownloadsAnalyzer.RepositoryResult.numberOfFailed() = failedRequestsCount + missedRequestsCount
   private fun DownloadsAnalyzer.RepositoryResult.timeOfFailed() = failedRequestsTimeMs + missedRequestsTimeMs
+}
+
+/**
+ * Populates table with the list of requests from selected repositories.
+ */
+class RequestsListTableModel : ListTableModel<DownloadsAnalyzer.DownloadResult>() {
+
+  init {
+    columnInfos = arrayOf(
+      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, DownloadsAnalyzer.DownloadResult>("Status") {
+        val cellRenderer = MyWarningIconCellRenderer()
+        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): DownloadsAnalyzer.DownloadResult = item
+        override fun getRenderer(item: DownloadsAnalyzer.DownloadResult): TableCellRenderer = cellRenderer
+        override fun getPreferredStringValue() = "Not Found"
+        override fun getMaxStringValue(): String = preferredStringValue
+        override fun getAdditionalWidth(): Int = warningIcon().iconWidth
+        override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.status }
+      },
+      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, String>("File") {
+        val cellRenderer = MyCellRenderer(SimpleTextAttributes.REGULAR_ATTRIBUTES)
+        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): String = item.url
+        override fun getRenderer(item: DownloadsAnalyzer.DownloadResult): TableCellRenderer = cellRenderer
+        override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.url }
+      },
+      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, String>("Time") {
+        val cellRenderer = MyCellRenderer(SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): String = durationString(item.duration)
+        override fun getRenderer(item: DownloadsAnalyzer.DownloadResult): TableCellRenderer = cellRenderer
+        override fun getPreferredStringValue() = "###.#s"
+        override fun getMaxStringValue(): String = preferredStringValue
+        override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.duration }
+      },
+      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, String>("Size") {
+        val cellRenderer = MyCellRenderer(SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): String = Formats.formatFileSize(item.bytes)
+        override fun getRenderer(item: DownloadsAnalyzer.DownloadResult): TableCellRenderer = cellRenderer
+        override fun getPreferredStringValue() = "123.45MB"
+        override fun getMaxStringValue(): String = preferredStringValue
+        override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.bytes }
+      }
+    )
+  }
+}
+
+private class MyWarningIconCellRenderer : ColoredTableCellRenderer() {
+  override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+    if (value is DownloadsAnalyzer.DownloadResult) {
+      if (value.status != DownloadsAnalyzer.DownloadStatus.SUCCESS) {
+        icon = warningIcon()
+      }
+      val text = when (value.status) {
+        DownloadsAnalyzer.DownloadStatus.SUCCESS -> "Ok"
+        DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
+        DownloadsAnalyzer.DownloadStatus.FAILURE -> "Error"
+      }
+      append(text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
+      toolTipText = "row: $row<br/><br/>" + value.failureMessage?.replace("\n", "<br/>")
+
+    }
+    setTextAlign(SwingConstants.RIGHT)
+  }
+}
+
+private class MyCellRenderer(val textAttributes: SimpleTextAttributes) : ColoredTableCellRenderer() {
+  override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+    if (value is String) {
+      append(value, textAttributes)
+    }
+  }
 }

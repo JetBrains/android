@@ -16,35 +16,18 @@
 package com.android.build.attribution.ui.data
 
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.FAILURE
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.MISSED
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.SUCCESS
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.GOOGLE
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL
+import com.android.build.attribution.ui.mockDownloadsData
 import com.google.common.truth.Truth
 import org.junit.Test
 
 class DownloadsSummaryUIDataTest {
 
-  private val downloadsData = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
-    DownloadsAnalyzer.RepositoryResult(
-      repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
-      successRequestsCount = 5,
-      successRequestsTimeMs = 1000,
-      successRequestsBytesDownloaded = 300000,
-      missedRequestsCount = 0,
-      missedRequestsTimeMs = 0,
-      failedRequestsCount = 0,
-      failedRequestsTimeMs = 0,
-      failedRequestsBytesDownloaded = 0
-    ),
-    DownloadsAnalyzer.RepositoryResult(
-      repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
-      successRequestsCount = 1,
-      successRequestsTimeMs = 500,
-      successRequestsBytesDownloaded = 10000,
-      missedRequestsCount = 1,
-      missedRequestsTimeMs = 10,
-      failedRequestsCount = 1,
-      failedRequestsTimeMs = 5,
-      failedRequestsBytesDownloaded = 100
-    )
-  ))
+  private val downloadsData = mockDownloadsData()
 
   @Test
   fun testSumOfRequests() {
@@ -53,7 +36,7 @@ class DownloadsSummaryUIDataTest {
 
   @Test
   fun testSumOfDataBytes() {
-    Truth.assertThat(DownloadsSummaryUIData (downloadsData).sumOfDataBytes).isEqualTo(300000 + 10000 + 100)
+    Truth.assertThat(DownloadsSummaryUIData (downloadsData).sumOfDataBytes).isEqualTo(300000 + 10000)
   }
 
   @Test
