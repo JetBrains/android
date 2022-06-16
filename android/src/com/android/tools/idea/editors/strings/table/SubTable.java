@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -170,6 +171,12 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   @Override
   public Object getData(@NotNull String dataId) {
     return PlatformDataKeys.PASTE_PROVIDER.is(dataId) ? this : null;
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override

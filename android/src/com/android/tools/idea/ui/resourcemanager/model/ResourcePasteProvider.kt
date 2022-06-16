@@ -23,6 +23,7 @@ import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
@@ -271,6 +272,8 @@ class ResourcePasteProvider : PasteProvider {
     PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
       ?.produce()
       ?.getTransferData(RESOURCE_URL_FLAVOR) as ResourceUrl?
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isPastePossible(dataContext: DataContext): Boolean {
     return PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
