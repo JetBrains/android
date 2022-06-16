@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -50,7 +49,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
@@ -142,9 +140,6 @@ public class ProjectStructureUsageTracker {
         if (androidModel != null) {
           IdeAndroidProject moduleAndroidProject = androidModel.getAndroidProject();
           GradleAndroidModule.Builder androidModule = GradleAndroidModule.newBuilder();
-          if (isWatchFeatureRequired(facet)) {
-            androidModule.setRequiredHardware(UsesFeature.HARDWARE_TYPE_WATCH);
-          }
           // @formatter:off
           androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(facet.getHolderModule().getName()))
                        .setSigningConfigCount(moduleAndroidProject.getSigningConfigs().size())
