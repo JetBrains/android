@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.ItemTransferable.DESIGNER_FLAVOR
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import java.awt.datatransfer.DataFlavor
 
@@ -30,6 +31,7 @@ class PreviewSurfaceActionHandler(surface: DesignSurface<*>) : DesignSurfaceActi
     pasted: MutableList<NlComponent>
   ): Boolean = false
   override fun getFlavor(): DataFlavor = DESIGNER_FLAVOR
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun canDeleteElement(dataContext: DataContext): Boolean = false
   override fun isPasteEnabled(dataContext: DataContext): Boolean = false
   override fun isCopyEnabled(dataContext: DataContext): Boolean = false

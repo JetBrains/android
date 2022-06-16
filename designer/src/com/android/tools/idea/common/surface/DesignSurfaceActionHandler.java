@@ -23,6 +23,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +49,12 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
   protected DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override

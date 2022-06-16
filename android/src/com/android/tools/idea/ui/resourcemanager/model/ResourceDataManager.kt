@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -71,6 +72,8 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
       }
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun isCopyVisible(dataContext: DataContext): Boolean = isCopyEnabled(dataContext)
 

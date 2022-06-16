@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -224,6 +225,12 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
   public void clearSelection() {
     myListView.clearSelection();
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
