@@ -244,6 +244,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             }
             catch (Exception e) {
               getLog().error("Something went wrong with the encryption tool", e);
+              invokeLaterIfNeeded(() -> Messages.showErrorDialog(
+                getProject(), AndroidBundle.message("android.export.package.bundle.key.export.error.description", e.getMessage()),
+                AndroidBundle.message("android.export.package.bundle.key.export.error.title")));
               trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
               return;
             }
