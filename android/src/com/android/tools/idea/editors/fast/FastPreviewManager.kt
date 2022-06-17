@@ -293,7 +293,7 @@ class FastPreviewManager private constructor(
    * Returns true when the feature is enabled
    */
   val isEnabled: Boolean
-    get() = !disableForThisSession && LiveEditApplicationConfiguration.getInstance().isLiveEditPreview
+    get() = !disableForThisSession && FastPreviewConfiguration.getInstance().isEnabled
 
   /**
    * Returns the reason why the Fast Preview was disabled, if available.
@@ -507,7 +507,7 @@ class FastPreviewManager private constructor(
         .notify(project)
       disableForThisSession = true
     }
-    else LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = false
+    else FastPreviewConfiguration.getInstance().isEnabled = false
 
     val tracker = FastPreviewTrackerManager.getInstance(project)
     if (reason == ManualDisabledReason)
@@ -521,7 +521,7 @@ class FastPreviewManager private constructor(
     disableReason = null
     disableForThisSession = false
     FastPreviewTrackerManager.getInstance(project).userEnabled()
-    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
+    FastPreviewConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 
   override fun dispose() {

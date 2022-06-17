@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.diagnostic.Logger
@@ -258,7 +257,7 @@ internal class FastPreviewManagerTest {
     // Check, disabling Live Literals disables the compiler flag.
     run {
       compilationRequests.clear()
-      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+      FastPreviewConfiguration.getInstance().isEnabled = false
       try {
         val file2 = projectRule.fixture.addFileToProject("testB.kt", """
           fun emptyB() {}
@@ -273,7 +272,7 @@ internal class FastPreviewManagerTest {
       """.trimIndent(), requestParameters)
       }
       finally {
-        LiveEditApplicationConfiguration.getInstance().resetDefault()
+        FastPreviewConfiguration.getInstance().resetDefault()
       }
     }
 
@@ -382,7 +381,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
-      assertTrue("Auto disable should not be persisted", LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled)
+      assertTrue("Auto disable should not be persisted", FastPreviewConfiguration.getInstance().isEnabled)
       assertEquals(
         "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
         manager.disableReason.toString())
@@ -395,7 +394,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue(manager.isEnabled)
-      assertTrue(LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled)
+      assertTrue(FastPreviewConfiguration.getInstance().isEnabled)
       assertNull(manager.disableReason)
     }
     assertEquals(

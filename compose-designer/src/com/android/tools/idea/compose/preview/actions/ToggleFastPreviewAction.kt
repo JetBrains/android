@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewSurface
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -32,7 +33,9 @@ import icons.StudioIcons
  * Action that toggles the Fast Preview state.
  */
 class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.StatusBar.LIVE_LITERALS) {
-  override fun isSelected(e: AnActionEvent): Boolean = LiveEditApplicationConfiguration.getInstance().isLiveEditPreview
+  override fun isSelected(e: AnActionEvent): Boolean = e.project?.let {
+    FastPreviewManager.getInstance(it).isEnabled
+  } ?: false
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.project ?: return

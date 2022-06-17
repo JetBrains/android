@@ -39,7 +39,6 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   class State : BaseState() {
     var mode by enum(LIVE_LITERALS)
     var liveEditDeviceEnabled by property(true)
-    var liveEditPreviewEnabled by property(StudioFlags.COMPOSE_FAST_PREVIEW.get())
   }
 
   var mode
@@ -50,7 +49,6 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value == LIVE_LITERALS)
         if (value == LIVE_EDIT) {
           liveEditDeviceEnabled = state.liveEditDeviceEnabled
-          liveEditPreviewEnabled = state.liveEditPreviewEnabled
         }
       }
     }
@@ -77,26 +75,10 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   val isLiveEditDevice
     get() = mode == LIVE_EDIT && liveEditDeviceEnabled
 
-  /**
-   * True if the Live Literals feature is enabled. This is an application wide setting that allows the user to disable the feature.
-   * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable].
-   */
-  var liveEditPreviewEnabled
-    get() = StudioFlags.COMPOSE_FAST_PREVIEW.get() && state.liveEditPreviewEnabled
-    set(value) {
-      if (state.liveEditPreviewEnabled != value) {
-        state.liveEditPreviewEnabled = value
-      }
-    }
-
-  val isLiveEditPreview
-    get() = mode == LIVE_EDIT && liveEditPreviewEnabled
-
   @TestOnly
   fun resetDefault() {
     state.mode = LIVE_LITERALS
     state.liveEditDeviceEnabled = true
-    state.liveEditPreviewEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 
   companion object {

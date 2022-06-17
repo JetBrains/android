@@ -57,23 +57,6 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
             { enabled -> if (enabled) config.mode = LIVE_EDIT },
             message("live.edit.configurable.display.name.comment")
           )
-
-          buttonGroup {
-            row {
-              checkBox(
-                message("live.edit.configurable.device.enable"),
-                config::liveEditDeviceEnabled,
-                message("live.edit.configurable.device.enable.comment")
-              )
-            }
-            row {
-              checkBox(
-                message("live.edit.configurable.preview.enable"),
-                config::liveEditPreviewEnabled,
-                message("live.edit.configurable.preview.enable.comment")
-              ).visible(StudioFlags.COMPOSE_FAST_PREVIEW.get())
-            }
-          }
         }
 
         row {
@@ -97,12 +80,6 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         .forEach {
           LiveLiteralsService.getInstance(it).onAvailabilityChange()
           ProjectConstantRemapper.getInstance(it).clearConstants(null)
-        }
-    } else if (!LiveEditApplicationConfiguration.getInstance().isLiveEditPreview) {
-      ProjectManager.getInstance().openProjects
-        .flatMap { it.allModules() }
-        .forEach {
-          ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
         }
     }
 

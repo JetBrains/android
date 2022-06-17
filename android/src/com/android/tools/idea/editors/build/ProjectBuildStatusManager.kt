@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.hasExistingClassFile
@@ -141,7 +140,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   private val fileChangeDetector: PsiFileChangeDetector
     get() =
       // When Live Edit is disabled, we do not do any tracking of the file since it will never be out of date.
-      if (LiveEditApplicationConfiguration.getInstance().isLiveEditPreview)
+      if (FastPreviewManager.getInstance(project).isEnabled)
         NopPsiFileChangeDetector
       else
         psiFileChangeDetector

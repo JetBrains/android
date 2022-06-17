@@ -18,9 +18,9 @@ package com.android.tools.idea.editors.build
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
@@ -111,7 +111,7 @@ class ProjectBuildStatusManagerTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
-      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+      FastPreviewConfiguration.getInstance().isEnabled = true
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).getBuildListenerForTest().buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
@@ -121,10 +121,10 @@ class ProjectBuildStatusManagerTest {
       assertEquals(ProjectStatus.Ready, statusManager.status)
 
       // Disabling Live Edit will bring the out of date state
-      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+      FastPreviewConfiguration.getInstance().isEnabled = false
       assertEquals(ProjectStatus.OutOfDate, statusManager.status)
     } finally {
-      LiveEditApplicationConfiguration.getInstance().resetDefault()
+      FastPreviewConfiguration.getInstance().resetDefault()
     }
   }
 }

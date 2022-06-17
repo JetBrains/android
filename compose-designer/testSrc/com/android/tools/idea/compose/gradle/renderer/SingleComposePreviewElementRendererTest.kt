@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
+import com.android.flags.junit.SetFlagRule
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.flags.StudioFlags
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -30,6 +32,9 @@ import java.nio.file.Paths
 class SingleComposePreviewElementRendererTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+
+  @get:Rule
+  val resetFastPreviewFlag = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   /**
    * Checks that trying to render an non-existent preview returns a null image

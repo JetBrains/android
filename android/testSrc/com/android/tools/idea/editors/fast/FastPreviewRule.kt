@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import org.junit.rules.ExternalResource
 
@@ -23,15 +22,14 @@ import org.junit.rules.ExternalResource
  * [ExternalResource] rule that sets the [StudioFlags.COMPOSE_FAST_PREVIEW] flag to true and makes sure that
  * the global setting is enabled.
  */
-class FastPreviewRule: ExternalResource() {
+class FastPreviewRule : ExternalResource() {
   override fun before() {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
-    LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
-    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = true
+    FastPreviewConfiguration.getInstance().isEnabled = true
   }
 
   override fun after() {
     StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
-    LiveEditApplicationConfiguration.getInstance().resetDefault()
+    FastPreviewConfiguration.getInstance().resetDefault()
   }
 }
