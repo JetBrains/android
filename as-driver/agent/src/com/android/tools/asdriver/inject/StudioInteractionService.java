@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.inject;
 
 import com.android.tools.asdriver.proto.ASDriver;
+import com.intellij.BundleBase;
 import com.intellij.ide.DataManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
@@ -230,7 +231,7 @@ public class StudioInteractionService {
       String componentText = getTextFromComponent(c);
 
       // Remove any escape characters introduced by mnemonics from the component's text.
-      String textWithoutEscapeCharacter = componentText == null ? null : componentText.replaceAll("[\\x1B]", "");
+      String textWithoutEscapeCharacter = componentText == null ? null : componentText.replaceAll(String.valueOf(BundleBase.MNEMONIC), "");
       return Objects.equals(componentText, text) || Objects.equals(textWithoutEscapeCharacter, text);
     };
     Set<Component> componentsFound = componentsToLookUnder.stream().filter(filterByText).collect(Collectors.toSet());
