@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
@@ -111,13 +112,14 @@ class VisualLintService(project: Project) {
    * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
    * and adds the issues found to the [IssueModel]
    */
-  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel) {
-    runVisualLintAnalysis(models, issueModel, visualLintExecutorService)
+  fun runVisualLintAnalysis(models: List<NlModel>, surface: DesignSurface<*>) {
+    runVisualLintAnalysis(models, surface, visualLintExecutorService)
   }
 
   @VisibleForTesting
-  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel, executorService: ExecutorService) {
+  fun runVisualLintAnalysis(models: List<NlModel>, surface: DesignSurface<*>, executorService: ExecutorService) {
     CompletableFuture.runAsync({
+      val issueModel = surface.issueModel
       issueModel.removeIssueProvider(issueProvider)
       issueProvider.clear()
       if (models.isEmpty()) {
@@ -141,7 +143,7 @@ class VisualLintService(project: Project) {
           inflate(model).handleAsync({ result, _ ->
             if (result != null) {
               updateHierarchy(result, model)
-              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null), true)
+              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintUsageTracker.getInstance(surface), true)
             }
             Disposer.dispose(model)
             latch.countDown()
@@ -161,15 +163,15 @@ class VisualLintService(project: Project) {
   fun analyzeAfterModelUpdate(result: RenderResult,
                               model: NlModel,
                               baseConfigIssues: VisualLintBaseConfigIssues,
-                              analyticsManager: VisualLintAnalyticsManager,
+                              tracker: VisualLintUsageTracker,
                               runningInBackground: Boolean = false) {
     basicAnalyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
-      val issues = it.analyze(result, model, analyticsManager, runningInBackground)
+      val issues = it.analyze(result, model, tracker, runningInBackground)
       issueProvider.addAllIssues(it.type, issues)
     }
     if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
       LocaleAnalyzer(baseConfigIssues).let {
-        issueProvider.addAllIssues(it.type, it.analyze(result, model, analyticsManager, runningInBackground))
+        issueProvider.addAllIssues(it.type, it.analyze(result, model, tracker, runningInBackground))
       }
     }
     if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes) {

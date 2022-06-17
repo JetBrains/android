@@ -49,9 +49,8 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -142,7 +141,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
   private val myLintIssueProvider = VisualLintService.getInstance(project).issueProvider
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
-  private val myVisualLintAnalyticsManager: VisualLintAnalyticsManager
   var editor: FileEditor?
     get() = myEditor
     private set(editor) {
@@ -208,13 +206,12 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     myRoot.add(mainComponent, BorderLayout.CENTER)
     myRoot.isFocusCycleRoot = true
     myRoot.focusTraversalPolicy = VisualizationTraversalPolicy(surface)
-    myVisualLintAnalyticsManager = VisualLintAnalyticsManager(surface)
     surface.issuePanel.addEventListener(object : IssuePanel.EventListener {
       override fun onPanelExpanded(isExpanded: Boolean) {}
 
       override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
         if (isExpanded && issue != null) {
-          myVisualLintAnalyticsManager.trackIssueExpanded(issue)
+          VisualLintUsageTracker.getInstance(surface).trackIssueExpanded(issue)
         }
       }
 
@@ -593,7 +590,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
             if (result != null) {
               ApplicationManager.getApplication().executeOnPooledThread {
                 VisualLintService.getInstance(project)
-                  .analyzeAfterModelUpdate(result, model, myBaseConfigIssues, myVisualLintAnalyticsManager)
+                  .analyzeAfterModelUpdate(result, model, myBaseConfigIssues, VisualLintUsageTracker.getInstance(surface))
                 if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
                   updateVisualLintIssues(model.file, myLintIssueProvider)
                 }

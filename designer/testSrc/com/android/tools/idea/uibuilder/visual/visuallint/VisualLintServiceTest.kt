@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
@@ -39,10 +40,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import kotlin.test.assertEquals
 
 class VisualLintServiceTest {
-  private lateinit var myAnalyticsManager: VisualLintAnalyticsManager
+  private lateinit var surface: DesignSurface<*>
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -52,7 +54,9 @@ class VisualLintServiceTest {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    myAnalyticsManager = VisualLintAnalyticsManager(null)
+    val issueModel = IssueModel.createForTesting(projectRule.fixture.testRootDisposable, projectRule.project)
+    surface = Mockito.mock(DesignSurface::class.java)
+    Mockito.`when`(surface.issueModel).thenReturn(issueModel)
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
@@ -77,11 +81,10 @@ class VisualLintServiceTest {
     val facet = AndroidFacet.getInstance(module)!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
-    val issueModel = IssueModel.createForTesting(projectRule.fixture.testRootDisposable, projectRule.project)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(nlModel), issueModel, MoreExecutors.newDirectExecutorService())
+      .runVisualLintAnalysis(listOf(nlModel), surface, MoreExecutors.newDirectExecutorService())
 
-    val issues = issueModel.issues
+    val issues = surface.issueModel.issues
     assertEquals(2, issues.size)
     issues.forEach {
       assertEquals("Visual Lint Issue", it.category)

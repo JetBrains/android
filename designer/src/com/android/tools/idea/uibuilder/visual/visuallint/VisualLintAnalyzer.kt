@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import javax.swing.event.HyperlinkListener
@@ -36,12 +37,13 @@ abstract class VisualLintAnalyzer {
   /**
    * Analyze the given [RenderResult] for visual lint issues and return found [VisualLintRenderIssue]s
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, analyticsManager: VisualLintAnalyticsManager, runningInBackground: Boolean): List<VisualLintRenderIssue> {
+  fun analyze(renderResult: RenderResult, model: NlModel, tracker: VisualLintUsageTracker,
+              runningInBackground: Boolean): List<VisualLintRenderIssue> {
     if (runningInBackground && !backgroundEnabled) {
       return emptyList()
     }
     val issueContents = findIssues(renderResult, model)
-    return issueContents.map { createIssue(it, model, analyticsManager) }.toList()
+    return issueContents.map { createIssue(it, model, tracker) }.toList()
   }
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
@@ -51,9 +53,9 @@ abstract class VisualLintAnalyzer {
   /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
   private fun createIssue(content: VisualLintIssueContent,
                           model: NlModel,
-                          analyticsManager: VisualLintAnalyticsManager): VisualLintRenderIssue {
+                          tracker: VisualLintUsageTracker): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
-    analyticsManager.trackIssueCreation(type)
+    tracker.trackIssueCreation(type)
     return VisualLintRenderIssue.builder()
       .summary(content.message)
       .severity(HighlightSeverity.WARNING)

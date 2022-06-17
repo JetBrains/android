@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
@@ -41,7 +42,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
@@ -49,7 +49,6 @@ import kotlin.test.assertNull
 import kotlin.test.fail
 
 class VisualLintAnalysisTest {
-  private lateinit var myAnalyticsManager: VisualLintAnalyticsManager
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -58,8 +57,6 @@ class VisualLintAnalysisTest {
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    val surface = Mockito.mock(DesignSurface::class.java)
-    myAnalyticsManager = VisualLintAnalyticsManager(surface)
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
                                         ButtonSizeAnalyzerInspection)
@@ -197,7 +194,7 @@ class VisualLintAnalysisTest {
         try {
           val result = task.render().get()
           VisualLintService.getInstance(projectRule.project)
-            .analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues(), myAnalyticsManager)
+            .analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues(), VisualLintUsageTracker.getInstance(null))
         }
         catch (ex: Exception) {
           throw RuntimeException(ex)
