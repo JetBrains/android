@@ -93,6 +93,7 @@ KEY
   = "age"
   | "level"
   | "is"
+  | "name"
 
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE

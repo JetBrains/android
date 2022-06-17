@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Hint
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
@@ -38,11 +39,17 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.asSequence
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
+import com.intellij.ui.JBColor.BLUE
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -98,6 +105,8 @@ private val EDITOR_BORDER = JBUI.Borders.empty(2, 2, 2, 2)
 private val HISTORY_ICON_BORDER = JBUI.Borders.empty(0, 5, 0, 4)
 
 private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
+
+private val NAMED_FILTER_HISTORY_ITEM_COLOR = SimpleTextAttributes.fromTextAttributes(TextAttributes(BLUE, null, null, null, Font.PLAIN))
 
 /**
  * A text field for the filter.
@@ -245,7 +254,9 @@ internal class FilterTextField(
     val popupDisposable = Disposer.newDisposable("popupDisposable")
 
     addToHistory()
-    val popup = PopupChooserBuilder(HistoryList(popupDisposable, logcatPresenter, filterHistory))
+    val list: JList<FilterHistoryItem> = HistoryList(popupDisposable, logcatPresenter, filterHistory, filterParser)
+    JBPopupFactory.getInstance().createPopupChooserBuilder(listOf("foo", "bar"))
+    val popup = PopupChooserBuilder(list)
       .setMovable(false)
       .setRequestFocus(true)
       .setItemChosenCallback {
@@ -254,7 +265,7 @@ internal class FilterTextField(
           isFavorite = item.isFavorite
         }
       }
-      .setSelectedValue(Item(text, isFavorite, count = null), true)
+      .setSelectedValue(Item(text, isFavorite, count = null, filterParser), true)
       .createPopup()
     Disposer.register(popup, popupDisposable)
 
@@ -334,16 +345,19 @@ internal class FilterTextField(
     parentDisposable: Disposable,
     logcatPresenter: LogcatPresenter,
     filterHistory: AndroidLogcatFilterHistory,
+    filterParser: LogcatFilterParser,
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
       val items = mutableListOf<FilterHistoryItem>().apply {
-        addAll(filterHistory.favorites.map { Item(filter = it, isFavorite = true, count = null) })
+        addAll(filterHistory.favorites.map { Item(filter = it, isFavorite = true, count = null, filterParser) })
         if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
           add(Separator)
         }
-        addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null) })
+        addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
+        add(Separator)
+        add(Hint)
       }
       val listModel = CollectionListModel(items)
       model = listModel
@@ -370,7 +384,7 @@ internal class FilterTextField(
               // Replacing an item in the model will remove the selection. Save the selected index, so we can restore it after.
               withContext(uiThread) {
                 val selected = selectedIndex
-                listModel.setElementAt(Item(item.filter, item.isFavorite, count), index)
+                listModel.setElementAt(Item(item.filter, item.isFavorite, count, filterParser), index)
                 if (selected >= 0) {
                   selectedIndex = selected
                 }
@@ -399,12 +413,25 @@ internal class FilterTextField(
    */
   @VisibleForTesting
   internal sealed class FilterHistoryItem {
-    class Item(val filter: String, val isFavorite: Boolean, val count: Int?)
+    class Item(val filter: String, val isFavorite: Boolean, val count: Int?, private val filterParser: LogcatFilterParser)
       : FilterHistoryItem() {
 
+      private val filterName = filterParser.parse(filter)?.getFilterName()
+
       override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        filterLabel.clear()
+        if (filterName != null) {
+          // If there is more than one Item with the same filterName, show the name and the filter.
+          val sameName = list.model.asSequence().filterIsInstance<Item>().count { it.filterName == filterName }
+          filterLabel.append(filterName, NAMED_FILTER_HISTORY_ITEM_COLOR)
+          if (sameName > 1) {
+            filterLabel.append(": ${filterParser.removeFilterNames(filter)}")
+          }
+        }
+        else {
+          filterLabel.append(filter)
+        }
         favoriteLabel.icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON
-        filterLabel.text = filter
         countLabel.text = when (count) {
           null -> " ".repeat(3)
           in 0..99 -> "% 2d ".format(count)
@@ -445,7 +472,7 @@ internal class FilterTextField(
       // The common pattern is to reuse the same component for all the items rather than allocate a new one for each item.
       companion object {
         private val favoriteLabel = JLabel()
-        private val filterLabel = JLabel().apply {
+        private val filterLabel = SimpleColoredComponent().apply {
           border = HISTORY_ITEM_LABEL_BORDER
         }
 
@@ -473,6 +500,21 @@ internal class FilterTextField(
       }
 
       override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        component.background = list.background
+        return component
+      }
+    }
+
+    object Hint : FilterHistoryItem() {
+      // A standalone JLabel here will change the background of the separator when it is selected. Wrapping it with a JPanel
+      // suppresses that behavior for some reason.
+      private val component = JPanel().apply {
+        add(JLabel("Press Delete to remove an item").apply {
+          foreground = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+        })
+      }
+
+      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JPanel {
         component.background = list.background
         return component
       }

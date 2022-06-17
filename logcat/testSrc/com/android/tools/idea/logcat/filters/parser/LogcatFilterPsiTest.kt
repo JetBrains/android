@@ -39,7 +39,7 @@ import org.junit.Test
 import java.text.ParseException
 
 private val STRING_KEYS = listOf("tag", "package", "message", "line")
-private val NON_STRING_KEYS = listOf("level", "age", "is")
+private val NON_STRING_KEYS = listOf("level", "age", "is", "name")
 
 @RunsInEdt
 class LogcatFilterPsiTest {

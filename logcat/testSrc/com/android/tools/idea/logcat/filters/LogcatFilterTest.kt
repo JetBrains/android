@@ -278,6 +278,48 @@ class LogcatFilterTest {
         message2,
       ).inOrder()
   }
+
+  @Test
+  fun nameFilter_matches() {
+    assertThat(NameFilter("name").matches(logcatMessage(message = "whatever"))).isTrue()
+  }
+
+  @Test
+  fun getFilterName_nameFilter() {
+    assertThat(NameFilter("name").getFilterName()).isEqualTo("name")
+  }
+
+  @Test
+  fun getFilterName_simpleFilters() {
+    assertThat(StringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(ExactStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedExactStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(RegexFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedRegexFilter("string", TAG).getFilterName()).isNull()
+    assertThat(LevelFilter(INFO).getFilterName()).isNull()
+    assertThat(AgeFilter(Duration.ofSeconds(60), Clock.systemDefaultZone()).getFilterName()).isNull()
+    assertThat(CrashFilter.getFilterName()).isNull()
+    assertThat(StackTraceFilter.getFilterName()).isNull()
+  }
+
+  @Test
+  fun getFilterName_compoundFilter() {
+    assertThat(AndLogcatFilter(StringFilter("string", TAG), LevelFilter(INFO)).getFilterName()).isNull()
+    assertThat(OrLogcatFilter(StringFilter("string", TAG), LevelFilter(INFO)).getFilterName()).isNull()
+    assertThat(AndLogcatFilter(
+      NameFilter("name1"),
+      StringFilter("string", TAG),
+      LevelFilter(INFO),
+      NameFilter("name2"),
+    ).getFilterName()).isEqualTo("name2")
+    assertThat(OrLogcatFilter(
+      NameFilter("name1"),
+      StringFilter("string", TAG),
+      LevelFilter(INFO),
+      NameFilter("name2"),
+    ).getFilterName()).isEqualTo("name2")
+  }
 }
 
 private class TrueFilter : LogcatFilter {

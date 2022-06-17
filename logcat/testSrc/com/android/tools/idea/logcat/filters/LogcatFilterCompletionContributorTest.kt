@@ -87,6 +87,7 @@ class LogcatFilterCompletionContributorTest {
       "level:",
       "line:",
       "message:",
+      "name:",
       "package:",
       "package:mine ",
       "tag:")
@@ -107,6 +108,7 @@ class LogcatFilterCompletionContributorTest {
       "level:",
       "line:",
       "message:",
+      "name:",
       "package:",
       "package:mine ",
       "tag:",
@@ -389,6 +391,7 @@ class LogcatFilterCompletionContributorTest {
         "level:",
         "line:",
         "message:",
+        "name:",
         "package:",
         "package:mine ",
         "tag:")

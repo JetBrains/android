@@ -50,6 +50,8 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.refactoring.suggested.endOffset
+import com.intellij.refactoring.suggested.startOffset
 import java.text.ParseException
 import java.time.Clock
 import java.time.Duration
@@ -100,6 +102,41 @@ internal class LogcatFilterParser(
       false
     }
   }
+
+  /**
+   * Removes `name:` terms from a filter
+   *
+   * This method does a best-effort to remove `name:` terms from a filter. The resulting filter string may not be a valid filter under
+   * extreme circumstances. Therefore, this method should only be used for display purposes. The resulting filter should never actually be
+   * used for filtering.
+   *
+   * An example of a filter that will be broken by this method: `tag:Foo | name:Name`
+   *
+   * It's possible to improve this method to be able to handle these cases, but it's non-trivial.
+   *
+   * TODO(b/236844042): Improve to Handle Complex Expressions
+￼   */
+  fun removeFilterNames(filterString: String): String {
+    return try {
+      val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
+      val offsets = PsiTreeUtil.findChildrenOfType(psi, LogcatFilterLiteralExpression::class.java)
+        .filter { it.firstChild.text == "name:" }
+        .map { Pair(it.startOffset, it.endOffset) }
+        .sortedBy { it.first }
+
+      val sb = StringBuilder(filterString)
+      offsets.reversed().forEach {(start, end) ->
+        val endWithSpace = if (end < sb.length && sb[end] in arrayOf(' ', '\t')) end + 1 else end
+        sb.replace(start, endWithSpace, "")
+      }
+      sb.toString().trim()
+
+    }
+    catch (e: LogcatFilterParseException) {
+      filterString
+    }
+  }
+
 
   private fun parseInternal(filterString: String): LogcatFilter? {
     return when {
@@ -262,6 +299,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
     "level" -> LevelFilter(lastChild.asLogLevel())
     "age" -> AgeFilter(lastChild.asDuration(), clock)
     "is" -> createIsFilter(lastChild.text)
+    "name" -> createNameFilter(lastChild.toText())
     else -> {
       val value = lastChild.toText()
       val isNegated = firstChild.text.startsWith('-')
@@ -300,6 +338,8 @@ private fun createIsFilter(text: String): LogcatFilter {
     else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
   }
 }
+
+private fun createNameFilter(text: String): LogcatFilter = NameFilter(text)
 
 private fun PsiElement.asLogLevel(): LogLevel =
   LogLevel.getByString(text.lowercase())

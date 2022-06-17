@@ -55,6 +55,8 @@ internal interface LogcatFilter {
 
   fun matches(message: LogcatMessageWrapper): Boolean
 
+  open fun getFilterName(): String? = null
+
   companion object {
     const val MY_PACKAGE = "package:mine"
   }
@@ -68,6 +70,8 @@ internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFil
   }
 
   override fun matches(message: LogcatMessageWrapper) = filters.all { it.matches(message) }
+
+  override fun getFilterName(): String? = filters.mapNotNull { it.getFilterName() }.lastOrNull()
 }
 
 internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
@@ -78,6 +82,8 @@ internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilt
   }
 
   override fun matches(message: LogcatMessageWrapper) = filters.any { it.matches(message) }
+
+  override fun getFilterName(): String? = filters.mapNotNull { it.getFilterName() }.lastOrNull()
 }
 
 internal enum class LogcatFilterField {
@@ -198,6 +204,12 @@ internal object CrashFilter : LogcatFilter {
     return (level == ERROR && tag == "AndroidRuntime" && message.logcatMessage.message.startsWith("FATAL EXCEPTION"))
            || (level == ASSERT && (tag == "DEBUG" || tag == "libc"))
   }
+}
+
+internal data class NameFilter(val name: String) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper): Boolean = true
+
+  override fun getFilterName(): String = name
 }
 
 private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")

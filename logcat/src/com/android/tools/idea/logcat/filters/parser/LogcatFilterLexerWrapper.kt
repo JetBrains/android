@@ -36,6 +36,7 @@ private val STRING_KEYS_REGEX = listOf(
   "line",
   "message",
   "msg",
+  "name",
   "package",
   "tag",
 ).joinToString("|")

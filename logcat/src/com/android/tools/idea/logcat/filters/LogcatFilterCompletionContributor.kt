@@ -64,11 +64,13 @@ private const val AGE_KEY = "age:"
 
 private const val IS_KEY = "is:"
 
+private const val NAME_KEY = "name:"
+
 // The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
 private val KEYS
-  get() = STRING_KEYS.map { "$it:" } + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
+  get() = STRING_KEYS.map { "$it:" } + LEVEL_KEY + AGE_KEY + NAME_KEY + maybeAddIsKey()
 private val ALL_KEYS
-  get() = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
+  get() = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + NAME_KEY + maybeAddIsKey()
 
 private fun maybeAddIsKey() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf(IS_KEY) else emptyList()
 

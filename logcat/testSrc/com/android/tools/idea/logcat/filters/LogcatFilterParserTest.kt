@@ -218,7 +218,6 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
   }
 
-
   @Test
   fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_true() {
 
@@ -382,11 +381,72 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().getUsageTrackingEvent("")?.build()).isEqualTo(LogcatFilterEvent.getDefaultInstance())
   }
 
+  @Test
+  fun parse_name() {
+    val filter = logcatFilterParser().parse("level:INFO tag:bar package:foo name:Name")
+
+    assertThat(filter).isEqualTo(
+      AndLogcatFilter(
+        LevelFilter(INFO),
+        StringFilter("bar", TAG),
+        StringFilter("foo", APP),
+        NameFilter("Name"),
+      )
+    )
+  }
+
+  @Test
+  fun parse_name_quoted() {
+    val filter = logcatFilterParser().parse("""name:'Name1' name:"Name2"""")
+
+    assertThat(filter).isEqualTo(
+      AndLogcatFilter(
+        NameFilter("Name1"),
+        NameFilter("Name2"),
+      )
+    )
+  }
+
+  @Test
+  fun removeFilterNames_beginning() {
+    assertThat(logcatFilterParser().removeFilterNames("name:foo package:app")).isEqualTo("package:app")
+  }
+
+  @Test
+  fun removeFilterNames_end() {
+    assertThat(logcatFilterParser().removeFilterNames("package:app name:foo")).isEqualTo("package:app")
+  }
+
+  @Test
+  fun removeFilterNames_withWhitespace() {
+    assertThat(logcatFilterParser().removeFilterNames("package:app name:  foo")).isEqualTo("package:app")
+  }
+
+  @Test
+  fun removeFilterNames_withSingleQuotes() {
+    assertThat(logcatFilterParser().removeFilterNames("name:'foo' package:app")).isEqualTo("package:app")
+  }
+
+  @Test
+  fun removeFilterNames_withDoubleQuotes() {
+    assertThat(logcatFilterParser().removeFilterNames("""name:"foo"'" package:app""")).isEqualTo("package:app")
+  }
+
+  @Test
+  fun removeFilterNames_multiple() {
+    assertThat(logcatFilterParser().removeFilterNames("name:foo package:app name:foo")).isEqualTo("package:app")
+  }
+
   private fun logcatFilterParser(
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     joinConsecutiveTopLevelValue: Boolean = true,
     topLevelSameKeyTreatment: CombineWith = AND,
     clock: Clock = Clock.systemUTC(),
-  ) = LogcatFilterParser(project, fakePackageNamesProvider, androidProjectDetector, joinConsecutiveTopLevelValue, topLevelSameKeyTreatment,
-                         clock)
+  ) = LogcatFilterParser(
+    project,
+    fakePackageNamesProvider,
+    androidProjectDetector,
+    joinConsecutiveTopLevelValue,
+    topLevelSameKeyTreatment,
+    clock)
 }
