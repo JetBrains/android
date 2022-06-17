@@ -232,22 +232,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_SCENEVIEW_TOP_TOOLBAR = Flag.create(
-    NELE, "sceneview.top.toolbar", "Enable the per SceneView top toolbar.",
-    "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
-    true);
-
-  public static final Flag<Boolean> NELE_SCENEVIEW_BOTTOM_BAR = Flag.create(
-    NELE, "sceneview.bottom.bar", "Enable the per SceneView bottom bar.",
-    "Enable the per SceneView bottom bar that displays the SceneView contextual actions.",
-    false);
-
-  public static final Flag<Boolean> NELE_SCENEVIEW_LEFT_BAR = Flag.create(
-    NELE, "sceneview.left.bar", "Enable SceneView left bar for overlay actions.",
-    "Enable the SceneView left bar that displays the overlay actions.",
-    true);
-
-
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
 
   public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
@@ -1251,11 +1235,6 @@ public final class StudioFlags {
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
-
-  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON = Flag.create(
-    COMPOSE, "preview.fast.reload.in.process.enabled", "Enable the Compose fast-reload in-process compiler",
-    "If enabled, the preview will use the in-process compiler for compiling.",
-    true);
 
   public static final Flag<Boolean> COMPOSE_MULTIPREVIEW = Flag.create(
     COMPOSE, "preview.multipreview.enabled", "Enable Compose Multipreview",
