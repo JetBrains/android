@@ -22,6 +22,7 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
@@ -32,6 +33,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.model.UsedFeatureRawText;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
@@ -45,10 +47,13 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
@@ -147,6 +152,9 @@ public class ProjectStructureUsageTracker {
                        .setBuildTypeCount(androidModel.getBuildTypeNames().size())
                        .setFlavorCount(androidModel.getProductFlavorNames().size())
                        .setFlavorDimension(moduleAndroidProject.getFlavorDimensions().size());
+          if (!androidModule.getIsLibrary() && isWatchHardwareRequired(facet)) {  // Ignore library modules to query Manifest Index less.
+            androidModule.setRequiredHardware(UsesFeature.HARDWARE_TYPE_WATCH);
+          }
           // @formatter:on
           gradleAndroidModules.add(androidModule.build());
         }
@@ -187,6 +195,19 @@ public class ProjectStructureUsageTracker {
       event.setCategory(GRADLE).setKind(GRADLE_BUILD_DETAILS).setGradleBuildDetails(gradleBuild);
       UsageTracker.log(UsageTrackerUtils.withProjectId(event, myProject));
     }
+  }
+
+  private boolean isWatchHardwareRequired(AndroidFacet facet) {
+    try {
+      return DumbService.getInstance(myProject).runReadActionInSmartMode(() -> {
+        Set<UsedFeatureRawText> usedFeatures = queryUsedFeaturesFromManifestIndex(facet);
+        return usedFeatures.contains(new UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
+               || usedFeatures.contains(new UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true"));
+      });
+    } catch (Throwable e) {
+      LOG.warn("Manifest Index could not be queried", e);
+    }
+    return false;
   }
 
   @VisibleForTesting
