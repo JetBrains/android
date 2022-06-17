@@ -670,7 +670,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         composeWorkBench.updateProgress(message("panel.building"))
         afterBuildStarted()
       }
-    }, this, allowMultipleSubscriptionsPerProject = true)
+    }, this)
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, {

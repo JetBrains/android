@@ -152,7 +152,7 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
         invalidateSavedBuildStatus()
         buildFailed()
       }
-    }, parentDisposable = buildDisposable, allowMultipleSubscriptionsPerProject = true)
+    }, parentDisposable = buildDisposable)
 
     module.androidFacet?.let { facet ->
       val listener: ((MutableSet<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->

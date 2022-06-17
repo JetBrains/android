@@ -34,12 +34,12 @@ import com.intellij.ui.AnimatedIcon
 class LayoutlibSceneManagerRefreshIconAction private constructor(
   project: Project,
   addRenderListener: (RenderListener) -> Unit,
-  setupBuildListener: (Project, BuildListener, Disposable, Boolean) -> Unit,
+  setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
   parentDisposable: Disposable): AnAction() {
   companion object {
     fun forTesting(project: Project,
                    addRenderListener: (RenderListener) -> Unit,
-                   setupBuildListener: (Project, BuildListener, Disposable, Boolean) -> Unit,
+                   setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
                    parentDisposable: Disposable): LayoutlibSceneManagerRefreshIconAction =
       LayoutlibSceneManagerRefreshIconAction(project, addRenderListener, setupBuildListener, parentDisposable)
 
@@ -56,7 +56,7 @@ class LayoutlibSceneManagerRefreshIconAction private constructor(
      * builds.
      */
     fun forRefreshOnly(sceneManager: LayoutlibSceneManager) =
-      LayoutlibSceneManagerRefreshIconAction(sceneManager.model.project, sceneManager::addRenderListener, {_, _, _, _ ->}, sceneManager)
+      LayoutlibSceneManagerRefreshIconAction(sceneManager.model.project, sceneManager::addRenderListener, {_, _, _ ->}, sceneManager)
   }
 
   private var isRendering = false
@@ -93,7 +93,7 @@ class LayoutlibSceneManagerRefreshIconAction private constructor(
   init {
     templatePresentation.disabledIcon = AnimatedIcon.Default()
 
-    setupBuildListener(project, buildListener, parentDisposable, false)
+    setupBuildListener(project, buildListener, parentDisposable)
     addRenderListener(object : RenderListener {
       override fun onInflateStarted() {
         isRendering = true

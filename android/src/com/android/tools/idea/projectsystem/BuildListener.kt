@@ -19,29 +19,43 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+
+/**
+ * A per-project subscription to the [ProjectSystemBuildManager] (see [createBuildListener]) managing all the client subscriptions made via
+ * [setupBuildListener]. This way we only have at most one subscription to each [Project].
+ */
+private class ProjectSubscription {
+  val listenersMap: WeakHashMap<Disposable, BuildListener> = WeakHashMap()
+  val projectSystemListenerDisposable: Disposable = Disposer.newDisposable()
+}
+
 private val projectSubscriptionsLock = ReentrantLock()
 
 @GuardedBy("projectSubscriptionsLock")
-private val projectSubscriptions = WeakHashMap<Project, WeakHashMap<Disposable, BuildListener>>()
+private val projectSubscriptions = WeakHashMap<Project, ProjectSubscription>()
 
 /**
  * Executes [method] against all the non-disposed subscriptions for the [project]. Removes disposed subscriptions.
  */
 private fun forEachNonDisposedBuildListener(project: Project, method: (BuildListener) -> Unit) {
   projectSubscriptionsLock.withLock {
-    projectSubscriptions[project]?.let { subscriptions ->
+    projectSubscriptions[project]?.let { subscription ->
       // Clear disposed
-      subscriptions.keys.removeIf { Disposer.isDisposed(it) }
+      subscription.listenersMap.keys.removeIf { Disposer.isDisposed(it) }
+      if (subscription.listenersMap.isEmpty()) {
+        Disposer.dispose(subscription.projectSystemListenerDisposable)
+        projectSubscriptions.remove(project)
+      }
 
-      ArrayList<BuildListener>(subscriptions.values)
+      ArrayList<BuildListener>(subscription.listenersMap.values)
     } ?: emptyList()
   }.forEach(method)
 }
@@ -71,30 +85,51 @@ interface BuildListener {
   }
 }
 
+private fun Project.createBuildListener() = object : ProjectSystemBuildManager.BuildListener {
+  // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
+  override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+    if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
+
+    forEachNonDisposedBuildListener(this@createBuildListener,
+                                    BuildListener::buildStarted)
+  }
+
+  override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    // We do not call refresh if the build was not successful or if it was simply a clean build.
+    val isCleanBuild = result.mode == ProjectSystemBuildManager.BuildMode.CLEAN
+    if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS && !isCleanBuild) {
+      forEachNonDisposedBuildListener(
+        this@createBuildListener,
+        BuildListener::buildSucceeded)
+    }
+    else {
+      if (isCleanBuild) {
+        forEachNonDisposedBuildListener(
+          this@createBuildListener,
+          BuildListener::buildCleaned)
+      }
+      else {
+        forEachNonDisposedBuildListener(
+          this@createBuildListener,
+          BuildListener::buildFailed)
+      }
+    }
+  }
+}
+
 /**
  * This sets up a listener that receives updates every time a build starts or finishes. On successful build, it calls
  * [BuildListener.buildSucceeded] method of the passed [BuildListener]. If the build fails, [BuildListener.buildFailed] will be called
- * instead.
- * This class ignores "clean" target builds and will not notify the listener when a clean happens since most listeners will not need to
- * listen for changes on "clean" target builds. If you need to listen for "clean" target builds, use [ProjectSystemBuildManager] directly.
+ * instead. If the successful build is "clean" build [BuildListener.buildCleaned] will be called.
  *
  * This is intended to be used by [com.intellij.openapi.fileEditor.FileEditor]'s. The editor should recreate/amend the model to reflect
  * build changes. This set up should be called in the constructor the last, so that all other members are initialized as it could call
  * [BuildListener.buildSucceeded] method straight away.
  */
-fun setupBuildListener(project: Project,
-                       buildable: BuildListener,
-                       parentDisposable: Disposable,
-                       allowMultipleSubscriptionsPerProject: Boolean = false) =
-  setupBuildListener(project, buildable, parentDisposable, allowMultipleSubscriptionsPerProject,
-                     ProjectSystemService.getInstance(project).projectSystem.getBuildManager())
-
-@VisibleForTesting
 fun setupBuildListener(
   project: Project,
   buildable: BuildListener,
   parentDisposable: Disposable,
-  allowMultipleSubscriptionsPerProject: Boolean,
   buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(project).projectSystem.getBuildManager(),
 ) {
   if (Disposer.isDisposed(parentDisposable)) {
@@ -102,63 +137,33 @@ fun setupBuildListener(
       .warn("calling setupBuildListener for a disposed component $parentDisposable")
     return
   }
-  // If we are not yet subscribed to this project, we should subscribe. If allowMultipleSubscriptionsPerProject is set to true, a build
-  // listener is added anyway, so it's up to the caller to avoid setting up redundant build listeners.
-  val projectNotSubscribed = projectSubscriptionsLock.withLock {
-    val notSubscribed = projectSubscriptions[project]?.isEmpty() != false
-    projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
-    notSubscribed
-  }
-  // Double check that listener is properly disposed. Add test for it.
 
-  if (projectNotSubscribed || allowMultipleSubscriptionsPerProject) {
-    buildManager.addBuildListener(
-      parentDisposable,
-      object : ProjectSystemBuildManager.BuildListener {
-        // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
-        override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-          if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
-
-          forEachNonDisposedBuildListener(project,
-                                          BuildListener::buildStarted)
-        }
-
-        override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-          // We do not call refresh if the build was not successful or if it was simply a clean build.
-          val isCleanBuild = result.mode == ProjectSystemBuildManager.BuildMode.CLEAN
-          if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS && !isCleanBuild) {
-            forEachNonDisposedBuildListener(
-              project,
-              BuildListener::buildSucceeded)
-          }
-          else {
-            if (isCleanBuild) {
-              forEachNonDisposedBuildListener(
-                project,
-                BuildListener::buildCleaned)
-            }
-            else {
-              forEachNonDisposedBuildListener(
-                project,
-                BuildListener::buildFailed)
-            }
-          }
-        }
-      })
-  }
   /**
-   * Sets up the listener once all conditions are met. This method can only be called once the project has synced and is smart.
+   * Sets up the listener once all conditions are met. This method can only be called once the project has synced and is smart on a
+   * dispatcher thread.
    */
   fun setupListenerWhenSmartAndSynced(buildManager: ProjectSystemBuildManager) {
+    ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
     projectSubscriptionsLock.withLock {
-      projectSubscriptions[project]!!.let {
-        it[parentDisposable] = buildable
-        Disposer.register(parentDisposable) {
-          projectSubscriptionsLock.withLock disposable@{
-            val subscriptions = projectSubscriptions[project] ?: return@disposable
-            subscriptions.remove(parentDisposable)
+      val subscription = projectSubscriptions.computeIfAbsent(project) {
+        val projectSubscription = ProjectSubscription()
+        // If we are not yet subscribed to this project, we should subscribe.
+        buildManager.addBuildListener(
+          projectSubscription.projectSystemListenerDisposable,
+          project.createBuildListener()
+        )
+        projectSubscription
+      }
+      subscription.listenersMap[parentDisposable] = buildable
+      Disposer.register(parentDisposable) {
+        projectSubscriptionsLock.withLock disposable@{
+          val disposingSubscription = projectSubscriptions[project] ?: return@disposable
+          disposingSubscription.listenersMap.remove(parentDisposable)
+          if (disposingSubscription.listenersMap.isEmpty()) {
+            Disposer.dispose(disposingSubscription.projectSystemListenerDisposable)
+            projectSubscriptions.remove(project)
           }
         }
       }
