@@ -16,9 +16,11 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.ide.IdeEventQueue
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
@@ -30,13 +32,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Suppress("UnstableApiUsage")
 class DesignerCommonIssuePanelTest {
 
   @JvmField
   @Rule
-  val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
+  val rule = AndroidProjectRule.inMemory().onEdt()
 
-  // @Test disabled due to flaky. b/228523178
+  @RunsInEdt
+  @Test
   fun testViewOptionFilter() {
     val infoSeverityIssue = TestIssue(severity = HighlightSeverity.INFORMATION)
     val warningSeverityIssue = TestIssue(severity = HighlightSeverity.WARNING)
@@ -44,6 +48,8 @@ class DesignerCommonIssuePanelTest {
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
     val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
+    // Make sure the Tree is added into DesignerCommonIssuePanel.
+    IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
     val treeModel = tree.model
 
@@ -80,12 +86,15 @@ class DesignerCommonIssuePanelTest {
     }
   }
 
-  // @Test disabled due to flaky. b/228523178
+  @RunsInEdt
+  @Test
   fun testShowSidePanelWhenSelectIssueNode() {
     val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
     val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
+    // Make sure the Tree is added into DesignerCommonIssuePanel.
+    IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)
