@@ -177,7 +177,7 @@ class DeviceViewPanelModelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     panelModel.rotate(0.1, 0.2)
     assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
                  panelModel.hitRects[0].transform)
@@ -206,7 +206,7 @@ class DeviceViewPanelModelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     panelModel.rotate(0.1, 0.2)
     // Only the bounds of the roots themselves should be taken into account.
     assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
@@ -228,7 +228,7 @@ class DeviceViewPanelModelTest {
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
 
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings) { client }
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
@@ -262,7 +262,7 @@ class DeviceViewPanelModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
     assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
@@ -276,7 +276,7 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
   }
 
@@ -291,7 +291,7 @@ class DeviceViewPanelModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     panelModel.layerSpacing = 0
     model.showOnlySubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW1]!!)
@@ -336,7 +336,7 @@ class DeviceViewPanelModelTest {
   ) {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = hideSystemNodes
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model), treeSettings)
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }

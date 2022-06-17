@@ -43,7 +43,6 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -115,7 +114,7 @@ DONE.
     val model = model {}
     val process = LEGACY_DEVICE.createProcess()
     return LegacyClient(process, isInstantlyAutoConnected = false, model,
-                        LayoutInspectorMetrics(model.project, process, SessionStatistics(model, FakeTreeSettings())),
+                        LayoutInspectorMetrics(model.project, process, SessionStatistics(model)),
                         disposableRule.disposable).apply {
       launchMonitor = mock()
     }

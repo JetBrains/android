@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.annotations.TestOnly
@@ -26,12 +25,12 @@ import org.jetbrains.annotations.TestOnly
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
+class SessionStatistics(model: InspectorModel) {
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val memory = MemoryStatistics(model)
   private val compose = ComposeStatistics()
-  private val system = SystemViewToggleStatistics(treeSettings)
+  private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
 
   fun start() {
@@ -103,6 +102,13 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   var currentMode3D : Boolean
     get() = rotation.currentMode3D
     set(value) { rotation.currentMode3D = value }
+
+  /**
+   * Whether the system nodes are currently being hidden.
+   */
+  var hideSystemNodes : Boolean
+    get() = system.hideSystemNodes
+    set(value) { system.hideSystemNodes = value }
 
   /**
    * Number of memory measurements

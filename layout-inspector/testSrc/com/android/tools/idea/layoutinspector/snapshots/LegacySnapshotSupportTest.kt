@@ -132,7 +132,7 @@ DONE.
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
     val treeSettings = FakeTreeSettings()
-    val stats = SessionStatistics(model, treeSettings)
+    val stats = SessionStatistics(model)
     val process = LEGACY_DEVICE.createProcess()
     val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
                                     LayoutInspectorMetrics(projectRule.project, process, stats), disposableRule.disposable).apply {

@@ -25,7 +25,9 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -56,6 +58,8 @@ import java.util.EnumSet
 import javax.swing.JComponent
 import javax.swing.JPanel
 
+private val DO_NOT_CARE: () -> Boolean = { false }
+
 class TreeSettingsActionsTest {
   companion object {
     @JvmField
@@ -70,6 +74,8 @@ class TreeSettingsActionsTest {
   val treeTableFlagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
 
   private val treeSettings = FakeTreeSettings()
+  private val model = createModel()
+  private val stats = SessionStatistics(model)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
 
@@ -77,7 +83,7 @@ class TreeSettingsActionsTest {
   fun testFilterSystemNodeAction() {
     val event = createEvent()
     SystemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
-    SystemNodeFilterAction.testToggleAction(event) { treeSettings.hideSystemNodes }
+    SystemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) { treeSettings.hideSystemNodes }
   }
 
   @Test
@@ -111,7 +117,6 @@ class TreeSettingsActionsTest {
   fun testAddingFilterRemovesSystemSelectedAndHoveredNodes() {
     treeSettings.hideSystemNodes = false
     val event = createEvent()
-    val model = LayoutInspector.get(event)?.layoutInspectorModel!!
     model.setSelection(model[VIEW3]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW2]!!
     SystemNodeFilterAction.setSelected(event, true)
@@ -124,7 +129,6 @@ class TreeSettingsActionsTest {
   fun testAddingFilterKeepsUserSelectedAndHoveredNode() {
     treeSettings.hideSystemNodes = false
     val event = createEvent()
-    val model = LayoutInspector.get(event)?.layoutInspectorModel!!
     model.setSelection(model[VIEW1]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]!!
     SystemNodeFilterAction.setSelected(event, true)
@@ -200,15 +204,22 @@ class TreeSettingsActionsTest {
   private fun ToggleAction.testToggleAction(
     event: AnActionEvent,
     update: (LayoutInspectorTreePanel) -> Unit = LayoutInspectorTreePanel::refresh,
+    statsValue: () -> Boolean = DO_NOT_CARE,
     value: () -> Boolean
   ) {
     val defaultValue = value()
     assertThat(isSelected(event)).isEqualTo(defaultValue)
     setSelected(event, !defaultValue)
     assertThat(value()).isEqualTo(!defaultValue)
+    if (statsValue != DO_NOT_CARE) {
+      assertThat(statsValue()).isEqualTo(!defaultValue)
+    }
     update(verify(event.treePanel())!!)
     setSelected(event, defaultValue)
     assertThat(value()).isEqualTo(defaultValue)
+    if (statsValue != DO_NOT_CARE) {
+      assertThat(statsValue()).isEqualTo(defaultValue)
+    }
     update(verify(event.treePanel(), times(2))!!)
   }
 
@@ -220,25 +231,12 @@ class TreeSettingsActionsTest {
     panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
     val inspector: LayoutInspector = mock()
     val client: AppInspectionInspectorClient = mock()
-    val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
-    val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
-    whenever(inspector.treeSettings).thenReturn(treeSettings)
-    whenever(inspector.currentClient).thenReturn(mock())
     whenever(treePanel.tree).thenReturn(tree)
     whenever(treePanel.component).thenReturn(component)
-
-    val model = model {
-      view(ROOT) {
-        view(VIEW1, layout = mainLayout) {
-          view(VIEW2, layout = screenSimple) {
-            view(VIEW3, layout = appcompatScreenSimple)
-          }
-        }
-      }
-    }
     whenever(inspector.layoutInspectorModel).thenReturn(model)
     whenever(inspector.currentClient).thenReturn(client)
+    whenever(inspector.stats).thenReturn(stats)
+    whenever(inspector.treeSettings).thenReturn(treeSettings)
     Mockito.doAnswer { capabilities }.whenever(client).capabilities
     Mockito.doAnswer { isConnected }.whenever(client).isConnected
 
@@ -258,5 +256,20 @@ class TreeSettingsActionsTest {
     }
     val actionManager: ActionManager = mock()
     return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+  }
+
+  private fun createModel(): InspectorModel {
+    val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+    val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    return model {
+      view(ROOT) {
+        view(VIEW1, layout = mainLayout) {
+          view(VIEW2, layout = screenSimple) {
+            view(VIEW3, layout = appcompatScreenSimple)
+          }
+        }
+      }
+    }
   }
 }

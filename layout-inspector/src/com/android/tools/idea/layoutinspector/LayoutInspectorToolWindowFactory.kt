@@ -116,7 +116,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
-        val stats = SessionStatistics(model, treeSettings)
+        val stats = SessionStatistics(model)
         val metrics = LayoutInspectorMetrics(project, null, stats)
         launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)

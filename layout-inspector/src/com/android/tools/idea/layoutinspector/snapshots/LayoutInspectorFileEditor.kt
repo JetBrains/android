@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -119,7 +118,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
 
-      stats = SessionStatistics(model, treeSettings)
+      stats = SessionStatistics(model)
 
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
       val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, layoutInspector, viewSettings, workbench)

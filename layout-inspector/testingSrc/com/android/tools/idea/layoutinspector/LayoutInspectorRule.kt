@@ -254,7 +254,7 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    val stats = SessionStatistics(inspectorModel, treeSettings)
+    val stats = SessionStatistics(inspectorModel)
     inspector = LayoutInspector(launcher, inspectorModel, stats, treeSettings, MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it

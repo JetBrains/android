@@ -197,7 +197,7 @@ class InspectorPropertiesViewTest {
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel) {
     val model = model {}
     val settings = FakeTreeSettings()
-    val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatistics(model, settings), settings)
+    val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatistics(model), settings)
     model.maxRecomposition.count = 7
     model.maxRecomposition.skips = 14
     propertiesModel.layoutInspector = layoutInspector

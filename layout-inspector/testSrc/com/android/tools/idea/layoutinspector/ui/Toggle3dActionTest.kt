@@ -94,7 +94,7 @@ class Toggle3dActionTest {
     whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
-    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel, mock()), mock(), MoreExecutors.directExecutor())
+    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel), mock(), MoreExecutors.directExecutor())
     viewModel = DeviceViewPanelModel(inspectorModel, inspector.stats, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)

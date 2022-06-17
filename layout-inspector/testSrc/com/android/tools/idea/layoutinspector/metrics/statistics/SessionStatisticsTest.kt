@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.testFramework.ApplicationRule
@@ -38,7 +37,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatistics(model {}, FakeTreeSettings())
+    val stats = SessionStatistics(model {})
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
@@ -59,10 +58,11 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatistics(model, FakeTreeSettings())
+    val stats = SessionStatistics(model)
     val compose1 = model[COMPOSE1]
     model.notifyModified(structuralChange = true)
     stats.start()
+    stats.hideSystemNodes = true
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     waitForCondition(10, TimeUnit.SECONDS) { stats.memoryMeasurements > 0 }

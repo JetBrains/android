@@ -95,6 +95,7 @@ class LayoutInspector private constructor(
       client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
       stats.start()
       stats.currentModeIsLive = client.isCapturing
+      stats.hideSystemNodes = treeSettings.hideSystemNodes
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
