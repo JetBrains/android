@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat.filters
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
@@ -42,7 +41,6 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ScalableIcon
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.components.JBList
@@ -53,6 +51,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Font
 import java.awt.event.FocusAdapter
@@ -74,6 +73,8 @@ import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.SwingConstants.VERTICAL
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
 
 private const val APPLY_FILTER_DELAY_MS = 100L
@@ -324,8 +325,17 @@ internal class FilterTextField(
     }
   }
 
-  private class HistoryList(parentDisposable: Disposable, logcatPresenter: LogcatPresenter, filterHistory: AndroidLogcatFilterHistory)
-    : JBList<FilterHistoryItem>() {
+  /**
+   * It's hard (impossible?) to test the actual popup UI with the existing test framework, so we do the next best thing which is to test the
+   * rendering from the JBList (HistoryList) directly.
+   */
+  @VisibleForTesting
+  internal class HistoryList(
+    parentDisposable: Disposable,
+    logcatPresenter: LogcatPresenter,
+    filterHistory: AndroidLogcatFilterHistory,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
+  ) : JBList<FilterHistoryItem>() {
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
       val items = mutableListOf<FilterHistoryItem>().apply {
@@ -351,7 +361,7 @@ internal class FilterTextField(
       cellRenderer = HistoryListCellRenderer()
 
       // In a background thread, calculate the count of all the items and update the model.
-      AndroidCoroutineScope(parentDisposable, workerThread).launch {
+      AndroidCoroutineScope(parentDisposable, coroutineContext).launch {
         val application = ApplicationManager.getApplication()
         listModel.items.forEachIndexed { index, item ->
           if (item is Item) {
@@ -384,7 +394,11 @@ internal class FilterTextField(
 
   override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.delete.history.tooltip")
 
-  private sealed class FilterHistoryItem {
+  /**
+   * See [HistoryList] for why this is VisibleForTesting
+   */
+  @VisibleForTesting
+  internal sealed class FilterHistoryItem {
     class Item(val filter: String, val isFavorite: Boolean, val count: Int?)
       : FilterHistoryItem() {
 
@@ -467,6 +481,3 @@ internal class FilterTextField(
     abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
   }
 }
-
-// Under test environment, the icons are fakes and non-scalable.
-private fun Icon.scale(): Icon = if (this is ScalableIcon) scale(0.5f) else this

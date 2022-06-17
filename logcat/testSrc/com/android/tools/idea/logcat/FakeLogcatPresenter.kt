@@ -44,6 +44,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
+  val filterMatchesCount = mutableMapOf<String, Int>()
 
   @Suppress("UNUSED_PARAMETER")
   override var formattingOptions: FormattingOptions = FormattingOptions()
@@ -94,7 +95,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   }
 
   override fun countFilterMatches(filter: String): Int {
-    TODO("Not yet implemented")
+    return filterMatchesCount[filter] ?: 0
   }
 
   override fun foldImmediately() {
