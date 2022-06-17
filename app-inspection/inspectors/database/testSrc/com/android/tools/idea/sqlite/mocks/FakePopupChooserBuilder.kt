@@ -70,6 +70,8 @@ open class FakePopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setNamerForFiltering(namer: Function<in SqliteDatabaseId, String>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
+  override fun setFilterAlwaysVisible(state: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
+
   override fun setAutoPackHeightOnFiltering(autoPackHeightOnFiltering: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setModalContext(modalContext: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this

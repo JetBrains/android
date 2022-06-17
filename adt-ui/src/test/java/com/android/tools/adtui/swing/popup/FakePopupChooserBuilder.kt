@@ -112,6 +112,10 @@ internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactor
     TODO("Not yet implemented")
   }
 
+  override fun setFilterAlwaysVisible(state: Boolean): IPopupChooserBuilder<T> {
+    TODO("Not yet implemented")
+  }
+
   override fun setAutoPackHeightOnFiltering(autoPackHeightOnFiltering: Boolean): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
