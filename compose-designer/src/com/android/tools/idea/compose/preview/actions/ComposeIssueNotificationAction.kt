@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.project.Project
@@ -262,7 +263,7 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
  * Clicking on the action will open a pop-up with additional details and action buttons.
  */
 @VisibleForTesting
-class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Disposable {
+class ComposeIssueNotificationAction : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
       private val insets = JBUI.insets(3)
@@ -354,7 +355,7 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
 /**
  * [ForceCompileAndRefreshAction] where the visibility is controlled by the [ComposePreviewStatusNotification.hasRefreshIcon].
  */
-private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>): ForceCompileAndRefreshAction(surface) {
+private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>): ForceCompileAndRefreshAction(surface), RightAlignedToolbarAction {
   override fun update(e: AnActionEvent) {
     super.update(e)
 

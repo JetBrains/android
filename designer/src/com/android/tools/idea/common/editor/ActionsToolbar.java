@@ -138,6 +138,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     myNorthEastToolbar.setTargetComponent(mySurface);
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
+    myNorthEastToolbar.setReservePlaceAutoPopupIcon(false);
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
     myNorthEastToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
