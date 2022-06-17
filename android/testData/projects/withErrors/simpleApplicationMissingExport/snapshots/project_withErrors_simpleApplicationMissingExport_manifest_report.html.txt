@@ -12,6 +12,22 @@
           main</a> manifest (this file)
         </td>
       </tr>
+      <tr>
+        <td width="24" height="24" style="background-color: #eaffe2; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        </td>
+        <td>
+          <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml'>support-compat:28.0.0</a>
+          manifest
+        </td>
+      </tr>
+      <tr>
+        <td width="24" height="24" style="background-color: #e3e2df; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        </td>
+        <td>
+          <a href='<PROJECT_DIR>/app/build.gradle'>build.gradle</a>
+          injection
+        </td>
+      </tr>
     </table>
     <br>
     <u><b>Other Manifest Files</b></u><br>(Included in merge, but did not
@@ -23,7 +39,6 @@
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml'>lifecycle:runtime:1.1.1</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml'>lifecycle:viewmodel:1.1.1</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml'>livedata-core:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml'>support-compat:28.0.0</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml'>support-core-ui:28.0.0</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml'>support-core-utils:28.0.0</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml'>support-fragment:28.0.0</a>
@@ -42,17 +57,17 @@
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml'>support:swiperefreshlayout:28.0.0</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml'>support:versionedparcelable:28.0.0</a>
     manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml'>support:viewpager:28.0.0</a>
-    manifest<br><br><br>Merging Errors:<br>Warning Namespace
-    'android.support.graphics.drawable' used in: AndroidManifest.xml,
-    AndroidManifest.xml. <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
-    manifest<br><font color="#ff0000"><b>Error</b></font>: android:exported
-    needs to be explicitly specified for element
+    manifest<br><br><br><br><u><b>Merge Errors</b></u><br><font color="#ff0000"><b>Error</b></font>:
+    android:exported needs to be explicitly specified for element
     &lt;activity#google.simpleapplication.MyActivity&gt;. Apps targeting Android 12
     and higher are required to specify an explicit value for
     `android:exported` when the corresponding component has an intent filter
     defined. See
     https://developer.android.com/guide/topics/manifest/activity-element#exported
     for details. <a href='<PROJECT_DIR>/app/src/main/AndroidManifest.xml:9:8'>project.app
-    main</a> manifest (this file), line 9<br>
+    main</a> manifest (this file), line 9<br><br><u><b>Merge Warnings</b></u><br><font color="#ff0000"><b>Warning</b></font>:
+    Namespace 'android.support.graphics.drawable' used in:
+    AndroidManifest.xml, AndroidManifest.xml. <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
+    manifest<br>
   </body>
 </html>

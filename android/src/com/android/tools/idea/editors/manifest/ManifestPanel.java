@@ -84,6 +84,7 @@ import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -100,6 +101,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.swing.Icon;
 import javax.swing.JEditorPane;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -455,43 +457,34 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HtmlBuilder sb = new HtmlBuilder();
     prepareReportHeader(sb);
 
-    // See if there are errors; if so, show the merging report instead of node selection report
-    if (!myManifest.getLoggingRecords().isEmpty()) {
-      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-        if (record.getSeverity() == MergingReport.Record.Severity.ERROR) {
-          node = null;
-          break;
-        }
-      }
-    }
-
+    // If a node is selected, show relevant info, otherwise show any general errors.
     if (node != null) {
       prepareSelectedNodeReport(node, sb);
     }
-    else if (!myManifest.getLoggingRecords().isEmpty()) {
-      prepareMergingErrorsReport(sb);
+    else {
+      prepareMergingErrorsReportForEverything(sb);
     }
 
     sb.closeHtmlBody();
     return sb;
   }
 
-  private void prepareMergingErrorsReport(@NotNull HtmlBuilder sb) {
-    sb.add("Merging Errors:").newline();
-    for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-      sb.addHtml(getHtml(record.getSeverity()));
-      sb.add(" ");
-      try {
-        sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0).getFile()), myManifestEditable));
-      }
-      catch (Exception ex) {
-        Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
-        sb.add(record.getMessage());
-      }
-      sb.add(" ");
-      sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
-      sb.newline();
+  private void prepareMergingErrorsReportForEverything(@NotNull HtmlBuilder sb) {
+    List<MergingReport.Record> errors =
+      myManifest.getLoggingRecords().stream()
+        .filter(record -> record.getSeverity().equals(MergingReport.Record.Severity.ERROR))
+        .collect(Collectors.toList());
+    if (!errors.isEmpty()) {
+      appendMergeRecordTitle(sb, "Merge Errors");
+      errors.forEach((record) -> prepareErrorRecord(sb, record));
+    }
+
+    List<MergingReport.Record> warnings = myManifest.getLoggingRecords().stream()
+      .filter(record -> record.getSeverity().equals(MergingReport.Record.Severity.WARNING))
+      .collect(Collectors.toList());
+    if (!warnings.isEmpty()) {
+      appendMergeRecordTitle(sb, "Merge Warnings");
+      warnings.forEach((record) -> prepareErrorRecord(sb, record));
     }
   }
 
@@ -537,6 +530,50 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
       sb.newline();
     }
+    prepareMergingErrorsForNode(manifestNode, sb, records);
+  }
+
+  private void prepareMergingErrorsForNode(@NotNull Node manifestNode,
+                                           @NotNull HtmlBuilder sb,
+                                           List<? extends Actions.Record> actionRecords) {
+    if (doesNodeHaveRecordOfSeverity(manifestNode, MergingReport.Record.Severity.WARNING)) {
+      appendMergeRecordTitle(sb, "Merge Warnings");
+      myManifest.getLoggingRecords().stream()
+        .filter(record ->
+                  actionRecords.stream().anyMatch(actionRecord -> record.getSourceLocation().equals(actionRecord.getActionLocation())))
+        .forEach(record -> prepareErrorRecord(sb, record));
+    }
+    if (doesNodeHaveRecordOfSeverity(manifestNode, MergingReport.Record.Severity.ERROR)) {
+      appendMergeRecordTitle(sb, "Merge Errors");
+      myManifest.getLoggingRecords().stream()
+        .filter(record ->
+                  actionRecords.stream().anyMatch(actionRecord -> record.getSourceLocation().equals(actionRecord.getActionLocation())))
+        .forEach(record -> prepareErrorRecord(sb, record));
+    }
+  }
+
+
+  private void appendMergeRecordTitle(@NotNull HtmlBuilder sb, String title) {
+    sb.newline();
+    sb.beginUnderline().beginBold();
+    sb.add(title);
+    sb.endBold().endUnderline().newline();
+  }
+
+  private void prepareErrorRecord(@NotNull HtmlBuilder sb, MergingReport.Record record) {
+    sb.addHtml(getHtmlForErrorRecord(record.getSeverity()));
+    sb.add(" ");
+    try {
+      sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
+                              LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0).getFile()), myManifestEditable));
+    }
+    catch (Exception ex) {
+      Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
+      sb.add(record.getMessage());
+    }
+    sb.add(" ");
+    sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
+    sb.newline();
   }
 
   private void prepareReportHeader(@NotNull HtmlBuilder sb) {
@@ -591,6 +628,33 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     }
     return myBackgroundColor;
+  }
+
+  private boolean doesNodeHaveRecordOfSeverity(@NotNull Node node, MergingReport.Record.Severity severity) {
+    List<? extends Actions.Record> actionRecords = ManifestUtils.getRecords(myManifest, node);
+    return myManifest.getLoggingRecords().stream().filter(record -> record.getSeverity().equals(severity)).anyMatch(
+      record -> {
+        for (Actions.Record actionRecord : actionRecords) {
+          if (record.getSourceLocation().equals(actionRecord.getActionLocation())) {
+            return true;
+          }
+        }
+        return false;
+      }
+    );
+  }
+
+  @Nullable
+  private Icon getNodeIcon(@NotNull Node node) {
+    if (doesNodeHaveRecordOfSeverity(node, MergingReport.Record.Severity.ERROR)) {
+      return StudioIcons.Common.ERROR;
+    }
+    else if (doesNodeHaveRecordOfSeverity(node, MergingReport.Record.Severity.WARNING)) {
+      return StudioIcons.Common.WARNING;
+    }
+    else {
+      return null;
+    }
   }
 
   @NotNull
@@ -828,11 +892,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @NotNull
-  static String getHtml(@NotNull MergingReport.Record.Severity severity) {
+  static String getHtmlForErrorRecord(@NotNull MergingReport.Record.Severity severity) {
     String severityString = StringUtil.capitalize(StringUtil.toLowerCase(severity.toString()));
-    if (severity == MergingReport.Record.Severity.ERROR) {
+    if (severity == MergingReport.Record.Severity.ERROR || severity == MergingReport.Record.Severity.WARNING) {
       return new HtmlBuilder().addHtml("<font color=\"#" + ColorUtil.toHex(JBColor.RED) + "\">")
-        .addBold(severityString).addHtml("</font>:").getHtml();
+        .addBold(severityString).addHtml("</font>").endBold().addHtml(":").getHtml();
     }
     return severityString;
   }
@@ -1161,7 +1225,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (value instanceof ManifestTreeNode) {
         ManifestTreeNode node = (ManifestTreeNode)value;
 
-        setIcon(null);
+        setIcon(getNodeIcon(node.getUserObject()));
 
         if (node.getUserObject() instanceof Element) {
           Element element = (Element)node.getUserObject();

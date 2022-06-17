@@ -1,1 +1,13 @@
-Pane content is empty
+<?xml version="1.0" encoding="UTF-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="google.simpleapplication">
+  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>
+  <application android:allowBackup="true" android:appComponentFactory="android.support.v4.app.CoreComponentFactory" android:icon="@drawable/ic_launcher" android:label="@string/app_name" android:theme="@style/AppTheme">
+    <activity android:label="@string/app_name" android:name="google.MyActivity" android:theme="@style/AppTheme">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+    <permission android:description="Insert boring description here" android:icon="@drawable/robot" android:label="Danger, Will Robinson!" android:name="com.example.DangerWillRobinson" android:protectionLevel=""/>
+    <permission android:name="com.example.WhatWereYouThinking" android:protectionLevel="||"/>
+  </application>
+</manifest>
