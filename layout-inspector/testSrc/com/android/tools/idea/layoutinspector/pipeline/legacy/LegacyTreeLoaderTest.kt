@@ -25,6 +25,7 @@ import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -44,15 +45,18 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.util.io.readBytes
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
@@ -67,20 +71,22 @@ import javax.imageio.ImageIO
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LegacyTreeLoaderTest {
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val chain = RuleChain.outerRule(FakeAdbRule()).around(MockitoCleanerRule()).around(disposableRule)!!
 
-  @get:Rule
-  val adb = FakeAdbRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = com.intellij.testFramework.ApplicationRule()
+  }
 
   @Before
   fun init() {
     val propertiesComponent = PropertiesComponentMock()
-    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    val application = ApplicationManager.getApplication()
+    application.registerServiceInstance(PropertiesComponent::class.java, propertiesComponent, disposableRule.disposable)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
 

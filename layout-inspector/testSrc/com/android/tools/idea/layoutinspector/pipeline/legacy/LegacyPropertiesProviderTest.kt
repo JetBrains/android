@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -27,23 +28,37 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class LegacyPropertiesProviderTest {
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val cleaner = MockitoCleanerRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Before
   fun init() {
     val propertiesComponent = PropertiesComponentMock()
-    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    val application = ApplicationManager.getApplication()
+    application.registerServiceInstance(PropertiesComponent::class.java, propertiesComponent, disposableRule.disposable)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
 

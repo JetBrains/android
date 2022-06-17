@@ -18,7 +18,8 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_TEXT
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoCleanerRule
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
@@ -28,14 +29,21 @@ import com.android.tools.property.panel.impl.ui.IconWithFocusBorder
 import com.android.tools.property.panel.impl.ui.PropertyLink
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.panel.impl.ui.PropertyTextFieldWithLeftButton
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 
 class ResolutionStackEditorProviderTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
+
   @get:Rule
-  val appRule = ApplicationRule()
+  val cleaner = MockitoCleanerRule()
 
   private val enumSupportProvider = object : EnumSupportProvider<InspectorPropertyItem> {
     override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
@@ -54,7 +62,7 @@ class ResolutionStackEditorProviderTest {
   @Test
   fun createTextEditor() {
     val property = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT, PropertyType.STRING, "Hello", PropertySection.DECLARED, null, 2, MockitoKt.mock())
+      ANDROID_URI, ATTR_TEXT, PropertyType.STRING, "Hello", PropertySection.DECLARED, null, 2, mock())
     val propertiesModel = InspectorPropertiesModel()
     val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -64,7 +72,7 @@ class ResolutionStackEditorProviderTest {
   @Test
   fun createColorEditor() {
     val property = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND, PropertyType.COLOR, "#220088", PropertySection.DECLARED, null, 2, MockitoKt.mock())
+      ANDROID_URI, ATTR_BACKGROUND, PropertyType.COLOR, "#220088", PropertySection.DECLARED, null, 2, mock())
     val propertiesModel = InspectorPropertiesModel()
     val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -74,7 +82,7 @@ class ResolutionStackEditorProviderTest {
 
   @Test
   fun createLambdaEditor() {
-    val property = LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, MockitoKt.mock())
+    val property = LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, mock())
     val propertiesModel = InspectorPropertiesModel()
     val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -84,9 +92,9 @@ class ResolutionStackEditorProviderTest {
   @Test
   fun createResolutionStackEditor() {
     val children = listOf(InspectorPropertyItem(
-      "", "", PropertyType.COLOR, "#880088", PropertySection.DECLARED, null, 2, MockitoKt.mock()))
+      "", "", PropertyType.COLOR, "#880088", PropertySection.DECLARED, null, 2, mock()))
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND, PropertyType.COLOR, "#121212", null, PropertySection.DECLARED, null, 1, MockitoKt.mock(), children)
+      ANDROID_URI, ATTR_BACKGROUND, PropertyType.COLOR, "#121212", null, PropertySection.DECLARED, null, 1, mock(), children)
     val propertiesModel = InspectorPropertiesModel()
     val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)

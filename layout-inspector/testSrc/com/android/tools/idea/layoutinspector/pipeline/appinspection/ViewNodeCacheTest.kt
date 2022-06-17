@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -29,23 +30,36 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.window
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Executors
 
 class ViewNodeCacheTest {
   @get:Rule
-  val rule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val cleaner = MockitoCleanerRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Before
   fun init() {
     val executors: AndroidExecutors = mock()
     whenever(executors.workerThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
-    rule.testApplication.registerService(AndroidExecutors::class.java, executors)
+    ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, executors, disposableRule.disposable)
   }
 
   @Test

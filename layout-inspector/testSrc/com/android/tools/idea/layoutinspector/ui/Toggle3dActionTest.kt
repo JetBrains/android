@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.PropertySetterRule
@@ -30,14 +31,18 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITM
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.window
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -46,7 +51,16 @@ import java.util.concurrent.TimeUnit
 class Toggle3dActionTest {
 
   @get:Rule
-  val appRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val cleaner = MockitoCleanerRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   private val scheduler = VirtualTimeScheduler()
 
@@ -71,7 +85,8 @@ class Toggle3dActionTest {
 
   @Before
   fun setUp() {
-    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    val application = ApplicationManager.getApplication()
+    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)

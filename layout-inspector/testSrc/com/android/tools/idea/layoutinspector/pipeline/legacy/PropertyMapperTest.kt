@@ -19,22 +19,32 @@ import com.android.SdkConstants
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class PropertyMapperTest {
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Before
   fun init() {
-    val propertiesComponent = PropertiesComponentMock()
-    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    val application = ApplicationManager.getApplication()
+    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
 
