@@ -633,5 +633,6 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
     val r8Field = AgpUpgradeRefactoringProcessorDialog::class.java.getDeclaredField("myR8FullModeProcessor").apply { isAccessible = true }
     assertEquals(processor.getJava8DefaultRefactoringProcessor(), java8Field.get(dialog))
     assertEquals(processor.getR8FullModeDefaultRefactoringProcessor(), r8Field.get(dialog))
+    Disposer.dispose(dialog.disposable)
   }
 }

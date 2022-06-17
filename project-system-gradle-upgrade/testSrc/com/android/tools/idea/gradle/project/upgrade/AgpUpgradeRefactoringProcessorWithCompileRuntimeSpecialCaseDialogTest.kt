@@ -118,5 +118,6 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     val field = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java.getDeclaredField("myCompileRuntimeProcessor")
     field.isAccessible = true
     assertEquals(processor.getCompileRuntimeProcessor(), field.get(dialog))
+    Disposer.dispose(dialog.disposable)
   }
 }
