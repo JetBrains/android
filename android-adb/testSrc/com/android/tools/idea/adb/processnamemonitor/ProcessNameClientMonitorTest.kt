@@ -52,7 +52,7 @@ class ProcessNameClientMonitorTest {
 
   private val device = mockDevice("device1")
 
-  private val fakeAdbDeviceServices = FakeAdbDeviceServices(FakeAdbLibSession())
+  private val fakeAdbDeviceServices = FakeAdbLibSession().deviceServices
 
   @Before
   fun setUp() {
