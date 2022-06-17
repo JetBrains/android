@@ -39,7 +39,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   private final static String START_LINE = "// --- START COPY HERE ---";
   private final static String END_LINE = "// --- END COPY HERE ---";

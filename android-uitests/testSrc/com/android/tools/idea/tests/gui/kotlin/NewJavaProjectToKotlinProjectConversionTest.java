@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -90,6 +91,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
     assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
   }
 
+  @Ignore
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testNewBasicActivityJavaProjectToKotlinProjectConversion() throws Exception {

@@ -42,7 +42,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaToKotlinConversionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /**
    * Verifies it can convert Java class to Kotlin Class.
@@ -88,12 +88,12 @@ public class JavaToKotlinConversionTest {
      *  this conversion. Do you want to find such code and correct it too?'
      */
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
-      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+      .withTimeout(SECONDS.toMillis(60)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
     EditorFixture editor = ideFrameFixture.getEditor();
 
-    Wait.seconds(10).expecting("Wait for kt file is generated.")
+    Wait.seconds(20).expecting("Wait for kt file is generated.")
       .until(() -> "MyActivity.kt".equals(editor.getCurrentFileName()));
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
@@ -101,7 +101,7 @@ public class JavaToKotlinConversionTest {
     ConversionTestUtil.changeKotlinVersion(guiTest);
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(120), "Build", "Rebuild Project");
+    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(240), "Build", "Rebuild Project");
   }
 
   private static void openJavaAndPressConvertToKotlin(@NotNull IdeFrameFixture ideFrameFixture) {
