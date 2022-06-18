@@ -29,3 +29,6 @@ Package 'com\.intellij\.grazie\.text' is not found
 Invocation of unresolved constructor com.intellij.execution.ui.ShortenCommandLineModeCombo.*
 Invocation of unresolved method com.intellij.refactoring.rename.RenameProcessor.assertNonCompileElement.*
 Invocation of unresolved method com.intellij.refactoring.suggested.SuggestedChangeSignatureData.copy.*
+
+// commit 90032eff
+Invocation of unresolved method com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser.installAndEnable.*
