@@ -27,23 +27,28 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.StyleRenderer
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreeSelectionModel
 
 class TreeTableModelImplTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule())!!
+  val edtTule = EdtRule()
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")

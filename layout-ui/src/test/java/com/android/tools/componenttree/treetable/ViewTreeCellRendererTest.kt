@@ -22,15 +22,15 @@ import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.common.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
+import org.junit.ClassRule
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -43,9 +43,11 @@ private const val TEST_ROW = 1
 
 class ViewTreeCellRendererTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   private val type = ItemNodeType()
   private val renderer = ViewTreeCellRenderer(type)

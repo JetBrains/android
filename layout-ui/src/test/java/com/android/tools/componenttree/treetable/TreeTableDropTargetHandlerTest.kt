@@ -17,6 +17,7 @@ package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -29,13 +30,14 @@ import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.property.testing.ApplicationRule
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -62,11 +64,18 @@ import javax.swing.JComponent
 import javax.swing.JScrollPane
 
 class TreeTableDropTargetHandlerTest {
-  private val appRule = ApplicationRule()
-  private val flagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val chain = RuleChain.outerRule(appRule).around(flagRule).around(IconLoaderRule())!!
+  val chain = RuleChain
+    .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
+    .around(MockitoCleanerRule())
+    .around(IconLoaderRule())!!
 
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_GRID_LAYOUT)

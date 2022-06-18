@@ -17,6 +17,7 @@ package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -34,13 +35,16 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.advanced.AdvancedSettingType
 import com.intellij.openapi.options.advanced.AdvancedSettings
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
@@ -48,6 +52,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -67,11 +72,21 @@ import javax.swing.RepaintManager
 import javax.swing.ScrollPaneConstants
 
 class TreeTableImplTest {
-  private val appRule = ApplicationRule()
-  private val flagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  private val disposableRule = DisposableRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val chain = RuleChain.outerRule(appRule).around(EdtRule()).around(flagRule).around(IconLoaderRule())!!
+  val chain = RuleChain
+    .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
+    .around(MockitoCleanerRule())
+    .around(EdtRule())
+    .around(IconLoaderRule())
+    .around(disposableRule)!!
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -163,7 +178,7 @@ class TreeTableImplTest {
       override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
       override fun getDefault(id: String) = false
     }
-    appRule.testApplication.registerService(AdvancedSettings::class.java, settings, appRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(AdvancedSettings::class.java, settings, disposableRule.disposable)
   }
 
   @After
@@ -530,7 +545,7 @@ class TreeTableImplTest {
   @Test
   fun testColumnColor() {
     val table = createTreeTable()
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     assertThat(foregroundOf(table, 1, isSelected = false, hasFocus = false)).isEqualTo(UIUtil.getTableForeground(false, false))
     assertThat(foregroundOf(table, 1, isSelected = true, hasFocus = false)).isEqualTo(UIUtil.getTableForeground(true, false))
     focusManager.focusOwner = table

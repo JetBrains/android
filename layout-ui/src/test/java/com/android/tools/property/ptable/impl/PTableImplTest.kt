@@ -35,8 +35,15 @@ import com.android.tools.property.ptable.item.Group
 import com.android.tools.property.ptable.item.Item
 import com.android.tools.property.ptable.item.PTableTestModel
 import com.android.tools.property.ptable.item.createModel
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.openapi.wm.PassThroughIdeFocusManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.util.ui.JBUI
@@ -44,6 +51,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -78,16 +86,26 @@ private const val FIRST_FIELD_EDITOR = "First Editor"
 private const val LAST_FIELD_EDITOR = "Last Editor"
 private const val TABLE_NAME = "Table"
 
+@RunsInEdt
 class PTableImplTest {
   private var model: PTableTestModel? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
+
   @get:Rule
-  val appRule = ApplicationRule()
+  val disposableRule = DisposableRule()
 
   @get:Rule
   val iconLoader = IconLoaderRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Before
   fun setUp() {
@@ -99,6 +117,8 @@ class PTableImplTest {
                         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
                         Item("new"))
     table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
+    val app = ApplicationManager.getApplication()
+    app.replaceService(IdeFocusManager::class.java, PassThroughIdeFocusManager.getInstance(), disposableRule.disposable)
   }
 
   @After
@@ -483,7 +503,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateForwardsIntoTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     focusManager.focusOwner = panel
@@ -495,7 +515,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateForwardsIntoReadOnlyTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     model!!.readOnly = true
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
@@ -510,7 +530,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateForwardsThroughTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     panel.components[0].requestFocusInWindow()
@@ -541,7 +561,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateBackwardsThroughTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     panel.components[2].requestFocusInWindow()
@@ -572,7 +592,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateBackwardsIntoTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     panel.components[2].transferFocusBackward()
@@ -583,7 +603,7 @@ class PTableImplTest {
 
   @Test
   fun testNavigateBackwardsIntoReadOnlyTable() {
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     model!!.readOnly = true
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
@@ -617,7 +637,7 @@ class PTableImplTest {
 
   @Test
   fun testClickOnExpanderIcon() {
-    if (appRule.testApplication.isHeadlessEnvironment) {
+    if (ApplicationManager.getApplication().isHeadlessEnvironment) {
       return
     }
     val fakeUI = FakeUi(table!!)
@@ -631,7 +651,7 @@ class PTableImplTest {
 
   @Test
   fun testClickOnValueColumnIgnored() {
-    if (appRule.testApplication.isHeadlessEnvironment) {
+    if (ApplicationManager.getApplication().isHeadlessEnvironment) {
       return
     }
     val fakeUI = FakeUi(table!!)
@@ -721,7 +741,7 @@ class PTableImplTest {
     assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(table!!.background)
     assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(hoverColor)
 
-    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table
 
     // With focus:

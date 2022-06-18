@@ -3,6 +3,7 @@ package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -17,14 +18,17 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.WindowManagerEx
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ScreenUtil
 import com.intellij.ui.popup.MovablePopup
@@ -32,8 +36,10 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mockStatic
 import java.awt.Component
 import java.awt.Point
@@ -46,17 +52,21 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.plaf.basic.BasicTreeUI
 
 class TreeImplTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  private val disposableRule = DisposableRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val edtRule = EdtRule()
-
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false)
-
-  @get:Rule
-  val portableUiFontRule = SetPortableUiFontRule()
+  val rules: RuleChain = RuleChain
+    .outerRule(EdtRule())
+    .around(SetPortableUiFontRule())
+    .around(MockitoCleanerRule())
+    .around(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false))
+    .around(disposableRule)
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -205,7 +215,8 @@ class TreeImplTest {
   @RunsInEdt
   @Test
   fun testExpandFirstRowOnHover() {
-    appRule.testApplication.registerService(WindowManager::class.java, mock<WindowManagerEx>())
+    val application = ApplicationManager.getApplication()
+    application.replaceService(WindowManager::class.java, mock<WindowManagerEx>(), disposableRule.disposable)
 
     val tree = createTree()
     val scrollPane = getScrollPane(tree)

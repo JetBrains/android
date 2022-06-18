@@ -28,13 +28,15 @@ import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -55,11 +57,20 @@ import javax.swing.JScrollPane
 import javax.swing.table.TableCellRenderer
 
 class TreeTableHeaderTest {
-  private val appRule = ApplicationRule()
-  private val flagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  private val disposableRule = DisposableRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val chain = RuleChain.outerRule(appRule).around(EdtRule()).around(flagRule).around(IconLoaderRule())!!
+  val chain = RuleChain
+    .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
+    .around(EdtRule())
+    .around(IconLoaderRule())
+    .around(disposableRule)!!
 
   private val column1 = ColumnDefinition()
   private val column2 = ColumnDefinition()
@@ -80,7 +91,7 @@ class TreeTableHeaderTest {
     column1.icon.toolTipText = "icon1"
     column2.text.toolTipText = "text2"
     column2.icon.toolTipText = "icon2"
-    val manager = ToolTipManager(appRule.testRootDisposable)
+    val manager = ToolTipManager(disposableRule.disposable)
     ui.mouse.moveTo(8, 8)
     assertThat(header.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     assertThat(manager.lastToolTip).isEqualTo("text1")
@@ -133,7 +144,7 @@ class TreeTableHeaderTest {
     panel.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")))
     panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("TAB")))
     val ui = FakeUi(panel, createFakeWindow = true)
-    val manager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    val manager = FakeKeyboardFocusManager(disposableRule.disposable)
     manager.focusOwner = icon1
     ui.keyboard.pressTab()
     assertThat(manager.focusOwner).isSameAs(icon2)

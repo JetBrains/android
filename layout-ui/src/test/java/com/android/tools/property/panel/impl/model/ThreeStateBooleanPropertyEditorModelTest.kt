@@ -18,18 +18,21 @@ package com.android.tools.property.panel.impl.model
 import com.android.SdkConstants
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyThreeStateCheckBox
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.ui.ThreeStateCheckBox.State.DONT_CARE
 import com.intellij.util.ui.ThreeStateCheckBox.State.NOT_SELECTED
 import com.intellij.util.ui.ThreeStateCheckBox.State.SELECTED
-import org.junit.Rule
+import org.junit.ClassRule
 import org.junit.Test
 
 class ThreeStateBooleanPropertyEditorModelTest {
 
-  @JvmField @Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   private fun createModel(): ThreeStateBooleanPropertyEditorModel {
     val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")

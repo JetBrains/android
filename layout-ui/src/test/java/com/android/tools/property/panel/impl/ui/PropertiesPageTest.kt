@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -31,12 +32,13 @@ import com.android.tools.property.panel.impl.model.SeparatorLineModel
 import com.android.tools.property.panel.impl.model.TitleLineModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.ptable.PTableModel
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -44,8 +46,15 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 
 class PropertiesPageTest {
-  @JvmField @Rule
-  val appRule = PropertyAppRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
+
+  @get:Rule
+  val cleaner = MockitoCleanerRule()
 
   private var disposable: Disposable? = null
   private var page: PropertiesPage? = null

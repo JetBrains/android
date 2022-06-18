@@ -28,16 +28,19 @@ import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.impl.PTableModelImpl
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 import javax.swing.JPanel
 
 class TableEditorTest {
 
-  @JvmField @Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Test
   fun testRequestFocusInBestMatch() {
