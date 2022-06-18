@@ -169,22 +169,22 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   override fun getSupportedInstanceFilters() = supportedInstanceFilters
   override fun getSelectedInstanceFilters() = currentInstanceFilters
 
-  override fun addInstanceFilter(filterToAdd: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void> {
+  override fun addInstanceFilter(filterToAdd: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> {
     assert(supportedInstanceFilters.contains(filterToAdd))
     currentInstanceFilters.add(filterToAdd)
-    return executorService.submit<Void> {
+    return executorService.submit<Void?> {
       // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
       val currentInstances = _heapSets.values.stream().flatMap { it.instancesStream }.collect(Collectors.toSet())
       refreshInstances(filterToAdd.filter(currentInstances), analyzeJoiner)
     }
   }
 
-  override fun removeInstanceFilter(filterToRemove: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void> = when {
+  override fun removeInstanceFilter(filterToRemove: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> = when {
     // Filter is not set in the first place so nothing needs to be done.
     !currentInstanceFilters.contains(filterToRemove) -> CaptureObject.Utils.makeEmptyTask()
     else -> {
       currentInstanceFilters.remove(filterToRemove)
-      executorService.submit<Void> {
+      executorService.submit<Void?> {
         // Run the remaining analyzers on the full instance set, since we don't know that the instances that have been removed from the
         // HeapSets using the filter that we are removing.
         refreshInstances(currentInstanceFilters.fold(allInstances) { instances, filter -> filter.filter(instances) }, analyzeJoiner)
@@ -192,15 +192,15 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     }
   }
 
-  override fun setSingleFilter(filter: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void> {
+  override fun setSingleFilter(filter: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> {
     currentInstanceFilters.clear()
     currentInstanceFilters.add(filter)
-    return executorService.submit<Void> { refreshInstances(filter.filter(allInstances), analyzeJoiner) }
+    return executorService.submit<Void?> { refreshInstances(filter.filter(allInstances), analyzeJoiner) }
   }
 
-  override fun removeAllFilters(analyzeJoiner: Executor): ListenableFuture<Void> {
+  override fun removeAllFilters(analyzeJoiner: Executor): ListenableFuture<Void?> {
     currentInstanceFilters.clear()
-    return executorService.submit<Void> { refreshInstances(allInstances, analyzeJoiner) }
+    return executorService.submit<Void?> { refreshInstances(allInstances, analyzeJoiner) }
   }
 
   private fun refreshInstances(instances: Set<InstanceObject>, executor: Executor): Void? {

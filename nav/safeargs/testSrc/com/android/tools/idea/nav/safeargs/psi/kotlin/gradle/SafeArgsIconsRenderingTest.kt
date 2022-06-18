@@ -99,9 +99,9 @@ class SafeArgsIconsRenderingTest {
     fixture.type("Args")
     fixture.completeBasic()
     var icons = fixture.lookupElements
-      .filter { it.lookupString.endsWith("FragmentArgs") }
-      .map { DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
+      ?.filter { it.lookupString.endsWith("FragmentArgs") }
+      ?.map { DefaultLookupItemRenderer.getRawIcon(it) }
+      ?.toSet()
     assertThat(icons).containsExactly(PlatformIcons.CLASS_ICON)
 
     // check directions classes
@@ -109,9 +109,9 @@ class SafeArgsIconsRenderingTest {
     fixture.type("Directions")
     fixture.completeBasic()
     icons = fixture.lookupElements
-      .filter { it.lookupString.endsWith("FragmentDirections") }
-      .mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
+      ?.filter { it.lookupString.endsWith("FragmentDirections") }
+      ?.mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
+      ?.toSet()
     assertThat(icons).containsExactly(PlatformIcons.CLASS_ICON)
   }
 
@@ -144,24 +144,24 @@ class SafeArgsIconsRenderingTest {
     fixture.moveCaret("val argsClass1 = SecondFragmentArgs.|")
     fixture.completeBasic()
     var icons = fixture.lookupElements
-      .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
+      ?.map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+      ?.toSet()
     assertThat(icons).contains("fromBundle" to PlatformIcons.FUNCTION_ICON)
 
     // check static method from directions class
     fixture.moveCaret("val directionsClass1 = SecondFragmentDirections.|")
     fixture.completeBasic()
     icons = fixture.lookupElements
-      .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
+      ?.mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+      ?.toSet()
     assertThat(icons).contains("actionSecondFragmentToFirstFragment" to PlatformIcons.FUNCTION_ICON)
 
     // check methods from args class
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
     fixture.completeBasic()
     icons = fixture.lookupElements
-      .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
+      ?.map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+      ?.toSet()
     assertThat(icons).containsAllOf(
       // componentN() functions of data class are filtered out when collecting variants during completions.
       "arg1" to KotlinIcons.FIELD_VAL,

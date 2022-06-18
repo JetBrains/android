@@ -50,7 +50,7 @@ object GradleVersionsRepository : NetworkCache(
     Logger.getInstance(GradleVersionsRepository::class.java).warn(message, throwable)
 
   fun getKnownVersionsFuture() : ListenableFuture<List<String>> =
-    MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>> { getKnownVersions() }
+    MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>> { getKnownVersions() ?: emptyList() }
 
   @Slow
   fun getKnownVersions() : List<String>? = findData("")?.use { parseGradleVersionsResponse(it) }

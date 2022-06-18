@@ -86,7 +86,7 @@ fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: 
 /**
  * Transforms a [ListenableFuture] by throwing out the result.
  */
-fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Unit> = transform(directExecutor()) { }
+fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Unit> = transformNullable(directExecutor()) {}
 
 /**
  * Wrapper function to convert Future to ListenableFuture

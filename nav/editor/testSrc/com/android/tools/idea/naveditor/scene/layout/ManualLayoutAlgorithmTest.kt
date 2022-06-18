@@ -253,7 +253,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     }
     val editor = object : NavEditor(model.virtualFile, project), DocumentsEditor {
-      override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile))
+      override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
     }
     val surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model

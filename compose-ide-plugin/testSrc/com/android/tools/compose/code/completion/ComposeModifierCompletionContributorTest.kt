@@ -169,7 +169,7 @@ class ComposeModifierCompletionContributorTest {
   @Test
   fun testModifierAsArgument() {
     fun checkArgumentCompletion() {
-      myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+      myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -188,7 +188,7 @@ class ComposeModifierCompletionContributorTest {
     }
 
     fun checkNamedArgumentCompletion() {
-      myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+      myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -413,7 +413,7 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "extensionFunction" }
+    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "extensionFunction" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(

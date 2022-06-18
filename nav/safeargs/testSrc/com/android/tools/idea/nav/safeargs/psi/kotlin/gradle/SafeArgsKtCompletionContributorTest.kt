@@ -105,12 +105,12 @@ class SafeArgsKtCompletionContributorTest {
     fixture.type("Args")
     fixture.completeBasic()
     val argsElements = fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .map { it.itemText + " " + it.tailText }
+      ?.map { it.itemText + " " + it.tailText }
 
     assertThat(argsElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -122,12 +122,12 @@ class SafeArgsKtCompletionContributorTest {
     fixture.type("Directions")
     fixture.completeBasic()
     val directionsElements = fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .map { it.itemText + " " + it.tailText }
+      ?.map { it.itemText + " " + it.tailText }
 
     assertThat(directionsElements).containsAllOf(
       "SecondFragmentDirections  (com.example.myapplication)",
@@ -139,13 +139,13 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val generatedClass = |")
     fixture.completeBasic()
     val allElements = fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      ?.map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -179,12 +179,12 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("import com.|")
     fixture.completeBasic()
     fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
       .let { assertThat(it).isEmpty() }
 
     // all safe args classes in mylibrary package show up in completions
@@ -192,13 +192,13 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("import com.example.mylibrary.|")
     fixture.completeBasic()
     val allElements = fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      ?.map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -231,12 +231,12 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("com.|")
     fixture.completeBasic()
     fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
       .let { assertThat(it).isEmpty() }
 
     // all safe args classes in mylibrary package show up in completions
@@ -244,13 +244,13 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("com.example.mylibrary.|")
     fixture.completeBasic()
     val allElements = fixture.lookupElements
-      .map {
+      ?.map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      ?.map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",

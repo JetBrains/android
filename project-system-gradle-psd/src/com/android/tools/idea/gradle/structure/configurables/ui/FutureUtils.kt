@@ -42,7 +42,7 @@ internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -
   Futures.catching(
     this,
     Throwable::class.java,
-    Function<Throwable?, T> { ex ->
+    Function<Throwable?, T?> { ex ->
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) function(ex)
       else application.invokeLater({ function(ex) }, ModalityState.any())

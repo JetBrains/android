@@ -68,7 +68,7 @@ object MaterialColors {
     override fun toString() = displayName
   }
 
-  private val table: Table<Color, Category, java.awt.Color>
+  private val table: ArrayTable<Color, Category, java.awt.Color>
     = ArrayTable.create(Color.values().asIterable(), Category.values().asIterable())
 
   // Helper extension to allow using assignment to put value to the table

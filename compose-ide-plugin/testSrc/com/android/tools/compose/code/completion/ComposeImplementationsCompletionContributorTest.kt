@@ -148,7 +148,7 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Alignment.Start" }
+    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "Alignment.Start" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -187,7 +187,7 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Alignment.Top", "Alignment.CenterVertically", "Alignment.Bottom")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Alignment.CenterVertically" }
+    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterVertically" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -227,7 +227,7 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Arrangement.Start", "Arrangement.Center", "Arrangement.End")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Arrangement.Start" }
+    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "Arrangement.Start" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -266,7 +266,7 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Arrangement.Top", "Arrangement.Bottom", "Arrangement.Center")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Arrangement.Top" }
+    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "Arrangement.Top" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(

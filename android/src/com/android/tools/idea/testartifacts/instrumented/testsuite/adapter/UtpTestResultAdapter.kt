@@ -120,7 +120,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
           deviceInfo.avdName,
           deviceType,
           AndroidVersion(deviceInfo.apiLevel),
-        )?.apply {
+        ).apply {
           if (deviceInfo.manufacturer.isNotBlank()) {
             additionalInfo["Manufacturer"] = deviceInfo.manufacturer
           }
