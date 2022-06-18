@@ -1,14 +1,12 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.integration",
+    enable_tests = False,
     iml_files = ["intellij.android.core.integration.iml"],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "manual",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -19,7 +17,7 @@ iml_module(
     ],
 )
 
-java_test(
+iml_test(
     name = "OpenProjectTest",
     timeout = "long",
     data = [
@@ -28,13 +26,13 @@ java_test(
         "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/base/build-system:gradle-distrib-7.2",
     ],
+    module = ":intellij.android.core.integration",
     tags = [
         "block-network",
         "no_mac",
         "no_windows",
     ],
     test_class = "com.android.tools.idea.OpenProjectTest",
-    runtime_deps = [":intellij.android.core.integration_testlib"],
 )
 
 filegroup(

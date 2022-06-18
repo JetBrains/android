@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 
 studio_plugin(
@@ -752,11 +752,9 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.studio.integration",
+    enable_tests = False,
     iml_files = ["integration/intellij.android.studio.integration/intellij.android.studio.integration.iml"],
     test_srcs = ["integration/intellij.android.studio.integration/testSrc"],
-    test_tags = [
-        "manual",  # These tests are run individually below
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -767,28 +765,28 @@ iml_module(
     ],
 )
 
-java_test(
+iml_test(
     name = "StartUpTest",
     data = [":android-studio.linux.zip"],
+    module = ":intellij.android.studio.integration",
     tags = [
         "no_mac",
         "no_windows",
     ],
     test_class = "com.android.tools.idea.StartUpTest",
-    runtime_deps = [":intellij.android.studio.integration_testlib"],
 )
 
-java_test(
+iml_test(
     name = "UpdateTest",
     data = [
         ":android-studio.linux.zip",
         ":updater",
         ":updater.jar",
     ],
+    module = ":intellij.android.studio.integration",
     tags = [
         "no_mac",
         "no_windows",
     ],
     test_class = "com.android.tools.idea.UpdateTest",
-    runtime_deps = [":intellij.android.studio.integration_testlib"],
 )
