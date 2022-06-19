@@ -59,7 +59,7 @@ class AppInspectorTabShell(
    */
   @VisibleForTesting
   val componentUpdates: Flow<JComponent> = callbackFlow {
-    componentListener = { component -> offer(component) }
+    componentListener = { component -> trySend(component) }
     awaitClose { componentListener = null }
   }
 
