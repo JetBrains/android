@@ -1203,6 +1203,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       finally {
         refreshCallsCount.decrementAndGet()
+        // Force updating toolbar icons after refresh
+        ActivityTracker.getInstance().inc()
       }
     }
 
