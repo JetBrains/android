@@ -9,6 +9,7 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.utils.appendCapitalized
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -23,6 +24,7 @@ import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProject
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
+import org.jetbrains.kotlin.idea.gradleTooling.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
@@ -40,26 +42,26 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return setOf(KotlinMPPGradleModel::class.java, KotlinTarget::class.java)
   }
 
-  override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {
-    return super.createModule(gradleModule, projectDataNode)!!.also {
-      maybeAttachKotlinSourceSetData(gradleModule, it)
-    }
-  }
+  override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
+    val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
+    val mppModel = resolverCtx.getMppModel(gradleModule)
 
-  private fun maybeAttachKotlinSourceSetData(
-    gradleModule: IdeaModule,
-    ideModule: DataNode<ModuleData>
-  ) {
-    val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
-    val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
+    if (androidModels == null || mppModel == null) return super.createModule(gradleModule, projectDataNode)
+
     val selectedVariantName = androidModels.selectedVariantName
-    val sourceSetByName = ideModule.sourceSetsByName()
+    mppModel.removeWrongCompilationsAndSourceSets(selectedVariantName)
 
-    for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-      val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: continue
-      val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
+    // Since Android source set modules (in a form of GradleSourceSetData) are currently created by AndroidGradleProjectResolver but they
+    // form a part of a multi-module entity recognised by the KMP, we need to tell the KMP that they are KMP source sets and which KMP
+    // source sets they represent.
+    return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
+      val sourceSetByName = ideModule.sourceSetsByName()
+      for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
+        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: continue
+        val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
 
-      androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
+        androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
+      }
     }
   }
 
@@ -75,8 +77,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
-      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets) {
-        val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
+      val resolvedDependsOnSourceSets = mppModel.resolveAllDependsOnSourceSets(kotlinSourceSet)
+      for (dependsOn in resolvedDependsOnSourceSets) {
+        val dependsOnGradleSourceSet = sourceSetByName[dependsOn.name] ?: continue
         androidGradleSourceSetDataNode.createChild(
           ProjectKeys.MODULE_DEPENDENCY,
           ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
@@ -89,20 +92,55 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 /**
  * Returns all Android compilations for the given [variant].
  */
-private fun KotlinMPPGradleModel.androidCompilationsForVariant(
-  variant: String
-): List<Pair<IdeModuleWellKnownSourceSet, KotlinCompilation>> {
+private fun KotlinMPPGradleModel.androidCompilationsForVariant(variant: String): List<Pair<IdeModuleWellKnownSourceSet, KotlinCompilation>> {
   return targets
     .asSequence()
-    .flatMap { it.compilations.asSequence() }
-    .filter { it.platform == KotlinPlatform.ANDROID }
-    .mapNotNull { androidKotlinCompilation ->
-      val sourceSet =
-        IdeModuleWellKnownSourceSet.values().find { variant + it.androidCompilationNameSuffix() == androidKotlinCompilation.name }
-          ?: return@mapNotNull null
-      sourceSet to androidKotlinCompilation
+    .flatMap { it.androidCompilations() }
+    .mapNotNull { androidCompilation ->
+      val sourceSet = IdeModuleWellKnownSourceSet.findFor(variant, androidCompilation) ?: return@mapNotNull null
+      sourceSet to androidCompilation
     }
     .toList()
+}
+
+/**
+ * The Kotlin multi-platform plugin at v1.6.x - 1.7.0 populates the [KotlinMPPGradleModel] with some wrong Android compilations and source
+ * sets. This happens because the Kotlin multi-platform does neither understand Android variants nor the single-variant sync.
+ *
+ * This method removes those compilations and source sets by patching internal structures of [KotlinMPPGradleModel] model.
+ */
+private fun KotlinMPPGradleModel.removeWrongCompilationsAndSourceSets(variant: String) {
+  val androidTargets: List<KotlinTarget> = targets.filter { it.platform == KotlinPlatform.ANDROID }
+
+  androidTargets.forEach { androidTarget ->
+    val wrongCompilations: List<KotlinCompilation> =
+      androidTarget
+        .androidCompilations()
+        .filter { androidCompilation -> IdeModuleWellKnownSourceSet.findFor(variant, androidCompilation) == null }
+
+    androidTarget.removeCompilations(wrongCompilations)
+  }
+
+  val validSourceSetNames = androidTargets.asSequence()
+    .flatMap { it.androidCompilations() }
+    .flatMap { it.androidSourceSets() }
+    .map { it.name }
+    .toSet()
+
+  val prefixes = androidTargets.asSequence()
+    .flatMap { it.androidCompilations() }
+    .mapNotNull { it.disambiguationClassifier }
+    .toSet()
+
+  // Note, we are filtering source set names by prefixes, because some invalid Android source sets like ones derived from test fixtures are
+  // not recognised by the KMP as Android source sets.
+  val androidSourceSetNames = sourceSetsByName
+    .keys
+    .filter { sourceSetName -> prefixes.any { prefix -> sourceSetName.startsWith(prefix) } }
+    .toSet()
+
+  val wrongSourceSetNames = androidSourceSetNames - validSourceSetNames
+  removeSourceSets(wrongSourceSetNames)
 }
 
 private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<GradleSourceSetData>> {
@@ -133,3 +171,35 @@ private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffix() = when (this) {
   IdeModuleWellKnownSourceSet.UNIT_TEST -> "test"
   IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "testFixtures"
 }
+
+private fun KotlinTarget.androidCompilations(): List<KotlinCompilation> =
+  compilations.filter { it.platform == KotlinPlatform.ANDROID }
+
+private fun KotlinCompilation.androidSourceSets(): List<KotlinSourceSet> =
+  IdeModuleWellKnownSourceSet.values().mapNotNull { it.getRootKotlinSourceSet(this) }
+
+private fun KotlinTarget.removeCompilations(compilationsToRemove: Collection<KotlinCompilation>) {
+  val mutableCompilations = compilations as? MutableCollection<KotlinCompilation> ?: return
+  kotlin.runCatching { compilationsToRemove.forEach(mutableCompilations::remove) }
+    .onFailure {
+      Logger.getInstance(KotlinAndroidMPPGradleProjectResolver::class.java)
+        .error("Failed to remove not necessary Kotlin compilations", it)
+    }
+}
+
+private fun KotlinMPPGradleModel.removeSourceSets(sourceSetsToRemove: Collection<String>) {
+  val mutableSourceSetsByName = sourceSetsByName as? MutableMap<String, KotlinSourceSet> ?: return
+  kotlin.runCatching { sourceSetsToRemove.forEach(mutableSourceSetsByName::remove) }
+    .onFailure {
+      Logger.getInstance(KotlinAndroidMPPGradleProjectResolver::class.java)
+        .error("Failed to remove not necessary Kotlin source sets", it)
+    }
+}
+
+/**
+ * Given a currently selected [variant], returns a [IdeModuleWellKnownSourceSet] describing the [compilation] or `null` if the [compilation]
+ * does not represent an Android target or the target does not belong to the currently selected [variant].
+ */
+private fun IdeModuleWellKnownSourceSet.Companion.findFor(variant: String, compilation: KotlinCompilation) =
+  IdeModuleWellKnownSourceSet.values().find { variant + it.androidCompilationNameSuffix() == compilation.name }
+
