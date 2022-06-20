@@ -25,6 +25,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
 import com.android.tools.idea.run.configuration.isDebug
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -34,7 +35,7 @@ import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.Promise
 
-class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment, deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
 
   override val configuration = environment.runProfile as AndroidRunConfiguration
   private val facet = AndroidFacet.getInstance(configuration.module!!)!!

@@ -31,6 +31,7 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration.ChosenSlot
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -48,7 +49,8 @@ import org.jetbrains.concurrency.Promise
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
-class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment,
+                                               deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
   override val configuration = environment.runProfile as AndroidComplicationConfiguration
 
   @WorkerThread

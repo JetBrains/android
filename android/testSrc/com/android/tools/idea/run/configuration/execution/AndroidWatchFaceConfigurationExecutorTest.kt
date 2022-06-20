@@ -66,8 +66,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
-
     val device = getMockDevice(mapOf(
       checkVersion to
         "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
@@ -76,6 +74,9 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
         "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
         "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
     ).toCommandHandlers())
+
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -107,9 +108,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
-
-    // Executor we test.
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
     val commandHandlers = mapOf(
       checkVersion to
@@ -143,6 +141,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       (unsetWatchFace to unsetWatchFaceCommandHandler) +
       (clearDebugAppAm to clearDebugAppAmCommandHandler)
     )
+
+    val deployTarget = TestDeployTarget(device)
+
+    // Executor we test.
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -189,13 +192,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
     val failedResponse = "Component not found."
 
     val device = getMockDevice(mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\""
     ).toCommandHandlers())
+
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
@@ -212,8 +217,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    // Executor we test.
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
     val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
@@ -244,6 +247,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       (setWatchFace to setWatchFaceCommandHandler) +
       (unsetWatchFace to unsetWatchFaceCommandHandler)
     )
+
+    val deployTarget = TestDeployTarget(device)
+
+    // Executor we test.
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
 
     whenever(
       device.forceStop(appId)

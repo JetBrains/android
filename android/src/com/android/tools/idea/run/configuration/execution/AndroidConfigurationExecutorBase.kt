@@ -19,9 +19,8 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
+import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
@@ -31,7 +30,6 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
@@ -41,7 +39,7 @@ import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment) {
+abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment, val deployTarget: DeployTarget) {
   abstract val configuration: ComponentSpecificConfiguration
   protected val project = environment.project
   protected val appId
@@ -50,12 +48,8 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
 
   @WorkerThread
   @Throws(ExecutionException::class)
-  fun execute(stats: RunStats): Promise<RunContentDescriptor> {
-    val facet = AndroidFacet.getInstance(configuration.module!!)!!
-    stats.setDebuggable(LaunchUtils.canDebugApp(facet))
-    stats.setExecutor(environment.executor.id)
-    stats.setPackage(appId)
-    stats.setAppComponentType(configuration.componentType)
+  fun execute(): Promise<RunContentDescriptor> {
+    val stats = RunStats.from(environment)
 
     ProgressManager.checkCanceled()
     ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for all target devices to come online"
@@ -74,13 +68,8 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   @Throws(ExecutionException::class)
   private fun getDevices(stats: RunStats): List<IDevice> {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
-    val provider = DeviceAndSnapshotComboBoxTargetProvider()
-    val deployTarget = if (provider.requiresRuntimePrompt(project)) invokeAndWaitIfNeeded { provider.showPrompt(facet) }
-    else provider.getDeployTarget(project)
-    val deviceFutureList = deployTarget?.getDevices(facet) ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+    val deviceFutureList = deployTarget.getDevices(facet) ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
 
-    // Record stat if we launched a device.
-    stats.setLaunchedDevices(deviceFutureList.devices.any { it is LaunchableAndroidDevice })
     val devices = deviceFutureList.get().map {
       ProgressManager.checkCanceled()
       stats.beginWaitForDevice()

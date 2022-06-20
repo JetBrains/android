@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.execution.AndroidWatchFaceConfigurationExecutor
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -48,6 +49,9 @@ class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFact
   override val componentType = ComponentType.WATCH_FACE
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.watchface")
   override val componentBaseClassesFqNames = WearBaseClasses.WATCH_FACES
-  override fun getExecutor(environment: ExecutionEnvironment) = AndroidWatchFaceConfigurationExecutor(environment)
+  override fun getExecutor(
+    environment: ExecutionEnvironment,
+    deployTarget: DeployTarget
+  ) = AndroidWatchFaceConfigurationExecutor(environment, deployTarget)
 }
 

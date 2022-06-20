@@ -35,6 +35,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidConfigurationEx
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
@@ -379,6 +380,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   public void updateExtraRunStats(RunStats runStats) {
+    runStats.setAppComponentType(getComponentType());
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
   }
@@ -397,7 +399,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  public AndroidConfigurationExecutorBase getExecutor(@NotNull ExecutionEnvironment environment) {
-    return new AndroidActivityConfigurationExecutor(environment);
+  public AndroidConfigurationExecutorBase getExecutor(@NotNull ExecutionEnvironment environment, @NotNull DeployTarget deployTarget) {
+    return new AndroidActivityConfigurationExecutor(environment, deployTarget);
   }
 }

@@ -19,7 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
 import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings
-import com.android.tools.idea.stats.RunStatsService
+import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -68,7 +68,7 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
     val executor = (state as AndroidRunProfileStateAdapter).executor
 
     FileDocumentManager.getInstance().saveAllDocuments()
-    val stats = RunStatsService.get(environment.project).create()
+    val stats = RunStats.from(environment)
 
     fun handleError(error: Throwable) {
       stats.fail()
@@ -77,7 +77,7 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
 
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${environment.runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
-        executor.execute(stats)
+        executor.execute()
           .onSuccess { promise.setResult(it) }
           .onError(::handleError)
       }

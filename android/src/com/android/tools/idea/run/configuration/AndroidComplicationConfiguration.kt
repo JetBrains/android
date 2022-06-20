@@ -20,6 +20,7 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
@@ -98,7 +99,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
-  override fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutorBase {
-    return AndroidComplicationConfigurationExecutor(environment)
+  override fun getExecutor(environment: ExecutionEnvironment, deployTarget: DeployTarget): AndroidConfigurationExecutorBase {
+    return AndroidComplicationConfigurationExecutor(environment, deployTarget)
   }
 }

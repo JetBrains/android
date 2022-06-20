@@ -17,10 +17,18 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.util.LaunchUtils
+import com.android.tools.idea.stats.RunStats
+import com.android.tools.idea.stats.RunStatsService
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.JavaRunConfigurationModule
@@ -30,6 +38,7 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializer
@@ -60,7 +69,50 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
-    return AndroidRunProfileStateAdapter(getExecutor(environment))
+    val facet = AndroidFacet.getInstance(module!!) ?: throw RuntimeException("Cannot get AndroidFacet")
+
+    val provider = DeviceAndSnapshotComboBoxTargetProvider()
+    val deployTarget = if (provider.requiresRuntimePrompt(project)) {
+      invokeAndWaitIfNeeded { provider.showPrompt(facet) }
+    }
+    else {
+      provider.getDeployTarget(project)
+    } ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+
+    fillStatsForEnvironment(environment, deployTarget)
+
+    val stats = RunStats.from(environment)
+    return try {
+      stats.start()
+      val state: RunProfileState = AndroidRunProfileStateAdapter(getExecutor(environment, deployTarget))
+      stats.markStateCreated()
+      state
+    }
+    catch (t: Throwable) {
+      stats.abort()
+      throw t
+    }
+  }
+
+  private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deployTarget: DeployTarget) {
+    val stats = RunStatsService.get(project).create()
+    val facet = AndroidFacet.getInstance(module!!) ?: throw RuntimeException("Cannot get AndroidFacet")
+    stats.setDebuggable(LaunchUtils.canDebugApp(facet))
+    stats.setExecutor(environment.executor.id)
+    val appId = project.getProjectSystem().getApplicationIdProvider(this)?.packageName
+                ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+    stats.setPackage(appId)
+    stats.setAppComponentType(componentType)
+
+    // Save the stats so that before-run task can access it
+    environment.putUserData(RunStats.KEY, stats)
+
+    val deviceFutureList = deployTarget.getDevices(facet) ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+
+    // Record stat if we launched a device.
+    stats.setLaunchedDevices(deviceFutureList.devices.any { it is LaunchableAndroidDevice })
+    // Store the chosen target on the execution environment so before-run tasks can access it.
+    environment.putCopyableUserData(DeviceFutures.KEY, deviceFutureList)
   }
 
   override fun writeExternal(element: Element) {

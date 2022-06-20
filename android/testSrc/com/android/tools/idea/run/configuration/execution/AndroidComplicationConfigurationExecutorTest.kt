@@ -105,7 +105,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
 
-    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
@@ -207,7 +207,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
 
-    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device)))
 
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
@@ -292,7 +292,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
 
-    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
@@ -341,14 +341,14 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                                                project))
     doReturn(androidComplicationConfiguration).whenever(env).runProfile
 
-    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
-    doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
-
     val failedResponse = "Component not found."
 
     val device = getMockDevice(mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\""
     ).toCommandHandlers())
+
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device)))
+    doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))

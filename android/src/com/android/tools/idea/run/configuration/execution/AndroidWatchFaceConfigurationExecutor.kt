@@ -26,6 +26,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -41,7 +42,8 @@ import org.jetbrains.concurrency.Promise
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
+                                            deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
   override val configuration = environment.runProfile as AndroidWatchFaceConfiguration
 
   @WorkerThread

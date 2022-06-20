@@ -27,6 +27,7 @@ import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_CO
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -43,7 +44,8 @@ import java.time.Duration
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
-class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
+                                       deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
   override val configuration = environment.runProfile as AndroidTileConfiguration
 
   @WorkerThread

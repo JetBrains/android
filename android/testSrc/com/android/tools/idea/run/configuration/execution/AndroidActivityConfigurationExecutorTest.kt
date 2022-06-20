@@ -50,8 +50,8 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     (env.runProfile as AndroidRunConfiguration).ACTIVITY_EXTRA_FLAGS = "--user 123"
 
-    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env))
     val device = getMockDevice()
+    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -80,9 +80,6 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    // Executor we test.
-    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env))
-
     val startCommand = "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
 
     val runnableClientsService = RunnableClientsService(testRootDisposable)
@@ -95,6 +92,9 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val device = getMockDevice(mapOf(
       startCommand to startActivityCommandHandler,
     ))
+
+    // Executor we test.
+    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
 
     whenever(device.forceStop(eq(appId))).then {
       runnableClientsService.stopClient(device, appId)

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -49,6 +50,6 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.tile")
   override val componentBaseClassesFqNames = WearBaseClasses.TILES
 
-  override fun getExecutor(environment: ExecutionEnvironment) = AndroidTileConfigurationExecutor(environment)
+  override fun getExecutor(environment: ExecutionEnvironment, deployTarget: DeployTarget) = AndroidTileConfigurationExecutor(environment, deployTarget)
 }
 

@@ -68,14 +68,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
-
     val device = getMockDevice(mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\"",
       addTile to "Broadcast completed: result=1, data=\"Index=[101]\"",
       // Unsuccessful execution of show tile.
       showTile to "Broadcast completed: result=2"
     ).toCommandHandlers())
+
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env, deployTarget))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -120,8 +121,6 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
-
     val failedResponse = "Broadcast completed: result=2, data=\"Internal failure.\"\n" +
                          "End of output."
 
@@ -129,6 +128,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       checkVersion to "Broadcast completed: result=1, data=\"3\"",
       addTile to failedResponse
     ).toCommandHandlers())
+
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env, deployTarget))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
@@ -143,13 +145,14 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
-
     val failedResponse = "Component not found."
 
     val device = getMockDevice(mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\""
     ).toCommandHandlers())
+
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env, deployTarget))
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
@@ -165,9 +168,6 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
-
-    // Executor we test.
-    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
 
     val runnableClientsService = RunnableClientsService(testRootDisposable)
 
@@ -200,6 +200,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       (removeTile to removeTileCommandHandler) +
       (clearDebugAppAm to clearDebugAppAmCommandHandler)
     )
+    val deployTarget = TestDeployTarget(device)
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env, deployTarget))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
