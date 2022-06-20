@@ -332,11 +332,10 @@ public final class StudioFlags {
     "Enable so that visual lint always runs in the background of the layout editor for select configurations. This is also known as the background linting",
     true);
 
-  public static final Flag<Boolean> NELE_INCLUDE_QUALIFIERS_FOR_TRAFFIC_LIGHTS = Flag.create(
-    NELE, "include.qualifiers.for.traffic.lights", "Include errors from qualifier variants in traffic lights",
-    "Use errors from the current file and its qualifier variants to be displayed in the traffic light renderer",
-    false
-  );
+  public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
+    NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
+    "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
+    true);
 
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",

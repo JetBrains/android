@@ -232,11 +232,11 @@ class IssuePanelService(private val project: Project) {
   /**
    * Return if the current issue panel of the given [DesignSurface] or the shared issue panel is showing.
    */
-  fun isShowingIssuePanel(surface: DesignSurface<*>) : Boolean {
+  fun isShowingIssuePanel(surface: DesignSurface<*>?) : Boolean {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       return isSharedIssueTabShowing(sharedIssueTab)
     }
-    return !surface.issuePanel.isMinimized
+    return surface?.issuePanel?.isMinimized?.not() ?: false
   }
 
   /**
@@ -258,6 +258,8 @@ class IssuePanelService(private val project: Project) {
       problemsViewPanel.hide()
     }
   }
+
+  fun getSharedPanelIssues() = sharedIssuePanel?.issueProvider?.getFilteredIssues()
 
   /**
    * Update the tab name (includes the issue count) of shared issue panel.

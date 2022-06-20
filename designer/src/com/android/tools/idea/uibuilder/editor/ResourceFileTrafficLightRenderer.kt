@@ -15,32 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.res.isInResourceSubdirectory
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.ex.MarkupModelEx
-import com.intellij.openapi.editor.ex.RangeHighlighterEx
-import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.impl.EditorMarkupModelImpl
-import com.intellij.openapi.editor.impl.event.MarkupModelListener
 import com.intellij.openapi.editor.markup.AnalyzerStatus
-import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.StatusItem
 import com.intellij.openapi.editor.markup.UIController
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 
 private val SEVERITY_TO_ICON = mapOf(
@@ -52,18 +43,17 @@ private val SEVERITY_TO_ICON = mapOf(
 
 /**
  * Custom [TrafficLightRenderer] to be used by resource files.
- * It aggregates all the errors, warnings... found in the [file] and its other qualifier variants.
+ * It shows the number of errors, warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
 class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : TrafficLightRenderer(file.project, editor.document) {
-  private val errorCountArray = IntArray(severityRegistrar.allSeverities.size)
-  private val variantModels = mutableMapOf<VirtualFile, MarkupModelEx>()
-  private val hasVariants
-    get() = variantModels.size > 1
-  private var includeQualifierVariants = true
+  private val severities = severityRegistrar.allSeverities
+  private val errorCountArray = IntArray(severities.size)
 
   init {
-    val variants = getResourceVariations(file.virtualFile, true)
-    variants.forEach { updateTrafficLightWithFile(it) }
+    val messageBusConnection = project.messageBus.connect(this)
+    messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ ->
+      ApplicationManager.getApplication().invokeLater { ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor) }
+    })
   }
 
   override fun refresh(editorMarkupModel: EditorMarkupModelImpl?) {
@@ -71,120 +61,65 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
     if (editorMarkupModel == null) {
       return
     }
-    val variantFiles = getResourceVariations(file.virtualFile, true)
-    variantModels.keys.filterNot { variantFiles.contains(it) }.forEach { variantModels.remove(it)?.removeAllHighlighters() }
-    variantFiles.filterNot { variantModels.containsKey(it) }.forEach { updateTrafficLightWithFile(it) }
-  }
-
-  /**
-   * Adds listeners to [variantFile] so that, when analysis is performed on it,
-   * the results are used to update the error count for this [file].
-   */
-  private fun updateTrafficLightWithFile(variantFile: VirtualFile) {
-    FileDocumentManager.getInstance().getDocument(variantFile)?.let {
-      val model = DocumentMarkupModel.forDocument(it, project, true) as MarkupModelEx
-      model.addMarkupModelListener(this, object : MarkupModelListener {
-        override fun afterAdded(highlighter: RangeHighlighterEx) {
-          updateErrorCount(highlighter, 1)
-        }
-
-        override fun beforeRemoved(highlighter: RangeHighlighterEx) {
-          updateErrorCount(highlighter, -1)
-        }
-      })
-      variantModels[variantFile] = model
-      UIUtil.invokeLaterIfNeeded {
-        model.allHighlighters.forEach { highlighter ->
-          updateErrorCount(highlighter, 1)
-        }
+    errorCountArray.fill(0)
+    val issues = IssuePanelService.getInstance(project).getSharedPanelIssues() ?: return
+    issues.forEach {
+      val index = severities.indexOf(it.severity)
+      if (index > -1) {
+        errorCountArray[index]++
       }
-    }
-  }
-
-  private fun updateErrorCount(highlighter: RangeHighlighter, delta: Int) {
-    val severities = severityRegistrar.allSeverities
-    val info = HighlightInfo.fromRangeHighlighter(highlighter) ?: return
-    val infoSeverity = info.severity
-    if (infoSeverity.myVal <= HighlightSeverity.INFORMATION.myVal) return
-    val index = severities.indexOf(infoSeverity)
-    if (index > -1) {
-      errorCountArray[index] += delta
     }
   }
 
   override fun getErrorCounts(): IntArray {
-    if (hasVariants && includeQualifierVariants) {
-      return errorCountArray
-    }
-    return super.getErrorCounts()
+    return errorCountArray
   }
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()
-    if (hasVariants && includeQualifierVariants) {
-      val nonZeroSeverities = errorCountArray.indices.reversed().filterNot { errorCountArray[it] == 0 }.map {
-        severityRegistrar.getSeverityByIndex(it)
-      }
-      val items = mutableListOf<StatusItem>()
-      val currentItems = status.expandedStatus
-      if (currentItems.size != nonZeroSeverities.size) {
-        return status
-      }
-      for (index in currentItems.indices) {
-        val item = currentItems[index]
-        val icon = SEVERITY_TO_ICON[nonZeroSeverities[index]] ?: item.icon
-        items.add(StatusItem(item.text, icon, item.detailsText))
-      }
-      status.withExpandedStatus(items)
+    val nonZeroSeverities = errorCountArray.indices.reversed().filterNot { errorCountArray[it] == 0 }.map {
+      severityRegistrar.getSeverityByIndex(it)
     }
+    val items = mutableListOf<StatusItem>()
+    val currentItems = status.expandedStatus
+    if (currentItems.size != nonZeroSeverities.size) {
+      return status
+    }
+    for (index in currentItems.indices) {
+      val item = currentItems[index]
+      val icon = SEVERITY_TO_ICON[nonZeroSeverities[index]] ?: item.icon
+      items.add(StatusItem(item.text, icon, item.detailsText))
+    }
+    status.withExpandedStatus(items)
     return status
   }
 
   override fun createUIController(): UIController {
-    return QualifierVariantsUIController()
+    return ResourceFileUIController()
   }
 
-  inner class QualifierVariantsUIController : DefaultUIController() {
-    private val myActions: List<AnAction> by lazy {
-      super.getActions().toMutableList() + IncludeQualifierVariantsAction()
-    }
-
-    override fun getActions(): List<AnAction> {
-      return myActions
-    }
-  }
-
-  inner class IncludeQualifierVariantsAction : ToggleAction("Show Current File and Qualifiers") {
-    override fun isSelected(e: AnActionEvent): Boolean {
-      return includeQualifierVariants
-    }
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      if (state != includeQualifierVariants) {
-        includeQualifierVariants = state
-        ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor)
-      }
-    }
-
-    override fun update(e: AnActionEvent) {
-      super.update(e)
-      e.presentation.isVisible = hasVariants
+  inner class ResourceFileUIController : DefaultUIController() {
+    override fun toggleProblemsView() {
+      val issuePanelService = IssuePanelService.getInstance(project)
+      issuePanelService.setSharedIssuePanelVisibility(!issuePanelService.isShowingIssuePanel(null))
     }
   }
 }
 
 class ResourceFileTrafficLightRendererContributor : TrafficLightRendererContributor {
   override fun createRenderer(editor: Editor, file: PsiFile?): TrafficLightRenderer? {
-    if (!StudioFlags.NELE_INCLUDE_QUALIFIERS_FOR_TRAFFIC_LIGHTS.get()) {
+    if (!StudioFlags.NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES.get()) {
       return null
     }
     // Use this customized renderer only for resource files, returning null means that the default renderer will be used.
-    return file?.let {
-      if (isInResourceSubdirectory(it)) {
-        ResourceFileTrafficLightRender(it, editor)
-      }
-      else {
-        null
+    return ReadAction.compute<TrafficLightRenderer?, RuntimeException> {
+      file?.let {
+        if (isInResourceSubdirectory(it)) {
+          ResourceFileTrafficLightRender(it, editor)
+        }
+        else {
+          null
+        }
       }
     }
   }
