@@ -103,7 +103,10 @@ private const val WAIT_TIMEOUT = 3000
 
 internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(container, T::class.java))
+    public override fun condition(): Boolean {
+      UIUtil.dispatchAllInvocationEvents()
+      return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
+    }
   }
   assertTrue(waitForComponentCondition.isConditionRealized)
 }

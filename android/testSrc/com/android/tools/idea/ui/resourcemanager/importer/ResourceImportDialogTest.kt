@@ -30,6 +30,8 @@ import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBTextField
@@ -55,10 +57,14 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@RunsInEdt
 class ResourceImportDialogTest {
 
   @get:Rule
   val rule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private lateinit var resourceImportDialog: ResourceImportDialog
   private lateinit var dialogViewModel: ResourceImportDialogViewModel

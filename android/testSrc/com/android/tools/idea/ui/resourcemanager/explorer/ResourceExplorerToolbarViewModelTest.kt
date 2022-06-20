@@ -29,6 +29,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.file.PsiDirectoryFactory
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
@@ -37,10 +39,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@RunsInEdt
 class ResourceExplorerToolbarViewModelTest {
 
   @get:Rule
   var rule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private lateinit var viewModel: ResourceExplorerToolbarViewModel
 
