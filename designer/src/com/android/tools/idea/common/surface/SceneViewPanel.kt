@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
@@ -117,6 +116,7 @@ private data class LayoutData private constructor(
  */
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
+                         private val sceneViewStatusIcon: JComponent?,
                          private val sceneViewToolbar: JComponent?,
                          private val sceneViewBottomBar: JComponent?,
                          private val sceneViewLeftBar: JComponent?,
@@ -152,7 +152,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           // Extend top to account for the top toolbar
           it.top += sceneViewTopPanel.preferredSize.height
           it.bottom += sceneViewBottomPanel.preferredSize.height
-          it.left += sceneViewLeftPanel.preferredSize.width
+          it.left += maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
           it.right += sceneViewRightPanel.preferredSize.width
         }
         return if (contentSize.width < minimumSize.width ||
@@ -238,6 +238,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   val sceneViewTopPanel = JPanel(BorderLayout()).apply {
     border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
     isOpaque = false
+    // Make the status icon be part of the top panel
+    if(sceneViewStatusIcon != null) {
+      add(sceneViewStatusIcon, BorderLayout.LINE_START)
+    }
     add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
       add(sceneViewToolbar, BorderLayout.LINE_END)
@@ -245,7 +249,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     // The space of name label is sacrified when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
-    val minWidth = MODEL_NAME_LABEL_MIN_WIDTH + (sceneViewToolbar?.minimumSize?.width ?: 0)
+    val minWidth = (sceneViewStatusIcon?.minimumSize?.width ?: 0) +
+                   MODEL_NAME_LABEL_MIN_WIDTH +
+                   (sceneViewToolbar?.minimumSize?.width ?: 0)
     minimumSize = Dimension(minWidth, minimumSize.height)
   }
 
@@ -322,9 +328,11 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       sceneViewTopPanel.isVisible = true
     }
     val isEmptyContent = positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
-    sceneViewCenterPanel.setBounds(
-      0, sceneViewTopPanel.preferredSize.height, width + insets.horizontal, sceneViewCenterPanel.preferredSize.height
-    )
+    val leftSectionWidth = maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
+    sceneViewCenterPanel.setBounds(leftSectionWidth,
+                                   sceneViewTopPanel.preferredSize.height,
+                                   width + insets.horizontal - leftSectionWidth,
+                                   sceneViewCenterPanel.preferredSize.height)
     val bottomPanelYOffset = if (isEmptyContent) sceneViewCenterPanel.preferredSize.height else positionableAdapter.scaledContentSize.height
     sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + bottomPanelYOffset, width + insets.horizontal,
                                    sceneViewBottomPanel.preferredSize.height)
@@ -403,13 +411,15 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
       val toolbar = sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
       val bottomBar = sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
+      val statusIcon = sceneView.surface.actionManager.getSceneViewStatusIcon(sceneView)
+
       // The left bar is only added for the first panel
       val leftBar = if (index == 0) sceneView.surface.actionManager.getSceneViewLeftBar(sceneView) else null
       val rightBar = sceneView.surface.actionManager.getSceneViewRightBar(sceneView)
 
       val errorsPanel = if (sceneView.surface.shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
 
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar, rightBar, errorsPanel).also {
+      add(SceneViewPeerPanel(sceneView, statusIcon, toolbar, bottomBar, leftBar, rightBar, errorsPanel).also {
         it.alignmentX = sceneViewAlignment
       })
     }

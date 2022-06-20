@@ -73,7 +73,7 @@ import javax.swing.border.Border
  * Utility getter that indicates if the project needs a build. This is the case if the previews build is not valid, like after a clean or
  * cancelled, or if it has failed.
  */
-private val Project.needsBuild: Boolean
+internal val Project.needsBuild: Boolean
   get() {
     val lastBuildResult = ProjectSystemService.getInstance(project = this).projectSystem.getBuildManager().getLastBuildResult()
     return lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.CANCELLED ||

@@ -28,8 +28,11 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * [ActionManager] to be used by the Compose Preview.
@@ -94,4 +97,30 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface<La
       isOpaque = false
       border = JBUI.Borders.empty()
     }
+
+  override fun getSceneViewStatusIcon(sceneView: SceneView): JComponent {
+    val component = ActionManagerEx.getInstanceEx().createActionToolbar(
+      "sceneView",
+      DefaultActionGroup(ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()),
+      true,
+      false
+    ).apply {
+      targetComponent = sceneView.surface
+      (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
+    }.component.apply {
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
+
+    return JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty()
+      isOpaque = false
+      isVisible = true
+      add(component, BorderLayout.LINE_END)
+
+      // Make the size to be fixed, even when the no icon is visible
+      minimumSize = component.minimumSize
+      preferredSize = component.minimumSize
+    }
+  }
 }

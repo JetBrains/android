@@ -69,6 +69,7 @@ interface ComposePreviewManager: Disposable {
 
     fun isStartingOrReady() = this == STARTING || this == READY
     fun isStoppingOrDisabled() = this == STOPPING || this == DISABLED
+    fun isStartingOrStopping() = this == STARTING || this == STOPPING
   }
   /**
    * Status of the preview.
