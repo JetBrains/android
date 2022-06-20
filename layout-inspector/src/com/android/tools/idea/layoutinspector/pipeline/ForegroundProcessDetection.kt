@@ -41,8 +41,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import layout_inspector.LayoutInspector
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ConcurrentHashMap
@@ -234,28 +236,46 @@ class ForegroundProcessDetection(
               }
             }
 
+            // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
             launch {
-              // start listening for handshake events
-              // if the device does not support foreground process detection we should fall back to a process picker for that device.
               streamChannel.eventFlow(
-                StreamEventQuery(eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
-              )
-                .collect { streamEvent ->
+                StreamEventQuery(
+                  eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
+                  startTime = { currentTime }
+                )
+              ).collect { streamEvent ->
                   if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
-                    val deviceSupportsForegroundProcessDetection = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supported
-                    if (deviceSupportsForegroundProcessDetection) {
-                      deviceModel.foregroundProcessDetectionSupportedDevices.add(streamDevice)
+                    when (val supportType = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supportType!!) {
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
+                        // The handshake couldn't determine if the device supports foreground process detection.
+                        // This could be because the device is in a state where we can't determine the foreground activity,
+                        // for example if the device is locked and there is no foreground activity.
+                        // We should wait a try the handshake again.
+                        delay(2000)
+                        sendStartHandshakeCommand(activity.streamChannel.stream)
+                      }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
+                        deviceModel.foregroundProcessDetectionSupportedDevices.add(streamDevice)
 
-                      // TODO make sure this doesn't happen when the tool window is collapsed
-                      // If there are no devices connected, we can automatically connect to the first device.
-                      // So the user doesn't have to hand pick the device.
-                      if (deviceModel.selectedDevice == null && deviceModel.devices.contains(streamDevice)) {
-                        startPollingDevice(streamDevice)
+                        // If there are no devices connected, we can automatically connect to the first device.
+                        // So the user doesn't have to handpick the device.
+                        if (deviceModel.selectedDevice == null && deviceModel.devices.contains(streamDevice)) {
+                          // TODO make sure this doesn't happen when the tool window is collapsed
+                          startPollingDevice(streamDevice)
+                        }
+                      }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
+                        // the device is never added to DeviceModel#foregroundProcessDetectionSupportedDevices,
+                        // so it will be handled in the UI by showing a process picker.
+                      }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
+                        throw RuntimeException("Unrecognized support type: $supportType")
                       }
                     }
                   }
                 }
             }
+
 
             sendStartHandshakeCommand(activity.streamChannel.stream)
           }

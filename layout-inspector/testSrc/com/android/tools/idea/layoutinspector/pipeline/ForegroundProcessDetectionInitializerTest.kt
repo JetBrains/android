@@ -38,6 +38,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.SameThreadExecutor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import layout_inspector.LayoutInspector
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -122,7 +123,7 @@ class ForegroundProcessDetectionInitializerTest {
         .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
         .setLayoutInspectorTrackingForegroundProcessSupported(
           Common.Event.newBuilder().layoutInspectorTrackingForegroundProcessSupportedBuilder
-            .setSupported(true).build()
+            .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED).build()
         )
         .build()
 
