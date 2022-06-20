@@ -24,7 +24,6 @@ import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.base.Preconditions
-import com.intellij.ide.projectWizard.NewProjectWizardConstants.Generators
 import com.intellij.ide.projectWizard.ProjectTypeStep
 import com.intellij.ide.util.newProjectWizard.WizardDelegate
 import com.intellij.ide.util.projectWizard.ModuleBuilder
@@ -61,7 +60,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
    */
   private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
-  override fun getBuilderId(): String = Generators.ANDROID
+  override fun getBuilderId(): String = "Android"
   override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
   override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 
