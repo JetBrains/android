@@ -362,7 +362,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
 
     /**
-     * @return a list of keys. The deriveValue function will only be called if the changed key is one of
+     * @return a set of keys. The deriveValue function will only be called if the changed key is one of
      * the trigger keys. Return null to trigger on every update.
      */
     @Nullable
