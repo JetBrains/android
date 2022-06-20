@@ -74,6 +74,12 @@ enum class TestProject(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
   ),
+  NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+    testName = "hierarchical",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true) }
+  ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
   KOTLIN_KAPT(TestProjectToSnapshotPaths.KOTLIN_KAPT),
   LINT_CUSTOM_CHECKS(
@@ -88,6 +94,24 @@ enum class TestProject(
   KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
+  ),
+  KOTLIN_MULTIPLATFORM_HIERARCHICAL(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "hierarchical",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true) }
+  ),
+  KOTLIN_MULTIPLATFORM_JVM(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "jvm",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = "module2") }
+  ),
+  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "jvm_hierarchical",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = "module2") }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_WITH_FILTERING(
@@ -156,10 +180,29 @@ private fun File.replaceContent(change: (String) -> String) {
   )
 }
 
+private fun File.replaceInContent(oldValue: String, newValue: String) {
+  replaceContent { it.replace(oldValue, newValue) }
+}
+
 private fun truncateForV2(settingsFile: File) {
   val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
   Truth.assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
   settingsFile.writeText(patchedText)
+}
+
+private fun patchMppProject(projectRoot: File, enableHierarchicalSupport: Boolean, addJvmTo: String? = null) {
+  if (enableHierarchicalSupport) {
+    projectRoot.resolve("gradle.properties").replaceInContent(
+      "kotlin.mpp.hierarchicalStructureSupport=false",
+      "kotlin.mpp.hierarchicalStructureSupport=true"
+    )
+  }
+  if (addJvmTo != null) {
+    projectRoot.resolve(addJvmTo).resolve("build.gradle").replaceInContent(
+      "android()",
+      "android()\njvm()"
+    )
+  }
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.updateProjectJdk(projectRoot: File) {

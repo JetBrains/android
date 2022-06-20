@@ -126,6 +126,9 @@ abstract class SyncedProjectTest(
   fun testNonStandardSourceSetDependencies() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
 
   @Test
+  fun testNonStandardSourceSetDependencies_hierarchical() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL)
+
+  @Test
   fun testLinked() = testProject(TestProject.LINKED)
 
   @Test
@@ -142,6 +145,15 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
+
+  @Test
+  fun testKotlinMultiplatform_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL)
+
+  @Test
+  fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
+
+  @Test
+  fun testKotlinMultiplatform_jvm_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL)
 
   @Test
   fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)

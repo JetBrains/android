@@ -76,6 +76,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       IdeModelSnapshotComparisonTestDefinition(TestProject.COMPOSITE_BUILD),
       IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SETS),
       IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.LINKED),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_KAPT),
       IdeModelSnapshotComparisonTestDefinition(TestProject.LINT_CUSTOM_CHECKS),
@@ -93,6 +94,9 @@ data class IdeModelSnapshotComparisonTestDefinition(
         )
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_WITH_FILTERING),
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984.
