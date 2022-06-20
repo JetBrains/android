@@ -324,7 +324,7 @@ class FastPreviewManager private constructor(
    * Returns true while there is a compilation request running of this project.
    */
   val isCompiling: Boolean
-    get() = compilingMutex.isLocked
+    get() = isEnabled && compilingMutex.isLocked
 
   /**
    * Stops all the daemons managed by this [FastPreviewManager].
@@ -396,10 +396,10 @@ class FastPreviewManager private constructor(
         daemon.compileRequest(files, module, outputDir, indicator)
       }
       catch (t: CancellationException) {
-        throw t
+        CompilationResult.CompilationAborted(t)
       }
       catch (t: ProcessCanceledException) {
-        throw t
+        CompilationResult.CompilationAborted(t)
       }
       catch (t: Throwable) {
         // Catch for compilation failures
@@ -407,10 +407,10 @@ class FastPreviewManager private constructor(
       }
     }
     catch (t: CancellationException) {
-      throw t
+      CompilationResult.CompilationAborted(t)
     }
     catch (t: ProcessCanceledException) {
-      throw t
+      CompilationResult.CompilationAborted(t)
     }
     catch (t: Throwable) {
       tracker.daemonStartFailed()

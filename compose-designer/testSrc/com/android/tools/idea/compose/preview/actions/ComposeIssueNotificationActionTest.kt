@@ -108,8 +108,18 @@ internal class ComposeIssueNotificationActionTest {
       isOutOfDate = true
     )
     action.update(event)
-    // Syntax errors take precedence over out of date
+    // Syntax errors take precedence over out of date when Fast Preview is Enabled
     assertEquals("Paused (The preview will not update while your project contains syntax errors.)", event.presentation.toString())
+
+    try {
+      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+
+      action.update(event)
+      // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
+      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    } finally {
+      FastPreviewManager.getInstance(projectRule.project).enable()
+    }
 
     composePreviewManager.currentStatus = originStatus.copy(
       hasSyntaxErrors = true,

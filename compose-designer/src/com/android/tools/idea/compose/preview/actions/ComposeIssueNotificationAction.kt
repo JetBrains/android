@@ -184,23 +184,27 @@ private sealed class ComposePreviewStatusNotification(
 
 private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
   val previewStatus = status()
- return when {
+  val fastPreviewEnabled = FastPreviewManager.getInstance(project).isEnabled
+  return when {
+    // No Fast Preview and Preview is out of date
+    !fastPreviewEnabled && previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
+
     // Refresh status
-   previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
+    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
       ComposePreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))
+
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
       ComposePreviewStatusNotification.Refreshing(message("notification.interactive.preview.stopping"))
+
     previewStatus.isRefreshing -> ComposePreviewStatusNotification.Refreshing()
 
     // Build/Syntax errors
     project.needsBuild -> ComposePreviewStatusNotification.NeedsBuild
     previewStatus.hasSyntaxErrors -> ComposePreviewStatusNotification.SyntaxError
 
-   !FastPreviewManager.getInstance(project).isEnabled && previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
-
     // Fast preview refresh/failures
-    project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
-    project.fastPreviewManager.isCompiling -> ComposePreviewStatusNotification.FastPreviewCompiling
+    fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
+    fastPreviewEnabled && project.fastPreviewManager.isCompiling -> ComposePreviewStatusNotification.FastPreviewCompiling
 
     // Up-to-date
     else -> ComposePreviewStatusNotification.UpToDate
