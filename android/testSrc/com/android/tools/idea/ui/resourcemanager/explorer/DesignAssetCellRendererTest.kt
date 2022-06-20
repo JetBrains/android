@@ -41,7 +41,6 @@ class DesignAssetCellRendererTest {
 
   @get:Rule
   var androidProjectRule = AndroidProjectRule.inMemory()
-
   @Ignore("b/117130787")
   @Test
   fun getListCellRendererComponent() {

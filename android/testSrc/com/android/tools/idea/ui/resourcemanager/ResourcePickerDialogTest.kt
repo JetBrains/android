@@ -30,6 +30,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
@@ -43,10 +45,14 @@ import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
 
+@RunsInEdt
 class ResourcePickerDialogTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private lateinit var pickerDialog: ResourcePickerDialog
 

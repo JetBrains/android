@@ -28,11 +28,11 @@ import com.android.tools.idea.ui.resourcemanager.model.getAssetSets
 import com.android.tools.idea.ui.resourcemanager.nightModeMapper
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.ClassRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.util.regex.MatchResult
@@ -40,15 +40,13 @@ import java.util.regex.Pattern
 
 @RunsInEdt
 class ImporterTest {
-
   companion object {
     @JvmField
     @ClassRule
     val appRule = ApplicationRule()
   }
 
-  @JvmField
-  @Rule
+  @get:Rule
   val edtRule = EdtRule()
 
   private val supportedTypes = setOf("png", "jpg")
@@ -99,7 +97,7 @@ class ImporterTest {
 
   @Test
   fun getCreateAssetMultiDir() {
-    val directory = runWriteAction(::getExternalResourceDirectory)
+    val directory = runWriteAction { getExternalResourceDirectory() }
     runWriteAction {
       with(directory.createChildDirectory(this, "fr")) {
         createChildData(this, "icon.png")

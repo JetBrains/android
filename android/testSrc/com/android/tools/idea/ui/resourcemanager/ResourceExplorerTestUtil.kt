@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
@@ -103,7 +104,12 @@ private const val WAIT_TIMEOUT = 3000
 
 internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(container, T::class.java))
+    public override fun condition(): Boolean {
+      invokeAndWaitIfNeeded {
+        UIUtil.dispatchAllInvocationEvents()
+      }
+      return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
+    }
   }
   assertTrue(waitForComponentCondition.isConditionRealized)
 }

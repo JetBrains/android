@@ -72,7 +72,7 @@ class ResourceExplorerViewModelTest {
     // Trigger a change in the Resource Type.
     viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.STRING)
     Truth.assertThat(listViewModel.currentResourceType).isEqualTo(ResourceType.STRING)
-    Truth.assertThat(latch.await(1L, TimeUnit.MINUTES))
+    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS))
   }
 
   @Test
@@ -99,7 +99,7 @@ class ResourceExplorerViewModelTest {
     viewModel.facet = module2.androidFacet!!
     Truth.assertThat(listViewModel.facet).isNotEqualTo(module2.androidFacet)
     Truth.assertThat(viewModel.createResourceListViewModel().get().facet).isEqualTo(module2.androidFacet)
-    Truth.assertThat(latch.await(1L, TimeUnit.MINUTES))
+    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS))
   }
 
   @Test
@@ -127,7 +127,7 @@ class ResourceExplorerViewModelTest {
   fun updateOnFileNameChanged() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
-    val listViewModel = viewModel.createResourceListViewModel().get(5L, TimeUnit.MINUTES)
+    val listViewModel = viewModel.createResourceListViewModel().get(10L, TimeUnit.SECONDS)
     val resourceChangedLatch = CountDownLatch(1)
     val values = listViewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()

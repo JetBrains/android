@@ -35,6 +35,8 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
@@ -52,10 +54,14 @@ import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+@RunsInEdt
 class ResourceExplorerViewTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private val disposable = Disposer.newDisposable("ResourceExplorerViewTest")
 
