@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
@@ -29,18 +28,21 @@ class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestC
     GradleVersion.parseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    checkNoUndisposedDialogs()
+  }
+
   @Test
   fun testCannotUpgradeDialogNoBuildFile() {
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), latestKnown)
     assertTrue(processor.blockProcessorExecution())
-    val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
+    val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor))
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
     assertSize(1, editorPanes)
-    println(editorPanes[0].text)
     assertTrue(editorPanes[0].text.contains("failed to upgrade this project"))
     assertTrue(editorPanes[0].text.contains("no way"))
     assertTrue(editorPanes[0].text.contains("Upgrade AGP dependency from 4.1.0 to $latestKnown"))
     assertTrue(editorPanes[0].text.contains("Cannot find AGP version in build files."))
-    Disposer.dispose(dialog.disposable)
   }
 }
