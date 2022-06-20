@@ -29,6 +29,7 @@ import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
@@ -42,12 +43,14 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
   companion object {
     private val kotlinModels = mutableMapOf<String, KotlinGradleModel>()
     private val kaptModels = mutableMapOf<String, KaptGradleModel>()
+    private val mppModels = mutableMapOf<String, KotlinMPPGradleModel>()
     private val externalProjectModels = mutableMapOf<String, ExternalProject>()
     private val testGradleModels = mutableMapOf<String, TestGradleModel>()
     private val testParameterizedGradleModels = mutableMapOf<String, TestParameterizedGradleModel>()
 
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[getGradleProjectPath(module)]
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[getGradleProjectPath(module)]
+    fun getMppModel(module: Module): KotlinMPPGradleModel? = mppModels[getGradleProjectPath(module)]
     fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[getGradleProjectPath(module)]
     fun getTestGradleModel(module: Module): TestGradleModel? = testGradleModels[getGradleProjectPath(module)]
     fun getTestParameterizedGradleModel(module: Module): TestParameterizedGradleModel? =
@@ -61,6 +64,7 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
     fun reset() {
       kotlinModels.clear()
       kaptModels.clear()
+      mppModels.clear()
       externalProjectModels.clear()
       testGradleModels.clear()
       testParameterizedGradleModels.clear()
@@ -87,6 +91,9 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
     // The KaptGradleModel is present for Java modules
     resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let {
       kaptModels[gradleProjectPath] = it
+    }
+    resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)?.let {
+      mppModels[gradleProjectPath] = it
     }
     // For Android modules it is contained within the IdeAndroidModels class
     resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)?.let {

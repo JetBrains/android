@@ -2193,16 +2193,16 @@ MODULE                        : NonStandardSourceSetDependencies.app
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debugUnitTest/kotlin [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.app.androidTest
@@ -3105,16 +3105,16 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/feature-a/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/feature-a/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/feature-a/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/feature-a/src/debugUnitTest/kotlin [-]
     externalProject               : :feature-a (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.feature-a.androidTest
@@ -3270,15 +3270,15 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLibrary/src/main/kotlin [-]
             test                          : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLibrary/src/test/kotlin [-]
             testEnv                       : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLibrary/src/testEnv/kotlin [-]
     externalProject               : :javaLibrary (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.javaLibrary.main
@@ -4007,16 +4007,16 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.5.31
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugUnitTest/kotlin [-]
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.lib.androidTest
@@ -4041,6 +4041,328 @@ MODULE                        : NonStandardSourceSetDependencies.network-kmm
         - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
+    kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
+        dependencyMap
+            1                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            2                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            3                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            4                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            5                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            6                             : DefaultFileCollectionDependency
+                - files                       : <ROOT>/network-kmm/build/classes/kotlin/jvm/main [-]
+            7                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            8                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            9                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            10                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            11                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/network-kmm/build/classes/kotlin/jvm/main [-]
+            12                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/network-kmm/build/processedResources/jvm/main [-]
+            13                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            14                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            15                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            16                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            17                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            18                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            19                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            20                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+        extraFeatures                 : ExtraFeaturesImpl
+            isNativeDependencyPropagationEnabled    : true
+        - targets                     : jvm (KotlinTargetImpl)
+            - compilations                : main (KotlinCompilationImpl)
+                - allSourceSets               : commonMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        - platforms                   : COMMON
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 4
+                    - dependencies                : 5
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 4
+                    - regularDependencies         : 5
+                    - resourceDirs                : <ROOT>/network-kmm/src/commonMain/resources [-]
+                    - sourceDirs                  : <ROOT>/network-kmm/src/commonMain/kotlin [-]
+                    platform                      : COMMON
+                - allSourceSets               : jvmMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - allDependsOnSourceSets      : commonMain
+                    - declaredDependsOnSourceSets : commonMain
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - resourceDirs                : <ROOT>/network-kmm/src/jvmMain/resources [-]
+                    - sourceDirs                  : <ROOT>/network-kmm/src/jvmMain/kotlin
+                    - dependsOnSourceSets         : commonMain
+                    platform                      : JVM
+                arguments                     : KotlinCompilationArgumentsImpl
+                cachedArgsInfo
+                    compilerArguments             : K2JVMCompilerArguments
+                        allowNoSourceFiles            : true
+                        assertionsMode                : legacy
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        destination                   : <ROOT>/network-kmm/build/classes/kotlin/jvm/main
+                        jvmDefault                    : disable
+                        jvmTarget                     : 1.8
+                        moduleName                    : network-kmm
+                        noReflect                     : true
+                        noStdlib                      : true
+                        parallelBackendThreads        : 1
+                        serializeIr                   : none
+                        autoAdvanceApiVersion         : true
+                        autoAdvanceLanguageVersion    : true
+                        errors                        : ArgumentParseErrors
+                        explicitApi                   : disable
+                        multiPlatform                 : true
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 1
+                - dependencies                : 2
+                - dependencies                : 3
+                - dependencies                : 4
+                - dependencies                : 17
+                - dependencies                : 18
+                - dependencies                : 19
+                - dependencies                : 20
+                disambiguationClassifier      : jvm
+                kotlinTaskProperties          : KotlinTaskPropertiesImpl
+                    incremental                   : true
+                    pluginVersion                 : <CUT>
+                    - pureKotlinSourceFolders     : <ROOT>/network-kmm/src/jvmMain/kotlin
+                output                        : KotlinCompilationOutputImpl
+                    - classesDirs                 : <ROOT>/network-kmm/build/classes/kotlin/jvm/main [-]
+                    effectiveClassesDir           : <ROOT>/network-kmm/build/classes/kotlin/jvm/main [-]
+                    resourcesDir                  : <ROOT>/network-kmm/build/processedResources/jvm/main [-]
+                platform                      : JVM
+                - sourceSets                  : jvmMain (KotlinSourceSetImpl) (*seen*)
+            - compilations                : test (KotlinCompilationImpl)
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        - platforms                   : COMMON
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 4
+                    - dependencies                : 5
+                    isTestModule                  : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 4
+                    - regularDependencies         : 5
+                    - resourceDirs                : <ROOT>/network-kmm/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/network-kmm/src/commonTest/kotlin [-]
+                    platform                      : COMMON
+                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 4
+                    - dependencies                : 6
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
+                    - dependencies                : 10
+                    - dependencies                : 11
+                    - dependencies                : 12
+                    - dependencies                : 13
+                    - dependencies                : 14
+                    - dependencies                : 15
+                    - dependencies                : 16
+                    isTestModule                  : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 4
+                    - regularDependencies         : 6
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
+                    - regularDependencies         : 10
+                    - regularDependencies         : 11
+                    - regularDependencies         : 12
+                    - regularDependencies         : 13
+                    - regularDependencies         : 14
+                    - regularDependencies         : 15
+                    - regularDependencies         : 16
+                    - resourceDirs                : <ROOT>/network-kmm/src/jvmTest/resources [-]
+                    - sourceDirs                  : <ROOT>/network-kmm/src/jvmTest/kotlin [-]
+                    - dependsOnSourceSets         : commonTest
+                    platform                      : JVM
+                arguments                     : KotlinCompilationArgumentsImpl
+                cachedArgsInfo
+                    compilerArguments             : K2JVMCompilerArguments
+                        allowNoSourceFiles            : true
+                        assertionsMode                : legacy
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        destination                   : <ROOT>/network-kmm/build/classes/kotlin/jvm/test
+                        - friendPaths                 : <ROOT>/network-kmm/build/classes/kotlin/jvm/main [-]
+                        - friendPaths                 : <ROOT>/network-kmm/build/libs/network-kmm-jvm.jar [-]
+                        jvmDefault                    : disable
+                        jvmTarget                     : 1.8
+                        moduleName                    : network-kmm
+                        noReflect                     : true
+                        noStdlib                      : true
+                        parallelBackendThreads        : 1
+                        serializeIr                   : none
+                        autoAdvanceApiVersion         : true
+                        autoAdvanceLanguageVersion    : true
+                        errors                        : ArgumentParseErrors
+                        explicitApi                   : disable
+                        multiPlatform                 : true
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 6
+                - dependencies                : 7
+                - dependencies                : 8
+                - dependencies                : 9
+                - dependencies                : 10
+                - dependencies                : 11
+                - dependencies                : 12
+                - dependencies                : 13
+                - dependencies                : 14
+                - dependencies                : 15
+                - dependencies                : 16
+                - dependencies                : 1
+                - dependencies                : 2
+                - dependencies                : 3
+                - dependencies                : 4
+                disambiguationClassifier      : jvm
+                isTestModule                  : true
+                kotlinTaskProperties          : KotlinTaskPropertiesImpl
+                    incremental                   : true
+                    pluginVersion                 : <CUT>
+                    - pureKotlinSourceFolders     : <ROOT>/network-kmm/src/jvmTest/kotlin [-]
+                output                        : KotlinCompilationOutputImpl
+                    - classesDirs                 : <ROOT>/network-kmm/build/classes/kotlin/jvm/test [-]
+                    effectiveClassesDir           : <ROOT>/network-kmm/build/classes/kotlin/jvm/test [-]
+                    resourcesDir                  : <ROOT>/network-kmm/build/processedResources/jvm/test [-]
+                platform                      : JVM
+                - sourceSets                  : jvmTest (KotlinSourceSetImpl) (*seen*)
+            disambiguationClassifier      : jvm
+            jar                           : KotlinTargetJarImpl
+                archiveFile                   : <ROOT>/network-kmm/build/libs/network-kmm-jvm.jar [-]
+            platform                      : JVM
+            presetName                    : jvm
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : jvmTest
+        sourceSets
+            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
+            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
+            jvmMain                       : jvmMain (KotlinSourceSetImpl) (*seen*)
+            jvmTest                       : jvmTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :network-kmm (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonMain
 MODULE                        : NonStandardSourceSetDependencies.network-kmm.commonTest

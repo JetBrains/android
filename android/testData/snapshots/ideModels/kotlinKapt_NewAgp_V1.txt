@@ -2089,16 +2089,16 @@ MODULE                        : MainActivity.app
         kotlinTaskProperties
             localDebug                    : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebug/java [-]
             localDebugAndroidTest         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugAndroidTest/kotlin [-]
             localDebugUnitTest            : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugUnitTest/kotlin [-]
     kaptGradleModel               : <PROXY>
         buildDirectory                : <ROOT>/app/build [-]
@@ -2241,11 +2241,11 @@ MODULE                        : MainActivity.javaLib
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLib/src/main/kotlin [-]
             test                          : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLib/src/test/kotlin [-]
     kaptGradleModel               : KaptGradleModelImpl
         buildDirectory                : <ROOT>/javaLib/build
@@ -3659,16 +3659,16 @@ MODULE                        : MainActivity.lib
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugUnitTest/kotlin [-]
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : MainActivity.lib.androidTest

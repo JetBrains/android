@@ -2006,16 +2006,16 @@ MODULE                        : TestCompositeLib1.app
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debugUnitTest/kotlin [-]
     externalProject               : TestCompositeLib1:app (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib1.app.androidTest
@@ -3038,16 +3038,16 @@ MODULE                        : TestCompositeLib1.lib
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debugUnitTest/kotlin [-]
     externalProject               : TestCompositeLib1:lib (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib1.lib.androidTest
@@ -4430,16 +4430,16 @@ MODULE                        : TestCompositeLib3.app
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debugUnitTest/kotlin [-]
     externalProject               : TestCompositeLib3:app (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib3.app.androidTest
@@ -7049,16 +7049,16 @@ MODULE                        : project.app
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/debugUnitTest/kotlin [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -8042,16 +8042,16 @@ MODULE                        : project.lib
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/lib/src/debugUnitTest/kotlin [-]
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest

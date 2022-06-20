@@ -123,6 +123,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         project,
         kotlinModels = { CapturePlatformModelsProjectResolverExtension.getKotlinModel(it) },
         kaptModels = { CapturePlatformModelsProjectResolverExtension.getKaptModel(it) },
+        mppModels = {CapturePlatformModelsProjectResolverExtension.getMppModel(it) },
         externalProjects = { if (agpVersion >= AGP_41) CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) else null }
       )
     }

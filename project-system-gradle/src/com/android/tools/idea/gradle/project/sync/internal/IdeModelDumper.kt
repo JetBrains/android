@@ -56,14 +56,18 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
 import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinTaskPropertiesImpl
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
+import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
@@ -71,6 +75,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
   project: Project,
   kotlinModels: (Module) -> KotlinGradleModel?,
   kaptModels: (Module) -> KaptGradleModel?,
+  mppModels: (Module) -> KotlinMPPGradleModel?,
   externalProjects: (Module) -> ExternalProject?
 ) {
   nest(File(project.basePath!!), "PROJECT") {
@@ -113,6 +118,10 @@ fun ProjectDumper.dumpAndroidIdeModel(
           }
 
           kaptModels(module)?.let {
+            dump(it)
+          }
+
+          mppModels(module)?.let {
             dump(it)
           }
 
@@ -167,6 +176,17 @@ private val jbModelDumpers = listOf(
   },
   SpecializedDumper(property = IdeDependencies::moduleDependencies) {
     prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
+    // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
+    // in tests.
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::dependencyMap) { dependencyMap ->
+    prop(propertyName, dependencyMap.entries.sortedBy { it.key }.associate { it.key to it.value })
+  },
+  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
+    // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
+    prop(propertyName, "<CUT>")
   }
 )
 
@@ -697,6 +717,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       modelDumper.dumpModel(this@with, "kaptGradleModel", kaptGradleModel)
     }
 
+    fun dump(mppGradleModel: KotlinMPPGradleModel) {
+      modelDumper.dumpModel(this@with, "kotlinMppGradleModel", mppGradleModel)
+    }
+
     fun dump(externalProject: ExternalProject) {
       modelDumper.dumpModel(this@with, "externalProject", externalProject)
     }
@@ -707,7 +731,7 @@ class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val dumper = ProjectDumper()
-    dumper.dumpAndroidIdeModel(project, { null }, { null }, { null })
+    dumper.dumpAndroidIdeModel(project, { null }, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
     outputFile.writeText(dump)

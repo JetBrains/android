@@ -1915,16 +1915,16 @@ MODULE                        : My_First_App.app
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/firstapp/app/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/firstapp/app/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/firstapp/app/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/firstapp/app/src/debugUnitTest/kotlin [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : My_First_App.app.androidTest
@@ -2908,16 +2908,16 @@ MODULE                        : My_First_App.app.mysharedlibrary
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/shared/mysharedlibrary/src/debug/kotlin [-]
                 - pureKotlinSourceFolders     : <ROOT>/shared/mysharedlibrary/src/debug/java [-]
             debugAndroidTest              : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/shared/mysharedlibrary/src/debugAndroidTest/kotlin [-]
             debugUnitTest                 : KotlinTaskPropertiesImpl
                 incremental                   : true
-                pluginVersion                 : 1.6.20
+                pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/shared/mysharedlibrary/src/debugUnitTest/kotlin [-]
     externalProject               : :app:mysharedlibrary (DefaultExternalProject) (*seen*)
 MODULE                        : My_First_App.app.mysharedlibrary.androidTest
