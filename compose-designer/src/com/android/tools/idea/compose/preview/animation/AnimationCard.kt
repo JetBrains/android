@@ -35,9 +35,9 @@ import javax.swing.border.MatteBorder
 
 class AnimationCard(previewState: AnimationPreviewState,
                     val surface: DesignSurface<*>,
-                    val state: ElementState,
+                    override val state: ElementState,
                     private val tracker: ComposeAnimationEventTracker)
-  : JPanel(TabularLayout("*", "30px,30px")) {
+  : JPanel(TabularLayout("*", "30px,30px")), Card {
 
   // Collapsed view:
   //   Expand button
@@ -63,9 +63,9 @@ class AnimationCard(previewState: AnimationPreviewState,
   //⎹                                           ⎹
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅̅ ̅ ̅ ̅̅̅
 
-  val component: JPanel = this
+  override val component: JPanel = this
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
-  var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
+  override var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   private val firstRow = JPanel(TabularLayout("30px,*,Fit","30px")).apply {
     border = JBUI.Borders.empty(0, 0, 0, 8)
@@ -75,11 +75,11 @@ class AnimationCard(previewState: AnimationPreviewState,
     border = JBUI.Borders.empty(0, 25, 0, 8)
   }
 
-  fun getCurrentHeight() =
+  override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   var durationLabel: Component? = null
-  fun setDuration(durationMillis: Int?) {
+  override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
     durationLabel = JBLabel("${durationMillis ?: "_"}ms").apply { foreground = UIUtil.getContextHelpForeground() }.also {
       firstRow.add(it, TabularLayout.Constraint(0, 2))

@@ -34,7 +34,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 
@@ -122,6 +121,44 @@ class AllTabPanelTest {
   }
 
   @Test
+  fun `add and remove label cards`() {
+    val cardOne = LabelCard(ElementState("One"))
+    val cardTwo = LabelCard(ElementState("Two"))
+    val cardThree = LabelCard(ElementState("Three"))
+
+    val panel = AllTabPanel().apply { setSize(1000, 800) }
+
+    invokeAndWaitIfNeeded {
+      assertEquals(0, panel.getNumberOfCards())
+      panel.addCard(cardOne)
+      assertEquals(1, panel.getNumberOfCards())
+      panel.addCard(cardTwo)
+      assertEquals(2, panel.getNumberOfCards())
+      // Can't add the same card twice
+      panel.addCard(cardTwo)
+      assertEquals(2, panel.getNumberOfCards())
+      panel.addCard(cardThree)
+      assertEquals(3, panel.getNumberOfCards())
+      panel.removeCard(cardTwo)
+      assertEquals(2, panel.getNumberOfCards())
+      // Can't remove the same card twice
+      panel.removeCard(cardTwo)
+      assertEquals(2, panel.getNumberOfCards())
+      panel.removeCard(cardThree)
+      assertEquals(1, panel.getNumberOfCards())
+      //It's okay to add removed card again.
+      panel.addCard(cardThree)
+      assertEquals(2, panel.getNumberOfCards())
+      //Remove all remaining cards.
+      panel.removeCard(cardThree)
+      panel.removeCard(cardOne)
+      assertEquals(0, panel.getNumberOfCards())
+      // All cards are already removed.
+      panel.removeCard(cardThree)
+    }
+  }
+
+  @Test
   fun `preview ui`() {
     val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply { setDuration(111) }
     val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply { setDuration(222) }
@@ -130,12 +167,8 @@ class AllTabPanelTest {
 
     val panel = AllTabPanel().apply {
       setSize(1000, 800)
-      addPlayback(JLabel("Playback placeholder").apply {
-        background = JBColor.blue
-      })
-      addTimeline(JLabel("Timeline placeholder").apply {
-        background = JBColor.green
-      })
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
     }
 
     invokeAndWaitIfNeeded {
@@ -150,15 +183,41 @@ class AllTabPanelTest {
   }
 
   @Test
+  fun `preview ui with mixed cards`() {
+    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard One")) {}.apply { setDuration(111) }
+    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Two")) {}.apply { setDuration(222) }
+    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Three")) {}.apply { setDuration(333) }
+    val labelCardOne = LabelCard(ElementState("LabelCard One"))
+    val labelCardTwo = LabelCard(ElementState("LabelCard Two"))
+    val labelCardThree = LabelCard(ElementState("LabelCard Three"))
+
+    val panel = AllTabPanel().apply {
+      setSize(1000, 800)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
+
+    invokeAndWaitIfNeeded {
+      val ui = FakeUi(panel)
+      panel.addCard(cardOne)
+      panel.addCard(labelCardOne)
+      panel.addCard(cardTwo)
+      panel.addCard(labelCardTwo)
+      panel.addCard(cardThree)
+      panel.addCard(labelCardThree)
+      ui.updateToolbars()
+      ui.layout()
+      // Uncomment to preview ui.
+      //ui.render()
+    }
+  }
+
+  @Test
   fun `scroll ui`() {
     val panel = AllTabPanel().apply {
       setSize(1000, 400)
-      addPlayback(JLabel("Playback placeholder").apply {
-        background = JBColor.blue
-      })
-      addTimeline(JLabel("Timeline placeholder").apply {
-        background = JBColor.green
-      })
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
     }
     for (i in 0..10) {
       panel.addCard(AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })

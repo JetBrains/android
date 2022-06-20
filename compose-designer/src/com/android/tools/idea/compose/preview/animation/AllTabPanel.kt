@@ -73,7 +73,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
   }
 
   @VisibleForTesting
-  val cards = mutableListOf<AnimationCard>()
+  val cards = mutableListOf<Card>()
 
   fun addTimeline(timeline: JComponent) {
     splitter.secondComponent.add(timeline, BorderLayout.CENTER)
@@ -86,9 +86,9 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
         TabularLayout.Constraint(0, 1))
   }
 
-  fun addCard(card: AnimationCard) {
+  fun addCard(card: Card) {
     if (cards.contains(card)) return
-    splitter.firstComponent.add(card, TabularLayout.Constraint(cards.size, 0))
+    splitter.firstComponent.add(card.component, TabularLayout.Constraint(cards.size, 0))
     cards.add(card)
     cardsLayout.setRowSizing(
       cards.indexOf(card), TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()))
@@ -96,14 +96,14 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
       cardsLayout.setRowSizing(
         cards.indexOf(card), TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()))
       updateDimension()
-      card.revalidate()
+      card.component.revalidate()
     }
     updateDimension()
   }
 
-  fun removeCard(card: AnimationCard) {
+  fun removeCard(card: Card) {
     cards.remove(card)
-    splitter.firstComponent.remove(card)
+    splitter.firstComponent.remove(card.component)
     updateDimension()
     splitter.firstComponent.revalidate()
   }

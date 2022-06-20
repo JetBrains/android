@@ -21,10 +21,12 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
+import com.intellij.ui.JBColor
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
+import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.test.assertTrue
 
@@ -66,6 +68,10 @@ object TestUtils {
     }
     return slider
   }
+
+  fun createPlaybackPlaceHolder() = JLabel("Playback placeholder").apply { background = JBColor.blue }
+
+  fun createTimelinePlaceHolder() = JLabel("Timeline placeholder").apply { background = JBColor.pink }
 
   fun createComposeAnimation(label: String? = null, type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE) =
     object : ComposeAnimation {

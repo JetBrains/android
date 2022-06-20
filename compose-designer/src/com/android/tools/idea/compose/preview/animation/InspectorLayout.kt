@@ -64,6 +64,9 @@ object InspectorLayout {
   /** Height of one row for line. */
   fun timelineLineRowHeightScaled() = JBUI.scale(TIMELINE_LINE_ROW_HEIGHT)
 
+  /** Height of one row for unsupported animation. */
+  const val UNSUPPORTED_ROW_HEIGHT = 30
+
   /** Height of one row for curve. */
   const val TIMELINE_CURVE_ROW_HEIGHT = 75
 
