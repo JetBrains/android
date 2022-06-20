@@ -402,7 +402,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_ATF_IN_VISUAL_LINT = Flag.create(
     NELE, "visual.lint.atf", "Enable ATF integration in visual linting for layouts",
     "Enable ATF integration in visual linting of layouts.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
