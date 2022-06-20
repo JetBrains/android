@@ -347,6 +347,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
         workbench.repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
       }
     }
+  lateinit var actionsToolbar: ActionsToolbar
 
   init {
     mainSurface.name = "Compose"
@@ -369,7 +370,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
 
     val contentPanel = JPanel(BorderLayout()).apply {
-      val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
+      actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
       // Panel containing notifications and the pin label
@@ -450,6 +451,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * Method called to ask all notifications to update.
    */
   private fun updateNotifications() = UIUtil.invokeLaterIfNeeded {
+    actionsToolbar.updateActions()
     // Make sure all notifications are cleared-up
     if (!project.isDisposed) {
       EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)

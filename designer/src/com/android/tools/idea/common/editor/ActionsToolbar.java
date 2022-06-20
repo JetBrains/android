@@ -180,6 +180,17 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return (ActionToolbarImpl)toolbar;
   }
 
+  /**
+   * Call to update the state of all the toolbar icons. This can be called when we do not want to wait the default 500ms automatic
+   * delay where toolbars are updated automatically.
+   */
+  private void refreshToolbarState() {
+    myNorthToolbar.updateActionsImmediately();
+    myNorthEastToolbar.updateActionsImmediately();
+    myEastToolbar.updateActionsImmediately();
+    myCenterToolbar.updateActionsImmediately();
+  }
+
   public void updateActions() {
     SceneView view = mySurface.getFocusedSceneView();
     if (view != null) {
@@ -190,29 +201,28 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         if (roots.size() == 1) {
           selection = Collections.singletonList(roots.get(0));
         }
-        else {
-          updateBottomActionBarBorder();
-          return;
-        }
       }
       updateActions(selection);
+    }
+    else {
+      refreshToolbarState();
     }
   }
 
   private void updateActions(@NotNull List<NlComponent> newSelection) {
     SceneView screenView = mySurface.getFocusedSceneView();
-    if (screenView == null) {
-      return;
+    if (screenView != null) {
+      // TODO: Perform caching
+      DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
+      DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
+      if (selectionToolbar.getChildrenCount() > 0) {
+        myDynamicGroup.copyFromGroup(selectionToolbar);
+      }
+      updateBottomActionBarBorder();
+      myCenterToolbar.clearPresentationCache();
     }
 
-    // TODO: Perform caching
-    DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
-    DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
-    if (selectionToolbar.getChildrenCount() > 0) {
-      myDynamicGroup.copyFromGroup(selectionToolbar);
-    }
-    updateBottomActionBarBorder();
-    myCenterToolbar.clearPresentationCache();
+    refreshToolbarState();
   }
 
   // ---- Implements DesignSurfaceListener ----

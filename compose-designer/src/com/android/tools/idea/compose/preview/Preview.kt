@@ -371,7 +371,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       onAnimationInspectionStop()
     }
     else {
-      EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+      composeWorkBench.updateVisibilityAndNotifications()
     }
     interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
     val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection // We should call this before assigning newValue to instanceIdFilter
@@ -406,7 +406,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     LOG.debug("Stopping interactive")
     onInteractivePreviewStop()
-    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+    composeWorkBench.updateVisibilityAndNotifications()
     onStaticPreviewStart()
     forceRefresh()?.invokeOnCompletion {
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
@@ -750,9 +750,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
 
-    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
-    // Force updating toolbar icons after build
-    ActivityTracker.getInstance().inc()
+    composeWorkBench.updateVisibilityAndNotifications()
   }
 
   private fun afterBuildStarted() {
@@ -762,9 +760,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
     // build is complete and refresh is triggered.
     ComposePreviewAnimationManager.invalidate()
-    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
-    // Force updating toolbar icons after build
-    ActivityTracker.getInstance().inc()
+    composeWorkBench.updateVisibilityAndNotifications()
   }
 
 
@@ -989,7 +985,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // allow for notifications to be refreshed at the same time.
     val previousStatus = previousStatusRef.getAndSet(newStatus)
     if (newStatus != previousStatus) {
-      EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+      composeWorkBench.updateVisibilityAndNotifications()
     }
 
     return newStatus
@@ -1322,6 +1318,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               else {
                 requestTracker.refreshFailed()
               }
+              composeWorkBench.updateVisibilityAndNotifications()
             }
           }
         }
