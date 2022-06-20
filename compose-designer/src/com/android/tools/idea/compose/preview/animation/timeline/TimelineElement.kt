@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import com.android.tools.idea.res.clamp
+import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Point
@@ -77,7 +78,7 @@ open class ParentTimelineElement(state: ElementState, private val children: List
 /**
  * Drawable element for timeline. Each element could be moved and frozen.
  */
-abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX: Int, protected val positionProxy: PositionProxy) {
+abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX: Int, protected val positionProxy: PositionProxy) : Disposable {
 
   var offsetPx: Int = 0
   abstract var height: Int
@@ -123,4 +124,6 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
   fun contains(point: Point): Boolean {
     return contains(point.x, point.y)
   }
+
+  override fun dispose() {}
 }
