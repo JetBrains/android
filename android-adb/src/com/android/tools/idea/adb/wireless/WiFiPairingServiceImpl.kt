@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -27,7 +27,7 @@ import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.net.InetAddress
 
-@UiThread
+@AnyThread
 class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
                              private val adbService: AdbServiceWrapper) : WiFiPairingService {
   private val LOG = logger<WiFiPairingServiceImpl>()
