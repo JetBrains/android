@@ -30,8 +30,11 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.composites.BuildMap
+import com.android.ide.gradle.model.impl.LegacyV1AgpVersionModelImpl
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
@@ -257,42 +260,49 @@ internal class AndroidExtraModelProviderWorker(
                   )
                 },
                 fetchesV2Models = true)
-            is BasicNonV2IncompleteGradleModule ->
+            is BasicV1AndroidModuleGradleProject ->
               ActionToRun(
                 fun(controller: BuildController): GradleModule {
                   val androidProject = controller.findParameterizedAndroidModel(
                     it.gradleProject,
                     AndroidProject::class.java,
                     shouldBuildVariant = false
-                  )
+                  ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
+
                   val legacyApplicationIdModel = controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
 
-                  if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
-                    val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
-                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache, androidProject, legacyApplicationIdModel)
+                  checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions)
+                  val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
+                  val androidProjectResult = AndroidProjectResult.V1Project(modelCache, androidProject, legacyApplicationIdModel)
 
-                    val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
-                    val nativeAndroidProject: NativeAndroidProject? =
-                      if (nativeModule == null)
-                        controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
-                                                                 shouldBuildVariant = false)
-                      else null
+                  val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
+                  val nativeAndroidProject: NativeAndroidProject? =
+                    if (nativeModule == null)
+                      controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
+                                                               shouldBuildVariant = false)
+                    else null
 
-                    return createAndroidModule(
-                      it.gradleProject,
-                      androidProjectResult,
-                      nativeAndroidProject,
-                      nativeModule,
-                      buildNameMap,
-                      modelCache
-                    )
-                  }
+                  return createAndroidModule(
+                    it.gradleProject,
+                    androidProjectResult,
+                    nativeAndroidProject,
+                    nativeModule,
+                    buildNameMap,
+                    modelCache
+                  )
 
+                },
+                fetchesV1Models = true,
+                fetchesKotlinModels = true
+              )
+            is BasicNonAndroidIncompleteGradleModule ->
+              ActionToRun(
+                fun(controller: BuildController): GradleModule {
                   val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
                   val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
                   return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
                 },
-                fetchesV1Models = true,
+                fetchesV1Models = false,
                 fetchesKotlinModels = true
               )
           }
@@ -660,8 +670,23 @@ internal class AndroidExtraModelProviderWorker(
             }
           }
           // We cannot request V2 models.
-          return BasicNonV2IncompleteGradleModule(gradleProject)
-        }, fetchesV2Models = true)
+          // Check if we have android projects that cannot be requested using V2, but can be requested using V1.
+          controller.findModel(gradleProject, GradlePluginModel::class.java)?.also {
+            if (it.gradlePluginList.contains("com.android.build.gradle.api.AndroidBasePlugin")) {
+              try {
+                val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
+                if (legacyV1AgpVersionModel != null) return BasicV1AndroidModuleGradleProject(gradleProject, legacyV1AgpVersionModel)
+              } catch (e: Exception) {
+                // We just can't get the AGP version and this means we are using an unsupported AGP version, so we should carry on.
+                return BasicV1AndroidModuleGradleProject(gradleProject, null)
+              }
+            }
+          }
+
+          return BasicNonAndroidIncompleteGradleModule(gradleProject) // Check here tha Version does not return anything.
+        },
+        fetchesV2Models = true,
+        fetchesV1Models = true)
       }.toList()
     )
   }

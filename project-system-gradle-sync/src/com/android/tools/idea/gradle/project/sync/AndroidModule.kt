@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -114,15 +115,23 @@ sealed class DeliverableGradleModule(
 sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject)
 
 /**
- * The container class of Android modules that can be fetched using V2 sync.
+ * The container class of Android modules that can be fetched using V2 builder models.
  */
 class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) :
   BasicIncompleteGradleModule(gradleProject)
 
 /**
- * The container class of Android and non-Android modules that cannot be fetched using V2 nor parallel sync.
+*  The container class of Android modules that can be fetched using V1 builder models.
+ *  legacyV1AgpVersion: The model that contains the agp version used by the AndroidProject. This can be null if the AndroidProject is using
+ *  an AGP version lower than the minimum supported version by Android Studio
+*/
+class BasicV1AndroidModuleGradleProject(gradleProject: BasicGradleProject, val legacyV1AgpVersion: LegacyV1AgpVersionModel?) :
+  BasicIncompleteGradleModule(gradleProject)
+
+/**
+ * The container class of non-Android modules.
  */
-class BasicNonV2IncompleteGradleModule(gradleProject: BasicGradleProject) : BasicIncompleteGradleModule(gradleProject)
+class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleProject) : BasicIncompleteGradleModule(gradleProject)
 
 /**
  * The container class for Java module, containing its Android models handled by the Android plugin.

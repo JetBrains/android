@@ -25,7 +25,9 @@ import com.android.builder.model.v2.models.ProjectSyncIssues
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
@@ -101,6 +103,8 @@ data class ActionToRun<T>(
       NativeAndroidProject::class.java -> fetchesV1Models
       NativeVariantAbi::class.java -> fetchesV1Models
       AdditionalClassifierArtifactsModel::class.java -> true  // No known incompatibilities.
+      LegacyV1AgpVersionModel::class.java -> true
+      GradlePluginModel::class.java -> true
       else -> error("Unexpected model type: $modelType. ActionToRun.validateModelType needs to be updated.")
     }
     if (!isDeclared) {
