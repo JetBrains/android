@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.util.ListenerCollection;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +114,7 @@ public class DefaultSelectionModel extends BaseSelectionModel {
       else {
         // Filter out the element
         newSelection = mySelection.stream()
-          .filter(selection -> !selection.equals(component)).collect(ImmutableCollectors.toImmutableList());
+          .filter(selection -> !selection.equals(component)).collect(toImmutableList());
         newPrimary = myPrimary == component ? null : myPrimary;
       }
     }

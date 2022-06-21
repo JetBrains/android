@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.surface;
 
 import static com.android.SdkConstants.ATTR_GRAPH;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
@@ -65,7 +66,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -408,8 +408,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     ImmutableList<DnDTransferComponent> components =
       getSelectionModel().getSelection().stream()
         .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
-        .collect(
-          ImmutableCollectors.toImmutableList());
+        .collect(toImmutableList());
     return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 

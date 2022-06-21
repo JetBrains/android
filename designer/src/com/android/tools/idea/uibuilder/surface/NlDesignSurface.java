@@ -19,6 +19,7 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_ED
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
@@ -66,7 +67,6 @@ import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutMana
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -736,8 +736,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       getSelectionModel().getSelection().stream()
         .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(),
                                                    NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
-        .collect(
-          ImmutableCollectors.toImmutableList());
+        .collect(toImmutableList());
     return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
@@ -863,7 +862,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                   .createErrorModel(NlDesignSurface.this, entry.getValue(), null);
                 return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
               })
-              .collect(ImmutableList.toImmutableList());
+              .collect(toImmutableList());
           }
           myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
           myRenderIssueProviders = renderIssueProviders;

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
 import com.android.tools.idea.gradle.project.model.ClassFileUtil;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -54,7 +55,7 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
                        .map(IdeJavaLibrary::getArtifact))
       // Flat map the concatenated streams
       .flatMap(s -> s)
-      .collect(ImmutableCollectors.toImmutableList());
+      .collect(toImmutableList());
   }
 
   @Override
