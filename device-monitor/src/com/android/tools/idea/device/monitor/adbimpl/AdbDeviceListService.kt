@@ -62,8 +62,6 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
   constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })
 
   companion object {
-    @JvmStatic
-    @Suppress("unused")
     fun getInstance(project: Project): AdbDeviceListService = project.service()
 
     var LOGGER = logger<AdbDeviceListService>()
