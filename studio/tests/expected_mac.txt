@@ -498,6 +498,7 @@ Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
 Android Studio Preview.app/Contents/lib/util.jar
+Android Studio Preview.app/Contents/lib/util_rt.jar
 Android Studio Preview.app/Contents/lib/winp.jar
 Android Studio Preview.app/Contents/license/XStream_license.txt
 Android Studio Preview.app/Contents/license/ant_license.txt

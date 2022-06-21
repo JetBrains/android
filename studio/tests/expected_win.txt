@@ -516,6 +516,7 @@ android-studio/lib/resources.jar
 android-studio/lib/stats.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/util.jar
+android-studio/lib/util_rt.jar
 android-studio/lib/winp.jar
 android-studio/license/XStream_license.txt
 android-studio/license/ant_license.txt
