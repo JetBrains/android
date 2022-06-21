@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="kotlin-test">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-test/1.6.10/kotlin-test-1.6.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-test/1.5.31/kotlin-test-1.5.31.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
