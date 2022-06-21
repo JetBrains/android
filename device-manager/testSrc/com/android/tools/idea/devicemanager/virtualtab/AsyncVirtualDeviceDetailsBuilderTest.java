@@ -21,13 +21,16 @@ import static org.junit.Assert.assertNull;
 import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -39,7 +42,7 @@ import org.mockito.Mockito;
 public final class AsyncVirtualDeviceDetailsBuilderTest {
   private final @NotNull AvdInfo myAvd;
   private final @NotNull IDevice myDevice;
-
+  private final @NotNull AdbShellCommandExecutor myExecutor;
   private final @NotNull AsyncVirtualDeviceDetailsBuilder myBuilder;
 
   public AsyncVirtualDeviceDetailsBuilderTest() {
@@ -49,7 +52,8 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
     DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
     Mockito.when(bridge.getDevices(null)).thenReturn(Futures.immediateFuture(List.of(myDevice)));
 
-    myBuilder = new AsyncVirtualDeviceDetailsBuilder(null, TestVirtualDevices.pixel5Api31(myAvd), bridge);
+    myExecutor = Mockito.mock(AdbShellCommandExecutor.class);
+    myBuilder = new AsyncVirtualDeviceDetailsBuilder(null, TestVirtualDevices.pixel5Api31(myAvd), bridge, myExecutor);
   }
 
   @Test
@@ -76,7 +80,14 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
   public void buildAsync() throws Exception {
     // Arrange
     Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
+
     Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_5_API_31", key.toString())));
+    Mockito.when(myDevice.getAbis()).thenReturn(List.of("x86_64", "arm64-v8a"));
+
+    Mockito.when(myExecutor.execute(myDevice, "df /data")).thenReturn(Optional.of(
+      List.of("Filesystem      1K-blocks   Used Available Use% Mounted on",
+              "/dev/block/dm-5   6094400 490348   5461840   9% /storage/emulated/0/Android/obb",
+              "")));
 
     // Act
     Future<Device> future = myBuilder.buildAsync();
@@ -87,6 +98,8 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
+      .addAllAbis(List.of("x86_64", "arm64-v8a"))
+      .setStorageDevice(new StorageDevice(5_333))
       .setAvdInfo(myAvd)
       .build();
 

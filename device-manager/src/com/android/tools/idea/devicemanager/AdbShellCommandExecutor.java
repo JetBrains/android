@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class AdbShellCommandExecutor {
-  @NotNull Optional<@NotNull List<@NotNull String>> execute(@NotNull IDevice device, @NotNull String command) {
+public final class AdbShellCommandExecutor {
+  public @NotNull Optional<@NotNull List<@NotNull String>> execute(@NotNull IDevice device, @NotNull String command) {
     try {
       return getOutput(AdbShellCommandsUtil.getInstance().executeCommandBlocking(device, command));
     }

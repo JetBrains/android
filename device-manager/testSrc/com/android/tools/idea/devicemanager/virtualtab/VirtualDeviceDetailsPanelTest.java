@@ -24,6 +24,7 @@ import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -55,6 +56,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setResolution(new Resolution(1080, 2340))
       .setDensity(440)
       .addAllAbis(List.of("x86_64", "arm64-v8a"))
+      .setStorageDevice(new StorageDevice(5_333))
       .setAvdInfo(myAvd)
       .build();
 
@@ -75,6 +77,7 @@ public final class VirtualDeviceDetailsPanelTest {
     assertEquals("1080 × 2340", section.myResolutionLabel.getText());
     assertEquals("393 × 851", section.myDpLabel.getText());
     assertEquals("x86_64, arm64-v8a", section.myAbiListLabel.getText());
+    assertEquals("5,333 MB", section.myAvailableStorageLabel.getText());
   }
 
   private static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section,

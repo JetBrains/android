@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.SerialNumber;

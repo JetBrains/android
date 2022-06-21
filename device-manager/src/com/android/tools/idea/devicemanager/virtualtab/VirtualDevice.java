@@ -21,6 +21,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import java.util.Collection;
 import java.util.Objects;
@@ -92,6 +93,11 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
       myAbis.addAll(abis);
+      return this;
+    }
+
+    @NotNull Builder setStorageDevice(@Nullable StorageDevice storageDevice) {
+      myStorageDevice = storageDevice;
       return this;
     }
 

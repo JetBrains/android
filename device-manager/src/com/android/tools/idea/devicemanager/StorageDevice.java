@@ -38,7 +38,7 @@ public final class StorageDevice {
   private final int myAvailableSpace;
 
   @VisibleForTesting
-  StorageDevice(int availableSpace) {
+  public StorageDevice(int availableSpace) {
     myAvailableSpace = availableSpace;
   }
 

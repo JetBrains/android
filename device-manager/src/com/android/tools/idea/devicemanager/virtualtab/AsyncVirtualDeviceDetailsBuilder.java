@@ -18,9 +18,11 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.StorageDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
@@ -39,18 +41,21 @@ final class AsyncVirtualDeviceDetailsBuilder {
   private final @Nullable Project myProject;
   private final @NotNull VirtualDevice myDevice;
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
+  private final @NotNull AdbShellCommandExecutor myAdbShellCommandExecutor;
 
   AsyncVirtualDeviceDetailsBuilder(@Nullable Project project, @NotNull VirtualDevice device) {
-    this(project, device, new DeviceManagerAndroidDebugBridge());
+    this(project, device, new DeviceManagerAndroidDebugBridge(), new AdbShellCommandExecutor());
   }
 
   @VisibleForTesting
   AsyncVirtualDeviceDetailsBuilder(@Nullable Project project,
                                    @NotNull VirtualDevice device,
-                                   @NotNull DeviceManagerAndroidDebugBridge bridge) {
+                                   @NotNull DeviceManagerAndroidDebugBridge bridge,
+                                   @NotNull AdbShellCommandExecutor adbShellCommandExecutor) {
     myProject = project;
     myDevice = device;
     myBridge = bridge;
+    myAdbShellCommandExecutor = adbShellCommandExecutor;
   }
 
   @NotNull ListenableFuture<@NotNull Device> buildAsync() {
@@ -101,7 +106,9 @@ final class AsyncVirtualDeviceDetailsBuilder {
       .setDensity(getProperty(avd, "hw.lcd.density").orElse(-1));
 
     if (device != null) {
-      builder.addAllAbis(device.getAbis());
+      builder
+        .addAllAbis(device.getAbis())
+        .setStorageDevice(myAdbShellCommandExecutor.execute(device, "df /data").flatMap(StorageDevice::newStorageDevice).orElse(null));
     }
 
     return builder

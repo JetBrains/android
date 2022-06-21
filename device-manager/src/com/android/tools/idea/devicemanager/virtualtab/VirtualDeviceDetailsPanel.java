@@ -52,6 +52,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     @VisibleForTesting final @NotNull JLabel myResolutionLabel;
     @VisibleForTesting final @NotNull JLabel myDpLabel;
     @VisibleForTesting final @NotNull JLabel myAbiListLabel;
+    @VisibleForTesting final @NotNull JLabel myAvailableStorageLabel;
     @VisibleForTesting @Nullable JLabel myErrorLabel;
     @VisibleForTesting @Nullable JLabel mySnapshotLabel;
 
@@ -62,6 +63,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       myResolutionLabel = addNameAndValueLabels("Resolution");
       myDpLabel = addNameAndValueLabels("dp");
       myAbiListLabel = addNameAndValueLabels("ABI list");
+      myAvailableStorageLabel = addNameAndValueLabels("Available storage");
     }
   }
 
@@ -101,6 +103,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       InfoSection.setText(section.myResolutionLabel, device.getResolution());
       InfoSection.setText(section.myDpLabel, device.getDp());
       InfoSection.setText(section.myAbiListLabel, device.getAbis());
+      InfoSection.setText(section.myAvailableStorageLabel, device.getStorageDevice());
     });
   }
 
