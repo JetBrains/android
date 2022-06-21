@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BuildInstantAppTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /**
    * Verify imported instant apps can be built without error.
@@ -53,7 +53,7 @@ public class BuildInstantAppTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   public void buildInstantApp() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(180));
 
     ideFrame.getProjectView()
       .selectAndroidPane()
