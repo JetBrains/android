@@ -131,31 +131,29 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
   }
 
   fun testLogCollection() {
-    val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    //val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    val logger = java.util.logging.LogManager.getLogManager().getLogger(exceptionDataCollectionTestLoggerName)
     with(exceptionDataCollectionTestLogger) {
       for (i in 1..5) {
         trace("trace message #$i")
         debug("debug message #$i")
         info("info message #$i")
         warn("warn message #$i")
-
-        // use log4j logger directly as
-        log4jLogger.error("error message #$i")
+        // use logger directly as
+        logger.severe("severe message #$i")
       }
     }
     val exceptionUploadFields = service.getExceptionUploadFields(ex3, forceExceptionMessage = false, includeLogs = true)
-/* b/234884922
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
     assertThat(result.trimEnd(), equalTo("""
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #4
-[<time>] E [sh.ExceptionDataCollectionTest] error message #4
+[<time>] S [sh.ExceptionDataCollectionTest] severe message #4
 [<time>] I [sh.ExceptionDataCollectionTest] info message #5
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
-[<time>] E [sh.ExceptionDataCollectionTest] error message #5
+[<time>] S [sh.ExceptionDataCollectionTest] severe message #5
     """.trimIndent()))
-b/234884922 */
   }
 
   fun testCalculateSignature() {

@@ -27,19 +27,19 @@ import com.intellij.diagnostic.DialogAppender
 import com.intellij.idea.IdeaLogger
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import org.apache.log4j.AppenderSkeleton
-import org.apache.log4j.ConsoleAppender
-import org.apache.log4j.Layout
-import org.apache.log4j.Level
-import org.apache.log4j.LogManager
-import org.apache.log4j.RollingFileAppender
-import org.apache.log4j.spi.LoggingEvent
 import org.jetbrains.annotations.TestOnly
 import java.lang.Integer.min
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.Arrays
 import java.util.GregorianCalendar
+import java.util.logging.ConsoleHandler
+import java.util.logging.FileHandler
+import java.util.logging.Formatter
+import java.util.logging.Handler
+import java.util.logging.Level
+import java.util.logging.LogManager
+import java.util.logging.LogRecord
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -72,16 +72,15 @@ class ExceptionDataCollection {
   private var configs: Map<String, ExceptionConfiguration>
 
   private var logCache = LogCache()
-  private val layout = CustomLog4JLayout()
+  private val layout = ExceptionDataCollectionLayout()
 
+  // test only as once they are registered, accessing them is no longer needed they do the work as is
   @TestOnly
   val registeredAppenders: List<TrackingAppender>
 
-  class CustomLog4JLayout: Layout() {
-/* b/234884922
+  class ExceptionDataCollectionLayout : Formatter() {
     private val creationTimestamp = System.currentTimeMillis()
-    override fun activateOptions() = Unit
-    override fun format(event: LoggingEvent?): String {
+    override fun format(event: LogRecord?): String {
       if (event == null) return ""
       val now = System.currentTimeMillis()
       return buildString {
@@ -98,9 +97,6 @@ class ExceptionDataCollection {
         append(message.substring(0, min(200, message.length)))
       }
     }
-
-    override fun ignoresThrowable() = true
-b/234884922 */
   }
 
   init {
@@ -109,10 +105,12 @@ b/234884922 */
       configs = ExceptionDataConfiguration.getInstance().getConfigurations()
       if (LOG_COLLECTION_ENABLED) {
         appendersList = initializeLog()
-      } else {
+      }
+      else {
         appendersList = emptyList()
       }
-    } catch (t: Throwable) {
+    }
+    catch (t: Throwable) {
       LOG.error("Cannot initialize exception log collection", t)
       configs = emptyMap()
       appendersList = emptyList()
@@ -138,15 +136,18 @@ b/234884922 */
     // By default, we log INFO+, there is no need to tweak existing appenders if additional tracing is also INFO+ only
     val needsToReconfigureAppenders = configs.values.any { config ->
       config.action.logFilter.messageFilterList.any { messageFilter ->
-        messageFilter.hasSeverity() && !severityToLevel(messageFilter.severity).isGreaterOrEqual(Level.INFO)
+        messageFilter.hasSeverity() && severityToLevel(messageFilter.severity).isLessThan(Level.INFO)
       }
     }
-
-    if (needsToReconfigureAppenders && !tryReconfigureExistingAppenders()) {
+    if (needsToReconfigureAppenders && !tryReconfigureExistingHandlers()) {
       // Don't register appenders, if reconfiguration failed
       return emptyList()
     }
 
+    return registerTrackingAppenders()
+  }
+
+  private fun registerTrackingAppenders(): MutableList<TrackingAppender> {
     val registeredAppenders = mutableListOf<TrackingAppender>()
     for ((name, config) in configs) {
       val action = config.action
@@ -160,82 +161,74 @@ b/234884922 */
     return registeredAppenders
   }
 
-  private fun registerAppendersForLogFilter(logName: String, logFilter: LogFilter) : List<TrackingAppender> {
+  private fun registerAppendersForLogFilter(logName: String, logFilter: LogFilter): List<TrackingAppender> {
     val logBuffer = logCache.getLogBufferFor(logName, logFilter.maxMessageCount)
     val result = mutableListOf<TrackingAppender>()
     logFilter.messageFilterList.forEach { filter ->
-      val logger = LogManager.getLogger(filter.loggerCategory)
+      val logger = LogManager.getLogManager().getLogger(filter.loggerCategory)
       val desiredLevel = severityToLevel(filter.severity)
-      if (!desiredLevel.isGreaterOrEqual(logger.effectiveLevel)) {
+      if (logger.level == null || logger.level.isLessThan(desiredLevel)) {
         logger.level = desiredLevel
       }
       val trackingAppender = TrackingAppender(logger, layout, logBuffer)
-/* b/234884922
-      trackingAppender.threshold = desiredLevel
-      logger.addAppender(trackingAppender)
-b/234884922 */
+      trackingAppender.level = desiredLevel
+      logger.addHandler(trackingAppender)
       result.add(trackingAppender)
     }
     return result
   }
 
-  class TrackingAppender(val logger: org.apache.log4j.Logger,
-                         layout: Layout,
-                         private val logBuffer: LogBuffer) : AppenderSkeleton() {
+  class TrackingAppender(val logger: java.util.logging.Logger,
+                         formatter: Formatter,
+                         private val logBuffer: LogBuffer) : Handler() {
     init {
-      setLayout(layout)
-      activateOptions()
+      setFormatter(formatter)
     }
 
-/* b/234884922
-    override fun close() = Unit
-    override fun requiresLayout(): Boolean = true
-    override fun append(event: LoggingEvent) {
-      // Log only specified logger, not its children
-      if (event.logger == logger) {
-        logBuffer.addEntry(layout.format(event))
+    override fun publish(record: LogRecord) {
+      if (record.loggerName == logger.name) {
+        logBuffer.addEntry(formatter.format(record))
       }
     }
-b/234884922 */
+
+    override fun flush() = Unit
+    override fun close() = Unit
   }
 
   private fun severityToLevel(severity: ExceptionSeverity) =
     when (severity) {
-      ExceptionSeverity.TRACE -> Level.TRACE
-      ExceptionSeverity.DEBUG -> Level.DEBUG
+      ExceptionSeverity.TRACE -> Level.ALL
+      ExceptionSeverity.DEBUG -> Level.FINE
       ExceptionSeverity.INFO -> Level.INFO
-      ExceptionSeverity.WARNING -> Level.WARN
-      ExceptionSeverity.ERROR -> Level.ERROR
+      ExceptionSeverity.WARNING -> Level.WARNING
+      ExceptionSeverity.ERROR -> Level.SEVERE
       else -> Level.INFO
     }
 
-  private fun tryReconfigureExistingAppenders(): Boolean {
+  private fun tryReconfigureExistingHandlers(): Boolean {
     if (DebugLogManager.getInstance().getSavedCategories().isNotEmpty()) {
       LOG.info("Cannot register appenders: debug/trace logging enabled through DebugLogManager.")
       return false
     }
-
-    val rootLogger = LogManager.getRootLogger()
-    val rootLoggerLevel = rootLogger.level ?: Level.DEBUG
-    val allAppenders = rootLogger.allAppenders.toList()
+    val rootLogger = java.util.logging.Logger.getLogger("")
+    val rootLoggerLevel = rootLogger.level ?: Level.FINE
+    val handlers = rootLogger.handlers
     // If console or dialog appender level is set to lower than root logger then we cannot register our exception collection appender.
     // Any debug log enabled for exception collection would be added
-/* b/234884922
-    val onlyAllowableAppenders = allAppenders.all { appender ->
-      (appender is ConsoleAppender && (appender.threshold == null || appender.threshold.isGreaterOrEqual(rootLoggerLevel))) ||
-      (appender is RollingFileAppender) ||
-      (appender is DialogAppender &&(appender.threshold == null ||  appender.threshold.isGreaterOrEqual(rootLoggerLevel)))
+    val allHandlersAllowed = handlers.all { handler ->
+      (handler is ConsoleHandler && (handler.level == null || handler.level.isGreaterThanOrEqual(rootLoggerLevel))) ||
+      (handler is FileHandler) ||
+      (handler is DialogAppender && (handler.level == null || handler.level.isGreaterThanOrEqual(rootLoggerLevel)))
     }
-    if (!onlyAllowableAppenders) {
+    if (!allHandlersAllowed) {
       LOG.info("Cannot register appenders: unknown appender on root logger or threshold already specified on appenders.")
       return false
     }
-    allAppenders.filterIsInstance<RollingFileAppender>().forEach {
-      if (it.threshold == null || !it.threshold.isGreaterOrEqual(rootLoggerLevel)) {
-        it.threshold = rootLoggerLevel
+    handlers.filterIsInstance<FileHandler>().forEach {
+      if (it.level == null || rootLoggerLevel.isLessThan(it.level)) {
+        it.level = rootLoggerLevel
       }
     }
-b/234884922 */
     return true
   }
 
@@ -261,8 +254,9 @@ b/234884922 */
       return UploadFields(
         description = getDescription(if (includeFullStack) t else cause, !includeMessage, includeFullStack),
         logs = logs)
-    } catch (t: Throwable) {
-      LOG.error("getExceptionUploadFields() call failed",t)
+    }
+    catch (t: Throwable) {
+      LOG.error("getExceptionUploadFields() call failed", t)
       return UploadFields(getDescription(t, stripMessage = true, includeFullStack = true), emptyMap())
     }
   }
@@ -470,20 +464,22 @@ b/234884922 */
       return exceptionUploadConfigurations.any { (_, config) ->
         (!config.action.hasRequiresConfirmation() || config.action.requiresConfirmation)
       }
-    } catch (t: Throwable) {
+    }
+    catch (t: Throwable) {
       LOG.warn("cannot compute if exception requires confirmation", t)
       return false
     }
   }
 
+  private fun Level.isGreaterThanOrEqual(other: Level) = this.intValue() >= other.intValue()
+  private fun Level.isLessThan(other: Level) = this.intValue() < other.intValue()
+
   @TestOnly
   fun unregisterLogAppenders() {
-      registeredAppenders.forEach { trackingAppender ->
-        val logger = trackingAppender.logger
-/* b/234884922
-        logger.removeAppender(trackingAppender)
-b/234884922 */
-      }
+    registeredAppenders.forEach { trackingAppender ->
+      val logger = trackingAppender.logger
+      logger.removeHandler(trackingAppender)
+    }
   }
 }
 
