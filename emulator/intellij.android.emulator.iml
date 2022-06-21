@@ -24,6 +24,7 @@
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="ffmpeg" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />
+    <orderEntry type="library" name="HdrHistogram" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />

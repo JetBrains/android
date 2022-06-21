@@ -1882,6 +1882,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/pyt
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/symbolication.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/six.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
+Android Studio Preview.app/Contents/plugins/android/lib/HdrHistogram-2.1.12.jar
 Android Studio Preview.app/Contents/plugins/android/lib/aapt2-proto-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/adt-ui.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-base-common.jar

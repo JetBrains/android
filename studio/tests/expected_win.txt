@@ -1309,6 +1309,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_common.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_tzpath.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_zoneinfo.py
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
+android-studio/plugins/android/lib/HdrHistogram-2.1.12.jar
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
 android-studio/plugins/android/lib/adt-ui.jar
 android-studio/plugins/android/lib/android-base-common.jar

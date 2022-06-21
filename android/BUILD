@@ -92,6 +92,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",

@@ -39,6 +39,13 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
+    name = "HdrHistogram",
+    jars = ["//prebuilts/tools/common/m2:HdrHistogram_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
     name = "jimfs",
     jars = ["//prebuilts/tools/common/m2:jimfs_files"],
     visibility = ["//visibility:public"],
