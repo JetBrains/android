@@ -9,6 +9,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
@@ -239,5 +240,19 @@ internal class LiveLiteralsServiceTest {
     assertTrue(liveLiteralsService.isAvailable)
     val psiElementWithoutContainingFile = runReadAction { file1.containingDirectory }
     liveLiteralsService.isElementManaged(psiElementWithoutContainingFile)
+  }
+
+  @Test
+  fun `check highlight trackers are disposed if the editor is closed`() {
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    val liveLiteralsService = getTestLiveLiteralsService()
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+    assertTrue(liveLiteralsService.isAvailable)
+    invokeAndWaitIfNeeded {
+      FileEditorManager.getInstance(project).closeFile(file1.virtualFile)
+    }
+    assertEquals(0, liveLiteralsService.allTrackers())
   }
 }

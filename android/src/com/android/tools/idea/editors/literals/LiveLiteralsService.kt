@@ -50,6 +50,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -154,20 +155,27 @@ class LiveLiteralsService private constructor(private val project: Project,
   @UiThread
   private inner class HighlightTracker(
     file: PsiFile,
-    private val editor: Editor,
+    editor: Editor,
     private val fileSnapshot: LiteralReferenceSnapshot) : Disposable {
     private val project = file.project
     private var showingHighlights = false
     private val outHighlighters = mutableSetOf<RangeHighlighter>()
 
-    @Suppress("IncorrectParentDisposable")
+    private val editorRef = WeakReference(editor)
+
+    private val _isDisposed = AtomicBoolean(false)
+    val isDisposed: Boolean
+      get() = _isDisposed.get()
+
     private fun clearAll() {
-      if (project.isDisposed()) return
+      if (project.isDisposed) return
       val highlightManager = HighlightManager.getInstance(project)
       val highlightersToRemove = outHighlighters.toSet()
       outHighlighters.clear()
-      UIUtil.invokeLaterIfNeeded {
-        highlightersToRemove.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+      editorRef.get()?.let { editor ->
+        UIUtil.invokeLaterIfNeeded {
+          highlightersToRemove.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+        }
       }
     }
 
@@ -184,8 +192,10 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
 
       if (fileSnapshot.all.isNotEmpty()) {
-        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters) {
-          it.containingFile.hasCompilerLiveLiteral(it.containingFile.virtualFile.path, it.initialTextRange.startOffset)
+        editorRef.get()?.let { editor ->
+          fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters) {
+            it.containingFile.hasCompilerLiveLiteral(it.containingFile.virtualFile.path, it.initialTextRange.startOffset)
+          }
         }
 
         if (outHighlighters.isNotEmpty()) {
@@ -201,6 +211,7 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
 
     override fun dispose() {
+      _isDisposed.set(true)
       hideHighlights()
     }
   }
@@ -309,6 +320,11 @@ class LiveLiteralsService private constructor(private val project: Project,
       .mapNotNull { it.document.getCachedDocumentSnapshot() }
       .flatMap { it.all }
 
+  @TestOnly
+  fun allTrackers(): Int = serviceStateLock.withLock {
+    trackers.filter { !it.isDisposed }.toList().size
+  }
+
   /**
    * Method called to notify the listeners than a constant has changed.
    */
@@ -388,12 +404,24 @@ class LiveLiteralsService private constructor(private val project: Project,
   /**
    * Adds a new document to the tracking. The document will be observed for changes.
    */
-  private fun addDocumentTracking(parentDisposable: Disposable, editor: Editor, document: Document) {
+  private fun addDocumentTracking(activationDisposable: Disposable, textEditor: TextEditor) {
+    val editor = textEditor.editor
+    if (editor.project != project) return
     if (editor.isViewer) {
       log.info("Editor is view only, no literal tracking will be used.")
       return
     }
 
+    // Create a new Disposable that will dispose if literals are deactivated or if the TextEditor is disposed
+    val parentDisposable = Disposer.newDisposable()
+    Disposer.register(textEditor) {
+      Disposer.dispose(parentDisposable)
+    }
+    Disposer.register(activationDisposable) {
+      Disposer.dispose(parentDisposable)
+    }
+
+    val document = textEditor.editor.document
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
     AndroidCoroutineScope(parentDisposable).launch(uiThread) {
       val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
@@ -408,7 +436,9 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
 
       trackers.add(tracker)
-      Disposer.register(parentDisposable, tracker)
+      Disposer.register(parentDisposable) {
+        Disposer.dispose(tracker)
+      }
       editor.addEditorMouseListener(object : EditorMouseListener {
         override fun mouseEntered(event: EditorMouseEvent) {
           if (showLiveLiteralsHighlights) {
@@ -457,15 +487,14 @@ class LiveLiteralsService private constructor(private val project: Project,
     val fileEditorManager = FileEditorManager.getInstance(project)
     fileEditorManager.selectedEditors
       .filterIsInstance<TextEditor>()
-      .map { it.editor }
-      .forEach {
-        if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
-    }
+      .forEach { textEditor ->
+        addDocumentTracking(newActivationDisposable, textEditor)
+      }
 
     project.messageBus.connect(newActivationDisposable).subscribe(FILE_EDITOR_MANAGER, object: FileEditorManagerListener {
       override fun selectionChanged(event: FileEditorManagerEvent) {
-        (event.newEditor as? TextEditor)?.editor?.let {
-          if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
+        (event.newEditor as? TextEditor)?.let { textEditor ->
+          addDocumentTracking(newActivationDisposable, textEditor)
         }
       }
     })
