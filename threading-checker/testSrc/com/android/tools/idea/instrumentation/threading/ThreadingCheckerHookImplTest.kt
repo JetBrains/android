@@ -15,59 +15,53 @@
  */
 package com.android.tools.idea.instrumentation.threading
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.google.common.truth.Truth
-import com.intellij.notification.Notification
-import com.intellij.notification.Notifications
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.runBlocking
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.mockito.Mockito.verify
+import org.junit.Rule
 import org.junit.Test
-import java.util.Collections
+import org.mockito.Mockito.verifyNoMoreInteractions
+import kotlin.concurrent.thread
 
-class ThreadingCheckerHookImplTest : LightPlatformTestCase() {
-  private val threadingCheckerHook: ThreadingCheckerHookImpl = ThreadingCheckerHookImpl()
-  private val notifications: MutableList<Notification> = Collections.synchronizedList(mutableListOf())
+@RunsInEdt
+class ThreadingCheckerHookImplTest {
 
-  override fun setUp() {
-    super.setUp()
+  @get:Rule
+  var edtRule = EdtRule()
+
+  private val mockThreadingViolationNotifier = mock<ThreadingViolationNotifier>()
+  private val threadingCheckerHook = ThreadingCheckerHookImpl(mockThreadingViolationNotifier)
+
+  init {
     ThreadingCheckerTrampoline.installHook(threadingCheckerHook)
-    threadingCheckerHook.threadingViolations.clear()
-
-    ApplicationManager.getApplication().messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        if (notification.groupId == "Threading Violation Notification") {
-          notifications += notification
-        }
-      }
-    })
-    notifications.clear()
   }
 
   @Test
   fun testVerifyOnUiThread_addsViolation_whenCalledFromWorkerThread() {
     val expectedViolatingMethod =
-      "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest\$checkForUiThreadOnWorkerThread\$1#invokeSuspend"
+      "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest\$checkForUiThreadOnWorkerThread\$1#invoke"
     checkForUiThreadOnWorkerThread()
 
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
-    UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(notifications).hasSize(1)
+    verify(mockThreadingViolationNotifier).notify(
+      eq("Threading violation: methods annotated with @UiThread should be called on the UI thread"),
+      eq(expectedViolatingMethod))
 
     checkForUiThreadOnWorkerThread()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
-    UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(notifications).hasSize(1)
+    verifyNoMoreInteractions(mockThreadingViolationNotifier)
   }
 
   private fun checkForUiThreadOnWorkerThread() {
-    runBlocking (workerThread) {
+    thread {
       ThreadingCheckerTrampoline.verifyOnUiThread()
-    }
+    }.join()
   }
 
   @Test
@@ -78,29 +72,27 @@ class ThreadingCheckerHookImplTest : LightPlatformTestCase() {
 
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
-    UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(notifications).hasSize(1)
+    verify(mockThreadingViolationNotifier).notify(
+      eq("Threading violation: methods annotated with @WorkerThread should not be called on the UI thread"),
+      eq(expectedViolatingMethod))
 
     ThreadingCheckerTrampoline.verifyOnWorkerThread()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
-    UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(notifications).hasSize(1)
+    verifyNoMoreInteractions(mockThreadingViolationNotifier)
   }
 
   @Test
   fun testVerifyOnUiThread_doesNotAddViolation_whenCalledFromUiThread() {
     ThreadingCheckerTrampoline.verifyOnUiThread()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
-    Truth.assertThat(notifications).isEmpty()
   }
 
   @Test
   fun testVerifyOnWorkerThread_doesNotAddViolation_whenCalledFromWorkerThread() {
-    runBlocking (workerThread) {
+    thread {
       ThreadingCheckerTrampoline.verifyOnWorkerThread()
-    }
+    }.join()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
-    Truth.assertThat(notifications).isEmpty()
   }
 }

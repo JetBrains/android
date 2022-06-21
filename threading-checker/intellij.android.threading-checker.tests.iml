@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
@@ -14,5 +15,7 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.threading-checker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.threading-checker" />
 </module>

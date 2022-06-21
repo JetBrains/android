@@ -17,10 +17,6 @@ package com.android.tools.idea.instrumentation.threading
 
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -29,10 +25,12 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 import javax.swing.SwingUtilities
 
-/**
- * Connects to the threading java agent from Android Studio.
- */
-class ThreadingCheckerHookImpl : ThreadingCheckerHook {
+/** Connects to the threading java agent from Android Studio. */
+class ThreadingCheckerHookImpl(
+  private val threadingViolationNotifier: ThreadingViolationNotifier =
+    ThreadingViolationNotifierImpl()
+) : ThreadingCheckerHook {
+
   private val logger = thisLogger()
 
   @VisibleForTesting
@@ -42,14 +40,14 @@ class ThreadingCheckerHookImpl : ThreadingCheckerHook {
     if (SwingUtilities.isEventDispatchThread()) {
       return
     }
-    recordViolation("Methods annotated with @UiThread should be called on the UI thread")
+    recordViolation("Threading violation: methods annotated with @UiThread should be called on the UI thread")
   }
 
   override fun verifyOnWorkerThread() {
     if (!SwingUtilities.isEventDispatchThread()) {
       return
     }
-    recordViolation("Methods annotated with @WorkerThread should not be called on the UI thread")
+    recordViolation("Threading violation: methods annotated with @WorkerThread should not be called on the UI thread")
   }
 
   private fun recordViolation(warningMessage: String) {
@@ -68,14 +66,7 @@ class ThreadingCheckerHookImpl : ThreadingCheckerHook {
 
     // Only show one notification per method signature
     if (violationCount == 1L) {
-      val notification = NotificationGroupManager.getInstance()
-        .getNotificationGroup("Threading Violation Notification")
-        .createNotification(
-          "Threading violation",
-          "$warningMessage<p>Violating method: $methodSignature",
-          NotificationType.ERROR)
-
-      ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
+      threadingViolationNotifier.notify(warningMessage, methodSignature)
     }
   }
 }
