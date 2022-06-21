@@ -41,7 +41,9 @@ internal class LiveLiteralsServiceTest {
   lateinit var file2: PsiFile
 
   private fun getTestLiveLiteralsService(): LiveLiteralsService =
-    LiveLiteralsService.getInstance(project)
+    LiveLiteralsService(project).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
 
   @Before
   fun setup() {
@@ -143,7 +145,6 @@ internal class LiveLiteralsServiceTest {
   }
 
   @Test
-  @Ignore("b/224534338")
   fun `listener notification`() {
     // Setup
     val latch = CountDownLatch(1)
