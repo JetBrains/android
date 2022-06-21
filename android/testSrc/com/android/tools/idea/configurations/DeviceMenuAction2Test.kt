@@ -71,7 +71,8 @@ class DeviceMenuAction2Test {
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {
-      Utils.expandActionGroup(false, menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
+      @Suppress("UnstableApiUsage")
+      Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
       prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
     }
     val expected = """

@@ -52,7 +52,8 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     DeviceMenuAction menuAction = new DeviceMenuAction(holder, (oldDevice, newDevice) -> {});
     menuAction.updateActions(DataContext.EMPTY_CONTEXT);
     PresentationFactory presentationFactory = new PresentationFactory();
-    Utils.expandActionGroup(false, menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR);
+    //noinspection UnstableApiUsage
+    Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR);
     String actual = ActionTestUtils.prettyPrintActions(menuAction, action -> !isAvdAction(action), presentationFactory);
     String expected =
       "\n" + // The selected device is empty because we use the mock configuration for testing.
