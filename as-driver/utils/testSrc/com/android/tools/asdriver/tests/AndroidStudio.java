@@ -21,6 +21,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +72,14 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
-    int pid = waitForDriverPid(installation.getIdeaLog());
+    int pid;
+    try {
+      pid = waitForDriverPid(installation.getIdeaLog());
+    } catch (InterruptedException e) {
+      checkForJdwpError(installation);
+      throw e;
+    }
+
     ProcessHandle process = ProcessHandle.of(pid).get();
     int port = waitForDriverServer(installation.getIdeaLog());
     return new AndroidStudio(process, port);
@@ -81,6 +89,27 @@ public class AndroidStudio implements AutoCloseable {
     this.process = process;
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
+  }
+
+  /**
+   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
+   * This method will throw an exception in the test process rather than the developer having to
+   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
+   * when testing locally.
+   */
+  static private void checkForJdwpError(AndroidStudioInstallation installation) {
+    try {
+      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
+      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
+      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
+      if (hasJdwpError && isAddressInUse) {
+        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your call to " +
+                                        "addDebugVmOption or by terminating the existing Android Studio process.");
+      }
+    }
+    catch (IOException e) {
+      // We tried our best. :(
+    }
   }
 
   static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
