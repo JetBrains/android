@@ -102,7 +102,7 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  private static Device findDeviceById(ConfigurationManager manager, String id) {
+  public static Device findDeviceById(ConfigurationManager manager, String id) {
     for (Device device : manager.getDevices()) {
       if (device.getId().equals(id)) {
         return device;

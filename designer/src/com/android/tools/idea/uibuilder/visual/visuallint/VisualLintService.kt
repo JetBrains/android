@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
@@ -25,6 +26,7 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
+import com.android.tools.idea.uibuilder.visual.WearDeviceModelsProvider
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
@@ -36,6 +38,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyz
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
@@ -74,8 +77,10 @@ class VisualLintService(project: Project) {
   /** Default issue provider for Visual Lint Service. */
   val issueProvider = VisualLintIssueProvider(project)
 
-  private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
-                                      OverlapAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
+  private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer)
+  private val adaptiveAnalyzers = listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
+                                         LongTextAnalyzer, ButtonSizeAnalyzer)
+  private val wearAnalyzers = listOf(WearMarginAnalyzer)
 
   private val ignoredTypes: MutableList<VisualLintErrorType>
 
@@ -136,8 +141,11 @@ class VisualLintService(project: Project) {
       }
       displayingModel.addListener(listener)
       try {
-        val modelsToAnalyze = WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file,
-                                                                      displayingModel.facet)
+        val modelsToAnalyze = if (HardwareConfigHelper.isWear(displayingModel.configuration.device)) {
+          WearDeviceModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet)
+        } else {
+          WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet)
+        }
         val latch = CountDownLatch(modelsToAnalyze.size)
         for (model in modelsToAnalyze) {
           inflate(model).handleAsync({ result, _ ->
@@ -165,17 +173,30 @@ class VisualLintService(project: Project) {
                               baseConfigIssues: VisualLintBaseConfigIssues,
                               tracker: VisualLintUsageTracker,
                               runningInBackground: Boolean = false) {
-    basicAnalyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
-      val issues = it.analyze(result, model, tracker, runningInBackground)
-      issueProvider.addAllIssues(it.type, issues)
-    }
-    if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
-      LocaleAnalyzer(baseConfigIssues).let {
-        issueProvider.addAllIssues(it.type, it.analyze(result, model, tracker, runningInBackground))
+    runAnalyzers(basicAnalyzers, result, model, tracker, runningInBackground)
+    if (HardwareConfigHelper.isWear(model.configuration.device)) {
+      runAnalyzers(wearAnalyzers, result, model, tracker, runningInBackground)
+    } else {
+      runAnalyzers(adaptiveAnalyzers, result, model, tracker, runningInBackground)
+      if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
+        LocaleAnalyzer(baseConfigIssues).let {
+          issueProvider.addAllIssues(it.type, it.analyze(result, model, tracker, runningInBackground))
+        }
+      }
+      if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes) {
+        AtfAnalyzer.analyze(result, model, issueProvider, runningInBackground)
       }
     }
-    if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes) {
-      AtfAnalyzer.analyze(result, model, issueProvider, runningInBackground)
+  }
+
+  private fun runAnalyzers(analyzers: List<VisualLintAnalyzer>,
+                           result: RenderResult,
+                           model: NlModel,
+                           tracker: VisualLintUsageTracker,
+                           runningInBackground: Boolean) {
+    analyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
+      val issues = it.analyze(result, model, tracker, runningInBackground)
+      issueProvider.addAllIssues(it.type, issues)
     }
   }
 }

@@ -18,6 +18,8 @@ package com.android.tools.idea.common.error
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -36,12 +38,11 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class VisualLintIssueNodeTest {
   @JvmField
   @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  val rule = AndroidProjectRule.withSdk().onEdt()
 
   @RunsInEdt
   @Test
@@ -106,6 +107,68 @@ class VisualLintIssueNodeTest {
     val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testNavigatableForWear() {
+    val configurationManager = ConfigurationManager.getOrCreateInstance(rule.projectRule.module)
+    val model = NlModelBuilderUtil.model(
+      rule.projectRule,
+      "layout",
+      "layout.xml",
+      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                    .width("100dp")
+                    .height("20dp")
+        )
+    ).setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect")).build()
+
+    val issue = createTestVisualLintRenderIssue(VisualLintErrorType.WEAR_MARGIN, model.components.first().children)
+    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val navigation = node.getNavigatable()
+    assertNotNull(navigation)
+
+    // This navigation should open Validation Tool and set configuration set to ConfigurationSet.WearDevices
+    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
+    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
+    toolWindow.isAvailable = true
+
+    val content = VisualizationToolWindowFactory.getVisualizationContent(rule.project)!!
+    content.setConfigurationSet(ConfigurationSet.LargeFont)
+
+    navigation.navigate(false)
+    assertEquals(ConfigurationSet.WearDevices, content.getConfigurationSet())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testNotNavigateToComponentWhenSuppressedForWear() {
+    val configurationManager = ConfigurationManager.getOrCreateInstance(rule.projectRule.module)
+    val errorType = VisualLintErrorType.WEAR_MARGIN
+    val model = NlModelBuilderUtil.model(
+      rule.projectRule,
+      "layout",
+      "layout.xml",
+      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                    .width("100dp")
+                    .height("20dp")
+                    .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
+        )
+    ).setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect")).build()
+
+    val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
+    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }
 }
 
