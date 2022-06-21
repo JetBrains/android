@@ -24,7 +24,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
-import com.android.tools.idea.devicemanager.Resolution;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,27 +88,6 @@ public final class VirtualDeviceBuilderTest {
     assertEquals(1_024, device.getSizeOnDisk());
     assertNull(device.getResolution());
     assertNull(device.getDp());
-  }
-
-  @Test
-  public void withSizeAndResolution() {
-    Map<String, String> properties = new HashMap<>();
-    properties.put("hw.lcd.width", "1080");
-    properties.put("hw.lcd.height", "2160");
-    properties.put("hw.lcd.density", "440");
-
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini", "file"),
-                                  Paths.get("data", "folder", "path"),
-                                  Mockito.mock(SystemImage.class),
-                                  properties,
-                                  AvdStatus.OK);
-
-    VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
-
-    assertEquals(1_024, device.getSizeOnDisk());
-    assertEquals(new Resolution(1_080, 2_160), device.getResolution());
-    assertEquals(new Resolution(393, 786), device.getDp());
   }
 
   @Test

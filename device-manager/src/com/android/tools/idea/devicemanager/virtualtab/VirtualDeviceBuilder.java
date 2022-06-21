@@ -23,13 +23,11 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceType;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.Targets;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 final class VirtualDeviceBuilder {
@@ -81,9 +79,6 @@ final class VirtualDeviceBuilder {
       .setCpuArchitecture(myDevice.getCpuArch())
       .setAndroidVersion(version)
       .setSizeOnDisk(myRecursiveSize.get())
-      // TODO(http://b/216559215) Set the resolution and density in an AsyncVirtualDeviceDetailsBuilder
-      .setResolution(getResolution(myDevice))
-      .setDensity(getDensity(myDevice))
       .setAvdInfo(myDevice)
       .build();
   }
@@ -106,42 +101,6 @@ final class VirtualDeviceBuilder {
     }
     else {
       return DeviceType.PHONE;
-    }
-  }
-
-  private static @Nullable Resolution getResolution(@NotNull AvdInfo device) {
-    String width = device.getProperty("hw.lcd.width");
-
-    if (width == null) {
-      return null;
-    }
-
-    String height = device.getProperty("hw.lcd.height");
-
-    if (height == null) {
-      return null;
-    }
-
-    try {
-      return new Resolution(Integer.parseInt(width), Integer.parseInt(height));
-    }
-    catch (NumberFormatException exception) {
-      return null;
-    }
-  }
-
-  private static int getDensity(@NotNull AvdInfo device) {
-    String density = device.getProperty("hw.lcd.density");
-
-    if (density == null) {
-      return -1;
-    }
-
-    try {
-      return Integer.parseInt(density);
-    }
-    catch (NumberFormatException exception) {
-      return -1;
     }
   }
 }
