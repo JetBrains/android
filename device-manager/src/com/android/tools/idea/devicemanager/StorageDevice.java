@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.ibm.icu.number.LocalizedNumberFormatter;
@@ -22,12 +22,11 @@ import com.ibm.icu.util.MeasureUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class StorageDevice {
+public final class StorageDevice {
   private static final @NotNull Pattern PATTERN = Pattern.compile(".+\\s+\\d+\\s+\\d+\\s+(\\d+)\\s+.+\\s+.+");
 
   private static final @NotNull LocalizedNumberFormatter FORMATTER = NumberFormatter.withLocale(Locale.US)
@@ -43,15 +42,12 @@ final class StorageDevice {
     myAvailableSpace = availableSpace;
   }
 
-  static @NotNull Optional<@NotNull StorageDevice> newStorageDevice(@NotNull List<@NotNull String> output) {
+  public static @NotNull Optional<@NotNull StorageDevice> newStorageDevice(@NotNull List<@NotNull String> output) {
     // In 1,024 byte blocks
-    OptionalInt availableSpace = Patterns.parseInt(PATTERN, output.get(1));
-
-    if (!availableSpace.isPresent()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(new StorageDevice(availableSpace.getAsInt() / 1_024));
+    return Patterns.parseInt(PATTERN, output.get(1)).stream()
+      .map(availableSpace -> availableSpace / 1_024)
+      .mapToObj(StorageDevice::new)
+      .findFirst();
   }
 
   @Override

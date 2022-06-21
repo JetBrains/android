@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.OptionalInt;
@@ -21,11 +21,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
-final class Patterns {
+public final class Patterns {
   private Patterns() {
   }
 
-  static @NotNull OptionalInt parseInt(@NotNull Pattern pattern, @NotNull String string) {
+  public static @NotNull OptionalInt parseInt(@NotNull Pattern pattern, @NotNull String string) {
     Matcher matcher = pattern.matcher(string);
 
     if (!matcher.matches()) {

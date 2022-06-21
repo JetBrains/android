@@ -34,6 +34,7 @@ public abstract class Device {
   protected final @Nullable Resolution myResolution;
   protected final int myDensity;
   protected final @NotNull ImmutableCollection<@NotNull String> myAbis;
+  protected final @Nullable StorageDevice myStorageDevice;
 
   protected static abstract class Builder {
     protected @Nullable Key myKey;
@@ -44,6 +45,7 @@ public abstract class Device {
     protected @Nullable Resolution myResolution;
     protected int myDensity = -1;
     protected final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
+    protected @Nullable StorageDevice myStorageDevice;
 
     protected abstract @NotNull Device build();
   }
@@ -64,6 +66,7 @@ public abstract class Device {
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
     myAbis = ImmutableList.copyOf(builder.myAbis);
+    myStorageDevice = builder.myStorageDevice;
   }
 
   public final @NotNull Key getKey() {
@@ -115,6 +118,10 @@ public abstract class Device {
 
   public final @NotNull Iterable<@NotNull String> getAbis() {
     return myAbis;
+  }
+
+  public final @Nullable StorageDevice getStorageDevice() {
+    return myStorageDevice;
   }
 
   @Override

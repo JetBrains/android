@@ -21,6 +21,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.StorageDevice;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
@@ -34,13 +35,11 @@ public final class PhysicalDevice extends Device {
   private final @NotNull String myNameOverride;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
-  private final @Nullable StorageDevice myStorageDevice;
 
   public static final class Builder extends Device.Builder {
     private @NotNull String myNameOverride = "";
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
-    private @Nullable StorageDevice myStorageDevice;
 
     public @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
@@ -119,7 +118,6 @@ public final class PhysicalDevice extends Device {
     myNameOverride = builder.myNameOverride;
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPower = builder.myPower;
-    myStorageDevice = builder.myStorageDevice;
   }
 
   @Override
@@ -142,10 +140,6 @@ public final class PhysicalDevice extends Device {
 
   @Nullable Battery getPower() {
     return myPower;
-  }
-
-  @Nullable StorageDevice getStorageDevice() {
-    return myStorageDevice;
   }
 
   @Override
