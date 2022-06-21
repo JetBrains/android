@@ -29,6 +29,7 @@ import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private final @NotNull VirtualDevice myDevice;
-  private final @NotNull AsyncVirtualDeviceDetailsBuilder myBuilder;
+  private final @NotNull ListenableFuture<@NotNull Device> myFuture;
   private final @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> myNewSummarySectionCallback;
 
   private @Nullable InfoSection myPropertiesSection;
@@ -75,10 +76,10 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     super(device.getName());
 
     myDevice = device;
-    myBuilder = builder;
+    myFuture = builder.buildAsync();
     myNewSummarySectionCallback = newSummarySectionCallback;
 
-    myScreenDiagram = new ScreenDiagram(device);
+    initScreenDiagram();
     initPropertiesSection();
 
     InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
@@ -125,9 +126,20 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
 
     summarySection.setLayout();
-    Futures.addCallback(myBuilder.buildAsync(), myNewSummarySectionCallback.apply(summarySection), EdtExecutorService.getInstance());
+    Futures.addCallback(myFuture, myNewSummarySectionCallback.apply(summarySection), EdtExecutorService.getInstance());
 
     mySummarySection = summarySection;
+  }
+
+  private void initScreenDiagram() {
+    FutureCallback<Device> callback = new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
+      if (device.getDp() != null) {
+        myScreenDiagram = new ScreenDiagram(device);
+        setInfoSectionPanelLayout();
+      }
+    });
+
+    Futures.addCallback(myFuture, callback, EdtExecutorService.getInstance());
   }
 
   private void initPropertiesSection() {
