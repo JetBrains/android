@@ -49,9 +49,10 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
 
     val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
 
-    // Verify that no TaskData DataNode is being created.
+    // Verify that only test tasks are being created.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)
-    Truth.assertThat(taskNodeData).isEmpty()
+    Truth.assertThat(taskNodeData).isNotEmpty()
+    Truth.assertThat(taskNodeData.map { it.data.name }).isEqualTo(listOf("testDebugUnitTest", "testReleaseUnitTest"))
   }
 
   fun testSyncWithGradleTaskListNotSkipped() {

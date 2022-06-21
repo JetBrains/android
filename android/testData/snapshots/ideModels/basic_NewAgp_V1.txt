@@ -1186,6 +1186,17 @@ MODULE                        : project
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
+        tasks
+            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                qName                         : :testDebugUnitTest
+                description                   : Run unit tests for the debug build.
+                group                         : verification
+                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                qName                         : :testReleaseUnitTest
+                description                   : Run unit tests for the release build.
+                group                         : verification
+                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
         externalSystemId              : GRADLE
         artifactsByConfiguration
             androidApis                   : <empty>

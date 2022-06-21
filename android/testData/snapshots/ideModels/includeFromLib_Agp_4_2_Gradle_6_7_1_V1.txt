@@ -14,6 +14,17 @@ MODULE                        : navgraph
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -142,6 +153,17 @@ MODULE                        : navgraph
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :lib:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :lib:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>

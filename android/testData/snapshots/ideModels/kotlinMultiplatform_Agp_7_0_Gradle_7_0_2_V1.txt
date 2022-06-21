@@ -14,6 +14,17 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -198,6 +209,17 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/module2
                 buildDir                      : <ROOT>/module2/build [-]
                 buildFile                     : <ROOT>/module2/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :module2:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :module2:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                 - artifacts                   : <ROOT>/module2/build/libs/module2-commonMain.jar [-]

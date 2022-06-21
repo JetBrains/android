@@ -25,6 +25,17 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -241,6 +252,17 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/feature-a
                 buildDir                      : <ROOT>/feature-a/build [-]
                 buildFile                     : <ROOT>/feature-a/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :feature-a:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :feature-a:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -477,6 +499,12 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/javaLibrary
                 buildDir                      : <ROOT>/javaLibrary/build
                 buildFile                     : <ROOT>/javaLibrary/build.gradle
+                tasks
+                    test                          : test (DefaultExternalTask)
+                        qName                         : :javaLibrary:test
+                        description                   : Runs the test suite.
+                        group                         : verification
+                        type                          : org.gradle.api.tasks.testing.Test
                 sourceSets
                     main                          : main (DefaultExternalSourceSet)
                         sources
@@ -664,6 +692,17 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :lib:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :lib:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 artifactsByConfiguration
@@ -892,6 +931,12 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/network-kmm
                 buildDir                      : <ROOT>/network-kmm/build
                 buildFile                     : <ROOT>/network-kmm/build.gradle
+                tasks
+                    jvmTest                       : jvmTest (DefaultExternalTask)
+                        qName                         : :network-kmm:jvmTest
+                        description                   : Runs the tests of the test test run.
+                        group                         : verification
+                        type                          : org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/network-kmm/build/libs/network-kmm-jvm.jar [-]
                 - artifacts                   : <ROOT>/network-kmm/build/libs/network-kmm-metadata.jar [-]

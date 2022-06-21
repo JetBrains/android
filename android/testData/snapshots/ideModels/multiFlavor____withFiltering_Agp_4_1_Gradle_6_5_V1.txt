@@ -14,6 +14,17 @@ MODULE                        : MultiFlavor
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                        description                   : Run unit tests for the firstAbcSecondAbcDebug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
+                        description                   : Run unit tests for the firstAbcSecondAbcRelease build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>
