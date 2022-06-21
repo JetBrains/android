@@ -412,7 +412,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   /**
    * Helper method for creating a list of events for a stream if it does not exist, otherwise returning the event list.
    */
-  private List<Common.Event> getListForStream(long streamId) {
+  public List<Common.Event> getListForStream(long streamId) {
     synchronized (myStreamEvents) {
       return myStreamEvents.computeIfAbsent(streamId, id -> new ArrayList<>());
     }

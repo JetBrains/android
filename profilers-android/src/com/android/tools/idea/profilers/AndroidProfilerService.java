@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.profilers.commands.CpuTraceInterceptCommandHandler;
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
@@ -98,6 +99,12 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
                                          proxy.getBytesCache());
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_CPU_TRACE, cpuTraceHandler);
+    } else if (StudioFlags.PERFETTO_SDK_TRACING.get() &&
+               device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.R) {
+      CpuTraceInterceptCommandHandler cpuTraceHandler =
+        new CpuTraceInterceptCommandHandler(device,
+                                         TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
     }
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events

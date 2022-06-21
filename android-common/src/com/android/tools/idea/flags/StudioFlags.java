@@ -146,6 +146,12 @@ public final class StudioFlags {
     PROFILER, "keyboard.event", "Enable keyboard event",
     "Enable the keyboard event functionality in Event Timeline",
     false);
+
+  public static final Flag<Boolean> PERFETTO_SDK_TRACING = Flag.create(
+    PROFILER, "perfetto.sdk.tracing", "Automatically instrument perfetto sdk builds",
+    "A cpu trace intercept command is added that will enable perfetto instrumentation for apps" +
+    " that use the perfetto SDK",
+    false);
   //endregion
 
   //region ML
