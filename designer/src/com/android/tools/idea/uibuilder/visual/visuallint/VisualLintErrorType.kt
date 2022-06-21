@@ -26,7 +26,8 @@ enum class VisualLintErrorType(val shortName: String) {
   OVERLAP("Overlap"),
   LONG_TEXT("LongText"),
   ATF("AccessibilityTestFramework"),
-  LOCALE_TEXT("LocaleText");
+  LOCALE_TEXT("LocaleText"),
+  WEAR_MARGIN("WearMargin");
 
   /**
    * The values for tools:ignore attribute. This is used by suppression.
