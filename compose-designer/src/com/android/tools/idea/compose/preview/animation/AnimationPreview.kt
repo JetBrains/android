@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
@@ -61,19 +62,26 @@ private val LOG = Logger.getInstance(AnimationPreview::class.java)
  */
 private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 
+//TODO(b/161344747) This value could be dynamic depending on the curve type.
+/** Number of points for one curve. */
+private const val DEFAULT_CURVE_POINTS_NUMBER = 200
+
+//TODO Change to a tracker class.
+typealias ComposeAnimationEventTracker = (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit
+
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
  * animated grouped by animation (e.g. `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationPreview]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager>) : ComposeAnimationPreview {
+class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disposable {
 
   private val animationPreviewPanel = JPanel(TabularLayout("Fit,*", "Fit,*,30px"))
 
-  override val component = TooltipLayeredPane(animationPreviewPanel)
+  val component = TooltipLayeredPane(animationPreviewPanel)
 
-  private val tracker: (ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
+  private val tracker: ComposeAnimationEventTracker = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
     AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
   }
 
@@ -164,13 +172,13 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
   }
 
 
-  override fun animationsCount(): Int = animations.size
+  fun animationsCount(): Int = animations.size
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to.
    * Null when there are no animations.
    */
-  override var animationClock: AnimationClock? = null
+  var animationClock: AnimationClock? = null
 
   private var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
     set(value) {
@@ -247,7 +255,7 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
    * Updates the `from` and `to` state combo boxes to display the states of the given animation, and resets the timeline. Invokes a given
    * callback once everything is populated.
    */
-  override fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
+   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
     animationsMap[animation]?.let { tab ->
       tab.stateComboBox.updateStates(states)
       val transition = animation.animationObject
@@ -278,7 +286,7 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
    * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation, and resets the timeline. Invokes a given
    * callback once the combo box is populated.
    */
-  override fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
+  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
     animationsMap[animation]?.let { tab ->
       tab.stateComboBox.updateStates(animation.states)
 
@@ -369,12 +377,12 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
    * Creates an [AnimationManager] corresponding to the given [animation] and add it to the [animations] map.
    * Note: this method does not add the tab to [tabbedPane]. For that, [addTab] should be used.
    */
-  override fun createTab(animation: ComposeAnimation) {
+  fun createTab(animation: ComposeAnimation) {
     animationsMap[animation] = AnimationManager(animation)
   }
 
   /** Adds an [AnimationManager] card corresponding to the given [animation] to [coordinationTab]. */
-  override fun addTab(animation: ComposeAnimation) {
+  fun addTab(animation: ComposeAnimation) {
     val animationTab = animationsMap[animation] ?: return
 
     val isAddingFirstTab = tabbedPane.tabCount == 0
@@ -393,7 +401,7 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
   }
 
   /** Removes the [AnimationManager] card and tab corresponding to the given [animation] from [tabbedPane]. */
-  override fun removeTab(animation: ComposeAnimation) {
+  fun removeTab(animation: ComposeAnimation) {
     animationsMap[animation]?.let { tab ->
       coordinationTab.removeCard(tab.card)
       tabbedPane.tabs.find { it.component == tab.tabComponent }?.let { tabbedPane.removeTab(it) }
@@ -412,7 +420,7 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
   }
 
   /** Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached animations.*/
-  override fun invalidatePanel() {
+  fun invalidatePanel() {
     val allAnimations = animations.map { it.animation }
     // Calling removeTab for all animations will properly remove the cards from AllTabPanel, animations from the animations list and
     // animationsMap, and tabs from tabbedPane. It will also show the noAnimationsPanel when removing all tabs.

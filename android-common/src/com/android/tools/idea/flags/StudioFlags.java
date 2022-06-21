@@ -1204,13 +1204,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION = Flag.create(
-    COMPOSE, "preview.animation.coordination",
-    "Enable animation coordination in Animation Inspector",
-    "If enabled, animation coordination will be available in Animation Inspector timeline.",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = Flag.create(
     COMPOSE, "preview.animation.coordination.drag",
     "Enable animation dragging in timeline for Animation Inspector",

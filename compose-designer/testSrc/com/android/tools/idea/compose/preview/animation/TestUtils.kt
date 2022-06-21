@@ -17,15 +17,18 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.intellij.ui.JBColor
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
+import java.util.stream.Collectors
 import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.test.assertTrue
@@ -93,4 +96,13 @@ object TestUtils {
       this.getTooltip(Point(x, y))?.let { set.add(it) }
     return set
   }
+
+  fun findAllCards(parent: Component): List<Card> =
+    TreeWalker(parent).descendantStream().filter { it is Card }.collect(
+      Collectors.toList()).map { it as Card }
+
+  fun Card.findLabel(): JLabel =
+    TreeWalker(this.component).descendantStream().filter { it is JLabel }.collect(
+      Collectors.toList()).map { it as JLabel }.first()
+
 }

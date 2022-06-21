@@ -24,7 +24,6 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
 import java.awt.BasicStroke
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
@@ -46,9 +45,8 @@ internal const val DEFAULT_MAX_DURATION_MS = 10000L
 
 /**
  * Timeline slider with auto-resized ticks and labels distance.
- * TODO(b/220739243) [tooltip] is nullable because it's not available in [AnimationInspectorPanel]. Remove nullability.
  */
-open class TimelinePanel(val tooltip: Tooltip?,
+open class TimelinePanel(val tooltip: Tooltip,
                          val previewState: AnimationPreviewState,
                          val tracker: ComposeAnimationEventTracker)
   : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
@@ -305,7 +303,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
    */
   inner class TimelineTrackListener : TrackListener() {
 
-    private val tooltipAdapter = timeline.tooltip?.adapter
+    private val tooltipAdapter = timeline.tooltip.adapter
 
     private var isDragging = false
 
@@ -323,7 +321,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseDragged(e: MouseEvent) {
       super.mouseDragged(e)
-      tooltipAdapter?.mouseDragged(e)
+      tooltipAdapter.mouseDragged(e)
       if (activeElement?.status == TimelineElementStatus.Dragged) {
         activeElement?.move(e.x - dragStartXPoint)
         dragStartXPoint = e.x
@@ -338,7 +336,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseReleased(e: MouseEvent) {
       super.mouseReleased(e)
-      timeline.tracker?.invoke(
+      timeline.tracker.invoke(
         if (activeElement == null) {
           if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
           else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
@@ -360,7 +358,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseMoved(e: MouseEvent) {
       super.mouseMoved(e)
-      tooltipAdapter?.mouseMoved(e)
+      tooltipAdapter.mouseMoved(e)
       slider.repaint()
       if (isDragging) return
       activeElement?.status = TimelineElementStatus.Inactive
@@ -371,18 +369,18 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseExited(e: MouseEvent?) {
       super.mouseExited(e)
-      tooltipAdapter?.mouseExited(e)
+      tooltipAdapter.mouseExited(e)
     }
 
     private fun updateTooltip(e: MouseEvent) {
       val tooltipInfo = elements.firstNotNullOfOrNull { it.getTooltip(e.point) }
       if (tooltipInfo != null) {
-        if (timeline.tooltip?.tooltipInfo == null) tooltipAdapter?.mouseEntered(e)
-        timeline.tooltip?.tooltipInfo = tooltipInfo
+        if (timeline.tooltip.tooltipInfo == null) tooltipAdapter.mouseEntered(e)
+        timeline.tooltip.tooltipInfo = tooltipInfo
       }
       else {
-        if (timeline.tooltip?.tooltipInfo != null) tooltipAdapter?.mouseExited(e)
-        timeline.tooltip?.tooltipInfo = null
+        if (timeline.tooltip.tooltipInfo != null) tooltipAdapter.mouseExited(e)
+        timeline.tooltip.tooltipInfo = null
       }
     }
 

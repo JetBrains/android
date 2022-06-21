@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.preview.animation.InspectorColors
 import com.android.tools.idea.compose.preview.animation.InspectorColors.GRAPH_COLORS
 import com.android.tools.idea.compose.preview.animation.InspectorColors.GRAPH_COLORS_WITH_ALPHA
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
-import com.android.tools.idea.compose.preview.animation.InspectorPainter.BoxedLabel
 import com.android.tools.idea.compose.preview.animation.InspectorPainter.Diamond
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Graphics2D

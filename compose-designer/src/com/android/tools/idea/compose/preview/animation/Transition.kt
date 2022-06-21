@@ -23,5 +23,4 @@ data class Transition(val properties: Map<Int, AnimatedProperty<Double>?> = muta
   val startMillis = properties.values.filterNotNull().minOfOrNull { it.startMs }
   val endMillis = properties.values.filterNotNull().maxOfOrNull { it.endMs }
   val duration = if (startMillis != null) endMillis?.minus(startMillis) else 0
-  val timelineCurveHeight = properties.values.filterNotNull().sumOf { it.components.size * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT }
 }

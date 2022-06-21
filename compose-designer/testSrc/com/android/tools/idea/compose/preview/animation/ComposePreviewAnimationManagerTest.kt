@@ -23,9 +23,8 @@ import com.android.SdkConstants
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION
+import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -55,24 +54,15 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import org.mockito.Mockito
 import java.io.IOException
 import java.util.stream.Collectors
 import javax.swing.JSlider
 
-@RunWith(Parameterized::class)
-class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean) {
+class ComposePreviewAnimationManagerTest() {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "Coordination is enabled: {0}")
-    fun enableCoordination() = listOf(true, false)
-  }
 
   private lateinit var parentDisposable: Disposable
 
@@ -80,7 +70,6 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   @Before
   fun setUp() {
-    COMPOSE_ANIMATION_PREVIEW_COORDINATION.override(enableCoordination)
     parentDisposable = projectRule.fixture.testRootDisposable
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
@@ -96,7 +85,6 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   @After
   fun tearDown() {
-    COMPOSE_ANIMATION_PREVIEW_COORDINATION.clearOverride()
     ComposePreviewAnimationManager.closeCurrentInspector()
   }
 
@@ -135,7 +123,7 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
     assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane().parent)
+    assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     // After subscribing an animation, we should display the tabbedPane
@@ -143,30 +131,28 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     assertNull(inspector.noAnimationsPanel())
-    assertNotNull(inspector.tabbedPane().parent)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no animations panel
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
     UIUtil.pump() // Wait for the tab to be removed on the UI thread
     assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane().parent)
+    assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
   }
 
   @Test
   fun oneTabPerSubscribedAnimation() {
-    // Don't run test for coordination.
-    if (enableCoordination) return
     val inspector = createAndOpenInspector()
-    assertNull(inspector.tabbedPane().parent)
+    assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     val animation1 = createComposeAnimation()
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertNotNull(inspector.tabbedPane().parent)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val animation2 = createComposeAnimation()
@@ -182,13 +168,13 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
   @Test
   fun subscriptionNewClockClearsPreviousClockAnimations() {
     val inspector = createAndOpenInspector()
-    assertNull(inspector.tabbedPane().parent)
+    assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertNotNull(inspector.tabbedPane().parent)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val anotherClock = TestClock()
@@ -315,9 +301,7 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   @Test
   fun playbackControlActions() {
-    // If coordination is not available, playback controls has one button less.
-    // There is an extra Separator() for panel with enabled coordination.
-    val numberOfPlaybackControls = if (enableCoordination) 7 else 6
+    val numberOfPlaybackControls = 7
     val inspector = createAndOpenInspector()
 
     val transitionAnimation = object : ComposeAnimation {
@@ -404,8 +388,6 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   @Test
   fun tabsAreNamedFromAnimationLabel() {
-    // Don't run test for coordination.
-    if (enableCoordination) return
     val inspector = createAndOpenInspector()
     val clock = TestClock()
 
@@ -431,11 +413,11 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
     assertEquals(5, inspector.tabCount())
 
-    assertEquals("repeatedLabel", inspector.getTabTitleAt(0))
-    assertEquals("repeatedLabel (1)", inspector.getTabTitleAt(1)) // repeated titles get their index incremented
-    assertEquals("Animated Value", inspector.getTabTitleAt(2)) // null labels use default title
-    assertEquals("Transition Animation", inspector.getTabTitleAt(3)) // null labels use default title
-    assertEquals("Animated Visibility", inspector.getTabTitleAt(4)) // null labels use default title
+    assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
+    assertEquals("repeatedLabel (1)", inspector.getAnimationTitleAt(1)) // repeated titles get their index incremented
+    assertEquals("Animated Value", inspector.getAnimationTitleAt(2)) // null labels use default title
+    assertEquals("Transition Animation", inspector.getAnimationTitleAt(3)) // null labels use default title
+    assertEquals("Animated Visibility", inspector.getAnimationTitleAt(4)) // null labels use default title
   }
 
   @Test
@@ -443,21 +425,17 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
     val inspector = createAndOpenInspector()
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI
-    assertNotNull(inspector.tabbedPane().parent)
+    assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
     assertNull(inspector.noAnimationsPanel())
-    if (enableCoordination) {
-      assertEquals(1, inspector.animationPreviewCardsCount())
-    }
+    assertEquals(1, inspector.animationPreviewCardsCount())
 
     ComposePreviewAnimationManager.invalidate()
     UIUtil.pump() // Wait for the tab to be added on the UI
     assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane().parent)
+    assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
-    if (enableCoordination) {
-      assertEquals(0, inspector.animationPreviewCardsCount())
-    }
+    assertEquals(0, inspector.animationPreviewCardsCount())
   }
 
   @Test
@@ -520,27 +498,23 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
     }
   }
 
-  private fun createAndOpenInspector(): ComposeAnimationPreview {
+  private fun createAndOpenInspector(): AnimationPreview {
     assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
     ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) { }
     assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
     return ComposePreviewAnimationManager.currentInspector!!
   }
 
-  private fun ComposeAnimationPreview.tabCount() = invokeAndWaitIfNeeded { animationsCount() }
+  private fun AnimationPreview.tabCount() = invokeAndWaitIfNeeded { animationsCount() }
 
-  private fun ComposeAnimationPreview.tabbedPane(): AnimationTabs =
-    if (this is AnimationInspectorPanel) tabbedPane
-    else (this as AnimationPreview).tabbedPane
+  private fun AnimationPreview.getAnimationTitleAt(index: Int): String = invokeAndWaitIfNeeded {
+    TestUtils.findAllCards(this.component)[index].findLabel().text
+  }
 
-  private fun ComposeAnimationPreview.getTabTitleAt(index: Int) = invokeAndWaitIfNeeded { tabbedPane().getTabAt(index).text }
-
-  private fun ComposeAnimationPreview.noAnimationsPanel() =
+  private fun AnimationPreview.noAnimationsPanel() =
     TreeWalker(this.component).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
 
-  private fun ComposeAnimationPreview.animationPreviewCardsCount() = invokeAndWaitIfNeeded {
-    (this as? AnimationPreview)?.coordinationTab?.cards?.size ?: -1
-  }
+  private fun AnimationPreview.animationPreviewCardsCount() = invokeAndWaitIfNeeded { coordinationTab.cards.size }
 
   /**
    * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't break when the test tries to call them

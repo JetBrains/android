@@ -24,7 +24,6 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -36,32 +35,18 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
-import javax.swing.JComponent
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
-interface ComposeAnimationPreview : Disposable {
-  var animationClock: AnimationClock?
-  val surface: DesignSurface<*>
-  val component: JComponent
-  fun animationsCount(): Int
-  fun createTab(animation: ComposeAnimation)
-  fun addTab(animation: ComposeAnimation)
-  fun removeTab(animation: ComposeAnimation)
-  fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit)
-  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit)
-  fun invalidatePanel()
-}
-
 /**
- * Responsible for opening the [AnimationInspectorPanel] and managing its state. `PreviewAnimationClockMethodTransform` intercepts calls to
+ * Responsible for opening the [AnimationPreview] and managing its state. `PreviewAnimationClockMethodTransform` intercepts calls to
  * `subscribe` and `unsubscribe` calls on `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
- * respectively. These methods will then update the [AnimationInspectorPanel] content accordingly, adding tabs for newly subscribed
+ * respectively. These methods will then update the [AnimationPreview] content accordingly, adding tabs for newly subscribed
  * animations and closing tabs corresponding to unsubscribed animations.
  */
 object ComposePreviewAnimationManager {
   @get:VisibleForTesting
-  internal var currentInspector: ComposeAnimationPreview? = null
+  internal var currentInspector: AnimationPreview? = null
     private set
 
   @get:VisibleForTesting
@@ -80,14 +65,13 @@ object ComposePreviewAnimationManager {
   @Slow
   fun createAnimationInspectorPanel(surface: DesignSurface<LayoutlibSceneManager>,
                                     parent: Disposable,
-                                    onNewInspectorOpen: () -> Unit): ComposeAnimationPreview {
+                                    onNewInspectorOpen: () -> Unit): AnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
     AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(
       ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR
     ))
     return invokeAndWaitIfNeeded {
-      val animationInspectorPanel = (if (COMPOSE_ANIMATION_PREVIEW_COORDINATION.get()) AnimationPreview(surface)
-      else AnimationInspectorPanel(surface)) as ComposeAnimationPreview
+      val animationInspectorPanel = AnimationPreview(surface)
       Disposer.register(parent, animationInspectorPanel)
       currentInspector = animationInspectorPanel
       animationInspectorPanel
@@ -117,7 +101,7 @@ object ComposePreviewAnimationManager {
   }
 
   /**
-   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding tab in the [AnimationInspectorPanel].
+   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding tab in the [AnimationPreview].
    */
   fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
     if (clock == null) return
@@ -168,7 +152,7 @@ object ComposePreviewAnimationManager {
   }
 
   /**
-   * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
+   * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationPreview].
    */
   fun onAnimationUnsubscribed(animation: ComposeAnimation) {
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
