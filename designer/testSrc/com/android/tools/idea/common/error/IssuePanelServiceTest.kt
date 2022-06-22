@@ -32,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -90,7 +91,7 @@ class IssuePanelServiceTest {
   }
 
   @Test
-  fun testIssuePanelVisibility() {
+  fun testIssuePanelVisibilityWhenOpeningDesignFile() {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
@@ -103,6 +104,26 @@ class IssuePanelServiceTest {
       rule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
     assertTrue(service.isIssuePanelVisible(mock()))
+  }
+
+  @Test
+  fun testIssuePanelVisibilityWhenSwitchingToDesignFile() {
+    val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
+    val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    val contentManager = toolWindow.apply { show() }.contentManager
+
+    runInEdtAndWait {
+      rule.fixture.openFileInEditor(layoutFile.virtualFile)
+      rule.fixture.openFileInEditor(ktFile.virtualFile)
+    }
+    // Force select "current file" tab.
+    contentManager.setSelectedContent(contentManager.contents[0])
+    assertFalse(service.isIssuePanelVisible(mock()))
+
+    // Switching to layout file. The selected tab should still be "current file" tab.
+    runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    assertEquals(contentManager.selectedContent, contentManager.contents[0])
+    assertFalse(service.isIssuePanelVisible(mock()))
   }
 
   @Test

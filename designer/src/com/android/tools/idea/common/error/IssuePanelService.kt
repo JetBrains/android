@@ -125,6 +125,11 @@ class IssuePanelService(private val project: Project) {
     }
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+        val editor = source.getSelectedEditor(file)
+        updateIssuePanelVisibility(file, editor, true)
+      }
+
       override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
         if (!source.hasOpenFiles()) {
           // There is no opened file, remove the tab.
@@ -133,18 +138,19 @@ class IssuePanelService(private val project: Project) {
       }
 
       override fun selectionChanged(event: FileEditorManagerEvent) {
-        val newFile = event.newFile
+        updateIssuePanelVisibility(event.newFile, event.newEditor, false)
+      }
+
+      private fun updateIssuePanelVisibility(newFile: VirtualFile?, newEditor: FileEditor?, selectIfVisible: Boolean) {
         if (newFile == null) {
           setSharedIssuePanelVisibility(false)
           return
         }
         if (isComposeFile(newFile) || isSupportedDesignerFileType(newFile)) {
-          addSharedIssueTabToProblemsPanel()
-          updateSharedIssuePanelTabName()
-          selectSharedIssuePanelTab()
+          addIssuePanel(selectIfVisible)
           return
         }
-        val surface = event.newEditor?.getDesignSurface()
+        val surface = newEditor?.getDesignSurface()
         if (surface != null) {
           val psiFileType = newFile.toPsiFile(project)?.typeOf()
           if (psiFileType is DrawableFileType) {
@@ -152,13 +158,22 @@ class IssuePanelService(private val project: Project) {
             removeSharedIssueTabFromProblemsPanel()
           }
           else {
-            addSharedIssueTabToProblemsPanel()
-            updateSharedIssuePanelTabName()
-            selectSharedIssuePanelTab()
+            addIssuePanel(selectIfVisible)
           }
         }
         else {
           removeSharedIssueTabFromProblemsPanel()
+        }
+      }
+
+      /**
+       * Add shared issue panel into IJ's problems panel. If [selected] is true, select the shared issue panel after added.
+       */
+      private fun addIssuePanel(selected: Boolean) {
+        addSharedIssueTabToProblemsPanel()
+        updateSharedIssuePanelTabName()
+        if (selected) {
+          selectSharedIssuePanelTab()
         }
       }
     })
