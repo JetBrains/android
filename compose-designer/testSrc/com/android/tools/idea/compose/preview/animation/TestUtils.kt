@@ -101,6 +101,10 @@ object TestUtils {
     TreeWalker(parent).descendantStream().filter { it is Card }.collect(
       Collectors.toList()).map { it as Card }
 
+  fun findTimeline(parent: Component): TimelinePanel =
+    TreeWalker(parent).descendantStream().filter { it is TimelinePanel }.collect(
+      Collectors.toList()).map { it as TimelinePanel }.first()
+
   fun Card.findLabel(): JLabel =
     TreeWalker(this.component).descendantStream().filter { it is JLabel }.collect(
       Collectors.toList()).map { it as JLabel }.first()

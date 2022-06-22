@@ -24,7 +24,7 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 /** [Card] containing only animation label. */
-class LabelCard(override val state: ElementState) : Card {
+class LabelCard(override val state: ElementState) : Card, JPanel(TabularLayout("*", "30px")) {
 
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
   //⎹    transitionName                          ⎹ ⬅ component
@@ -35,7 +35,9 @@ class LabelCard(override val state: ElementState) : Card {
     add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
   }
 
-  override val component: JPanel = JPanel(TabularLayout("*", "30px")).apply {
+  override val component: JPanel = this
+
+  init {
     border = MatteBorder(1, 0, 0, 0, JBColor.border())
     add(firstRow, TabularLayout.Constraint(0, 0))
   }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
@@ -128,24 +127,8 @@ object ComposePreviewAnimationManager {
       UIUtil.invokeLaterIfNeeded {
         // Create the tab corresponding to the animation
         inspector.createTab(animation)
-        when (animation.type) {
-          ComposeAnimationType.TRANSITION_ANIMATION -> {
-            // For transition animations, make sure to populate the tab with the states and animated properties.
-            inspector.updateTransitionStates(animation, handleKnownStateTypes(animation.states)) {
-              // When the tab is populated, add it to the animation inspector
-              UIUtil.invokeLaterIfNeeded { inspector.addTab(animation) }
-            }
-          }
-          ComposeAnimationType.ANIMATED_VISIBILITY -> {
-            inspector.updateAnimatedVisibilityStates(animation) {
-              // When the tab is populated, add it to the animation inspector
-              UIUtil.invokeLaterIfNeeded { inspector.addTab(animation) }
-            }
-          }
-          else -> {
-            // TODO(b/170428636): populate tab before adding it for ANIMATED_VALUE animations.
-            inspector.addTab(animation)
-          }
+        inspector.setupAnimation(animation) {
+          UIUtil.invokeLaterIfNeeded { inspector.addTab(animation) }
         }
       }
     }
@@ -174,15 +157,6 @@ object ComposePreviewAnimationManager {
     currentInspector?.let { UIUtil.invokeLaterIfNeeded { it.invalidatePanel() } }
   }
 
-  /**
-   * Due to a limitation in the Compose Animation framework, we might not know all the available states for a given animation, only the
-   * initial/current one. However, we can infer all the states based on the initial one depending on its type, e.g. for a boolean we know
-   * the available states are only `true` or `false`.
-   */
-  private fun handleKnownStateTypes(originalStates: Set<Any>) = when (originalStates.iterator().next()) {
-    is Boolean -> setOf(true, false)
-    else -> originalStates
-  }
 }
 
 @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform

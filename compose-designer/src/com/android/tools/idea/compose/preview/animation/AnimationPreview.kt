@@ -24,7 +24,11 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timeline
+import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
+import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
+import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
@@ -47,6 +51,7 @@ import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
@@ -102,13 +107,15 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
   }
 
   /** Selected single animation. */
-  private var selectedAnimation: AnimationManager? = null
+  private var selectedAnimation: SupportedAnimationManager? = null
 
   private inner class TabChangeListener : TabsListener {
     override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
       val component = tabbedPane.selectedInfo?.component ?: return
-      //If single animation tab is selected.
-      animations.find { it.tabComponent == component }?.let { tab ->
+      // If single supported animation tab is selected.
+      // We assume here only supported animations could be opened.
+      animations.find { it is SupportedAnimationManager && it.tabComponent == component }?.let { tab ->
+        if (tab !is SupportedAnimationManager) return@let
         if (newSelection == oldSelection) return
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
@@ -127,12 +134,13 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
   }
 
   /**
-   * Maps animation objects to the [AnimationManager] that represents them.
+   * Maps animation objects to the [SupportedAnimationManager] that represents them.
    */
   private val animationsMap = HashMap<ComposeAnimation, AnimationManager>()
 
-  /** List of [AnimationManager], same as in [animationsMap] but in order as they appear in the list. */
-  private val animations = mutableListOf<AnimationManager>()
+  /** List of [SupportedAnimationManager], same as in [animationsMap] but in order as they appear in the list. */
+  @VisibleForTesting
+  val animations = mutableListOf<AnimationManager>()
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
@@ -186,7 +194,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       updateTimelineMaximum()
     }
 
-  /** Create list of [TimelineElement] for selected [AnimationManager]s. */
+  /** Create list of [TimelineElement] for selected [SupportedAnimationManager]s. */
   private fun createTimelineElements(tabs: Collection<AnimationManager>) {
     executeOnRenderThread(false) {
       var minY = InspectorLayout.timelineHeaderHeightScaled()
@@ -194,6 +202,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       timeline.revalidate()
       invokeLater {
         timeline.repaint()
+        timeline.sliderUI.elements.forEach { it.dispose() }
         timeline.sliderUI.elements = if (tabs.size == 1 && selectedAnimation != null) {
           // Paint single selected animation.
           val curve = TransitionCurve.create(tabs.first().elementState, tabs.first().currentTransition, minY,
@@ -205,14 +214,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
         else tabs
           .map { tab ->
             tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-            val line = if (tab.elementState.expanded) {
-              val curve = TransitionCurve.create(tab.elementState, tab.currentTransition, minY,
-                                                 timeline.sliderUI.positionProxy)
-              tab.selectedPropertiesCallback = { curve.timelineUnits = it }
-              curve.timelineUnits = tab.selectedProperties
-              curve
-            }
-            else TimelineLine(tab.elementState, tab.currentTransition, minY, timeline.sliderUI.positionProxy)
+            val line = tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy)
             minY += line.heightScaled()
             tab.card.setDuration(tab.currentTransition.duration)
             line
@@ -251,67 +253,10 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
   }
 
 
-  /**
-   * Updates the `from` and `to` state combo boxes to display the states of the given animation, and resets the timeline. Invokes a given
-   * callback once everything is populated.
-   */
-   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
-    animationsMap[animation]?.let { tab ->
-      tab.stateComboBox.updateStates(states)
-      val transition = animation.animationObject
-      transition::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
-        it.isAccessible = true
-        it.invoke(transition)?.let { state ->
-          tab.stateComboBox.setStartState(state)
-        }
-      }
-
-      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
-      updateAnimationStatesExecutor.execute {
-        // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
-        // This is necessary here because it's the first time the animation mutable states will be written, when setting the clock, and
-        // read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
-        tab.updateAnimationStartAndEndStates(longTimeout = true)
-        tab.loadTransitionFromCacheOrLib(longTimeout = true)
-        tab.loadProperties()
-        // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
-        // Note: this is called only once per tab, in this method, when creating the tab.
-        tab.stateComboBox.setupListeners()
-        callback.invoke()
-      }
-    }
-  }
-
-  /**
-   * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation, and resets the timeline. Invokes a given
-   * callback once the combo box is populated.
-   */
-  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
-    animationsMap[animation]?.let { tab ->
-      tab.stateComboBox.updateStates(animation.states)
-
-      updateAnimationStatesExecutor.execute {
-        // Update the animated visibility combo box with the correct initial state, obtained from PreviewAnimationClock.
-        var state: Any? = null
-        executeOnRenderThread(useLongTimeout = true) {
-          val clock = animationClock ?: return@executeOnRenderThread
-          // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore, calling `getAnimatedVisibilityState`
-          // via reflection will return a String rather than an AnimatedVisibilityState. To work around that, we select the initial combo
-          // box item by checking the display value.
-          state = clock.getAnimatedVisibilityState(animation)
-        }
-        tab.stateComboBox.setStartState(state)
-
-        // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since we're running off EDT, the UI will not
-        // freeze. This is necessary here because it's the first time the animation mutable states will be written, when setting the clock,
-        // and read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
-        tab.updateAnimatedVisibility(longTimeout = true)
-        tab.loadTransitionFromCacheOrLib(longTimeout = true)
-        // Set up the combo box listener so further changes to the selected state will trigger a call to updateAnimatedVisibility.
-        // Note: this is called only once per tab, in this method, when creating the tab.
-        tab.stateComboBox.setupListeners()
-        callback.invoke()
-      }
+  /** Do an initial setup before adding animation to the panel. */
+  fun setupAnimation(animation: ComposeAnimation, callback: () -> Unit) {
+    animationsMap[animation]?.let {
+      it.setup(callback)
     }
   }
 
@@ -374,14 +319,19 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
   }
 
   /**
-   * Creates an [AnimationManager] corresponding to the given [animation] and add it to the [animations] map.
+   * Creates an [SupportedAnimationManager] corresponding to the given [animation] and add it to the [animations] map.
    * Note: this method does not add the tab to [tabbedPane]. For that, [addTab] should be used.
    */
   fun createTab(animation: ComposeAnimation) {
-    animationsMap[animation] = AnimationManager(animation)
+    animationsMap[animation] = when (animation.type) {
+      ComposeAnimationType.TRANSITION_ANIMATION -> TransitionAnimationManager(animation)
+      ComposeAnimationType.ANIMATED_VALUE -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
+      ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
+      else -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
+    }
   }
 
-  /** Adds an [AnimationManager] card corresponding to the given [animation] to [coordinationTab]. */
+  /** Adds an [SupportedAnimationManager] card corresponding to the given [animation] to [coordinationTab]. */
   fun addTab(animation: ComposeAnimation) {
     val animationTab = animationsMap[animation] ?: return
 
@@ -400,11 +350,12 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     }
   }
 
-  /** Removes the [AnimationManager] card and tab corresponding to the given [animation] from [tabbedPane]. */
+  /** Removes the [SupportedAnimationManager] card and tab corresponding to the given [animation] from [tabbedPane]. */
   fun removeTab(animation: ComposeAnimation) {
     animationsMap[animation]?.let { tab ->
       coordinationTab.removeCard(tab.card)
-      tabbedPane.tabs.find { it.component == tab.tabComponent }?.let { tabbedPane.removeTab(it) }
+      if (tab is SupportedAnimationManager)
+        tabbedPane.tabs.find { it.component == tab.tabComponent }?.let { tabbedPane.removeTab(it) }
       animations.remove(tab)
     }
     animationsMap.remove(animation)
@@ -440,15 +391,84 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
   }
 
-  /**
-   *
-   */
-  private inner class AnimationManager(val animation: ComposeAnimation) {
+  private inner class TransitionAnimationManager(animation: ComposeAnimation) : SupportedAnimationManager(animation) {
 
-    val timelineMaximumMs: Int?
-      get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) }
+    /**
+     * Updates the `from` and `to` state combo boxes to display the states of the given animation, and resets the timeline. Invokes a given
+     * callback once everything is populated.
+     */
+    override fun setup(callback: () -> Unit) {
+      val states: Set<Any> = handleKnownStateTypes(animation.states)
+      stateComboBox.updateStates(states)
+      val transition = animation.animationObject
+      transition::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
+        it.isAccessible = true
+        it.invoke(transition)?.let { state ->
+          stateComboBox.setStartState(state)
+        }
+      }
 
-    private val tabTitle = tabNames.createName(animation)
+      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
+      updateAnimationStatesExecutor.execute {
+        // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
+        // This is necessary here because it's the first time the animation mutable states will be written, when setting the clock, and
+        // read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
+        updateAnimationStartAndEndStates(longTimeout = true)
+        loadTransitionFromCacheOrLib(longTimeout = true)
+        loadProperties()
+        // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
+        // Note: this is called only once per tab, in this method, when creating the tab.
+        stateComboBox.setupListeners()
+        callback.invoke()
+      }
+    }
+
+    /**
+     * Due to a limitation in the Compose Animation framework, we might not know all the available states for a given animation, only the
+     * initial/current one. However, we can infer all the states based on the initial one depending on its type, e.g. for a boolean we know
+     * the available states are only `true` or `false`.
+     */
+    private fun handleKnownStateTypes(originalStates: Set<Any>) = when (originalStates.iterator().next()) {
+      is Boolean -> setOf(true, false)
+      else -> originalStates
+    }
+  }
+
+  private inner class AnimatedVisibilityAnimationManager(animation: ComposeAnimation) : SupportedAnimationManager(animation) {
+
+    /**
+     * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation, and resets the timeline. Invokes a given
+     * callback once the combo box is populated.
+     */
+    override fun setup(callback: () -> Unit) {
+      stateComboBox.updateStates(animation.states)
+      updateAnimationStatesExecutor.execute {
+        // Update the animated visibility combo box with the correct initial state, obtained from PreviewAnimationClock.
+        var state: Any? = null
+        executeOnRenderThread(useLongTimeout = true) {
+          val clock = animationClock ?: return@executeOnRenderThread
+          // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore, calling `getAnimatedVisibilityState`
+          // via reflection will return a String rather than an AnimatedVisibilityState. To work around that, we select the initial combo
+          // box item by checking the display value.
+          state = clock.getAnimatedVisibilityState(animation)
+        }
+        stateComboBox.setStartState(state)
+
+        // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since we're running off EDT, the UI will not
+        // freeze. This is necessary here because it's the first time the animation mutable states will be written, when setting the clock,
+        // and read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
+        updateAnimatedVisibility(longTimeout = true)
+        loadTransitionFromCacheOrLib(longTimeout = true)
+        // Set up the combo box listener so further changes to the selected state will trigger a call to updateAnimatedVisibility.
+        // Note: this is called only once per tab, in this method, when creating the tab.
+        stateComboBox.setupListeners()
+        callback.invoke()
+      }
+    }
+  }
+
+  private abstract inner class SupportedAnimationManager(animation: ComposeAnimation) : AnimationManager(animation,
+                                                                                                         tabNames.createName(animation)) {
 
     /** [StateComboBox] for single animation tab. Should not be used directly. Use [stateComboBox] to control the state. */
     private val stateComboBoxInTab = createComboBox()
@@ -460,7 +480,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     val stateComboBox = InspectorPainter.StateComboBoxes(listOf(stateComboBoxInTab, stateComboBoxInCard))
 
     /** State of animation, shared between single animation tab and coordination panel. */
-    val elementState = ElementState(tabTitle).apply {
+    final override val elementState = ElementState(tabTitle).apply {
       addExpandedListener {
         updateTimelineElements()
       }
@@ -476,7 +496,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     }
 
     /** [AnimationCard] for coordination panel. */
-    val card = AnimationCard(previewState, surface, elementState, tracker).apply {
+    override val card = AnimationCard(previewState, surface, elementState, tracker).apply {
 
       /** [TabInfo] for the animation when it is opened in a new tab. */
       var tabInfo: TabInfo? = null
@@ -515,20 +535,9 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
 
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
-    var currentTransition = Transition()
-      private set(value) {
-        field = value
-        // If transition has changed, reset it offset.
-        elementState.valueOffset = 0
-        updateTimelineElements()
-      }
-
-    var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
-    var selectedProperties = listOf<ComposeUnit.TimelineUnit>()
-      private set(value) {
-        field = value
-        selectedPropertiesCallback(value)
-      }
+    init {
+      currentTransitionCallback = { updateTimelineElements() }
+    }
 
     private fun createComboBox(): InspectorPainter.StateComboBox {
       return when (animation.type) {
@@ -640,7 +649,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       }
     }
 
-    fun loadProperties() {
+    override fun loadProperties() {
       animationClock?.apply {
         try {
           selectedProperties = getAnimatedProperties(animation).map { ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it)) }
@@ -649,6 +658,16 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
           LOG.warn("Failed to get the Compose Animation properties", e)
         }
       }
+    }
+
+    override fun createTimelineElement(parent: JComponent, minY: Int, positionProxy: PositionProxy): TimelineElement {
+      return if (elementState.expanded) {
+        val curve = TransitionCurve.create(elementState, currentTransition, minY, positionProxy)
+        selectedPropertiesCallback = { curve.timelineUnits = it }
+        curve.timelineUnits = selectedProperties
+        curve
+      }
+      else TimelineLine(elementState, currentTransition, minY, positionProxy)
     }
 
     /**
