@@ -54,6 +54,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
@@ -316,9 +317,15 @@ internal class EmulatorToolWindowManager private constructor(
   private fun addPanel(panel: RunningDevicePanel) {
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
+    var placeholderContent: Content? = null
     if (panels.isEmpty()) {
-      contentManager.removeAllContents(true) // Remove the placeholder panel.
       showLiveIndicator(toolWindow)
+      if (!contentManager.isEmpty) {
+        // Remember the placeholder panel content to remove it later. Deleting it now would leave
+        // the tool window empty and cause the contentRemoved method in ToolWindowContentUi to
+        // hide it.
+        placeholderContent = contentManager.getContent(0)
+      }
     }
 
     val contentFactory = ContentFactory.SERVICE.getInstance()
@@ -352,6 +359,8 @@ internal class EmulatorToolWindowManager private constructor(
           }
         }
       }
+
+      placeholderContent?.let { contentManager.removeContent(it, true) } // Remove the placeholder panel if it was present.
     }
   }
 
