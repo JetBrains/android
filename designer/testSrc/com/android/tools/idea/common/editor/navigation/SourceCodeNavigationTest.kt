@@ -23,7 +23,6 @@ import com.intellij.testFramework.builders.ModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
 import com.intellij.testFramework.registerComponentInstance
 
-@org.junit.Ignore("b/236304345")
 class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder<*>>() {
 
   override fun setUp() {
