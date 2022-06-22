@@ -23,7 +23,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 
-@State(name = "VisualLint", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE), Storage("misc.xml")])
+@State(name = "VisualLint", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)])
 @Service
 class VisualLintSettings : SimplePersistentStateComponent<VisualLintSettings.State>(State()) {
 

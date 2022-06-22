@@ -27,7 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
-@State(name = "DesignSurface", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE), Storage("misc.xml")])
+@State(name = "DesignSurface", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)])
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()
