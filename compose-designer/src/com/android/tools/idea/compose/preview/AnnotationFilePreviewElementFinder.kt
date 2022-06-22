@@ -20,7 +20,7 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.annotations.hasAnnotatedMethods
+import com.android.tools.idea.annotations.hasAnnotations
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
@@ -40,10 +40,10 @@ import org.jetbrains.uast.UMethod
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   override fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotatedMethods(project, vFile, setOf(COMPOSE_PREVIEW_ANNOTATION_FQN), COMPOSE_PREVIEW_ANNOTATION_NAME)
+    hasAnnotations(project, vFile, setOf(COMPOSE_PREVIEW_ANNOTATION_FQN), COMPOSE_PREVIEW_ANNOTATION_NAME)
 
   override fun hasComposableMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotatedMethods(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
+    hasAnnotations(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
 
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.

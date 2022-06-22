@@ -17,8 +17,11 @@ package com.android.tools.idea.annotations
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.intellij.openapi.application.ReadAction
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -44,7 +47,7 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test hasAnnotatedMethods`() {
+  fun `test hasAnnotations`() {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotation.kt",
       // language=kotlin
@@ -68,12 +71,12 @@ class AnnotatedMethodsFinderTest {
         """.trimIndent())
 
     assertEquals(0, CacheKeysManager.map().size)
-    assertTrue(hasAnnotatedMethods(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
     assertEquals(1, CacheKeysManager.map().size)
-    assertTrue(hasAnnotatedMethods(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
     // Check that call with the same args combination does not create a new key and reuses the cache:
     assertEquals(1, CacheKeysManager.map().size)
-    assertFalse(hasAnnotatedMethods(project, sourceFile.virtualFile, setOf("com.android.annotations.IDoNotExist"), "IDoNotExist"))
+    assertFalse(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.IDoNotExist"), "IDoNotExist"))
     assertEquals(2, CacheKeysManager.map().size)
   }
 
@@ -146,5 +149,43 @@ class AnnotatedMethodsFinderTest {
     assertEquals(2, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::identity).size)
     assertTrue("Unexpectedly no new cache keys", cacheKeys < CacheKeysManager.map().size)
     assertEquals(0, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationB"),"MyAnnotationB", ::identity).size)
+  }
+
+  @Test
+  fun `test hasAppliedAnnotations filter`() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyAnnotationA.kt",
+      // language=kotlin
+      """
+        package com.android.annotations
+
+        object Surfaces {
+          const val SURFACE1 = "foo"
+          const val SURFACE2 = "bar"
+        }
+
+        annotation class MyAnnotationA(param1: String)
+        """.trimIndent())
+
+    val sourceFile = fixture.addFileToProjectAndInvalidate(
+      "com/android/test/SourceFile.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import com.android.annotations.MyAnnotationA
+        import com.android.annotations.Surfaces
+
+        @MyAnnotationA(Surfaces.SURFACE1)
+        fun abcde() { }
+        """.trimIndent())
+
+    val res = hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA") {
+      ReadAction.compute<Boolean, Throwable> {
+        it.psiOrParent.toUElementOfType<UAnnotation>()?.findAttributeValue("param1")?.evaluate() == "foo"
+      }
+    }
+
+    assertTrue(res)
   }
 }

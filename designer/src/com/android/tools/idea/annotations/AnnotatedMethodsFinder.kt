@@ -58,11 +58,12 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Finds if [vFile] in [project] has methods annotated with any of the given [annotations] FQCN or the given [shortAnnotationName].
+ * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given [shortAnnotationName].
  */
-private fun hasAnnotatedMethodsUncached(project: Project, vFile: VirtualFile,
-                                        annotations: Set<String>,
-                                        shortAnnotationName: String): Boolean = runReadAction {
+private fun hasAnnotationsUncached(project: Project, vFile: VirtualFile,
+                                   annotations: Set<String>,
+                                   shortAnnotationName: String,
+                                   filter: (KtAnnotationEntry) -> Boolean): Boolean = runReadAction {
   // This method can not call any methods that require smart mode.
   fun isFullNameAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
@@ -76,16 +77,8 @@ private fun hasAnnotatedMethodsUncached(project: Project, vFile: VirtualFile,
   val hasAnnotationImport = PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
     .any { annotations.contains(it.importedFqName?.asString()) }
 
-  return@runReadAction if (hasAnnotationImport) {
-    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-      .any {
-        it.shortName?.asString() == shortAnnotationName || isFullNameAnnotation(it)
-      }
-  }
-  else {
-    // The annotation is not imported so check if the method is using full name import.
-    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-      .any(::isFullNameAnnotation)
+  return@runReadAction PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java).any {
+    ((it.shortName?.asString() == shortAnnotationName && hasAnnotationImport) || isFullNameAnnotation(it)) && filter(it)
   }
 }
 
@@ -105,23 +98,33 @@ object CacheKeysManager {
   fun map() = annotationCacheKeys
 }
 
-data class HasMethodsKey(val annotations: Set<String>, val shortAnnotationName: String)
+private val anyAnnotation: (KtAnnotationEntry) -> Boolean = { true }
+
+private data class HasFilteredAnnotationsKey(
+  val annotations: Set<String>,
+  val shortAnnotationName: String,
+  val filter: (KtAnnotationEntry) -> Boolean)
 
 fun <T> CachedValuesManager.getCachedValue(dataHolder: UserDataHolder, key: Key<CachedValue<T>>, provider: CachedValueProvider<T>): T =
   this.getCachedValue(dataHolder, key, provider, false)
 
-
 /**
- * Finds if [vFile] in [project] has methods annotated with any of the given [annotations] FQCN or the given [shortAnnotationName].
- * Utilizes caching.
+ * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given [shortAnnotationName]. To benefit from caching make
+ * sure the same parameters are passed to the function call as all the parameters constitute the key.
  */
-fun hasAnnotatedMethods(project: Project, vFile: VirtualFile, annotations: Set<String>, shortAnnotationName: String): Boolean {
+fun hasAnnotations(
+  project: Project,
+  vFile: VirtualFile,
+  annotations: Set<String>,
+  shortAnnotationName: String,
+  filter: (KtAnnotationEntry) -> Boolean = anyAnnotation
+): Boolean {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
-    CacheKeysManager.getKey(HasMethodsKey(annotations, shortAnnotationName))) {
+    CacheKeysManager.getKey(HasFilteredAnnotationsKey(annotations, shortAnnotationName, filter))) {
     CachedValueProvider.Result.createSingleDependency(
-      hasAnnotatedMethodsUncached(project, vFile, annotations, shortAnnotationName),
+      hasAnnotationsUncached(project, vFile, annotations, shortAnnotationName, filter),
       psiFile
     )
   }
@@ -180,8 +183,9 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotations: Set<String>): UMe
 
 /**
  * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with [annotations] and [shortAnnotationName]
- * from [vFile] of [project]. Technically, this function could just return a collection of methods, but [toValues] might be slow
- * to calculate so caching the values rather than methods is more useful.
+ * from [vFile] of [project]. Technically, this function could just return a collection of methods, but [toValues] might be slow to
+ * calculate so caching the values rather than methods is more useful. To benefit from caching make sure the same parameters are passed to
+ * the function call as all the parameters constitute the key.
  */
 private fun <T> findAnnotatedMethodsCachedValues(
   project: Project,
@@ -198,7 +202,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
     val promise = ReadAction
       .nonBlocking(Callable<Collection<T>> {
         val uMethods = findAnnotations(project, vFile, shortAnnotationName)
-          .mapNotNull { (it.psiOrParent.toUElementOfType() as? UAnnotation)?.getContainingUMethodAnnotatedWith(annotations) }
+          .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>()?.getContainingUMethodAnnotatedWith(annotations) }
           .distinct() // avoid looking more than once per method
 
         toValues(uMethods).toList()
@@ -224,7 +228,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
  */
 private const val MAX_NON_BLOCKING_ACTION_RETRIES = 3
 
-data class CachedValuesKey<T>(val annotations: Set<String>,
+private data class CachedValuesKey<T>(val annotations: Set<String>,
                               val shortAnnotationName: String,
                               val toValues: (methods: List<UMethod>) -> Sequence<T>)
 
