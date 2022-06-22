@@ -58,7 +58,8 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given [shortAnnotationName].
+ * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given [shortAnnotationName] with the properties enforced by
+ * the [filter].
  */
 private fun hasAnnotationsUncached(project: Project, vFile: VirtualFile,
                                    annotations: Set<String>,
@@ -98,7 +99,7 @@ object CacheKeysManager {
   fun map() = annotationCacheKeys
 }
 
-private val anyAnnotation: (KtAnnotationEntry) -> Boolean = { true }
+private val ANY_KT_ANNOTATION: (KtAnnotationEntry) -> Boolean = { true }
 
 private data class HasFilteredAnnotationsKey(
   val annotations: Set<String>,
@@ -117,7 +118,7 @@ fun hasAnnotations(
   vFile: VirtualFile,
   annotations: Set<String>,
   shortAnnotationName: String,
-  filter: (KtAnnotationEntry) -> Boolean = anyAnnotation
+  filter: (KtAnnotationEntry) -> Boolean = ANY_KT_ANNOTATION
 ): Boolean {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
   return CachedValuesManager.getManager(project).getCachedValue(
@@ -158,7 +159,10 @@ fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: S
 
 /**
  * A [ModificationTracker] that tracks a [Promise] and can be used as a dependency for [CachedValuesManager.getCachedValue].
- * If the promise is rejected or fails, this will update the count, invalidating the cache (so it's not stored).
+ * [CachedValuesManager.getCachedValue] can use objects implementing some interfaces (see [com.intellij.util.CachedValueBase.getTimeStamp]
+ * for the interfaces list) as dependencies to invalidate the cache when the interface methods indicate so. Here we implement one of the
+ * interfaces, namely [ModificationTracker]. If the promise is rejected or fails, the count is updated, the cache is invalidated, and the
+ * result is not cached.
  */
 private class PromiseModificationTracker(private val promise: Promise<*>) : ModificationTracker {
   private var modificationCount = 0L
@@ -182,16 +186,17 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotations: Set<String>): UMe
 }
 
 /**
- * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with [annotations] and [shortAnnotationName]
- * from [vFile] of [project]. Technically, this function could just return a collection of methods, but [toValues] might be slow to
- * calculate so caching the values rather than methods is more useful. To benefit from caching make sure the same parameters are passed to
- * the function call as all the parameters constitute the key.
+ * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with [annotations] and [shortAnnotationName],
+ * with the properties enforced by the [annotationFilter], from [vFile] of [project]. Technically, this function could just return a
+ * collection of methods, but [toValues] might be slow to calculate so caching the values rather than methods is more useful. To benefit
+ * from caching make sure the same parameters are passed to the function call as all the parameters constitute the key.
  */
 private fun <T> findAnnotatedMethodsCachedValues(
   project: Project,
   vFile: VirtualFile,
   annotations: Set<String>,
   shortAnnotationName: String,
+  annotationFilter: (UAnnotation) -> Boolean,
   toValues: (methods: List<UMethod>) -> Sequence<T>
 ): CachedValueProvider<CompletableDeferred<Collection<T>>> =
   CachedValueProvider {
@@ -202,7 +207,9 @@ private fun <T> findAnnotatedMethodsCachedValues(
     val promise = ReadAction
       .nonBlocking(Callable<Collection<T>> {
         val uMethods = findAnnotations(project, vFile, shortAnnotationName)
-          .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>()?.getContainingUMethodAnnotatedWith(annotations) }
+          .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
+          .filter(annotationFilter)
+          .mapNotNull { it.getContainingUMethodAnnotatedWith(annotations) }
           .distinct() // avoid looking more than once per method
 
         toValues(uMethods).toList()
@@ -228,9 +235,13 @@ private fun <T> findAnnotatedMethodsCachedValues(
  */
 private const val MAX_NON_BLOCKING_ACTION_RETRIES = 3
 
-private data class CachedValuesKey<T>(val annotations: Set<String>,
-                              val shortAnnotationName: String,
-                              val toValues: (methods: List<UMethod>) -> Sequence<T>)
+private data class CachedValuesKey<T>(
+  val annotations: Set<String>,
+  val shortAnnotationName: String,
+  val filter: (UAnnotation) -> Boolean,
+  val toValues: (methods: List<UMethod>) -> Sequence<T>)
+
+private val ANY_U_ANNOTATION: (UAnnotation) -> Boolean = { true }
 
 /**
  * Finds all the values calculated by [toValues] associated with the methods annotated with [annotations] and [shortAnnotationName] from
@@ -241,6 +252,7 @@ suspend fun <T> findAnnotatedMethodsValues(
   vFile: VirtualFile,
   annotations: Set<String>,
   shortAnnotationName: String,
+  annotationFilter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
   toValues: (methods: List<UMethod>) -> Sequence<T>): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   // This method will try to obtain the result MAX_NON_BLOCKING_ACTION_RETRIES, waiting 10 milliseconds more on every retry.
@@ -254,8 +266,8 @@ suspend fun <T> findAnnotatedMethodsValues(
       val promiseResult = runReadAction {
         CachedValuesManager.getManager(project).getCachedValue(
           psiFile,
-          CacheKeysManager.getKey(CachedValuesKey(annotations, shortAnnotationName, toValues)),
-          findAnnotatedMethodsCachedValues(project, vFile, annotations, shortAnnotationName, toValues))
+          CacheKeysManager.getKey(CachedValuesKey(annotations, shortAnnotationName, annotationFilter, toValues)),
+          findAnnotatedMethodsCachedValues(project, vFile, annotations, shortAnnotationName, annotationFilter, toValues))
       }
       try {
         result = promiseResult.await()
