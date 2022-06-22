@@ -22,6 +22,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
 import org.junit.Before
@@ -58,6 +59,7 @@ class IssuePanelStartupActivityTest {
   /**
    * Regression test for b/235316289.
    */
+  @RunsInEdt
   @Test
   fun testHavingIssuePanelEvenThereIsNoDesignSurface() {
     var called = 0
@@ -68,10 +70,8 @@ class IssuePanelStartupActivityTest {
 
     IssuePanelStartupActivity().setupIssuePanel(rule.project)
 
-    runInEdtAndWait {
-      val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
+    val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    rule.fixture.openFileInEditor(layoutFile.virtualFile)
 
     // The instance of IssuePanelService should be setup already because of IssuePanelStartupActivity.
     assertEquals(2, toolWindow.contentManager.contentCount)
