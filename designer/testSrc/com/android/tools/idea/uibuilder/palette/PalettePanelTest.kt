@@ -20,6 +20,8 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.LayoutTestUtilities
@@ -42,10 +44,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPopupMenu
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -53,6 +51,7 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.WindowManager
@@ -60,7 +59,6 @@ import com.intellij.openapi.wm.ex.StatusBarEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ArrayUtil
 import junit.framework.Assert.assertFalse
 import org.intellij.lang.annotations.Language
 import org.junit.After
@@ -71,7 +69,6 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyCollection
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doReturn
@@ -87,7 +84,6 @@ import java.awt.event.MouseEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JList
-import javax.swing.JPopupMenu
 import javax.swing.KeyStroke
 import javax.swing.TransferHandler
 
@@ -99,39 +95,21 @@ class PalettePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val chain = RuleChain.outerRule(projectRule).around(JBPopupRule()).around(EdtRule())!!
 
   private val myTreeDumper = NlTreeDumper(true, false)
   private var myDependencyManager: DependencyManager? = null
   private var myTrackingDesignSurface: DesignSurface<*>? = null
-  private var myPopupMenu: ActionPopupMenu? = null
-  private var myPopupMenuComponent: JPopupMenu? = null
   private var myPanel: PalettePanel? = null
   private var myModel: SyncNlModel? = null
 
   @Before
   fun setUp() {
     myDependencyManager = mock()
-    myPopupMenuComponent = mock()
     projectRule.replaceService(BrowserLauncher::class.java, mock())
     projectRule.replaceService(CopyPasteManager::class.java, mock())
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
-    projectRule.replaceService(ActionManager::class.java, mock())
     projectRule.replaceProjectService(GradleDependencyManager::class.java, mock())
-
-    val actionManager = ActionManager.getInstance()
-    // Some IntelliJ platform code might ask for actions during the initialization. Mock a generic one.
-    `when`(actionManager.getAction(anyString())).thenReturn(object : AnAction("Empty") {
-      override fun isDumbAware(): Boolean {
-        return true
-      }
-
-      override fun actionPerformed(e: AnActionEvent) {}
-    })
-    val popupMenu: ActionPopupMenu = mock()
-    `when`(actionManager.createActionPopupMenu(anyString(), any(ActionGroup::class.java))).thenReturn(popupMenu)
-    `when`(actionManager.getActionIds(anyString())).thenReturn(ArrayUtil.EMPTY_STRING_ARRAY)
-    `when`(popupMenu.component).thenReturn(myPopupMenuComponent)
     myPanel = PalettePanel(projectRule.project, myDependencyManager!!, projectRule.testRootDisposable)
   }
 
@@ -144,10 +122,7 @@ class PalettePanelTest {
       LayoutTestUtilities.cleanUsageTrackerAfterTesting(myTrackingDesignSurface!!)
     }
     myDependencyManager = null
-    myPopupMenu = null
-    myPopupMenuComponent = null
     myTrackingDesignSurface = null
-    myPopupMenu = null
     myPanel = null
     myModel = null
   }
@@ -343,7 +318,8 @@ public class MyWebView extends android.webkit.WebView {
 
     // On some OS we get context menus on mouse pressed events
     itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_PRESSED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true))
-    verify(myPopupMenuComponent!!).show(eq(itemList), eq(x), eq(y))
+    val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
+    assertThat(popupFactory.getChildPopups(itemList)).hasSize(1)
     assertThat(itemList.selectedIndex).isEqualTo(3)
   }
 
@@ -357,7 +333,8 @@ public class MyWebView extends android.webkit.WebView {
 
     // On some OS we get context menus on mouse released events
     itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true))
-    verify(myPopupMenuComponent!!).show(eq(itemList), eq(x), eq(y))
+    val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
+    assertThat(popupFactory.getChildPopups(itemList)).hasSize(1)
     assertThat(itemList.selectedIndex).isEqualTo(3)
   }
 
@@ -423,7 +400,8 @@ public class MyWebView extends android.webkit.WebView {
     itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true))
 
     // Popup shown for first item in the item list:
-    verify(myPopupMenuComponent!!).show(eq(itemList), eq(10), eq(10))
+    val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
+    assertThat(popupFactory.getChildPopups(itemList)).hasSize(1)
     assertThat(itemList.selectedIndex).isEqualTo(0)
   }
 

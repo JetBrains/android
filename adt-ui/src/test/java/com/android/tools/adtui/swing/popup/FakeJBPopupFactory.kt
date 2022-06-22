@@ -16,8 +16,11 @@
 package com.android.tools.adtui.swing.popup
 
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -86,7 +89,9 @@ class FakeJBPopupFactory : JBPopupFactory() {
     preselectActionCondition: Condition<in AnAction>?,
     actionPlace: String?)
     : ListPopup {
-    val popup = FakeListPopup(actionGroup.getChildren(null).asList())
+    @Suppress("UnstableApiUsage")
+    val actions = Utils.expandActionGroup(actionGroup, PresentationFactory(), dataContext, ActionPlaces.UNKNOWN)
+    val popup = FakeListPopup(actions)
     popups.add(popup)
     return popup
   }
