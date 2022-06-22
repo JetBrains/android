@@ -113,6 +113,8 @@ public class StartUpTest {
         "WebP Support",
         "YAML",
       }, plugins);
+
+      install.verify();
     }
   }
 }

@@ -81,7 +81,14 @@ public class AndroidStudioInstallation {
       throw new IllegalStateException("agent not found at " + agentZip);
     }
 
+    Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
+    if (!Files.exists(threadingCheckerAgentZip)) {
+      // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
+      throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
+    }
+
     String vmOptions = String.format("-javaagent:%s%n", agentZip) +
+                       String.format("-javaagent:%s%n", threadingCheckerAgentZip) +
                        String.format("-Didea.config.path=%s%n", configDir) +
                        String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
                        String.format("-Didea.system.path=%s/system%n", workDir) +
@@ -296,5 +303,17 @@ public class AndroidStudioInstallation {
                                     "    </option>\n" +
                                     "  </component>\n" +
                                     "</application>");
+  }
+
+  public void verify() throws IOException {
+    checkLogsForThreadingViolations();
+  }
+
+  private void checkLogsForThreadingViolations() throws IOException {
+    boolean hasThreadingViolations =
+      ideaLog.hasMatchingLine(".*Threading violation.+(@UiThread|@WorkerThread).*");
+    if (hasThreadingViolations) {
+      throw new RuntimeException("One or more methods called on a wrong thread. See the idea.log for more info");
+    }
   }
 }

@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -37,6 +38,17 @@ public class LogFile {
 
   public Matcher waitForMatchingLine(String regex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
     return waitForMatchingLine(regex, false, timeout, unit);
+  }
+
+  /**
+   * Returns true if {@code regex} matches a line in the log.
+   */
+  public boolean hasMatchingLine(String regex) throws IOException {
+    Pattern pattern = Pattern.compile(regex);
+    return Files.readAllLines(path)
+      .stream()
+      .map(pattern::matcher)
+      .anyMatch(Matcher::matches);
   }
 
   /**
