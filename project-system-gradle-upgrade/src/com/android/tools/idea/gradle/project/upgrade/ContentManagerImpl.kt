@@ -933,23 +933,9 @@ class ContentManagerImpl(val project: Project): ContentManager {
           sb.append("<pre>\n")
           sb.append(uiState.errorMessage)
           sb.append("\n</pre>")
-          sb.append("<p>There may be more information about the sync failure in the <a href='build-window'>Build window</a>.</p>")
           label.text = sb.toString()
-          label.addHyperlinkListener {
-            if (it.eventType != HyperlinkEvent.EventType.ACTIVATED) return@addHyperlinkListener
-            val project = this@View.model.project
-            invokeLater {
-              if (!project.isDisposed) {
-                val buildContentManager = BuildContentManager.getInstance(project)
-                val buildToolWindow = buildContentManager.getOrCreateToolWindow()
-                if (!buildToolWindow.isAvailable) return@invokeLater
-                buildToolWindow.show()
-                val contentManager = buildToolWindow.contentManager
-                contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
-              }
-            }
-          }
           detailsPanel.add(label)
+          detailsPanel.addBuildWindowInfo()
           detailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = true)
         }
         uiState is ToolWindowModel.UIState.UpgradeSyncSucceeded -> {
@@ -1031,6 +1017,28 @@ class ContentManagerImpl(val project: Project): ContentManager {
       }
       detailsPanel.revalidate()
       detailsPanel.repaint()
+    }
+
+    private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
+      HyperlinkLabel()
+        .apply {
+          name = "open build output window"
+          setTextWithHyperlink("There may be more information abou the sync failure in the <hyperlink>'Build' window</hyperlink>.")
+          addHyperlinkListener {
+            val project = this@View.model.project
+            invokeLater {
+              if (!project.isDisposed) {
+                val buildContentManager = BuildContentManager.getInstance(project)
+                val buildToolWindow = buildContentManager.getOrCreateToolWindow()
+                if (!buildToolWindow.isAvailable) return@invokeLater
+                buildToolWindow.show()
+                val contentManager = buildToolWindow.contentManager
+                contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
+              }
+            }
+          }
+        }
+        .also { hyperlinkLabel -> add(hyperlinkLabel) }
     }
 
     private fun JBPanel<JBPanel<*>>.addRevertInfo(showRevertButton: Boolean, markRevertAsDefault: Boolean) {
