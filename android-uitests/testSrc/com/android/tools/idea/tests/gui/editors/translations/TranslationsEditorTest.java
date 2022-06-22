@@ -305,27 +305,6 @@ public final class TranslationsEditorTest {
     assertEquals(expectedColumn, myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().columnAt(RESOURCE_FOLDER_COLUMN));
   }
 
-  // TODO(b/232444069): Test this functionality at the table level instead of firing up the whole app
-  @Test
-  public void keySorting() throws IOException {
-    importSimpleApplication();
-    FrozenColumnTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
-
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
-
-    // ascending
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id"), table.columnAt(KEY_COLUMN));
-
-    // descending
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("some_id", "hello_world", "cancel", "app_name", "app_name", "action_settings"), table.columnAt(KEY_COLUMN));
-
-    // back to natural order
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
-  }
-
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
@@ -512,11 +491,5 @@ public final class TranslationsEditorTest {
 
     editor.open("app/src/main/res/values-en/strings.xml");
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-  }
-
-  @NotNull
-  private static String toResourceName(@NotNull String resName) {
-    // Windows and Linux use a different file path separator
-    return resName.replace('/', File.separatorChar);
   }
 }
