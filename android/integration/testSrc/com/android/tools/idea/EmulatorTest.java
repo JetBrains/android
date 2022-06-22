@@ -20,7 +20,7 @@ import com.android.tools.asdriver.tests.Adb;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.Emulator;
-import java.nio.file.Path;
+import com.android.tools.asdriver.tests.TestFileSystem;
 import java.util.HashMap;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,15 +32,15 @@ public class EmulatorTest {
 
   @Test
   public void runEmulatorTest() throws Exception {
-    Path tempDir = tempFolder.newFolder("emulator-test").toPath();
+    TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
     HashMap<String, String> env = new HashMap<>();
     AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
     sdk.install(env);
 
-    Emulator.createEmulator(tempDir, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
+    Emulator.createEmulator(fileSystem, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
 
     try (Display display = Display.createDefault();
-         Emulator emulator = Emulator.start(sdk, tempDir, display, "emu")) {
+         Emulator emulator = Emulator.start(fileSystem, sdk, display, "emu")) {
       emulator.waitForBoot();
       Adb.waitFor(emulator);
     }

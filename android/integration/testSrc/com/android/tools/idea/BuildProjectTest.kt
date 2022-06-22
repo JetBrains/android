@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSdk
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.TestFileSystem
 import com.android.tools.asdriver.tests.XvfbServer
 import org.junit.Rule
 import org.junit.Test
@@ -32,8 +33,8 @@ class BuildProjectTest {
 
   @Test
   fun buildProjectTest() {
-    val tempDir = tempFolder.newFolder("buildproject-test").toPath()
-    val install = AndroidStudioInstallation.fromZip(tempDir)
+    val fileSystem = TestFileSystem(tempFolder.root.toPath())
+    val install = AndroidStudioInstallation.fromZip(fileSystem)
     install.createFirstRunXml()
     val env = HashMap<String, String>()
 
@@ -43,14 +44,14 @@ class BuildProjectTest {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
-    val projectPath = project.install(tempDir)
+    val projectPath = project.install(fileSystem.root)
 
     // Mark that project as trusted
     install.trustPath(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
     val mavenRepo = MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest")
-    mavenRepo.install(tempDir, install, env)
+    mavenRepo.install(fileSystem.root, install, env)
     XvfbServer().use { display ->
       install.run(display, env, arrayOf(projectPath.toString())).use { studio ->
         var matcher = install.ideaLog.waitForMatchingLine(".*Unindexed files update took (.*)", 120, TimeUnit.SECONDS)

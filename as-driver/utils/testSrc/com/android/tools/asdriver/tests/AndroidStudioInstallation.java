@@ -32,6 +32,7 @@ import java.util.Map;
 
 public class AndroidStudioInstallation {
 
+  private final TestFileSystem fileSystem;
   private final Path workDir;
   private final LogFile stdout;
   private final LogFile stderr;
@@ -39,11 +40,10 @@ public class AndroidStudioInstallation {
   private final Path studioDir;
   private final Path vmOptionsPath;
   private final Path configDir;
-  private final Path homeDir;
   private final Path logsDir;
 
-  public static AndroidStudioInstallation fromZip(Path tempDir) throws IOException {
-    Path workDir = Files.createTempDirectory(tempDir, "android-studio");
+  public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
+    Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
     System.out.println("workDir: " + workDir);
     String platform = "linux";
     String studioDir = "android-studio";
@@ -58,15 +58,16 @@ public class AndroidStudioInstallation {
     Path studioZip = TestUtils.getBinPath(String.format("tools/adt/idea/studio/android-studio.%s.zip", platform));
     unzip(studioZip, workDir);
 
-    return new AndroidStudioInstallation(workDir, workDir.resolve(studioDir));
+    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve("android-studio"));
   }
 
-  static public AndroidStudioInstallation fromDir(Path tempDir, Path studioDir) throws IOException {
-    Path workDir = Files.createTempDirectory(tempDir, "android-studio");
-    return new AndroidStudioInstallation(workDir, studioDir);
+  static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
+    Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
+    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir);
   }
 
-  private AndroidStudioInstallation(Path workDir, Path studioDir) throws IOException {
+  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir) throws IOException {
+    this.fileSystem = testFileSystem;
     this.workDir = workDir;
     this.studioDir = studioDir;
 
@@ -79,9 +80,6 @@ public class AndroidStudioInstallation {
     vmOptionsPath = workDir.resolve("studio.vmoptions");
     configDir = workDir.resolve("config");
     Files.createDirectories(configDir);
-
-    homeDir = workDir.resolve("home");
-    Files.createDirectories(homeDir);
 
     setConsentGranted(true);
     createVmOptionsFile();
@@ -106,7 +104,7 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
                        String.format("-Didea.system.path=%s/system%n", workDir) +
                        String.format("-Didea.log.path=%s%n", logsDir) +
-                       String.format("-Duser.home=%s%n", homeDir);
+                       String.format("-Duser.home=%s%n", fileSystem.getHome());
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
   }
 
@@ -246,10 +244,6 @@ public class AndroidStudioInstallation {
     return studioDir;
   }
 
-  public Path getHomeDir() {
-    return homeDir;
-  }
-
   public LogFile getStdout() {
     return stdout;
   }
@@ -296,7 +290,7 @@ public class AndroidStudioInstallation {
   public AndroidStudio run(Display display, Map<String, String> env, String[] args) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
-    newEnv.put("ANDROID_USER_HOME", homeDir.resolve(".android").toString());
+    newEnv.put("ANDROID_USER_HOME", this.fileSystem.getAndroidHome().toString());
 
     return AndroidStudio.run(this, display, newEnv, args);
   }

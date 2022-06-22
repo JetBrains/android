@@ -23,6 +23,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
+import com.android.tools.asdriver.tests.TestFileSystem;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -272,13 +273,13 @@ public class UpdateTest {
    */
   @Test
   public void updateTest() throws Exception {
-    Path tempDir = tempFolder.newFolder("update-test").toPath();
+    TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
 
     AndroidStudioInstallation install = null;
     try (Display display = Display.createDefault();
          FileServer fileServer = new FileServer()) {
       fileServer.start();
-      install = AndroidStudioInstallation.fromZip(tempDir);
+      install = AndroidStudioInstallation.fromZip(fileSystem);
       // Every time a notification shows up, NotificationsManagerImpl#createActionPanel is called.
       // If this happens while the notification panel is already open, it will be closed and this
       // test will be unable to proceed since it never tries reopening that panel. Thus, we need to
@@ -287,14 +288,14 @@ public class UpdateTest {
       install.createFirstRunXml();
       install.setBuildNumber(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER);
 
-      Patcher patcher = new Patcher(tempDir, install.getStudioDir());
+      Patcher patcher = new Patcher(fileSystem, install.getStudioDir());
       Path patchFile = patcher.createPatch(FAKE_CURRENT_BUILD_NUMBER, FAKE_UPDATED_BUILD_NUMBER);
       fileServer.registerFile("/" + patchFile.getFileName(), patchFile);
 
-      Path updatesXml = createUpdatesXml(tempDir);
+      Path updatesXml = createUpdatesXml(fileSystem.getRoot());
       fileServer.registerFile("/" + updatesXml.getFileName(), updatesXml);
 
-      createFakePluginAndUpdateFiles(tempDir, fileServer);
+      createFakePluginAndUpdateFiles(fileSystem.getRoot(), fileServer);
 
       setPluginHost(install, fileServer.getOrigin());
       Map<String, String> env = createEnvironment(fileServer.getOrigin());

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertArrayEquals;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
-import java.nio.file.Path;
+import com.android.tools.asdriver.tests.TestFileSystem;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -35,8 +35,8 @@ public class StartUpTest {
 
   @Test
   public void startUpTest() throws Exception {
-    Path tempDir = tempFolder.newFolder("startup-test").toPath();
-    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
+    TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
+    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display)) {
       // Wait for plugin manager to load all plugins

@@ -26,14 +26,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Emulator implements AutoCloseable {
+  private final TestFileSystem fileSystem;
   private final AndroidSdk sdk;
-  private final Path home;
   private final LogFile logFile;
   private final String portString;
   private final Process process;
 
-  public static void createEmulator(Path home, Path systemImage) throws IOException {
-    Path avdHome = getAvdHome(home);
+  public static void createEmulator(TestFileSystem fileSystem, Path systemImage) throws IOException {
+    Path avdHome = getAvdHome(fileSystem);
     Files.createDirectories(avdHome);
 
     Path sourceProperties = systemImage.resolve("source.properties");
@@ -44,12 +44,12 @@ public class Emulator implements AutoCloseable {
     Files.createFile(emuIni);
     try (FileWriter writer = new FileWriter(emuIni.toFile())) {
       writer.write(String.format("avd.ini.encoding=UTF-8%n"));
-      writer.write(String.format("path=%s/emu.avd%n", getAvdHome(home)));
+      writer.write(String.format("path=%s/emu.avd%n", avdHome));
       writer.write(String.format("path.rel=avd/emu.avd%n"));
       writer.write(String.format("target=android-%s%n", api.group(1)));
     }
 
-    Path configIni = getAvdHome(home).resolve("emu.avd").resolve("config.ini");
+    Path configIni = avdHome.resolve("emu.avd").resolve("config.ini");
     Files.createDirectories(configIni.getParent());
     try (FileWriter writer = new FileWriter(configIni.toFile())) {
       writer.write(String.format("PlayStore.enabled=false%n"));
@@ -76,7 +76,7 @@ public class Emulator implements AutoCloseable {
     }
   }
 
-  public static Emulator start(AndroidSdk sdk, Path home, Display display, String name) throws IOException, InterruptedException {
+  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name) throws IOException, InterruptedException {
     Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "emulator_logs");
 
     ProcessBuilder pb = new ProcessBuilder(
@@ -88,10 +88,10 @@ public class Emulator implements AutoCloseable {
       "-no-snapshot",
       "-delay-adb",
       "-verbose");
-    pb.environment().put("ANDROID_EMULATOR_HOME", getEmulatorHome(home).toString());
-    pb.environment().put("ANDROID_AVD_HOME", getAvdHome(home).toString());
+    pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
+    pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
     pb.environment().put("ANDROID_SDK_ROOT", sdk.getSourceDir().toString());
-    pb.environment().put("ANDROID_PREFS_ROOT", home.toString());
+    pb.environment().put("ANDROID_PREFS_ROOT", fileSystem.getHome().toString());
     pb.environment().put("DISPLAY", display.getDisplay());
     // On older emulators in a remote desktop session, the hardware acceleration won't start properly without this env var.
     pb.environment().put("CHROME_REMOTE_DESKTOP_SESSION", "1");
@@ -104,12 +104,12 @@ public class Emulator implements AutoCloseable {
     String portString =
       logFile.waitForMatchingLine("emulator: control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
-    return new Emulator(sdk, home, logFile, portString, process);
+    return new Emulator(fileSystem, sdk, logFile, portString, process);
   }
 
-  private Emulator(AndroidSdk sdk, Path home, LogFile logFile, String portString, Process process) {
+  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, String portString, Process process) {
+    this.fileSystem = fileSystem;
     this.sdk = sdk;
-    this.home = home;
     this.logFile = logFile;
     this.portString = portString;
     this.process = process;
@@ -123,7 +123,7 @@ public class Emulator implements AutoCloseable {
   }
 
   public Path getHome() {
-    return home;
+    return fileSystem.getHome();
   }
 
   public AndroidSdk getSdk() {
@@ -142,12 +142,8 @@ public class Emulator implements AutoCloseable {
     }
   }
 
-  private static Path getEmulatorHome(Path home) {
-    return home.resolve(".android");
-  }
-
-  private static Path getAvdHome(Path home) {
-    return getEmulatorHome(home).resolve("avd");
+  private static Path getAvdHome(TestFileSystem fileSystem) {
+    return fileSystem.getAndroidHome().resolve("avd");
   }
 
   private static Matcher getString(Path file, String regex) throws IOException {
