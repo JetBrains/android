@@ -59,10 +59,6 @@ public class ImageUtils {
   public static final double EPSILON = 1e-5;
 
   /**
-   * Default scale used by RetinaImage.
-   */
-  public static final int RETINA_SCALE = 2;
-  /**
    * Filter that checks pixels for being completely transparent.
    */
   public static final CropFilter TRANSPARENCY_FILTER = (bufferedImage, x, y) -> {
@@ -750,22 +746,6 @@ public class ImageUtils {
       }
     }
     return false;
-  }
-
-  /**
-   * Given the dimension of the viewport and the dimension of the image to be displayed in the viewport.
-   * Calculate the zoomFactor for the imageEditor that would allow the Image to be completely visible
-   * within the viewport.
-   *
-   * @param viewHeight  height of the containing view
-   * @param viewWidth   width of the containing view
-   * @param imageHeight height of the image
-   * @param imageWidth  width of the image
-   * @return the zoom factor that would allow the viewport to fully display the image.
-   */
-  public static double calcFullyDisplayZoomFactor(double viewHeight, double viewWidth, double imageHeight, double imageWidth) {
-    assert (imageHeight != 0 && imageWidth != 0);
-    return min((viewHeight / imageHeight / 1.1), (viewWidth / imageWidth / 1.1));
   }
 
   /**
