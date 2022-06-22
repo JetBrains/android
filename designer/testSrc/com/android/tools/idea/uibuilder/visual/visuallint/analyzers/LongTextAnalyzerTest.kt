@@ -91,7 +91,7 @@ class LongTextAnalyzerTest {
         val result = task.render().get()
         val issues = LongTextAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals("TextView (id: textview1) has lines containing more than 120 characters", issues[0].message)
+        Assert.assertEquals("textview1 <TextView> has lines containing more than 120 characters", issues[0].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

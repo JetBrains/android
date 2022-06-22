@@ -107,9 +107,9 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(3, issues.size)
-        Assert.assertEquals("The view ImageView (id: image_view) is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view TextView (id: textview3) is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view TextView (id: textview1) is too close to the side of the device", issues[2].message)
+        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
+        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
+        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[2].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -130,10 +130,10 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(4, issues.size)
-        Assert.assertEquals("The view ImageView (id: image_view) is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view TextView (id: textview4) is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view TextView (id: textview3) is too close to the side of the device", issues[2].message)
-        Assert.assertEquals("The view TextView (id: textview1) is too close to the side of the device", issues[3].message)
+        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
+        Assert.assertEquals("The view textview4 <TextView> is too close to the side of the device", issues[1].message)
+        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[2].message)
+        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[3].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -154,9 +154,9 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(3, issues.size)
-        Assert.assertEquals("The view ImageView (id: image_view) is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view TextView (id: textview3) is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view TextView (id: textview1) is too close to the side of the device", issues[2].message)
+        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
+        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
+        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[2].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -177,8 +177,8 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(2, issues.size)
-        Assert.assertEquals("The view TextView (id: textview2) is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view TextView (id: textview1) is too close to the side of the device", issues[1].message)
+        Assert.assertEquals("The view textview2 <TextView> is too close to the side of the device", issues[0].message)
+        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[1].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

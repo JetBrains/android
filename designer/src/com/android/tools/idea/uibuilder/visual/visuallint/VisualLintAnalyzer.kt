@@ -80,7 +80,7 @@ abstract class VisualLintAnalyzer {
     val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
     val name = tagSnapshot?.tagName?.substringAfterLast('.') ?: viewInfo.className
     val id = tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let { ResourceUrl.parse(it)?.name }
-    return id?.let { "$name (id: $it)" } ?: name
+    return id?.let { "$id <$name>" } ?: "<$name>"
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo, model: NlModel): NlComponent? {

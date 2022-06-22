@@ -83,8 +83,8 @@ class BoundsAnalyzerTest {
         val result = task.render().get()
         val issues = BoundsAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(2, issues.size)
-        Assert.assertEquals("TextView is partially hidden in layout", issues[0].message)
-        Assert.assertEquals("ImageView (id: image_view) is partially hidden in layout", issues[1].message)
+        Assert.assertEquals("<TextView> is partially hidden in layout", issues[0].message)
+        Assert.assertEquals("image_view <ImageView> is partially hidden in layout", issues[1].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

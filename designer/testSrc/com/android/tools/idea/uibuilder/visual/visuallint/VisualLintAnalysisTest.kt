@@ -116,7 +116,7 @@ class VisualLintAnalysisTest {
       when ((it as VisualLintRenderIssue).type) {
         VisualLintErrorType.OVERLAP -> {
           assertEquals(3, it.models.size)
-          assertEquals("TextView (id: text_dashboard) is covered by ImageView (id: imageView)", it.summary)
+          assertEquals("text_dashboard <TextView> is covered by imageView <ImageView>", it.summary)
           assertEquals(
             "The content of TextView is partially hidden.<BR/>This may pose a problem for the readability of the text it contains.",
             it.description)
@@ -135,7 +135,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.LONG_TEXT -> {
           assertEquals(2, it.models.size)
-          assertEquals("TextView (id: text_notifications) has lines containing more than 120 characters", it.summary)
+          assertEquals("text_notifications <TextView> has lines containing more than 120 characters", it.summary)
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
             "reducing the width of TextView or switching to a " +
@@ -146,7 +146,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.BOUNDS -> {
           assertEquals(2, it.models.size)
-          assertEquals("ImageView (id: imageView) is partially hidden in layout", it.summary)
+          assertEquals("imageView <ImageView> is partially hidden in layout", it.summary)
           assertEquals(
             "ImageView is partially hidden in layout because it is not contained within the bounds of its parent in 2 preview " +
             "configurations.<BR/>Fix this issue by adjusting the size or position of ImageView.",
@@ -155,7 +155,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.BUTTON_SIZE -> {
           assertEquals(4, it.models.size)
-          assertEquals("The button Button (id: button) is too wide", it.summary)
+          assertEquals("The button button <Button> is too wide", it.summary)
           assertEquals(
             "The button Button is wider than 320dp in 4 preview configurations." +
             "<BR/>Material Design recommends buttons to be no wider than 320dp",
@@ -164,7 +164,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.TEXT_FIELD_SIZE -> {
           assertEquals(3, it.models.size)
-          assertEquals("The text field EditText (id: text_field) is too wide", it.summary)
+          assertEquals("The text field text_field <EditText> is too wide", it.summary)
           assertEquals(
             "The text field EditText is wider than 488dp in 3 preview configurations." +
             "<BR/>Material Design recommends text fields to be no wider than 488dp",
@@ -215,7 +215,7 @@ class VisualLintAnalysisTest {
       when (it.components.first().id) {
         "image_view" -> {
           assertEquals(3, it.models.size)
-          assertEquals("The view ImageView (id: image_view) is too close to the side of the device", it.summary)
+          assertEquals("The view image_view <ImageView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 3 preview configurations, the view ImageView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -223,7 +223,7 @@ class VisualLintAnalysisTest {
         }
         "textview1" -> {
           assertEquals(4, it.models.size)
-          assertEquals("The view TextView (id: textview1) is too close to the side of the device", it.summary)
+          assertEquals("The view textview1 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 4 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -231,7 +231,7 @@ class VisualLintAnalysisTest {
         }
         "textview2" -> {
           assertEquals(1, it.models.size)
-          assertEquals("The view TextView (id: textview2) is too close to the side of the device", it.summary)
+          assertEquals("The view textview2 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -239,7 +239,7 @@ class VisualLintAnalysisTest {
         }
         "textview3" -> {
           assertEquals(3, it.models.size)
-          assertEquals("The view TextView (id: textview3) is too close to the side of the device", it.summary)
+          assertEquals("The view textview3 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 3 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -247,7 +247,7 @@ class VisualLintAnalysisTest {
         }
         "textview4" -> {
           assertEquals(1, it.models.size)
-          assertEquals("The view TextView (id: textview4) is too close to the side of the device", it.summary)
+          assertEquals("The view textview4 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",

@@ -102,7 +102,7 @@ class ButtonSizeAnalyzerTest {
         val result = task.render().get()
         val issues = ButtonSizeAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals("The button Button (id: button) is too wide", issues[0].message)
+        Assert.assertEquals("The button button <Button> is too wide", issues[0].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

@@ -104,7 +104,7 @@ class TextFieldSizeAnalyzerTest {
         val result = task.render().get()
         val issues = TextFieldSizeAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals("The text field EditText (id: text_field) is too wide", issues[0].message)
+        Assert.assertEquals("The text field text_field <EditText> is too wide", issues[0].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
