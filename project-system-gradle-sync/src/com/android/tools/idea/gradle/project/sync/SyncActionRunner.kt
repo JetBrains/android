@@ -169,7 +169,6 @@ data class ActionToRun<T>(
 class SyncActionRunner private constructor(
   private val controller: BuildController,
   private val parallelActionsSupported: Boolean,
-  private val canFetchV1ModelsInParallel: Boolean = false,
   private val canFetchV2ModelsInParallel: Boolean = false,
   private val canFetchPlatformModelsInParallel: Boolean = false,
   private val canFetchKotlinModelsInParallel: Boolean = false,
@@ -184,7 +183,6 @@ class SyncActionRunner private constructor(
     SyncActionRunner(
       controller = controller,
       parallelActionsSupported = parallelActionsSupported,
-      canFetchV1ModelsInParallel = canFetchV1ModelsInParallel,
       canFetchV2ModelsInParallel = enable,
       canFetchPlatformModelsInParallel = canFetchPlatformModelsInParallel,
       canFetchKotlinModelsInParallel = canFetchKotlinModelsInParallel
@@ -195,7 +193,6 @@ class SyncActionRunner private constructor(
   private val ActionToRun<*>.canRunInParallel
     get() =
       parallelActionsSupported &&
-      (!fetchesV1Models || canFetchV1ModelsInParallel) &&
       (!fetchesV2Models || canFetchV2ModelsInParallel) &&
       (!fetchesPlatformModels || canFetchPlatformModelsInParallel) &&
       (!fetchesKotlinModels || canFetchKotlinModelsInParallel)
