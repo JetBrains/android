@@ -1242,14 +1242,17 @@
     <option name="profile" hit="Default profile" />
     <option name="device" hit="Device Mirroring" />
     <option name="mirroring" hit="Device Mirroring" />
-    <option name="build" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="do" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="during" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="gradle" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="list" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="not" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="sync" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="task" hit="Do not build Gradle task list during Gradle sync" />
+    <option name="a" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="build" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="during" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="gradle" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="list" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="of" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="only" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="sync" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="task" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="tasks" hit="During Gradle sync, build a Gradle task list of test tasks only" />
+    <option name="test" hit="During Gradle sync, build a Gradle task list of test tasks only" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
