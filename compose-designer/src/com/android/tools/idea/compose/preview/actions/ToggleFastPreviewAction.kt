@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 
 /**
@@ -54,6 +55,9 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
 
   override fun update(e: AnActionEvent) {
     super.update(e)
+
+    // Ensure that the checkbox is not displayed
+    e.presentation.icon = StudioIcons.Shell.StatusBar.LIVE_LITERALS
 
     if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
       // No Fast Preview available
