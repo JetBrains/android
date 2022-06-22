@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAn
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -63,7 +64,7 @@ class VisualLintServiceTest {
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection)
+                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
@@ -97,5 +98,20 @@ class VisualLintServiceTest {
     issues.forEach {
       assertEquals("Visual Lint Issue", it.category)
     }
+
+    val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
+    val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
+    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
+    VisualLintService.getInstance(projectRule.project)
+      .runVisualLintAnalysis(listOf(wearModel), surface, MoreExecutors.newDirectExecutorService())
+
+    val wearIssues = surface.issueModel.issues
+    assertEquals(13, wearIssues.size)
+    wearIssues.forEach {
+      assertEquals("Visual Lint Issue", it.category)
+    }
+    val wearMarginIssues = wearIssues.filterIsInstance<VisualLintRenderIssue>()
+      .filter { it.type == VisualLintErrorType.WEAR_MARGIN }
+    assertEquals(5, wearMarginIssues.size)
   }
 }

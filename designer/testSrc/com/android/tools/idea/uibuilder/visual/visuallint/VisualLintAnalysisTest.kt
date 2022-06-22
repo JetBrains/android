@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -34,6 +33,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAn
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -62,7 +62,7 @@ class VisualLintAnalysisTest {
     RenderTestUtil.beforeRenderTestCase()
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection)
+                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
@@ -89,7 +89,7 @@ class VisualLintAnalysisTest {
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
     val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
-    val filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
+    var filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
 
     val phoneConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_phone")
     phoneConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
@@ -185,6 +185,75 @@ class VisualLintAnalysisTest {
     issues.map {it as VisualLintRenderIssue }.forEach {
       assertNotEquals(VisualLintErrorType.BOUNDS, it.type)
       assertNotEquals(VisualLintErrorType.TEXT_FIELD_SIZE, it.type)
+    }
+
+    val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
+    filesToAnalyze = listOf(wearLayout)
+    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
+    assertEquals(7, issues.size)
+    issues.map {it as VisualLintRenderIssue }.forEach {
+      assertNotEquals(VisualLintErrorType.WEAR_MARGIN, it.type)
+    }
+
+    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    val wearSquareConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_square")
+    analyzeFile(facet, filesToAnalyze, wearSquareConfiguration)
+    val wearRectConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_rect")
+    analyzeFile(facet, filesToAnalyze, wearRectConfiguration)
+    val wearSmallRoundConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
+    analyzeFile(facet, filesToAnalyze, wearSmallRoundConfiguration)
+    val wearLargeRoundConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_large_round")
+    analyzeFile(facet, filesToAnalyze, wearLargeRoundConfiguration)
+    assertEquals(12, issues.size)
+    val wearIssues = issues.filterIsInstance<VisualLintRenderIssue>().filter { it.type == VisualLintErrorType.WEAR_MARGIN }
+    assertEquals(5, wearIssues.size)
+    wearIssues.forEach {
+      assertEquals("Visual Lint Issue", it.category)
+      assertEquals(HighlightSeverity.WARNING, it.severity)
+      assertNull(it.hyperlinkListener)
+      when (it.components.first().id) {
+        "image_view" -> {
+          assertEquals(3, it.models.size)
+          assertEquals("The view ImageView (id: image_view) is too close to the side of the device", it.summary)
+          assertEquals(
+            "In 3 preview configurations, the view ImageView is closer to the side of the device than the recommended amount.<BR/>" +
+            "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
+            it.description)
+        }
+        "textview1" -> {
+          assertEquals(4, it.models.size)
+          assertEquals("The view TextView (id: textview1) is too close to the side of the device", it.summary)
+          assertEquals(
+            "In 4 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
+            "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
+            it.description)
+        }
+        "textview2" -> {
+          assertEquals(1, it.models.size)
+          assertEquals("The view TextView (id: textview2) is too close to the side of the device", it.summary)
+          assertEquals(
+            "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
+            "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
+            it.description)
+        }
+        "textview3" -> {
+          assertEquals(3, it.models.size)
+          assertEquals("The view TextView (id: textview3) is too close to the side of the device", it.summary)
+          assertEquals(
+            "In 3 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
+            "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
+            it.description)
+        }
+        "textview4" -> {
+          assertEquals(1, it.models.size)
+          assertEquals("The view TextView (id: textview4) is too close to the side of the device", it.summary)
+          assertEquals(
+            "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
+            "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
+            it.description)
+        }
+      }
     }
   }
 
