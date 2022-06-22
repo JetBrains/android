@@ -191,6 +191,9 @@ class InformationPopup(
     newPopup.size = size
     newPopup.show(point)
   }
+
+  fun isVisible() = popup?.isVisible ?: false
+
   override fun dispose() {}
 
   @TestOnly
