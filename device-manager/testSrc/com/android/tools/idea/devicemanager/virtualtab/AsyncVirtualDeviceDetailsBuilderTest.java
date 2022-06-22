@@ -18,13 +18,11 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
-import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
@@ -42,7 +40,7 @@ import org.mockito.Mockito;
 public final class AsyncVirtualDeviceDetailsBuilderTest {
   private final @NotNull AvdInfo myAvd;
   private final @NotNull IDevice myDevice;
-  private final @NotNull AdbShellCommandExecutor myExecutor;
+  private final @NotNull AdbShellCommandExecutor myAdbShellCommandExecutor;
   private final @NotNull AsyncVirtualDeviceDetailsBuilder myBuilder;
 
   public AsyncVirtualDeviceDetailsBuilderTest() {
@@ -50,16 +48,25 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
     myDevice = Mockito.mock(IDevice.class);
 
     DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
-    Mockito.when(bridge.getDevices(null)).thenReturn(Futures.immediateFuture(List.of(myDevice)));
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.newKey("Pixel_5_API_31"))).thenReturn(Futures.immediateFuture(myDevice));
 
-    myExecutor = Mockito.mock(AdbShellCommandExecutor.class);
-    myBuilder = new AsyncVirtualDeviceDetailsBuilder(null, TestVirtualDevices.pixel5Api31(myAvd), bridge, myExecutor);
+    myAdbShellCommandExecutor = Mockito.mock(AdbShellCommandExecutor.class);
+    myBuilder = new AsyncVirtualDeviceDetailsBuilder(null, TestVirtualDevices.onlinePixel5Api31(myAvd), bridge, myAdbShellCommandExecutor);
   }
 
   @Test
-  public void buildAsyncAvdIsNull() throws Exception {
+  public void buildAsync() throws Exception {
     // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
+    Mockito.when(myAvd.getProperty("hw.lcd.width")).thenReturn("1080");
+    Mockito.when(myAvd.getProperty("hw.lcd.height")).thenReturn("2340");
+    Mockito.when(myAvd.getProperty("hw.lcd.density")).thenReturn("440");
+
+    Mockito.when(myDevice.getAbis()).thenReturn(List.of("x86_64", "arm64-v8a"));
+
+    Mockito.when(myAdbShellCommandExecutor.execute(myDevice, "df /data")).thenReturn(Optional.of(
+      List.of("Filesystem      1K-blocks   Used Available Use% Mounted on",
+              "/dev/block/dm-5   6094400 490348   5461840   9% /storage/emulated/0/Android/obb",
+              "")));
 
     // Act
     Future<Device> future = myBuilder.buildAsync();
@@ -70,34 +77,8 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
-      .setAvdInfo(myAvd)
-      .build();
-
-    assertEquals(device, TestDeviceManagerFutures.get(future));
-  }
-
-  @Test
-  public void buildAsync() throws Exception {
-    // Arrange
-    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
-
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_5_API_31", key.toString())));
-    Mockito.when(myDevice.getAbis()).thenReturn(List.of("x86_64", "arm64-v8a"));
-
-    Mockito.when(myExecutor.execute(myDevice, "df /data")).thenReturn(Optional.of(
-      List.of("Filesystem      1K-blocks   Used Available Use% Mounted on",
-              "/dev/block/dm-5   6094400 490348   5461840   9% /storage/emulated/0/Android/obb",
-              "")));
-
-    // Act
-    Future<Device> future = myBuilder.buildAsync();
-
-    // Assert
-    Object device = new VirtualDevice.Builder()
-      .setKey(key)
-      .setName("Pixel 5 API 31")
-      .setTarget("Android 12.0 Google APIs")
-      .setCpuArchitecture("x86_64")
+      .setResolution(new Resolution(1_080, 2_340))
+      .setDensity(440)
       .addAllAbis(List.of("x86_64", "arm64-v8a"))
       .setStorageDevice(new StorageDevice(5_333))
       .setAvdInfo(myAvd)
@@ -107,10 +88,7 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
   }
 
   @Test
-  public void getResolutionWidthIsEmptyOrHeightIsEmpty() throws Exception {
-    // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
-
+  public void getResolution() throws Exception {
     // Act
     Future<Device> future = myBuilder.buildAsync();
 
@@ -119,55 +97,14 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
   }
 
   @Test
-  public void getResolution() throws Exception {
-    // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
-
-    Mockito.when(myAvd.getProperty("hw.lcd.width")).thenReturn("1080");
-    Mockito.when(myAvd.getProperty("hw.lcd.height")).thenReturn("2340");
-
-    // Act
-    Future<Device> future = myBuilder.buildAsync();
-
-    // Assert
-    assertEquals(new Resolution(1080, 2340), TestDeviceManagerFutures.get(future).getResolution());
-  }
-
-  @Test
-  public void getPropertyPropertyIsNull() throws Exception {
-    // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
-
-    // Act
-    Future<Device> future = myBuilder.buildAsync();
-
-    // Assert
-    assertEquals(-1, TestDeviceManagerFutures.get(future).getDensity());
-  }
-
-  @Test
   public void getProperty() throws Exception {
     // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
-    Mockito.when(myAvd.getProperty("hw.lcd.density")).thenReturn("440");
+    Mockito.when(myAvd.getProperty("hw.lcd.width")).thenReturn("notanint");
 
     // Act
     Future<Device> future = myBuilder.buildAsync();
 
     // Assert
-    assertEquals(440, TestDeviceManagerFutures.get(future).getDensity());
-  }
-
-  @Test
-  public void getPropertyNumberFormatException() throws Exception {
-    // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
-    Mockito.when(myAvd.getProperty("hw.lcd.density")).thenReturn("notanint");
-
-    // Act
-    Future<Device> future = myBuilder.buildAsync();
-
-    // Assert
-    assertEquals(-1, TestDeviceManagerFutures.get(future).getDensity());
+    assertNull(TestDeviceManagerFutures.get(future).getResolution());
   }
 }
