@@ -87,11 +87,13 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.JTree
 import javax.swing.SwingConstants
@@ -1020,40 +1022,47 @@ class ContentManagerImpl(val project: Project): ContentManager {
     }
 
     private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
-      HyperlinkLabel()
-        .apply {
-          name = "open build output window"
-          setTextWithHyperlink("There may be more information abou the sync failure in the <hyperlink>'Build' window</hyperlink>.")
-          addHyperlinkListener {
-            val project = this@View.model.project
-            invokeLater {
-              if (!project.isDisposed) {
-                val buildContentManager = BuildContentManager.getInstance(project)
-                val buildToolWindow = buildContentManager.getOrCreateToolWindow()
-                if (!buildToolWindow.isAvailable) return@invokeLater
-                buildToolWindow.show()
-                val contentManager = buildToolWindow.contentManager
-                contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
-              }
+      JPanel().apply {
+        name = "build window info panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        add(JBLabel("There may be more information about the sync failure in the "))
+        ActionLink("'Build' window") {
+          val project = this@View.model.project
+          invokeLater {
+            if (!project.isDisposed) {
+              val buildContentManager = BuildContentManager.getInstance(project)
+              val buildToolWindow = buildContentManager.getOrCreateToolWindow()
+              if (!buildToolWindow.isAvailable) return@invokeLater
+              buildToolWindow.show()
+              val contentManager = buildToolWindow.contentManager
+              contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
             }
           }
         }
-        .also { hyperlinkLabel -> add(hyperlinkLabel) }
+          .apply { name = "open build window link" }
+          .also { actionLink -> add(actionLink) }
+        add(JBLabel("."))
+      }
+        .also { panel -> add(panel) }
     }
 
     private fun JBPanel<JBPanel<*>>.addRevertInfo(showRevertButton: Boolean, markRevertAsDefault: Boolean) {
-      HyperlinkLabel()
-        .apply {
-          name = "open local history link"
-          setTextWithHyperlink("You can review the applied changes in <hyperlink>'Local History' dialog</hyperlink>.")
-          addHyperlinkListener {
-            val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
-            // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
-            val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
-            dialog.show()
-          }
+      JPanel().apply {
+        name = "revert information panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        add(JBLabel("You can review the applied changes in the "))
+        ActionLink("'Local History' dialog") {
+          val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
+          // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
+          val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
+          dialog.show()
         }
-        .also { hyperlinkLabel -> add(hyperlinkLabel) }
+          .apply { name = "open local history link" }
+          .also { actionLink -> add(actionLink) }
+        add(JBLabel("."))
+      }
+        .also { panel -> add(panel) }
+
       if (showRevertButton) {
         JButton("Revert Project Files")
           .apply {
