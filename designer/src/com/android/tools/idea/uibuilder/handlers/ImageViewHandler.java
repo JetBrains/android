@@ -107,12 +107,6 @@ public class ImageViewHandler extends ViewHandler {
       }
       return showImageChooser(newChild);
     }
-
-    // Fallback if dismissed or during previews etc
-    if (insertType.isCreate()) {
-      setSrcAttribute(newChild, getSampleImageSrc());
-    }
-
     return true;
   }
 

@@ -60,7 +60,7 @@ public class TableLayoutHandler extends LinearLayoutHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
-    if (insertType.isCreate()) {
+    if (insertType == InsertType.CREATE) {
       // Start the table with 4 rows
       NlWriteCommandActionUtil.run(node, "", () -> {
         for (int i = 0; i < 4; i++) {

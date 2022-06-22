@@ -76,9 +76,11 @@ public final class EditTextPreferenceHandler extends PreferenceHandler {
       return false;
     }
 
-    NlWriteCommandActionUtil.run(newChild, "Set EditTextPreference", () -> {
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, EDIT_TEXT_PREFERENCE, "edit_text_preference_"));
-    });
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Set EditTextPreference", () -> {
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, EDIT_TEXT_PREFERENCE, "edit_text_preference_"));
+      });
+    }
     return true;
   }
 }

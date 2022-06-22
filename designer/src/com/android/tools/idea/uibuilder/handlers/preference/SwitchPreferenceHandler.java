@@ -78,9 +78,11 @@ public final class SwitchPreferenceHandler extends PreferenceHandler {
       return false;
     }
 
-    NlWriteCommandActionUtil.run(newChild, "Set SwitchPreference", () -> {
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
-    });
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Set SwitchPreference", () -> {
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
+      });
+    }
     return true;
   }
 }

@@ -53,12 +53,13 @@ public class MenuHandler extends ViewGroupHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    return NlWriteCommandActionUtil.compute(newChild, "Create Menu",
-      () -> {
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Create Menu", () -> {
         newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
         newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-        return true;
-    });
+      });
+    }
+    return true;
   }
 
   @Override

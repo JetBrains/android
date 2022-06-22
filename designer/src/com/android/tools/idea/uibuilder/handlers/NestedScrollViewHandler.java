@@ -52,7 +52,7 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
       return false;
     }
 
-    if (type.isCreate()) {
+    if (type == InsertType.CREATE) {
       NlWriteCommandActionUtil.run(newChild, "Setting fill_viewport", () -> {
         newChild.setAndroidAttribute(ATTR_FILL_VIEWPORT, "true");
       });

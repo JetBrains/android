@@ -73,9 +73,11 @@ public final class RingtonePreferenceHandler extends PreferenceHandler {
       return false;
     }
 
-    NlWriteCommandActionUtil.run(newChild, "Set RingtonePreference", () -> {
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
-    });
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Set RingtonePreference", () -> {
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
+      });
+    }
     return true;
   }
 }

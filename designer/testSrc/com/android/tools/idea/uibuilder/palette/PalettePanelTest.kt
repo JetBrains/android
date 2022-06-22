@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -47,8 +48,11 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -419,6 +423,44 @@ public class MyWebView extends android.webkit.WebView {
     assertThat(itemList.emptyText.secondaryComponent.getCharSequence(false)).isEqualTo("")
   }
 
+  @Test
+  fun testMenuCreationForLayouts() {
+    checkPopupMenuCreation(LayoutFileType)
+  }
+
+  @Test
+  fun testMenuCreationForPreferences() {
+    checkPopupMenuCreation(PreferenceScreenFileType)
+  }
+
+  @Test
+  fun testMenuCreationForMenus() {
+    checkPopupMenuCreation(MenuFileType)
+  }
+
+  private fun checkPopupMenuCreation(layoutType: DesignerEditorFileType) {
+    val ui = FakeUi(myPanel!!, createFakeWindow = true)
+    myPanel!!.setSize(800, 1000)
+    doLayout(myPanel!!)
+    createDesignSurface(layoutType)
+    val categoryList = myPanel!!.categoryList
+    for (categoryIndex in 0 until categoryList.model.size) {
+      categoryList.selectedIndex = categoryIndex
+      val itemList = myPanel!!.itemList
+      for (itemIndex in 0 until itemList.model.size) {
+        val bounds = itemList.getCellBounds(itemIndex, itemIndex)
+        val x = bounds.x + bounds.width / 2
+        val y = bounds.y + bounds.height / 2
+        val app = ApplicationManager.getApplication() as ApplicationEx
+        // During the menu popup and MenuGroup.update, we are not allowed to write to PSI.
+        // At runtime this is checked because an async DataContext is used in ActionUpdater.expandActionGroupAsync.
+        // Simulate that here by adding the no write check up front:
+        @Suppress("UnstableApiUsage")
+        ProgressIndicatorUtils.runActionAndCancelBeforeWrite(app, { error("No writes allowed") }, { ui.mouse.rightClick(x, y) })
+      }
+    }
+  }
+
   private fun registerMockStatusBar(): StatusBarEx {
     val windowManager: WindowManager = mock()
     val frame: IdeFrame = mock()
@@ -467,7 +509,7 @@ public class MyWebView extends android.webkit.WebView {
     val (resourceFolder, name) = when(layoutType) {
       LayoutFileType -> SdkConstants.FD_RES_LAYOUT to "layout.xml"
       PreferenceScreenFileType -> SdkConstants.FD_RES_XML to "preference.xml"
-      MenuFileType -> SdkConstants.FD_RES_XML to "menu.xml"
+      MenuFileType -> SdkConstants.FD_RES_MENU to "menu.xml"
       else -> error("unknown type")
     }
     myModel = createModel(resourceFolder, name).build()

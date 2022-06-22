@@ -76,9 +76,11 @@ public final class CheckBoxPreferenceHandler extends PreferenceHandler {
       return false;
     }
 
-    NlWriteCommandActionUtil.run(newChild, "Set Preference Key", () -> {
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
-    });
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Set Preference Key", () -> {
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+      });
+    }
     return true;
   }
 }

@@ -63,10 +63,12 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    NlWriteCommandActionUtil.run(newChild, "Clearing Width and Height", () -> {
-      newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-      newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-    });
+    if (insertType == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Clearing Width and Height", () -> {
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+      });
+    }
 
     return true;
   }

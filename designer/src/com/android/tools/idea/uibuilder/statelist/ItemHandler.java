@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.statelist;
 
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Strings;
@@ -34,9 +35,12 @@ public final class ItemHandler extends ViewHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Create Menu Item", () -> {
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+      });
+    }
     return true;
   }
 

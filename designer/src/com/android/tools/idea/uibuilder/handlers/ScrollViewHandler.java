@@ -64,7 +64,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
-    if (insertType.isCreate()) {
+    if (insertType == InsertType.CREATE) {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
