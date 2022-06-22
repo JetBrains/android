@@ -29,7 +29,7 @@ def old_agp_test(
     test_jar = "%s_test.jar" % iml_module
     jvm_flags = kwargs.pop("jvm_flags", [])
     jvm_flags.append("-Dignore_other_tests=%s" % ignore_other_tests)
-    jvm_flags.append("-Dtest_jar_path=$(location %s)" % test_jar)
+    jvm_flags.append("-Dtest.suite.jar=$(location %s)" % test_jar)
     jvm_flags.append("-Dgradle.version=%s" % gradle_version)
     jvm_flags.append("-Dagp.version=%s" % agp_version)
 

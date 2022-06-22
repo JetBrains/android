@@ -47,7 +47,7 @@ public final class OldAgpSuite extends Suite {
   /** The Gradle version being used for all tests in this suite. */
   public static final String GRADLE_VERSION = System.getProperty("gradle.version");
 
-  private static final String TEST_JAR_PATH = System.getProperty("test_jar_path");
+  private static final String TEST_JAR_PATH = System.getProperty("test.suite.jar");
 
   private static final boolean IGNORE_OTHER_TESTS = System.getProperty("ignore_other_tests", "false").equalsIgnoreCase("true");
 
