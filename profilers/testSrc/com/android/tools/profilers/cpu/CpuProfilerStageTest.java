@@ -93,9 +93,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
-    }
+    ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
   }
 
   @Test
@@ -131,7 +129,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Start a capture using INSTRUMENTED mode
     List<ProfilingConfiguration> defaultConfigurations = myStage.getProfilerConfigModel().getDefaultProfilingConfigurations();
     assertThat(myStage.getRecordingModel().getBuiltInOptions()).hasSize(defaultConfigurations.size());
-    for(int i = 0; i < defaultConfigurations.size(); i++) {
+    for (int i = 0; i < defaultConfigurations.size(); i++) {
       assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(defaultConfigurations.get(i).getName());
     }
   }
@@ -855,30 +853,25 @@ public final class CpuProfilerStageTest extends AspectObserver {
       .setToTimestamp(endTimestampNs)
       .setConfiguration(configuration)
       .build();
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      Common.Event.Builder traceEventBuilder = Common.Event.newBuilder()
-        .setGroupId(traceId)
-        .setPid(pid)
-        .setKind(Common.Event.Kind.CPU_TRACE);
+    Common.Event.Builder traceEventBuilder = Common.Event.newBuilder()
+      .setGroupId(traceId)
+      .setPid(pid)
+      .setKind(Common.Event.Kind.CPU_TRACE);
+    myTransportService.addEventToStream(streamId, traceEventBuilder
+      .setTimestamp(startTimestampNs)
+      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                     .setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder()
+                                        .setTraceInfo(info)
+                                        .build())
+                     .build())
+      .build());
+    if (endTimestampNs != -1) {
       myTransportService.addEventToStream(streamId, traceEventBuilder
-        .setTimestamp(startTimestampNs)
+        .setTimestamp(endTimestampNs)
         .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder()
-                                          .setTraceInfo(info)
-                                          .build())
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info).build())
                        .build())
         .build());
-      if (endTimestampNs != -1) {
-        myTransportService.addEventToStream(streamId, traceEventBuilder
-          .setTimestamp(endTimestampNs)
-          .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                         .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info).build())
-                         .build())
-          .build());
-      }
-    }
-    else {
-      myCpuService.addTraceInfo(info);
     }
   }
 

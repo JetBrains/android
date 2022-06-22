@@ -22,9 +22,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.List;
@@ -34,20 +34,19 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class CpuTraceDataSeriesTest {
-
   private final FakeTimer myTimer = new FakeTimer();
-  private final FakeCpuService myService = new FakeCpuService();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuTraceDataSeriesTest", myService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer));
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuTraceDataSeriesTest", myTransportService);
 
   private CpuProfilerStage.CpuTraceDataSeries mySeries;
 
   @Before
   public void setUp() {
-
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    ideProfilerServices.enableEventsPipeline(true);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
@@ -64,10 +63,22 @@ public class CpuTraceDataSeriesTest {
   public void validTraceSuccessStatus() {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     Cpu.CpuTraceInfo info = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(1)
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(1))
       .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(3))
       .build();
-    myService.addTraceInfo(info);
+    Common.Event.Builder traceEventBuilder = Common.Event.newBuilder()
+      .setGroupId(1)
+      .setPid(FakeTransportService.FAKE_PROCESS.getPid())
+      .setKind(Common.Event.Kind.CPU_TRACE);
+    myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                        traceEventBuilder.setTimestamp(info.getFromTimestamp()).setCpuTrace(
+                                          Cpu.CpuTraceData.newBuilder().setTraceStarted(
+                                            Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(info))).build());
+    myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                        traceEventBuilder.setTimestamp(info.getToTimestamp()).setCpuTrace(
+                                          Cpu.CpuTraceData.newBuilder().setTraceEnded(
+                                            Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info))).build());
 
     List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForRange(maxRange);
     assertThat(seriesData).hasSize(1);

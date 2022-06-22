@@ -43,7 +43,6 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
@@ -63,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -159,8 +157,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    */
   private final Map<Long, CpuTraceInfo> myCompletedTraceIdToInfoMap = new HashMap<>();
 
-  public CpuProfilerStage(@NotNull StudioProfilers profilers){
-    this(profilers,  new CpuCaptureParser(profilers.getIdeServices()));
+  public CpuProfilerStage(@NotNull StudioProfilers profilers) {
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()));
   }
 
   @VisibleForTesting
@@ -202,8 +200,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     myCaptureParser = captureParser;
 
     List<Cpu.CpuTraceInfo> existingCompletedTraceInfoList =
-      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession,
-                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()).stream()
+      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession, true).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
     myInProgressTraceHandler = new InProgressTraceHandler();
@@ -355,40 +352,28 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       .build();
 
     Executor poolExecutor = getStudioProfilers().getIdeServices().getPoolExecutor();
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      Commands.Command startCommand = Commands.Command.newBuilder()
-        .setStreamId(mySession.getStreamId())
-        .setPid(mySession.getPid())
-        .setType(Commands.Command.CommandType.START_CPU_TRACE)
-        .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
-        .build();
+    Commands.Command startCommand = Commands.Command.newBuilder()
+      .setStreamId(mySession.getStreamId())
+      .setPid(mySession.getPid())
+      .setType(Commands.Command.CommandType.START_CPU_TRACE)
+      .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+      .build();
 
-      getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
-        .thenAcceptAsync(response -> {
-          TransportEventListener statusListener = new TransportEventListener(
-            Common.Event.Kind.CPU_TRACE_STATUS,
-            getStudioProfilers().getIdeServices().getMainExecutor(),
-            event -> event.getCommandId() == response.getCommandId(),
-            mySession::getStreamId,
-            mySession::getPid,
-            event -> {
-              startCapturingCallback(event.getCpuTraceStatus().getTraceStartStatus());
-              // unregisters the listener.
-              return true;
-            });
-          getStudioProfilers().getTransportPoller().registerListener(statusListener);
-        }, poolExecutor);
-    }
-    else {
-      CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
-        .setSession(mySession)
-        .setConfiguration(configuration)
-        .build();
-      CompletableFuture.supplyAsync(
-        () -> getCpuClient().startProfilingApp(request), poolExecutor)
-        .thenAcceptAsync(response -> this.startCapturingCallback(response.getStatus()),
-                         getStudioProfilers().getIdeServices().getMainExecutor());
-    }
+    getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
+      .thenAcceptAsync(response -> {
+        TransportEventListener statusListener = new TransportEventListener(
+          Common.Event.Kind.CPU_TRACE_STATUS,
+          getStudioProfilers().getIdeServices().getMainExecutor(),
+          event -> event.getCommandId() == response.getCommandId(),
+          mySession::getStreamId,
+          mySession::getPid,
+          event -> {
+            startCapturingCallback(event.getCpuTraceStatus().getTraceStartStatus());
+            // unregisters the listener.
+            return true;
+          });
+        getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      }, poolExecutor);
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
@@ -413,7 +398,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
   @VisibleForTesting
   void stopCapturing() {
-    // We need to send the trace configuration that was used to initiated the capture. Return early if no in-progress trace exists.
+    // We need to send the trace configuration that was used to initiate the capture. Return early if no in-progress trace exists.
     if (Cpu.CpuTraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
       return;
     }
@@ -626,8 +611,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
       Range dataRange = getTimeline().getDataRange();
       List<Cpu.CpuTraceInfo> traceInfoList =
-        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange,
-                                          getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange, true);
       for (int i = 0; i < traceInfoList.size(); i++) {
         Cpu.CpuTraceInfo trace = traceInfoList.get(i);
         if (trace.getToTimestamp() == -1) {
@@ -728,8 +712,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
-                                                       getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range, true);
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
       for (Cpu.CpuTraceInfo protoTraceInfo : traceInfos) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
