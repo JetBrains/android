@@ -217,15 +217,19 @@ private fun analyzeElementWithOneLevelInline(
     if (containingClass == null) {
       val name = declaration.containingKtFile.javaFileFacadeFqName.toString().replace(".", "/")
       val file = declaration.containingKtFile
-      requestedClasses.add(cache.computeIfAbsent(name) {
-        SourceInlineCandidate(file, it, declaration.module!!)
-      })
+      if (element != file) {
+        requestedClasses.add(cache.computeIfAbsent(name) {
+          SourceInlineCandidate(file, it, declaration.module!!)
+        })
+      }
     } else {
       var name = containingClass.getKotlinFqName().toString().replace(".", "/")
       val file = declaration.containingKtFile
-      requestedClasses.add(cache.computeIfAbsent(name) {
-        SourceInlineCandidate(file, it, declaration.module!!)
-      })
+      if (element != file) {
+        requestedClasses.add(cache.computeIfAbsent(name) {
+          SourceInlineCandidate(file, it, declaration.module!!)
+        })
+      }
     }
   }
 }
