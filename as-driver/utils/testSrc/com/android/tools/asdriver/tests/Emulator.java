@@ -119,7 +119,7 @@ public class Emulator implements AutoCloseable {
     if (process == null) {
       throw new IllegalStateException("Emulator not running yet.");
     }
-    logFile.waitForMatchingLine("emulator: INFO: boot completed", 2, TimeUnit.MINUTES);
+    logFile.waitForMatchingLine("emulator: INFO: boot completed", 4, TimeUnit.MINUTES);
   }
 
   public Path getHome() {

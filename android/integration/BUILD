@@ -56,7 +56,6 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "manual",  # 15 out of 500 failures
         "no_mac",  # Path issues, probably easily fixable.
         "no_windows",  # Path issues, probably easily fixable.
     ],

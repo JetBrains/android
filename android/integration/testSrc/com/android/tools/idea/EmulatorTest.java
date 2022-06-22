@@ -40,9 +40,10 @@ public class EmulatorTest {
     Emulator.createEmulator(fileSystem, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
 
     try (Display display = Display.createDefault();
+         Adb adb = Adb.start(sdk, fileSystem.getHome());
          Emulator emulator = Emulator.start(fileSystem, sdk, display, "emu")) {
       emulator.waitForBoot();
-      Adb.waitFor(emulator);
+      adb.waitForDevice(emulator);
     }
   }
 }

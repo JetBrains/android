@@ -17,17 +17,78 @@ package com.android.tools.asdriver.tests;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.google.common.collect.Lists;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class Adb {
-  private static void exec(AndroidSdk sdk, Path home, Path stdout, Path stderr, String... params) throws IOException {
+public class Adb implements AutoCloseable {
+  private final AndroidSdk sdk;
+  private final Path home;
+  private final Process process;
+  private final Path stdout;
+  private final Path stderr;
+
+  private Adb(Process process, AndroidSdk sdk, Path home, Path stdout, Path stderr) {
+    this.process = process;
+    this.sdk = sdk;
+    this.home = home;
+    this.stdout = stdout;
+    this.stderr = stderr;
+  }
+
+  @Override
+  public void close() {
+    if (process != null && !process.isAlive()) {
+      process.destroy();
+    }
+  }
+
+  public static Adb start(AndroidSdk sdk, Path home, String... params) throws IOException {
+    List<String> command = new ArrayList<>();
+    command.add("server");
+    if (params.length == 0) {
+      command.add("nodaemon");
+    }
+    else {
+      for (String param : params) {
+        if (!param.isBlank()) {
+          command.add(param);
+        }
+      }
+    }
+    return exec(sdk, home, command.toArray(new String[]{}));
+  }
+
+  public void waitForLog(String expectedRegex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    LogFile logfile = new LogFile(stdout);
+    logfile.waitForMatchingLine(expectedRegex, timeout, unit);
+  }
+
+  public void waitForDevice(Emulator emulator) throws IOException, InterruptedException {
+    try (Adb child = runCommand("track-devices")) {
+      // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
+      child.waitForLog(String.format("0015emulator-%s\tdevice", emulator.getPortString()), 10, TimeUnit.SECONDS);
+    }
+  }
+
+  public Adb runCommand(String... command) throws IOException {
+    return exec(sdk, home, command);
+  }
+
+  private static Adb exec(AndroidSdk sdk, Path home, String... params) throws IOException {
+    Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs");
+    Path stdout = logsDir.resolve("stdout.txt");
+    Path stderr = logsDir.resolve("stderr.txt");
+    Files.createFile(stdout);
+    Files.createFile(stderr);
+
     try (FileWriter outWriter = new FileWriter(stdout.toString(), true);
          FileWriter errWriter = new FileWriter(stderr.toString())) {
       String header = String.format("=== %s %s %d ===%n", stdout, String.join("-", params), System.currentTimeMillis());
@@ -35,29 +96,15 @@ public class Adb {
       errWriter.write(header);
     }
 
-    Path adbPath = sdk.getSourceDir().resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB);
-
     List<String> command = new ArrayList<>();
-    command.add(adbPath.toString());
+    command.add(sdk.getSourceDir().resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString());
     Collections.addAll(command, params);
+    System.out.printf("Adb invocation '%s' has stdout log at: %s%n", String.join(" ", command), stdout);
 
     ProcessBuilder pb = new ProcessBuilder(command);
     pb.redirectOutput(stdout.toFile());
     pb.redirectError(stderr.toFile());
     pb.environment().put("HOME", home.toString());
-    pb.start();
-  }
-
-  public static void waitFor(Emulator emulator) throws IOException, InterruptedException {
-    Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs");
-    Path stdout = logsDir.resolve("stdout.txt");
-    Path stderr = logsDir.resolve("stderr.txt");
-    Files.createFile(stdout);
-    Files.createFile(stderr);
-
-    exec(emulator.getSdk(), emulator.getHome(), stdout, stderr, "track-devices");
-    LogFile logfile = new LogFile(stdout);
-    // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
-    logfile.waitForMatchingLine(String.format("0015emulator-%s\tdevice", emulator.getPortString()), 10, TimeUnit.SECONDS);
+    return new Adb(pb.start(), sdk, home, stdout, stderr);
   }
 }
