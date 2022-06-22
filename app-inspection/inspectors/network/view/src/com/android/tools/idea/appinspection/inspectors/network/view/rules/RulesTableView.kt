@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.rules
 
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
@@ -85,7 +86,7 @@ class RulesTableView(
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
     }
-    tableModel.addTableModelListener {event ->
+    tableModel.addTableModelListener { event ->
       // The event is generated as a result of a move up or down action when the
       // following conditions are true.
       if (event.type == TableModelEvent.UPDATE && event.lastRow != event.firstRow) {
@@ -100,6 +101,8 @@ class RulesTableView(
         }
       }
     })
+    ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
+    table.registerTabKeyAction { table.transferFocus() }
     table.registerEnterKeyAction {
       if (table.selectedRow != -1) {
         model.detailContent = NetworkInspectorModel.DetailContent.RULE

@@ -22,12 +22,24 @@ import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.KeyStroke
 
-const val ENTER_ACTION_KEY = "ENTER_ACTION"
-
 fun JTable.registerEnterKeyAction(action: (ActionEvent) -> Unit) {
-  val enterKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
-  getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enterKeyStroke, ENTER_ACTION_KEY)
-  actionMap.put(ENTER_ACTION_KEY, object : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent) = action(e)
-  })
+  registerKeyboardAction(
+    object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent) = action(e)
+    },
+    "Press enter",
+    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+  )
+}
+
+fun JTable.registerTabKeyAction(action: (ActionEvent) -> Unit) {
+  registerKeyboardAction(
+    object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent) = action(e)
+    },
+    "Press tab",
+    KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
+    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+  )
 }

@@ -21,11 +21,13 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker.InterceptionCriteria
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Protocol
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerTabKeyAction
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
@@ -213,6 +215,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
 
   private fun createRulesTable(model: ListTableModel<RuleData.TransformationRuleData>, name: String): JComponent {
     val table = TableView(model)
+    table.registerTabKeyAction { table.transferFocus() }
     table.name = name
     val decorator = ToolbarDecorator.createDecorator(table)
 
@@ -268,6 +271,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
       toolTipText = "Order of rules indicate execution order."
     }
     decorator.actionsPanel.setToolbarLabel(infoLabel, ActionToolbarPosition.RIGHT)
+    ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
     return decoratedTableView
   }
 }
