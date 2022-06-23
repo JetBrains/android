@@ -149,6 +149,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       val image: BufferedImage,
       val displaySize: Dimension,
       val orientation: Int,
+      val orientationCorrection: Int,
       val frameNumber: Long,
       val originationTime: Long)
 
@@ -342,7 +343,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
           image = BufferedImage(COLOR_MODEL, raster, false, null)
         }
 
-        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.frameNumber,
+        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection, header.frameNumber,
                                   header.originationTimestampUs / 1000)
       }
 
@@ -370,6 +371,8 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
   private class PacketHeader private constructor(
     val displaySize: Dimension,
     val displayOrientation: Int,
+    /** The difference between [displayOrientation] and the orientation according to the DisplayInfo Android data structure. */
+    val displayOrientationCorrection: Int,
     val packetSize: Int,
     val frameNumber: Long,
     val originationTimestampUs: Long,
@@ -381,12 +384,14 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       fun deserialize(buffer: ByteBuffer): PacketHeader {
         val width = buffer.getInt()
         val height = buffer.getInt()
-        val orientation = buffer.getInt()
+        val displayOrientation = buffer.getShort().toInt()
+        val displayOrientationCorrection = buffer.getShort().toInt()
         val packetSize = buffer.getInt()
         val frameNumber = buffer.getLong()
         val originationTimestampUs = buffer.getLong()
         val presentationTimestampUs = buffer.getLong()
-        return PacketHeader(Dimension(width, height), orientation, packetSize, frameNumber, originationTimestampUs, presentationTimestampUs)
+        return PacketHeader(Dimension(width, height), displayOrientation, displayOrientationCorrection, packetSize, frameNumber,
+                            originationTimestampUs, presentationTimestampUs)
       }
 
       fun createBuffer(): ByteBuffer =

@@ -57,7 +57,7 @@ struct Point {
 };
 
 // Converts the rotation value to the canonical [0, 3] range.
-inline int32_t NormalizeRotation(int32_t rotation) {
+inline uint8_t NormalizeRotation(int32_t rotation) {
   return rotation & 0x03;
 }
 

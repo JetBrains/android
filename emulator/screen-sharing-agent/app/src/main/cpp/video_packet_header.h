@@ -27,7 +27,9 @@ namespace screensharing {
 struct VideoPacketHeader {
   int32_t display_width;
   int32_t display_height;
-  int32_t display_orientation; // In quadrants.
+  int16_t display_orientation; // In quadrants.
+  // The difference between display_orientation and the orientation according to the DisplayInfo Android data structure.
+  int16_t display_orientation_correction; // In quadrants.
   int32_t packet_size;
   int64_t frame_number;  // Starts from 1.
   int64_t origination_timestamp_us;

@@ -219,8 +219,8 @@ void DisplayStreamer::Run() {
     {
       scoped_lock lock(mutex_);
       display_info_ = display_info;
-      int32_t extra_rotation = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(extra_rotation), max_video_resolution_);
+      int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
+      Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(rotation_correction), max_video_resolution_);
       Log::D("DisplayStreamer::Run: video_size=%dx%d, video_orientation=%d, display_orientation=%d",
              video_size.width, video_size.height, video_orientation_, display_info.rotation);
       AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
@@ -230,13 +230,14 @@ void DisplayStreamer::Run() {
       if (surface == nullptr) {
         Log::Fatal("Unable to create input surface");
       }
-      ConfigureDisplay(surface_control, display, surface, extra_rotation, display_info, video_size.Rotated(-extra_rotation));
+      ConfigureDisplay(surface_control, display, surface, rotation_correction, display_info, video_size.Rotated(-rotation_correction));
       AMediaCodec_start(codec);
       running_codec_ = codec;
       Size display_size = display_info.NaturalSize();  // The display dimensions in the canonical orientation.
       packet_header.display_width = display_size.width;
       packet_header.display_height = display_size.height;
-      packet_header.display_orientation = NormalizeRotation(display_info.rotation + extra_rotation);
+      packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
+      packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
     }
     bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header);
     StopCodec();
