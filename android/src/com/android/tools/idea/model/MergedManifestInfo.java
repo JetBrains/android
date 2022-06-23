@@ -19,10 +19,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
@@ -325,6 +327,9 @@ final class MergedManifestInfo {
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
+    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
+      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
+
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
 
@@ -420,5 +425,12 @@ final class MergedManifestInfo {
     });
 
     return manifestMergerInvoker.merge();
+  }
+
+  private static boolean isVersionAtLeast7_4_0(Project project) {
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
+    return androidPluginInfo != null &&
+           androidPluginInfo.getPluginVersion() != null &&
+           androidPluginInfo.getPluginVersion().isAtLeast(7, 4, 0);
   }
 }
