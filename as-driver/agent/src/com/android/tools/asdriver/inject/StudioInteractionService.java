@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -170,6 +171,9 @@ public class StudioInteractionService {
     } else if (component instanceof JButton) {
       log("Invoking JButton: " + component);
       invokeButton((JButton)component);
+    } else if (component instanceof ActionButton) {
+      log("Invoking ActionButton: " + component);
+      ((ActionButton)component).click();
     } else {
       throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
     }
@@ -275,11 +279,16 @@ public class StudioInteractionService {
   private Set<Component> findLinksByIconNames(Collection<Component> components, List<String> iconsToMatchAgainst) {
     Set<Component> matchingLinks = new HashSet<>();
     for (Component c : components) {
-      if (!(c instanceof ActionLink)) {
+      Icon icon;
+      if (c instanceof ActionLink) {
+        icon = ((ActionLink)c).getIcon();
+      } else if (c instanceof ActionButton) {
+        icon = ((ActionButton)c).getIcon();
+      } else {
         continue;
       }
-      ActionLink link = (ActionLink)c;
-      List<String> iconNames = getIconNamesFromIcon(link.getIcon());
+
+      List<String> iconNames = getIconNamesFromIcon(icon);
       for (String iconName : iconNames) {
         if (iconsToMatchAgainst.contains(iconName)) {
           matchingLinks.add(c);
