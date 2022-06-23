@@ -79,6 +79,8 @@ public class JavaToKotlinConversionTest {
     ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
       .clickOkAndWaitDialogDisappear();
 
+    guiTest.waitForBackgroundTasks();
+
     // Doing it twice because after the first time we have only added Kotlin support to the project
     openJavaAndPressConvertToKotlin(ideFrameFixture);
 
@@ -88,7 +90,7 @@ public class JavaToKotlinConversionTest {
      *  this conversion. Do you want to find such code and correct it too?'
      */
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
-      .withTimeout(SECONDS.toMillis(60)).using(guiTest.robot());
+      .withTimeout(SECONDS.toMillis(120)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
     EditorFixture editor = ideFrameFixture.getEditor();
@@ -100,6 +102,8 @@ public class JavaToKotlinConversionTest {
 
     ConversionTestUtil.changeKotlinVersion(guiTest);
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
+
+    guiTest.waitForBackgroundTasks();
 
     ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(240), "Build", "Rebuild Project");
   }

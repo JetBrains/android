@@ -145,7 +145,7 @@ public class ConversionTestUtil {
 
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
-        "id 'org.jetbrains.kotlin.android' version '1.0.0' apply false",
+        "id\\s\\'org\\.jetbrains\\.kotlin\\.android\\'\\sversion\\s\\'\\d+\\.\\d+\\.\\d+\\'\\sapply\\sfalse",
         "id 'org.jetbrains.kotlin.android' version '1.6.21' apply false"
       );
 
