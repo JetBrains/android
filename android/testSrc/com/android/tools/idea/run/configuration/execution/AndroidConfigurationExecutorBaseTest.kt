@@ -17,25 +17,19 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Abi
+import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.collect.ImmutableList
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
-import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,25 +37,21 @@ import org.mockito.Mockito
 import java.io.File
 
 
-internal typealias Command = String
-internal typealias CommandHandler = (mockDevice: IDevice, receiver: AndroidConfigurationExecutorBaseTest.TestReceiver) -> Unit
-
-fun Map<Command, String>.toCommandHandlers(): MutableMap<Command, CommandHandler> {
-  return entries.associate {
-    it.key to { _: IDevice, receiver: AndroidConfigurationExecutorBaseTest.TestReceiver -> receiver.addOutput(it.value) }
-  }.toMutableMap()
-}
-
 abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
 
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
   val project: Project
     get() = projectRule.project
-  val testRootDisposable: Disposable
-    get() = projectRule.testRootDisposable
+
+  //val testRootDisposable: Disposable
+  //  get() = projectRule
   val myModule: com.intellij.openapi.module.Module
     get() = projectRule.module
 
@@ -69,43 +59,22 @@ abstract class AndroidConfigurationExecutorBaseTest {
   fun setUp() {
     val projectSystemMock = createProjectSystemMock()
     whenever(projectSystemMock.getApkProvider(any(RunConfiguration::class.java))).thenReturn(TestApksProvider(appId))
-    whenever(projectSystemMock.getApplicationIdProvider(
-      any(RunConfiguration::class.java))).thenReturn(TestApplicationIdProvider(appId))
-
-    val emptyLogcatService = Mockito.mock(AndroidLogcatService::class.java)
-    ApplicationManager.getApplication().replaceService(AndroidLogcatService::class.java, emptyLogcatService, testRootDisposable)
+    whenever(projectSystemMock.getApplicationIdProvider(any(RunConfiguration::class.java))).thenReturn(TestApplicationIdProvider(appId))
   }
 
   @After
   fun after() {
-    XDebuggerManager.getInstance(project).debugSessions.forEach {
-      it.stop()
-    }
+    //XDebuggerManager.getInstance(project).debugSessions.forEach {
+    //  it.stop()
+    //}
   }
 
   private fun createProjectSystemMock(): AndroidProjectSystem {
     val projectSystemMock = Mockito.mock(AndroidProjectSystem::class.java)
     val projectSystemService = Mockito.mock(ProjectSystemService::class.java)
     whenever(projectSystemService.projectSystem).thenReturn(projectSystemMock)
-    project.replaceService(ProjectSystemService::class.java, projectSystemService, testRootDisposable)
+    project.replaceService(ProjectSystemService::class.java, projectSystemService, projectRule.project)
     return projectSystemMock
-  }
-
-  protected fun getMockDevice(commandHandlers: Map<Command, CommandHandler> = emptyMap()): IDevice {
-    val device = Mockito.mock(IDevice::class.java)
-    whenever(device.version).thenReturn(AndroidVersion(20, null))
-    whenever(device.density).thenReturn(640)
-    whenever(device.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86).map { it.toString() })
-    whenever(
-      device.executeShellCommand(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any())
-    ).thenAnswer { invocation ->
-      val command = invocation.arguments[0] as String
-      val receiver = TestReceiver(invocation.arguments[1] as? IShellOutputReceiver)
-      val handler = commandHandlers[command]
-      handler?.invoke(device, receiver)
-    }
-    whenever(device.isOnline).thenReturn(true)
-    return device
   }
 
   class TestReceiver(private val receiver: IShellOutputReceiver?) {
@@ -115,14 +84,14 @@ abstract class AndroidConfigurationExecutorBaseTest {
     }
   }
 
-  private class TestApksProvider(private val appId: String) : ApkProvider {
+  protected class TestApksProvider(private val appId: String) : ApkProvider {
     @Throws(ApkProvisionException::class)
     override fun getApks(device: IDevice): Collection<ApkInfo> {
       return listOf(ApkInfo(File("file"), appId))
     }
   }
 
-  private class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
+  protected class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
     override fun getPackageName() = appId
 
     override fun getTestPackageName(): String? = null

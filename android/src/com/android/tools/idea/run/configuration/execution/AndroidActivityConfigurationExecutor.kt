@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.AndroidProjectTypes
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.editor.DeployTarget
@@ -32,13 +30,11 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.Promise
 
 class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment, deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
 
   override val configuration = environment.runProfile as AndroidRunConfiguration
-  private val facet = AndroidFacet.getInstance(configuration.module!!)!!
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
@@ -60,7 +56,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment, de
     }
     ProgressManager.checkCanceled()
     if (isDebug) {
-      DebugSessionStarter(environment)
+      return DebugSessionStarter(environment)
         .attachDebuggerToClient(devices.single(), { device -> device.forceStop(appId) }, console)
         .then { it.runContentDescriptor }
     }
@@ -75,9 +71,10 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment, de
   }
 
   private fun getFlags(device: IDevice): String {
-    if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
-      return InstantAppStartActivityFlagsProvider().getFlags(device)
-    }
+    //val facet = AndroidFacet.getInstance(configuration.module!!) ?: throw RuntimeException(AndroidBundle.message("no.facet.error", configuration.module!!))
+    //if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
+    //  return InstantAppStartActivityFlagsProvider().getFlags(device)
+    //}
 
     val amStartOptions = StringBuilder()
     for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensions) {

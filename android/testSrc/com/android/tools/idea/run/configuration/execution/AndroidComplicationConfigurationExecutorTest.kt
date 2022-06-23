@@ -16,13 +16,11 @@
 package com.android.tools.idea.run.configuration.execution
 
 
-import com.android.ddmlib.IShellOutputReceiver
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
-import com.android.tools.deployer.DeployerException
-import com.android.tools.deployer.model.App
-import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -41,10 +39,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.times
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -52,7 +48,6 @@ import kotlin.test.assertFailsWith
 
 
 class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
-
   private object TestWatchFaceInfo : ComplicationWatchFaceInfo {
     override val complicationSlots: List<ComplicationSlot> = emptyList()
     override val apk: String = "/path/to/watchface.apk"
@@ -60,23 +55,24 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     override val watchFaceFQName: String = "com.example.watchface.MyWatchFace"
   }
 
-  // Expected commands
-  private val checkVersion = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
-  private val setComplicationSlot1 = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+  // Expected am commands
+  private val forceStop = "force-stop com.example.app"
+  private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
+  private val setComplicationSlot1 = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
                                      " --ecn component 'com.example.app/com.example.app.Component'" +
                                      " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
                                      " --ei slot 1 --ei type 3"
-  private val setComplicationSlot3 = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+  private val setComplicationSlot3 = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
                                      " --ecn component 'com.example.app/com.example.app.Component'" +
                                      " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
                                      " --ei slot 3 --ei type 5"
-  private val showWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
-  private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
-  private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
-  private val unsetComplication = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
-  private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
-  private val clearDebugAppAm = "am clear-debug-app"
-  private val clearDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
+  private val showWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
+  private val setDebugAppAm = "set-debug-app -w 'com.example.app'"
+  private val setDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
+  private val unsetComplication = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
+  private val unsetWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
+  private val clearDebugAppAm = "clear-debug-app"
+  private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   @Test
   fun test() {
@@ -94,12 +90,25 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val device = getMockDevice(mapOf(
-      checkVersion to "Broadcast completed: result=1, data=\"2\"",
-      setComplicationSlot1 to "Broadcast completed: result=1",
-      setComplicationSlot3 to "Broadcast completed: result=1",
-      showWatchFace to "Broadcast completed: result=1").toCommandHandlers()
-    )
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"2\"")
+        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
@@ -121,22 +130,17 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
     // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(4)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
+
     // Check version
-    assertThat(commands[0]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+    // Check version
+    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
     // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(commands[1]).isEqualTo(setComplicationSlot1)
+    assertThat(receivedAmCommands[2]).isEqualTo(setComplicationSlot1)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(commands[2]).isEqualTo(setComplicationSlot3)
+    assertThat(receivedAmCommands[3]).isEqualTo(setComplicationSlot3)
     // Show watch face.
-    assertThat(commands[3]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[4]).isEqualTo(showWatchFace)
 
     // Verify that a warning was raised.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
@@ -169,39 +173,35 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val commandHandlers: MutableMap<Command, CommandHandler> = mapOf(
-      checkVersion to "Broadcast completed: result=1, data=\"2\"",
-      setComplicationSlot3 to "Broadcast completed: result=1",
-      showWatchFace to "Broadcast completed: result=1",
-      setDebugAppAm to "Broadcast completed: result=1",
-      setDebugAppBroadcast to "Broadcast completed: result=1",
-      clearDebugAppBroadcast to ""
-    ).toCommandHandlers()
-
-    val runnableClientsService = RunnableClientsService(testRootDisposable)
-
-    val setComplicationCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.startClient(device, appId)
-      receiver.addOutput("Broadcast completed: result=1")
-    }
-
-    val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.stopClient(device, appId)
-      receiver.addOutput("Broadcast completed: result=1")
-    }
-
     val processTerminatedLatch = CountDownLatch(1)
-    val clearDebugAppAmCommandHandler: CommandHandler = { device, receiver ->
-      receiver.addOutput("")
-      processTerminatedLatch.countDown()
+
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"2\"")
+        setComplicationSlot1 -> {
+          deviceState.startClient(1234, 1235, appId, true)
+          serviceOutput.writeStdout("Broadcast completed: result=1")
+        }
+        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        unsetWatchFace -> {
+          deviceState.stopClient(1234)
+          serviceOutput.writeStdout("Broadcast completed: result=1")
+        }
+        clearDebugAppAm -> processTerminatedLatch.countDown()
+      }
     }
 
-    val device = getMockDevice(
-      commandHandlers +
-      (setComplicationSlot1 to setComplicationCommandHandler) +
-      (unsetWatchFace to unsetWatchFaceCommandHandler) +
-      (clearDebugAppAm to clearDebugAppAmCommandHandler)
-    )
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
@@ -224,45 +224,35 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
-    // Verify previous app instance is terminated.
-    Mockito.verify(executor, times(1)).terminatePreviousAppInstance(any())
-
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
     processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
-    // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    // Verify receivedAmCommands sent to device.
 
-    Mockito.verify(device, times(12)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
-
+    //Force stop
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // Check version
-    assertThat(commands[0]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(commands[1]).isEqualTo(setDebugAppAm)
-    assertThat(commands[2]).isEqualTo(setDebugAppBroadcast)
+    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[3]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(commands[3]).isEqualTo(setComplicationSlot1)
+    assertThat(receivedAmCommands[4]).isEqualTo(setComplicationSlot1)
     // Set debug app.
-    assertThat(commands[4]).isEqualTo(setDebugAppAm)
-    assertThat(commands[5]).isEqualTo(setDebugAppBroadcast)
+    assertThat(receivedAmCommands[5]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[6]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(commands[6]).isEqualTo(setComplicationSlot3)
+    assertThat(receivedAmCommands[7]).isEqualTo(setComplicationSlot3)
     // Show watch face
-    assertThat(commands[7]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[8]).isEqualTo(showWatchFace)
     // Unset complication
-    assertThat(commands[8]).isEqualTo(unsetComplication)
+    assertThat(receivedAmCommands[9]).isEqualTo(unsetComplication)
     // Unset debug watchFace
-    assertThat(commands[9]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[10]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(commands[10]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(commands[11]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[11]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[12]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
@@ -280,13 +270,26 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val device = getMockDevice(mapOf(
-      checkVersion to "Broadcast completed: result=1, data=\"2\"",
-      setComplicationSlot1 to "Broadcast completed: result=1",
-      setComplicationSlot3 to "Broadcast completed: result=1",
-      // Unsuccessful show watchface case.
-      showWatchFace to "Broadcast completed: result=2"
-    ).toCommandHandlers())
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"2\"")
+        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        // Unsuccessful show watchface case.
+        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=2")
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
@@ -343,16 +346,30 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val failedResponse = "Component not found."
 
-    val device = getMockDevice(mapOf(
-      checkVersion to "Broadcast completed: result=1, data=\"3\""
-    ).toCommandHandlers())
+
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\"")
+        // Unsuccessful result
+        setComplicationSlot1 -> serviceOutput.writeStdout(failedResponse)
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device)))
     doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
 
-    val app = Mockito.mock(App::class.java)
-    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(), any(AppComponent.Mode::class.java), any())
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(

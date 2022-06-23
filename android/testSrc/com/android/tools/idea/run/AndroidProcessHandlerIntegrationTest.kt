@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -29,10 +31,11 @@ import kotlin.test.fail
 
 class AndroidProcessHandlerIntegrationTest {
 
-  private val APP_PACKAGE = "com.android.example"
-
   @get:Rule
   val projectRule = ProjectRule()
+
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   private fun createDevice(): IDevice {
     val mockDevice = mock(IDevice::class.java)
@@ -43,11 +46,13 @@ class AndroidProcessHandlerIntegrationTest {
 
   @Test
   fun callCustomTerminationCallback() {
-    val runnableClientsService = RunnableClientsService(projectRule.project)
-    val device = createDevice()
-    runnableClientsService.startClient(device, APP_PACKAGE)
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
     val callbackCalled = CountDownLatch(1)
-    val handler = AndroidProcessHandler(projectRule.project, APP_PACKAGE, { callbackCalled.countDown() })
+
+    val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME, { callbackCalled.countDown() })
 
     handler.startNotify()
     handler.addTargetDevice(device)
@@ -61,12 +66,19 @@ class AndroidProcessHandlerIntegrationTest {
 
   @Test
   fun callForceStopIfCustomCallbackIsNotPassed() {
-    val runnableClientsService = RunnableClientsService(projectRule.project)
-    val device = createDevice()
-    runnableClientsService.startClient(device, APP_PACKAGE)
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
     val callbackCalled = CountDownLatch(1)
-    whenever(device.forceStop(APP_PACKAGE)).then { callbackCalled.countDown() }
-    val handler = AndroidProcessHandler(projectRule.project, APP_PACKAGE)
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+      if (("force-stop " + FakeAdbTestRule.CLIENT_PACKAGE_NAME).equals(wholeCommand)) {
+        callbackCalled.countDown()
+      }
+    }
+    val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME)
 
     handler.startNotify()
     handler.addTargetDevice(device)

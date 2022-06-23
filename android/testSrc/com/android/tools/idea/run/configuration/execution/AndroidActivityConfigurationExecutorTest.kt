@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.ddmlib.IShellOutputReceiver
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -29,17 +29,20 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 
 internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
+
+  private val forceStop = "force-stop com.example.app"
+
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration("run App", AndroidRunConfigurationType().factory)
-    val androidTileConfiguration = configSettings.configuration as AndroidRunConfiguration
-    androidTileConfiguration.setModule(myModule)
-    androidTileConfiguration.setLaunchActivity(componentName)
+    val configuration = configSettings.configuration as AndroidRunConfiguration
+    configuration.setModule(myModule)
+    configuration.setLaunchActivity(componentName)
     return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
@@ -50,7 +53,16 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     (env.runProfile as AndroidRunConfiguration).ACTIVITY_EXTRA_FLAGS = "--user 123"
 
-    val device = getMockDevice()
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
@@ -61,18 +73,12 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     executor.doOnDevices(listOf(device))
 
     // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
 
+    // force stop.
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // Start activity.
-    assertThat(commands[0]).isEqualTo(
-      "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --user 123")
+    assertThat(receivedAmCommands[1]).isEqualTo(
+      "start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --user 123")
   }
 
   @Test
@@ -80,32 +86,37 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    val startCommand = "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
+    val startCommand = "start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
 
-    val runnableClientsService = RunnableClientsService(testRootDisposable)
+    val processTerminatedLatch = CountDownLatch(2)
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
 
-    val startActivityCommandHandler: CommandHandler = { device, _ ->
-      runnableClientsService.startClient(device, appId)
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        startCommand -> {
+          deviceState.startClient(1234, 1235, appId, true)
+        }
+        forceStop -> {
+          deviceState.stopClient(1234)
+          processTerminatedLatch.countDown()
+        }
+      }
     }
 
-    val processTerminatedLatch = CountDownLatch(1)
-    val device = getMockDevice(mapOf(
-      startCommand to startActivityCommandHandler,
-    ))
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Executor we test.
     val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
-
-    whenever(device.forceStop(eq(appId))).then {
-      runnableClientsService.stopClient(device, appId)
-      processTerminatedLatch.countDown()
-    }
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
-
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
@@ -113,21 +124,17 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Emulate stopping debug session.
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.destroyProcess()
-    processTerminatedLatch.await(1, TimeUnit.SECONDS)
+    if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
+      fail("process is not terminated")
+    }
 
     // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
 
+    // force stop.
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // Start Activity with -D flag.
-    assertThat(commands[0]).isEqualTo(startCommand)
+    assertThat(receivedAmCommands[1]).isEqualTo(startCommand)
     // Stop debug process
-    Mockito.verify(device, Mockito.times(2)).forceStop(appId)
+    assertThat(receivedAmCommands[2]).isEqualTo(forceStop)
   }
 }

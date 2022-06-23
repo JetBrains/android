@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.ddmlib.IShellOutputReceiver
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.DeployerException
@@ -35,21 +36,22 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.testFramework.registerServiceInstance
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
-  // Expected commands
-  private val checkVersion = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
-  private val setWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component"
-  private val showWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
-  private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
-  private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
-  private val clearDebugAppAm = "am clear-debug-app"
-  private val clearDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
+  // Expected commands am commands
+  private val forceStop = "force-stop com.example.app"
+  private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
+  private val setWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component"
+  private val showWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
+  private val unsetWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
+  private val setDebugAppAm = "set-debug-app -w 'com.example.app'"
+  private val clearDebugAppAm = "clear-debug-app"
+  private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(
@@ -66,14 +68,25 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val device = getMockDevice(mapOf(
-      checkVersion to
-        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-        "Broadcast completed: result=1, data=\"3\"",
-      setWatchFace to
-        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-        "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
-    ).toCommandHandlers())
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\"")
+        setWatchFace -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deployTarget = TestDeployTarget(device)
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
@@ -86,22 +99,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     executor.doOnDevices(listOf(device))
 
     // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
 
-
+    // force-stop running app
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // check WatchFace API version.
-    assertThat(commands[0]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
     // Set WatchFace.
-    assertThat(commands[1]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[2]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(commands[2]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
   }
 
   @Test
@@ -109,43 +115,41 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    val commandHandlers = mapOf(
-      checkVersion to
-        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-        "Broadcast completed: result=1, data=\"3\"",
-      clearDebugAppBroadcast to ""
-    ).toCommandHandlers()
-
-    val runnableClientsService = RunnableClientsService(testRootDisposable)
-
-    val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.startClient(device, appId)
-      receiver.addOutput("Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-                         "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
-    }
-
-    val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.stopClient(device, appId)
-      receiver.addOutput("Broadcast completed: result=1")
-    }
-
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
     val processTerminatedLatch = CountDownLatch(1)
-    val clearDebugAppAmCommandHandler: CommandHandler = { device, receiver ->
-      receiver.addOutput("")
-      processTerminatedLatch.countDown()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\"")
+        // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
+        clearDebugAppAm -> {
+          serviceOutput.writeStdout("")
+          processTerminatedLatch.countDown()
+        }
+        setWatchFace -> {
+          deviceState.startClient(1234, 1235, appId, true)
+          serviceOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+            "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+        }
+        unsetWatchFace -> {
+          deviceState.stopClient(1234)
+          serviceOutput.writeStdout("Broadcast completed: result=1")
+        }
+      }
     }
 
-    val device = getMockDevice(
-      commandHandlers +
-      (setWatchFace to setWatchFaceCommandHandler) +
-      (unsetWatchFace to unsetWatchFaceCommandHandler) +
-      (clearDebugAppAm to clearDebugAppAmCommandHandler)
-    )
-
-    val deployTarget = TestDeployTarget(device)
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Executor we test.
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, TestDeployTarget(device)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -155,36 +159,27 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
-    // Verify previous app instance is terminated.
-    Mockito.verify(executor, Mockito.times(1)).terminatePreviousAppInstance(any())
-
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
     processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(7)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
 
+    // force-stop running app
+    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // check WatchFace API version.
-    assertThat(commands[0]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(commands[1]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
     // Set WatchFace.
-    assertThat(commands[2]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[3]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(commands[3]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[4]).isEqualTo(showWatchFace)
     // Unset watch face
-    assertThat(commands[4]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[5]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(commands[5]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(commands[6]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[7]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
@@ -192,12 +187,19 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-
     val failedResponse = "Component not found."
 
-    val device = getMockDevice(mapOf(
-      checkVersion to "Broadcast completed: result=1, data=\"3\""
-    ).toCommandHandlers())
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      when (wholeCommand) {
+        checkVersion -> serviceOutput.writeStdout("Broadcast completed: result=1, data=\"3\"")
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deployTarget = TestDeployTarget(device)
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
@@ -221,43 +223,47 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
 
-    val commandHandlers = mapOf(
-      checkVersion to
-        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-        "Broadcast completed: result=1, data=\"3\""
-    ).toCommandHandlers()
+    val processTerminatedLatch = CountDownLatch(4) // force-stop x2, unsetWatchFace, clearDebugAppAm
 
-    val runnableClientsService = RunnableClientsService(testRootDisposable)
+    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val receivedAmCommands = ArrayList<String>()
 
-    val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.startClient(device, appId)
-      receiver.addOutput("Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-                         "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+      receivedAmCommands.add(wholeCommand)
+
+      when (wholeCommand) {
+        forceStop -> {
+          deviceState.stopClient(1234)
+          processTerminatedLatch.countDown()
+        }
+        checkVersion -> serviceOutput.writeStdout(
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\"")
+        // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
+        clearDebugAppAm -> {
+          serviceOutput.writeStdout("")
+          processTerminatedLatch.countDown()
+        }
+        setWatchFace -> {
+          deviceState.startClient(1234, 1235, appId, true)
+          serviceOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+            "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+        }
+        unsetWatchFace -> {
+          deviceState.stopClient(1234)
+          serviceOutput.writeStdout("Broadcast completed: result=1")
+          processTerminatedLatch.countDown()
+        }
+      }
     }
 
-    val processTerminatedLatch = CountDownLatch(2)
-    val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClientsService.stopClient(device, appId)
-      receiver.addOutput("Broadcast completed: result=1")
-      processTerminatedLatch.countDown()
-    }
-
-    val device = getMockDevice(
-      commandHandlers +
-      (setWatchFace to setWatchFaceCommandHandler) +
-      (unsetWatchFace to unsetWatchFaceCommandHandler)
-    )
-
-    val deployTarget = TestDeployTarget(device)
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Executor we test.
-    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, deployTarget))
-
-    whenever(
-      device.forceStop(appId)
-    ).thenAnswer {
-      processTerminatedLatch.countDown()
-    }
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env, TestDeployTarget(device)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -268,11 +274,14 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // mocked DebuggerManagerEx to fail above.
     try {
       executor.doOnDevices(listOf(device)).blockingGet(30, TimeUnit.SECONDS)
-    } catch (e: Throwable){
+    }
+    catch (e: Throwable) {
       if (e.cause !is ExecutionException || e.cause?.message != "Exception on debug start") {
-        throw  e
+        throw e
       }
     }
-    Mockito.verify(device, Mockito.atLeastOnce()).forceStop(appId)
+    if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
+      fail("process is not terminated after debugger failed to connect")
+    }
   }
 }

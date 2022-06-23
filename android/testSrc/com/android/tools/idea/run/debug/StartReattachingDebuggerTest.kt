@@ -16,21 +16,24 @@
 package com.android.tools.idea.run.debug
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.Client
+import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.ClientImpl
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.flags.junit.SetFlagRule
-import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
-import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
 import org.junit.Assert.fail
@@ -40,11 +43,17 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 
 class StartReattachingDebuggerTest {
+
+  private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME
+  private val MASTER_PROCESS_NAME = "com.master.test"
+
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   @get:Rule
   val projectRule = ProjectRule()
@@ -55,25 +64,18 @@ class StartReattachingDebuggerTest {
   val project
     get() = projectRule.project
 
-  private val APP_ID = "com.android.example"
-  private val MASTER_PROCESS_NAME = "com.master.test"
-
-  private lateinit var runnableClientsService: RunnableClientsService
   private lateinit var executionEnvironment: ExecutionEnvironment
-  private lateinit var mockDevice: IDevice
+  private lateinit var device: IDevice
+  private lateinit var deviceState: DeviceState
 
   @Before
   fun setUp() {
-    runnableClientsService = RunnableClientsService(project)
-    executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")
-    mockDevice = createDevice()
-  }
+    val emptyLogcatService = Mockito.mock(AndroidLogcatService::class.java)
+    ApplicationManager.getApplication().replaceService(AndroidLogcatService::class.java, emptyLogcatService, project)
 
-  private fun createDevice(): IDevice {
-    val mockDevice = Mockito.mock(IDevice::class.java)
-    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
-    whenever(mockDevice.isOnline).thenReturn(true)
-    return mockDevice
+    deviceState = fakeAdbRule.connectAndWaitForDevice()
+    device = AndroidDebugBridge.getBridge()!!.devices.single()
+    executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")
   }
 
   @After
@@ -81,17 +83,37 @@ class StartReattachingDebuggerTest {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
-    runnableClientsService.stop()
   }
 
   @Test
   fun testStartReattachingDebuggerForOneClient() {
-    runnableClientsService.startClient(mockDevice, APP_ID)
-    val firstSession = startJavaReattachingDebugger(project, mockDevice, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment)
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
+
+    val firstSession = startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment)
       .blockingGet(20, TimeUnit.SECONDS)
     assertThat(firstSession).isNotNull()
     assertThat(firstSession!!.sessionName).isEqualTo("myTestConfiguration")
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
+  }
+
+
+  private fun waitForProcessToStop(pid: Int) {
+    val latch = CountDownLatch(1)
+
+    var deviceListener: IDeviceChangeListener = object : IDeviceChangeListener {
+      override fun deviceConnected(device: IDevice) {}
+      override fun deviceDisconnected(device: IDevice) {}
+      override fun deviceChanged(changedDevice: IDevice, changeMask: Int) {
+        if (changeMask and IDevice.CHANGE_CLIENT_LIST
+          == IDevice.CHANGE_CLIENT_LIST) {
+          latch.countDown()
+        }
+      }
+    }
+    AndroidDebugBridge.addDeviceChangeListener(deviceListener)
+    deviceState.stopClient(pid)
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue()
+    AndroidDebugBridge.removeDeviceChangeListener(deviceListener)
   }
 
   @Test
@@ -103,16 +125,19 @@ class StartReattachingDebuggerTest {
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
 
-    runnableClientsService.startClient(mockDevice, APP_ID)
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
 
-    startJavaReattachingDebugger(project, mockDevice, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment).blockingGet(20,
-                                                                                                                            TimeUnit.SECONDS)
+    var pid = Random.nextInt()
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
+
+    startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment).blockingGet(20,
+                                                                                                                        TimeUnit.SECONDS)
     val tabsOpened = AtomicInteger(0)
     repeat(ADDITIONAL_CLIENTS) {
-      runnableClientsService.stopClient(mockDevice, APP_ID)
+      waitForProcessToStop(pid)
       val latchStartDebug = CountDownLatch(1)
-      val additionalRunnableClient = runnableClientsService.startClient(mockDevice, APP_ID)
-      AndroidDebugBridge.clientChanged(additionalRunnableClient as ClientImpl, Client.CHANGE_DEBUGGER_STATUS)
+      pid = Random.nextInt()
+      FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
       whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
         tabsOpened.incrementAndGet()
         latchStartDebug.countDown()
@@ -127,26 +152,23 @@ class StartReattachingDebuggerTest {
 
   @Test
   fun testStopping() {
-    runnableClientsService.startClient(mockDevice, MASTER_PROCESS_NAME)
-    runnableClientsService.startClient(mockDevice, APP_ID)
+
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
 
     val latch = CountDownLatch(2)
-    val masterIsRunning = AtomicBoolean(true)
-    val appIsRunning = AtomicBoolean(true)
 
-    whenever(mockDevice.forceStop(APP_ID)).thenAnswer {
-      if (appIsRunning.getAndSet(false)) {
-        latch.countDown()
+    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+      val wholeCommand = args.joinToString(" ")
+
+
+      when (wholeCommand) {
+        "force-stop $MASTER_PROCESS_NAME" -> latch.countDown()
+        "force-stop $APP_ID" -> latch.countDown()
       }
     }
 
-    whenever(mockDevice.forceStop(MASTER_PROCESS_NAME)).thenAnswer {
-      if (masterIsRunning.getAndSet(false)) {
-        latch.countDown()
-      }
-    }
-
-    val sessionImpl = startJavaReattachingDebugger(project, mockDevice, MASTER_PROCESS_NAME, setOf(APP_ID),
+    val sessionImpl = startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID),
                                                    executionEnvironment).blockingGet(20, TimeUnit.SECONDS)
 
     // when we stop for debug, master process should be stopped too
