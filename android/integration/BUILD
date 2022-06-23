@@ -20,17 +20,22 @@ iml_module(
 iml_test(
     name = "OpenProjectTest",
     timeout = "long",
-    data = [
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+    }) + [
         ":minapp",
         ":test_deps",
-        "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/base/build-system:gradle-distrib-7.2",
     ],
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_mac",
-        "no_windows",
+        "no_windows",  # Gradle-sync error on Windows. Probably fixable with a different project.
     ],
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
@@ -49,8 +54,8 @@ iml_test(
     tags = [
         "block-network",
         "manual",  # 15 out of 500 failures
-        "no_mac",
-        "no_windows",
+        "no_mac",  # Path issues, probably easily fixable.
+        "no_windows",  # Path issues, probably easily fixable.
     ],
     test_class = "com.android.tools.idea.EmulatorTest",
 )

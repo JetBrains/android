@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.Adb;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.Emulator;
-import com.android.tools.asdriver.tests.XvfbServer;
 import java.nio.file.Path;
 import java.util.HashMap;
 import org.junit.Rule;
@@ -35,12 +34,12 @@ public class EmulatorTest {
   public void runEmulatorTest() throws Exception {
     Path tempDir = tempFolder.newFolder("emulator-test").toPath();
     HashMap<String, String> env = new HashMap<>();
-    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
+    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
     sdk.install(env);
 
     Emulator.createEmulator(tempDir, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
 
-    try (Display display = new XvfbServer();
+    try (Display display = Display.createDefault();
          Emulator emulator = Emulator.start(sdk, tempDir, display, "emu")) {
       emulator.waitForBoot();
       Adb.waitFor(emulator);

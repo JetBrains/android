@@ -22,7 +22,6 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.MavenRepo;
-import com.android.tools.asdriver.tests.XvfbServer;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +41,7 @@ public class OpenProjectTest {
     install.createFirstRunXml();
     HashMap<String, String> env = new HashMap<>();
 
-    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
+    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
     sdk.install(env);
 
     // Create a new android project, and set a fixed distribution
@@ -57,7 +56,7 @@ public class OpenProjectTest {
     MavenRepo mavenRepo = new MavenRepo("tools/adt/idea/android/integration/test_deps.manifest");
     mavenRepo.install(tempDir, install, env);
 
-    try (Display display = new XvfbServer();
+    try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display, env, new String[]{ projectPath.toString() })) {
       Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Unindexed files update took (.*)", 120, TimeUnit.SECONDS);
       System.out.println("Indexing took " + matcher.group(1));

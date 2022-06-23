@@ -15,15 +15,22 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 
-public interface Display extends AutoCloseable {
-  void debugTakeScreenshot(String fileName) throws IOException;
-
-  String getDisplay();
-
-  static Display createDefault() throws IOException {
-    return SystemInfo.isLinux ? new XvfbServer() : new NativeDisplay();
+/**
+ * The native display (as opposed to a virtual display like Xvfb).
+ */
+public class NativeDisplay implements Display {
+  @Override
+  public void debugTakeScreenshot(String fileName) throws IOException {
+    System.out.println("The native display cannot take screenshots yet");
   }
+
+  @Override
+  public String getDisplay() {
+    return null;
+  }
+
+  @Override
+  public void close() throws Exception { }
 }

@@ -772,23 +772,28 @@ iml_test(
     data = [":android-studio.linux.zip"],
     module = ":intellij.android.studio.integration",
     tags = [
-        "no_mac",
-        "no_windows",
+        "no_mac",  # Different number of plugins expected from Linux
+        "no_windows",  # Different number of plugins expected from Linux
     ],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
 iml_test(
     name = "UpdateTest",
-    data = [
-        ":android-studio.linux.zip",
+    data = select({
+        "@platforms//os:linux": [
+            ":android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            ":android-studio.mac.zip",
+        ],
+    }) + [
         ":updater",
         ":updater.jar",
     ],
     module = ":intellij.android.studio.integration",
     tags = [
-        "no_mac",
-        "no_windows",
+        "no_windows",  # In RBE, Bazel doesn't actually build the Updater's runfiles for some reason
     ],
     test_class = "com.android.tools.idea.UpdateTest",
 )

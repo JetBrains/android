@@ -23,7 +23,6 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
-import com.android.tools.asdriver.tests.XvfbServer;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -275,10 +274,11 @@ public class UpdateTest {
   public void updateTest() throws Exception {
     Path tempDir = tempFolder.newFolder("update-test").toPath();
 
-    try (Display display = new XvfbServer();
+    AndroidStudioInstallation install = null;
+    try (Display display = Display.createDefault();
          FileServer fileServer = new FileServer()) {
       fileServer.start();
-      AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
+      install = AndroidStudioInstallation.fromZip(tempDir);
       // Every time a notification shows up, NotificationsManagerImpl#createActionPanel is called.
       // If this happens while the notification panel is already open, it will be closed and this
       // test will be unable to proceed since it never tries reopening that panel. Thus, we need to
@@ -298,8 +298,7 @@ public class UpdateTest {
 
       setPluginHost(install, fileServer.getOrigin());
       Map<String, String> env = createEnvironment(fileServer.getOrigin());
-
-      AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
+      AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
       sdk.install(env);
 
       try (AndroidStudio studio = install.run(display, env)) {

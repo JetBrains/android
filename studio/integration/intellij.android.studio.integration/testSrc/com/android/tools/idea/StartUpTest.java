@@ -20,7 +20,6 @@ import static org.junit.Assert.assertArrayEquals;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
-import com.android.tools.asdriver.tests.XvfbServer;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +37,7 @@ public class StartUpTest {
   public void startUpTest() throws Exception {
     Path tempDir = tempFolder.newFolder("startup-test").toPath();
     AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(tempDir);
-    try (Display display = new XvfbServer();
+    try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display)) {
       // Wait for plugin manager to load all plugins
       Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);

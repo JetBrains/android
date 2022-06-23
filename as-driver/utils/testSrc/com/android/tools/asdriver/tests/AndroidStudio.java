@@ -17,6 +17,8 @@ package com.android.tools.asdriver.tests;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -44,7 +46,14 @@ public class AndroidStudio implements AutoCloseable {
     Path workDir = installation.getWorkDir();
 
     ArrayList<String> command = new ArrayList<>(args.length + 1);
-    command.add(workDir.resolve("android-studio/bin/studio.sh").toString());
+
+    String studioExecutable = "android-studio/bin/studio.sh";
+    if (SystemInfo.isMac) {
+      studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
+    } else if (SystemInfo.isWindows) {
+      studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
+    }
+    command.add(workDir.resolve(studioExecutable).toString());
     command.addAll(Arrays.asList(args));
     ProcessBuilder pb = new ProcessBuilder(command);
     pb.environment().clear();
@@ -52,7 +61,9 @@ public class AndroidStudio implements AutoCloseable {
     for (Map.Entry<String, String> entry : env.entrySet()) {
       pb.environment().put(entry.getKey(), entry.getValue());
     }
-    pb.environment().put("DISPLAY", display.getDisplay());
+    if (display.getDisplay() != null) {
+      pb.environment().put("DISPLAY", display.getDisplay());
+    }
     pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
     String shell = System.getenv("SHELL");
     if (shell != null && !shell.isEmpty()) {
