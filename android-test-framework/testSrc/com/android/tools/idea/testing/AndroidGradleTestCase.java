@@ -64,7 +64,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.TestApplicationManager;
-import com.intellij.testFramework.TestApplicationManagerKt;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -205,7 +204,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        TestApplicationManagerKt.tearDownProjectAndApp(openProjects[0]);
+        TestApplicationManager.tearDownProjectAndApp(openProjects[0]);
       }
       myAndroidFacet = null;
     }
