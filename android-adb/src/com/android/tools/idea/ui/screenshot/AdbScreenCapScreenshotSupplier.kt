@@ -78,7 +78,7 @@ internal class AdbScreenCapScreenshotSupplier(
    * Returns the first line starting with "DisplayDeviceInfo".
    */
   private fun extractDeviceDisplayInfo(dumpsysOutput: String): String =
-    deviceDisplayInfoRegex.find(dumpsysOutput)?.groupValues?.get(0) ?: ""
+      deviceDisplayInfoRegex.find(dumpsysOutput)?.groupValues?.get(1) ?: ""
 
   override fun dispose() {}
 }
