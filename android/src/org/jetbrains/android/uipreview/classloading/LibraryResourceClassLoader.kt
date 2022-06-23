@@ -21,6 +21,8 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
@@ -32,7 +34,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoader
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.regex.Pattern
@@ -121,11 +122,10 @@ private fun registerResources(module: Module) {
                                  },
                                  repositoryManager.namespace)
       }
-
-    module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
-      .filter { it.hasResources }
-      .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
   }
+  module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+    .filter { it.hasResources }
+    .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
 }
 
 // matches foo.bar.R or foo.bar.R$baz
@@ -148,10 +148,20 @@ class LibraryResourceClassLoader(parent: ClassLoader?, module: Module) : ClassLo
       throw ClassNotFoundException(name)
     }
 
+    if (ResourceIdManager.get(module).finalIdsUsed) {
+      // If final IDs are used, we check if the last build was successful in order to use the compiled classes instead of load them from
+      // this class loader.
+      val lastBuild = ProjectSystemService.getInstance(module.project).projectSystem.getBuildManager().getLastBuildResult()
+      if (lastBuild.mode != ProjectSystemBuildManager.BuildMode.CLEAN
+          && lastBuild.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        throw ClassNotFoundException(name)
+      }
+    }
+
     val facet: AndroidFacet = AndroidFacet.getInstance(module) ?: throw ClassNotFoundException(name)
     val repositoryManager = ResourceRepositoryManager.getInstance(facet)
     val data = ResourceClassRegistry.get(module.project).findClassDefinition(name, repositoryManager) ?: throw ClassNotFoundException(name)
-    Logger.getInstance(ModuleClassLoader::class.java).debug("  Defining class from AAR registry")
+    Logger.getInstance(LibraryResourceClassLoader::class.java).debug("  Defining class from AAR registry")
     return defineClass(name, data, 0, data.size)
   }
 

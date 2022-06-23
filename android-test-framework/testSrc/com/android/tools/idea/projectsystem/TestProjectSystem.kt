@@ -56,7 +56,8 @@ class TestProjectSystem @JvmOverloads constructor(
   val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
-  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS
+  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS,
+  private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
   /**
@@ -144,7 +145,7 @@ class TestProjectSystem @JvmOverloads constructor(
       }
 
       override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
-        return emptySet()
+        return androidLibraryDependencies
       }
 
       override fun canRegisterDependency(type: DependencyType): CapabilityStatus {

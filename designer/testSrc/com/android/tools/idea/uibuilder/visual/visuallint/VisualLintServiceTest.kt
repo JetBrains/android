@@ -23,7 +23,6 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
-import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -47,8 +46,6 @@ import kotlin.test.assertEquals
 
 class VisualLintServiceTest {
   private lateinit var surface: DesignSurface<*>
-
-  private lateinit var resourceIdManger: TestResourceIdManager
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -74,7 +71,6 @@ class VisualLintServiceTest {
       RenderTestUtil.afterRenderTestCase()
     }
     RenderService.setForTesting(projectRule.project, null)
-    resourceIdManger.resetFinalIdsUsed()
   }
 
   @Test
@@ -83,10 +79,6 @@ class VisualLintServiceTest {
     projectRule.requestSyncAndWait()
 
     val module = projectRule.getModule("app")
-    // Disable final IDs for this test, so it can use light classes to resolve resources.
-    // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and LibraryResourceClassLoaderTest.
-    resourceIdManger = TestResourceIdManager.getManager(module)
-    resourceIdManger.setFinalIdsUsed(false)
     val facet = AndroidFacet.getInstance(module)!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)

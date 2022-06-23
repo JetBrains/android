@@ -16,9 +16,13 @@
 package org.jetbrains.android.uipreview.classloading
 
 import com.android.SdkConstants
+import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.testFramework.runInEdtAndWait
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.fail
 import org.junit.After
@@ -41,6 +45,8 @@ class LibraryResourceClassLoaderTest {
   }
 
   private lateinit var resourceIdManger: TestResourceIdManager
+
+  private lateinit var projectSystem: TestProjectSystem
 
   @Before
   fun setup() {
@@ -70,6 +76,15 @@ class LibraryResourceClassLoaderTest {
       """.trimIndent()
       )
     }
+    addAarDependency(androidProjectRule.module, "emptyAarLib", "com.example.mylibrary.empty") { resDir ->
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("")
+    }
+
+    projectSystem = TestProjectSystem(
+      project = androidProjectRule.project,
+      androidLibraryDependencies = androidProjectRule.module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+    )
+    runInEdtAndWait { projectSystem.useInTests() }
   }
 
   @After
@@ -85,10 +100,6 @@ class LibraryResourceClassLoaderTest {
 
   @Test
   fun `empty R class in library`() {
-    addAarDependency(androidProjectRule.module, "emptyAarLib", "com.example.mylibrary.empty") { resDir ->
-      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("")
-    }
-
     val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
     assertNotNull(classLoader.loadClass("com.example.mylibrary.empty.R"))
     assertNotNull(classLoader.loadClass("com.example.mylibrary.empty.R${'$'}layout"))
@@ -109,11 +120,25 @@ class LibraryResourceClassLoaderTest {
 
   // Regression test for b/233862429
   @Test
-  fun `library R class is not found if final IDs are used`() {
+  fun `library R class are not found if final IDs are used and project is compiled`() {
     resourceIdManger.setFinalIdsUsed(true)
+    projectSystem.getBuildManager().compileProject()
+
     val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
     // When final IDs are used, we should load the R classes from the compiled R classes, not the light classes created by this class loader
     assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R") }
     assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R${'$'}layout") }
+  }
+
+  // Regression test for b/236854148
+  @Test
+  fun `library R class are found if final IDs are used and project is not yet compiled`() {
+    resourceIdManger.setFinalIdsUsed(true)
+
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    // When final IDs are used, we should only load the R classes from the compiled R classes if a build has happened. If not, we should
+    // load them from light classes created by this class loader
+    classLoader.loadClass("com.example.mylibrary.R")
+    classLoader.loadClass("com.example.mylibrary.R${'$'}layout")
   }
 }
