@@ -38,4 +38,5 @@ object DefaultBuildManager : ProjectSystemBuildManager {
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {}
 
+  override val isBuilding = false
 }

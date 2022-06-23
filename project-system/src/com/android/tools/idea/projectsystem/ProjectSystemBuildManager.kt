@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -43,6 +44,13 @@ interface ProjectSystemBuildManager {
    * Adds a new [BuildListener]. The listener will stop being notified when [parentDisposable] is disposed.
    */
   fun addBuildListener(parentDisposable: Disposable, buildListener: BuildListener)
+
+  /**
+   * Returns true if the project is currently being built, false otherwise. Should only be called from the EDT thread since calling it from
+   * any other thread might return an outdated value.
+   */
+  @get:UiThread
+  val isBuilding: Boolean
 
   enum class BuildStatus {
     UNKNOWN, SUCCESS, FAILED, CANCELLED

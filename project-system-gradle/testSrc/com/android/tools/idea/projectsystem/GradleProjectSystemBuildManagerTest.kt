@@ -28,19 +28,22 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 
-private class TestBuildResultListener : ProjectSystemBuildManager.BuildListener {
+private class TestBuildResultListener(val buildManager: ProjectSystemBuildManager) : ProjectSystemBuildManager.BuildListener {
   private var beforeBuildCompletedResult: ProjectSystemBuildManager.BuildResult? = null
 
   val startedBuildMode = EnumMultiset.create(ProjectSystemBuildManager.BuildMode::class.java)!!
   val completedBuilds = mutableListOf<ProjectSystemBuildManager.BuildResult>()
 
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    assertTrue(buildManager.isBuilding)
     beforeBuildCompletedResult = result
   }
 
   override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    assertFalse(buildManager.isBuilding)
     assertEquals("beforeBuildCompleted must be called before buildCompleted with the same result",
                  beforeBuildCompletedResult, result)
     completedBuilds.add(result)
@@ -49,6 +52,7 @@ private class TestBuildResultListener : ProjectSystemBuildManager.BuildListener 
   }
 
   override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+    assertTrue(buildManager.isBuilding)
     startedBuildMode.add(mode)
   }
 
@@ -103,7 +107,7 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   }
 
   fun testBuildResultListener_success() {
-    val listener = TestBuildResultListener()
+    val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
@@ -123,7 +127,7 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   }
 
   fun testBuildResultListener_failed() {
-    val listener = TestBuildResultListener()
+    val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
@@ -143,7 +147,7 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   }
 
   fun testBuildResultListener_clean() {
-    val listener = TestBuildResultListener()
+    val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("clean"))
@@ -161,5 +165,26 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     // Build started does not happen for clean builds
     assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.CLEAN))
     assertEquals("[CLEAN] SUCCESS", listener.completedBuildsDebugString())
+  }
+
+  fun testIsBuilding_withoutListeners() {
+    assertFalse(buildManager.isBuilding)
+
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
+      .setMode(BuildMode.ASSEMBLE)
+      .build()
+    ApplicationManager.getApplication().invokeAndWait {
+      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
+    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertTrue(buildManager.isBuilding)
+
+    ApplicationManager.getApplication().invokeAndWait {
+      GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
+    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertFalse(buildManager.isBuilding)
   }
 }

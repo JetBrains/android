@@ -295,6 +295,7 @@ class TestProjectSystemBuildManager(
   private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
   private var lastBuildResult: ProjectSystemBuildManager.BuildResult = ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
   private var lastBuildMode = ProjectSystemBuildManager.BuildMode.UNKNOWN
+  private var _isBuilding = false
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
 
   override fun compileProject() {
@@ -312,8 +313,12 @@ class TestProjectSystemBuildManager(
     }
   }
 
+  override val isBuilding: Boolean
+    get() = _isBuilding
+
   fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
     maybeEnsureClockAdvanced()
+    _isBuilding = true
     lastBuildMode = mode
     listeners.forEach {
       it.buildStarted(mode)
@@ -327,6 +332,7 @@ class TestProjectSystemBuildManager(
     listeners.forEach {
       it.beforeBuildCompleted(lastBuildResult)
     }
+    _isBuilding = false
     listeners.forEach {
       it.buildCompleted(lastBuildResult)
     }

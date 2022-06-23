@@ -1,5 +1,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -11,12 +12,14 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
+import java.util.concurrent.atomic.AtomicInteger
 
 private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
   BuildStatus.SUCCESS -> ProjectSystemBuildManager.BuildStatus.SUCCESS
@@ -37,11 +40,17 @@ private fun BuildMode?.toProjectSystemBuildMode(): ProjectSystemBuildManager.Bui
 private class GradleProjectSystemBuildPublisher(val project: Project): GradleBuildListener.Adapter(), Disposable {
   private val PROJECT_SYSTEM_BUILD_TOPIC = Topic("Project build", ProjectSystemBuildManager.BuildListener::class.java)
 
+  /**
+   * The counter is only supposed to be called on UI thread therefore it does not require any lock/synchronization.
+   */
+  private var buildCount = 0
+
   init {
     GradleBuildState.subscribe(project, this, this)
   }
 
   override fun buildStarted(context: BuildContext) {
+    buildCount++
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildStarted(context.buildMode.toProjectSystemBuildMode())
   }
 
@@ -51,6 +60,7 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
       status.toProjectSystemBuildStatus(),
       System.currentTimeMillis())
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).beforeBuildCompleted(result)
+    buildCount = maxOf(buildCount - 1, 0)
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(result)
   }
 
@@ -59,9 +69,17 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
 
   fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) =
     project.messageBus.connect(parentDisposable).subscribe(PROJECT_SYSTEM_BUILD_TOPIC, buildListener)
+
+  val isBuilding: Boolean
+    get() = buildCount > 0
 }
 
 class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildManager {
+  init {
+    // TODO(b/237224221): Rework this
+    // Creating the publisher straight away so that it can keep track of all the builds
+    project.getService(GradleProjectSystemBuildPublisher::class.java)
+  }
   override fun compileProject() {
     val modules = ModuleManager.getInstance(project).modules
     GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL)
@@ -82,6 +100,16 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) =
     project.getService(GradleProjectSystemBuildPublisher::class.java).addBuildListener(parentDisposable, buildListener)
+
+  /**
+   * To ensure the accuracy this should be called on the UI thread to be naturally serialized with BuildListener callbacks.
+   */
+  @get:UiThread
+  override val isBuilding: Boolean
+    get() {
+      ApplicationManager.getApplication().assertIsDispatchThread()
+      return project.getService(GradleProjectSystemBuildPublisher::class.java).isBuilding
+    }
 
   private fun getTestCompileType(files: Collection<VirtualFile>): TestCompileType {
     var haveUnitTestFiles = false
