@@ -523,6 +523,13 @@ def _android_studio_os(ctx, platform, out):
             _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
         zips += [(platform_prefix + platform.base_path + platform.jre, jre_zip)]
 
+        # b/235325129 workaround: keep `jre\` directory for windows patcher
+        # TODO remove after no more patches from Dolphin
+        if platform == WIN and platform.jre != "jre":
+            jre_bin = ctx.actions.declare_file(ctx.attr.name + ".jre.marker")
+            ctx.actions.write(jre_bin, "")
+            files += [( platform.base_path + "jre/bin/.marker", jre_bin)]
+
     # Stamp the platform and its plugins
     platform_stamp = ctx.actions.declare_file(ctx.attr.name + ".%s.platform.stamp.zip" % platform.name)
     _stamp_platform(ctx, platform, platform_zip, platform_stamp)
