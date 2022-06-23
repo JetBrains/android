@@ -32,5 +32,6 @@ public class AndroidPluginInitializer implements ApplicationLoadListener {
     AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
     StudioProgressManagerAdapter.initialize();
     ApkFacetCheckerInitializer.initializeApkFacetChecker();
+    AdbFileProviderInitializer.initializeApplication();
   }
 }

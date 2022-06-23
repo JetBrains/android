@@ -21,10 +21,15 @@ import com.android.adblib.AdbLibHost
 import com.android.adblib.AdbLibSession
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
+import com.android.tools.idea.adb.AdbFileProvider
+import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
+import java.net.InetSocketAddress
 import java.time.Duration
 
 /**
@@ -44,8 +49,7 @@ class AdbLibApplicationService : Disposable {
    * to the ADB server.
    */
   private val channelProvider = AdbChannelProviderFactory.createConnectAddresses(host) {
-    ensureDebugBridgeActive()
-    listOf(AndroidDebugBridge.getSocketAddress())
+    listOf(getAdbSocketAddress())
   }
 
   val session = AdbLibSession.create(
@@ -58,6 +62,20 @@ class AdbLibApplicationService : Disposable {
     session.close()
     host.close()
   }
+
+  private suspend fun getAdbSocketAddress(): InetSocketAddress {
+    return withContext(host.ioDispatcher) {
+      val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
+      if (needToConnect) {
+        // Ensure ddmlib is initialized with ADB server path from application context
+        val adbFile = AdbFileProvider.fromApplication()?.adbFile
+                      ?: throw IllegalStateException("ADB location has not been initialized")
+        AdbService.getInstance().getDebugBridge(adbFile).await()
+      }
+      AndroidDebugBridge.getSocketAddress()
+    }
+  }
+
 
   private fun ensureDebugBridgeActive() {
     if (AndroidDebugBridge.getBridge() == null) {

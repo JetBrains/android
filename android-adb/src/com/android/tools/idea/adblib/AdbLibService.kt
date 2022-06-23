@@ -59,11 +59,13 @@ class AdbLibService(val project: Project) : Disposable {
 
   private suspend fun getAdbSocketAddress(): InetSocketAddress {
     return withContext(host.ioDispatcher) {
-      // Ensure ddmlib is initialized with path to ADB server from current project
-      val adbFile = AdbFileProvider.fromProject(project)?.adbFile
-                    ?: throw IllegalStateException("ADB has not been initialized for this project")
-      AdbService.getInstance().getDebugBridge(adbFile).await()
-
+      val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
+      if (needToConnect) {
+        // Ensure ddmlib is initialized with ADB server path from project context
+        val adbFile = AdbFileProvider.fromProject(project)?.adbFile
+                      ?: throw IllegalStateException("ADB has not been initialized for this project")
+        AdbService.getInstance().getDebugBridge(adbFile).await()
+      }
       AndroidDebugBridge.getSocketAddress()
     }
   }
