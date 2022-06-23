@@ -49,11 +49,8 @@ iml_test(
 iml_test(
     name = "EmulatorTest",
     data = [
-        ":minapp",
-        ":test_deps",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/adt/idea/studio:android-studio.linux.zip",
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
