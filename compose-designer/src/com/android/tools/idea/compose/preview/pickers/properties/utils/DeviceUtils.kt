@@ -54,6 +54,9 @@ internal const val DEVICE_BY_SPEC_PREFIX = "spec:"
 /** id for the default device when no device is specified by the user. */
 internal const val DEFAULT_DEVICE_ID = "pixel_5"
 
+/** Full declaration for the default device. */
+internal const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
+
 internal fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
   val deviceState = this.defaultState

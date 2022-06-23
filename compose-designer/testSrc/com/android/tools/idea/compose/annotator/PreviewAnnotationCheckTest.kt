@@ -63,7 +63,7 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testGoodAnnotations() {
-    val result = addKotlinFileAndCheckPreviewAnnotation(
+    var result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -75,11 +75,24 @@ internal class PreviewAnnotationCheckTest {
       """.trimIndent()
     )
     assert(result.issues.isEmpty())
+
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "   ")
+        @Composable
+        fun myFun() {}
+      """.trimIndent()
+    )
+    assert(result.issues.isEmpty())
   }
 
   @Test
   fun testAnnotationWithIssues() {
-    val result = addKotlinFileAndCheckPreviewAnnotation(
+    var result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -106,6 +119,22 @@ internal class PreviewAnnotationCheckTest {
       "spec:shape=Normal,width=1080,unit=px,dpi=320,height=1920",
       result.proposedFix
     )
+
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = " abc ")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".", result.issues[0].parameterName)
+    assertEquals("id:pixel_5", result.proposedFix)
   }
 
   @Test

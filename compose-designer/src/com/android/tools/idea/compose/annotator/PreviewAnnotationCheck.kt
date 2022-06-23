@@ -31,8 +31,10 @@ import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevicesKey
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID_WITH_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
@@ -138,9 +140,16 @@ internal object PreviewAnnotationCheck {
         }
         checkDeviceSpecParams(deviceSpecParams, rule, module)
       }
-      // Unsupported situations are considered valid
-      // TODO(b/220006785): Consider highlighting unsupported device input once we know we've covered all use cases
-      else -> Passed
+      // Blank value is ok, uses default Device
+      deviceParameterValue.isBlank() -> Passed
+      else ->
+        // Unsupported input, default to an error proposing the Default device
+        // TODO(b/236383162): Improve the messaging for general issues in the Device value, should not use the base message for an Unknown
+        //  parameter
+        CheckResult(
+          issues = listOf(Unknown(message("picker.preview.annotator.lint.error.unsupported"))),
+          proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX
+        )
     }
 
   /**
@@ -256,8 +265,8 @@ internal object PreviewAnnotationCheck {
     }
     else {
       if (sdkDevices.any { it.id == DEFAULT_DEVICE_ID }) {
-        // TODO(b/220006785): Improve the messaging for issues in the DeviceId
-        CheckResult(issues = listOf(Unknown(deviceId)), proposedFix = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID)
+        // TODO(b/236383162): Improve the messaging for issues in the DeviceId
+        CheckResult(issues = listOf(Unknown(deviceId)), proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX)
       }
       else {
         // Expected default device not in Sdk
@@ -285,7 +294,7 @@ private fun toParameterList(configString: String): Collection<Pair<String, Strin
 
     if (capturedValues != null && capturedValues.size == 3) {
       // 0-index corresponds to the original string, the others are the capture groups (1 -> parameter name, 2 -> parameter value)
-      Pair(capturedValues[1], capturedValues[2])
+      Pair(capturedValues[1].trim(), capturedValues[2].trim())
     }
     else {
       // Preserve invalid sections, all information is needed for a correct check
