@@ -125,14 +125,6 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/compose/preview/util/device/DeviceSpecCompletionContributor.kt"
-            line="121"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
             file="src/com/android/tools/idea/compose/preview/Notifications.kt"
             line="76"/>
     </issue>
@@ -150,7 +142,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/annotator/PreviewAnnotationCheck.kt"
-            line="235"/>
+            line="286"/>
     </issue>
 
     <issue

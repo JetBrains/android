@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.dev
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceTabletConfig
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
@@ -110,7 +111,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
             .or(PlatformPatterns.psiElement(DeviceSpecTypes.COMMA)))
         )
         .withSuperParent(2, DeviceSpecPsiFile::class.java),
-      MissingParameterProvider
+      DeviceSpecParameterProvider
     )
   }
 }
@@ -127,9 +128,9 @@ private fun <T : PsiElement> PsiElementPattern<T, PsiElementPattern.Capture<T>>.
   })
 
 /**
- * Supported parameters to autocomplete for DeviceSpec Language.
+ * Supported parameters to autocomplete a custom Device definition with the `spec` prefix when using the DeviceSpec Language.
  */
-private val parametersToDefaultValues: Map<String, String> by lazy {
+private val customSpecParamsToDefaultValues: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
   mapOf(
     DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
     DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
@@ -141,10 +142,47 @@ private val parametersToDefaultValues: Map<String, String> by lazy {
 }
 
 /**
+ * Supported parameters to autocomplete an existing device definition with the `spec` prefix when using the DeviceSpec Language
+ */
+private val parentBasedSpecParamsToDefaultValues: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
+  mapOf(
+    DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID,
+    DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
+  )
+}
+
+/**
+ * All supported parameters compatible with `spec...` when using the DeviceSpec Language.
+ */
+private val allSpecParamsToDefaultValues: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
+  mapOf(
+    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
+    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
+    DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
+    DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
+    DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
+    DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
+    DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID
+  )
+}
+
+/**
+ * The common parameters of [parentBasedSpecParamsToDefaultValues] and [customSpecParamsToDefaultValues].
+ *
+ * This help us decide if we can use [allSpecParamsToDefaultValues] when providing parameter completion.
+ */
+private val commonSpecParams: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
+  val allParams = allSpecParamsToDefaultValues.keys.toMutableSet()
+  allParams.retainAll(parentBasedSpecParamsToDefaultValues.keys)
+  allParams.retainAll(customSpecParamsToDefaultValues.keys)
+  return@lazy allParams.toSet()
+}
+
+/**
  * A [LiveTemplateFormat] that includes all supported DeviceSpec parameters with their default values.
  */
 private val baseDeviceSpecTemplate: LiveTemplateFormat by lazy {
-  val template = parametersToDefaultValues.map { entry ->
+  val template = customSpecParamsToDefaultValues.map { entry ->
     val suffix = if (DeviceSpec.isDimensionParameter(entry.key)) DeviceSpec.DEFAULT_UNIT.name else ""
 
     // param=<default_value>suffix
@@ -195,31 +233,51 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
   }
 }
 
-private object MissingParameterProvider : CompletionProvider<CompletionParameters>() {
+/**
+ * Provides the remaining parameters for a Device Specification, depending on the intended usage of `spec:...`.
+ *
+ * In other words, completes the parameters so that either of these declarations can be achieved:
+ * - spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
+ * - spec:parent=...,orientation=...
+ */
+private object DeviceSpecParameterProvider : CompletionProvider<CompletionParameters>() {
   override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-    val remainingParameters = parametersToDefaultValues.toMutableMap()
-
     val deviceSpecImplElement = parameters.position.getParentOfType<DeviceSpecPsiFile>(false)?.getChildOfType<DeviceSpecSpecImpl>()
     val expectedUnit = deviceSpecImplElement?.getFirstValidUnit() ?: DeviceSpec.DEFAULT_UNIT
+    val existingParameters = deviceSpecImplElement?.getChildrenOfType<DeviceSpecParam>()?.map {
+      it.firstChild.text
+    }?.toSet() ?: emptySet()
 
-    deviceSpecImplElement?.getChildrenOfType<DeviceSpecParam>()?.forEach {
-      // Remove parameters already used.
-      remainingParameters.remove(it.firstChild.text)
-    }
-    val createDimensionFormat: (String) -> InsertionFormat = { defaultValue ->
+    val createDimensionParameterFormat: (String) -> InsertionFormat = { defaultValue ->
       LiveTemplateFormat("=<$defaultValue>${expectedUnit.name}")
     }
-    val createCommonFormat: (String) -> InsertionFormat = { defaultValue ->
-      LiveTemplateFormat("=<$defaultValue>")
-    }
 
-    remainingParameters.forEach {
+    val parametersToComplete = when {
+      existingParameters.isEmpty() ||
+      commonSpecParams.containsAll(existingParameters) -> {
+        // May use any parameter if it's empty, or all existing correspond to common parameters
+        allSpecParamsToDefaultValues
+      }
+      existingParameters.contains(DeviceSpec.PARAMETER_PARENT) -> {
+        // When `parent` is in use, only parent related parameters may be used
+        parentBasedSpecParamsToDefaultValues
+      }
+      else -> {
+        // All other cases apply for custom spec only
+        customSpecParamsToDefaultValues
+      }
+    }.toMutableMap()
+
+    // Remove existing parameters
+    existingParameters.forEach { parametersToComplete.remove(it) }
+
+    parametersToComplete.forEach {
       if (DeviceSpec.isDimensionParameter(it.key)) {
         // For parameters that take a dimension, use an appropriate InsertionFormat that includes the expected dimension unit.
-        result.addLookupElement(lookupString = it.key, format = createDimensionFormat(it.value))
+        result.addLookupElement(lookupString = it.key, format = createDimensionParameterFormat(it.value))
       }
       else {
-        result.addLookupElement(lookupString = it.key, format = createCommonFormat(it.value))
+        result.addLookupElement(lookupString = it.key, format = LiveTemplateFormat("=<${it.value}>"))
       }
     }
   }

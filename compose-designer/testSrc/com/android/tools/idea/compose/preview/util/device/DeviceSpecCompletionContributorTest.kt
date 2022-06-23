@@ -143,13 +143,27 @@ internal class DeviceSpecCompletionContributorTest {
   @Test
   fun parameterCompletion() {
     fixture.completeDeviceSpec("spec:$caret")
-    assertEquals(6, fixture.lookupElementStrings!!.size)
+    assertEquals(7, fixture.lookupElementStrings!!.size)
     assertEquals("chinSize", fixture.lookupElementStrings!![0])
     assertEquals("dpi", fixture.lookupElementStrings!![1])
     assertEquals("height", fixture.lookupElementStrings!![2])
     assertEquals("isRound", fixture.lookupElementStrings!![3])
     assertEquals("orientation", fixture.lookupElementStrings!![4])
+    assertEquals("parent", fixture.lookupElementStrings!![5])
+    assertEquals("width", fixture.lookupElementStrings!![6])
+
+    fixture.completeDeviceSpec("spec:orientation=portrait,$caret")
+    assertEquals(6, fixture.lookupElementStrings!!.size)
+    assertEquals("chinSize", fixture.lookupElementStrings!![0])
+    assertEquals("dpi", fixture.lookupElementStrings!![1])
+    assertEquals("height", fixture.lookupElementStrings!![2])
+    assertEquals("isRound", fixture.lookupElementStrings!![3])
+    assertEquals("parent", fixture.lookupElementStrings!![4])
     assertEquals("width", fixture.lookupElementStrings!![5])
+
+    fixture.completeDeviceSpec("spec:parent=pixel_5,$caret")
+    assertEquals(1, fixture.lookupElementStrings!!.size)
+    assertEquals("orientation", fixture.lookupElementStrings!![0])
 
     fixture.completeDeviceSpec("spec:width=1080px,$caret")
     assertEquals(5, fixture.lookupElementStrings!!.size)
@@ -170,6 +184,18 @@ internal class DeviceSpecCompletionContributorTest {
 
     fixture.completeDeviceSpec("spec:width=1080dp,chinSiz$caret")
     fixture.checkResult("spec:width=1080dp,chinSize=0dp")
+
+    fixture.completeDeviceSpec("spec:parent=pixel_5,orient$caret")
+    fixture.checkResult("spec:parent=pixel_5,orientation=portrait")
+
+    fixture.completeDeviceSpec("spec:orientation=portrait,par$caret")
+    fixture.checkResult("spec:orientation=portrait,parent=pixel_5")
+
+    // Nothing else to complete when using `parent`
+    fixture.completeDeviceSpec("spec:orientation=portrait,parent=pixel_5,$caret")
+    fixture.checkResult("spec:orientation=portrait,parent=pixel_5,")
+    assertEquals(0, fixture.lookupElementStrings!!.size)
+
 
     // No parameters starting with 'spe'
     fixture.completeDeviceSpec("spec:width=300dp,spe$caret")
