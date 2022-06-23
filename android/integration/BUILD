@@ -86,6 +86,23 @@ iml_test(
     test_class = "com.google.services.firebase.insights.AppInsightsTest",
 )
 
+iml_test(
+    name = "AdbServerConnectionTest",
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "manual",  # Adb startup error: "could not install *smartsocket* listener: Address already in use"
+        "no_mac",  # Same issue as Emulator test (path issues)
+        "no_windows",  # Same issue as Emulator test (path issues)
+    ],
+    test_class = "com.android.tools.idea.AdbServerConnectionTest",
+)
+
 maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier

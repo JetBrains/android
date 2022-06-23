@@ -43,24 +43,43 @@ public class Adb implements AutoCloseable {
     this.stderr = stderr;
   }
 
+  private Adb(AndroidSdk sdk, Path home) {
+    this.process = null;
+    this.stdout = null;
+    this.stderr = null;
+    this.sdk = sdk;
+    this.home = home;
+  }
+
   @Override
-  public void close() {
-    if (process != null && !process.isAlive()) {
-      process.destroy();
+  public void close() throws IOException {
+    if (process == null) {
+      runCommand("kill-server");
+    }
+    else {
+      if (process.isAlive()) {
+        process.destroy();
+      }
     }
   }
 
-  public static Adb start(AndroidSdk sdk, Path home, String... params) throws IOException {
+  /**
+   * Default start for most use cases.
+   */
+  public static Adb start(AndroidSdk sdk, Path home) throws IOException {
+    return start(sdk, home, true, "nodaemon");
+  }
+
+  public static Adb start(AndroidSdk sdk, Path home, boolean startServer, String... params) throws IOException {
+    if (!startServer) {
+      return new Adb(sdk, home);
+    }
+
     List<String> command = new ArrayList<>();
     command.add("server");
-    if (params.length == 0) {
-      command.add("nodaemon");
-    }
-    else {
-      for (String param : params) {
-        if (!param.isBlank()) {
-          command.add(param);
-        }
+    for (String param : params) {
+      if (!param.isBlank()) {
+        command.add(param);
       }
     }
     return exec(sdk, home, command.toArray(new String[]{}));
