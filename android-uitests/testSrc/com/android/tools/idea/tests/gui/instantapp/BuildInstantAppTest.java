@@ -58,9 +58,11 @@ public class BuildInstantAppTest {
     ideFrame.getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(EnableInstantAppSupportDialogFixture::find, "Refactor", "Enable Instant Apps Support...")
-      .clickOk();
-    guiTest.robot().waitForIdle();
+      .invokeMenuPath("Refactor", "Enable Instant Apps Support...");
+
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(
+      it -> EnableInstantAppSupportDialogFixture.find(ideFrame).clickOk());
+
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
 
     ideFrame.invokeMenuPath("Run", "Edit Configurations...");
