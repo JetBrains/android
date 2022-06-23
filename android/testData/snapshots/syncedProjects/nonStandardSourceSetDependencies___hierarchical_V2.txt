@@ -1975,8 +1975,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>
-            VersionString                 : <KOTLIN_SDK_VERSION>
+            HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
@@ -2064,8 +2063,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>
-            VersionString                 : <KOTLIN_SDK_VERSION>
+            HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2240,8 +2238,6 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
             Platform                      : JVM (1.8)
             - SourceSetName               : NonStandardSourceSetDependencies.network-kmm.commonTest
-            - SourceSetName               : NonStandardSourceSetDependencies.network-kmm.jvmMain
-            - SourceSetName               : NonStandardSourceSetDependencies.network-kmm.commonMain
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/network-kmm/src/jvmTest [-]

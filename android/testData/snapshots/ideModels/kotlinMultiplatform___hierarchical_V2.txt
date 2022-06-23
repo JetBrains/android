@@ -2603,71 +2603,66 @@ MODULE                        : kotlinMultiPlatform.module2
     kotlinMppGradleModel          : {androidAndroidTest=androidAndroidTest, androidMain=androidMain, androidTest=androidTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencyMap
             1                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             2                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             3                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             4                             : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
             5                             : DefaultExternalLibraryDependency
-                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             6                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             7                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             8                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
             9                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            10                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            11                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            12                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            13                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            14                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            15                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            16                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            17                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            18                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            19                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            20                            : DefaultExternalLibraryDependency
                 file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
-            21                            : DefaultExternalLibraryDependency
+            10                            : DefaultExternalLibraryDependency
                 file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            22                            : DefaultExternalLibraryDependency
+            11                            : DefaultExternalLibraryDependency
                 file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            23                            : DefaultExternalLibraryDependency
+            12                            : DefaultExternalLibraryDependency
                 file                          : <M2>/junit/junit/4.12/junit-4.12.jar
                 source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            24                            : DefaultExternalLibraryDependency
+            13                            : DefaultExternalLibraryDependency
                 file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
                 source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-            25                            : DefaultExternalLibraryDependency
+            14                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            26                            : DefaultExternalLibraryDependency
+            15                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
+            16                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
+            17                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+            18                            : DefaultExternalLibraryDependency
                 file                          : <M2>/junit/junit/4.12/junit-4.12.jar
                 source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            27                            : DefaultExternalLibraryDependency
+            19                            : DefaultExternalLibraryDependency
+                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
+            20                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
+            21                            : DefaultExternalLibraryDependency
+                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
+                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
+            22                            : DefaultExternalLibraryDependency
                 file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            28                            : DefaultExternalLibraryDependency
+            23                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+            24                            : DefaultExternalLibraryDependency
+                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
+                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
+            25                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
+            26                            : DefaultExternalLibraryDependency
                 file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
@@ -2772,10 +2767,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
-                    - dependencies                : 7
-                    - dependencies                : 8
-                    - dependencies                : 9
-                    - dependencies                : 10
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2785,10 +2776,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 7
-                    - regularDependencies         : 8
-                    - regularDependencies         : 9
-                    - regularDependencies         : 10
                     - resourceDirs                : <ROOT>/module2/src/androidDebug/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/debug/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidDebug/kotlin [-]
@@ -2801,11 +2788,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - platforms                   : ANDROID
                     - allDependsOnSourceSets      : commonMain
                     - declaredDependsOnSourceSets : commonMain
-                    - dependencies                : 7
-                    - dependencies                : 8
-                    - dependencies                : 9
-                    - dependencies                : 14
-                    - dependencies                : 15
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2815,11 +2797,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 7
-                    - regularDependencies         : 8
-                    - regularDependencies         : 9
-                    - regularDependencies         : 14
-                    - regularDependencies         : 15
                     - resourceDirs                : <ROOT>/module2/src/androidMain/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/main/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidMain/kotlin [-]
@@ -2862,14 +2839,14 @@ MODULE                        : kotlinMultiPlatform.module2
                 - declaredSourceSets          : commonMain (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidDebug (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 1
+                - dependencies                : 2
+                - dependencies                : 3
+                - dependencies                : 4
+                - dependencies                : 5
+                - dependencies                : 6
                 - dependencies                : 7
                 - dependencies                : 8
-                - dependencies                : 9
-                - dependencies                : 10
-                - dependencies                : 16
-                - dependencies                : 17
-                - dependencies                : 18
-                - dependencies                : 19
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -2893,7 +2870,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2913,13 +2890,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 1
-                    - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2929,12 +2900,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
                     - resourceDirs                : <ROOT>/module2/src/androidDebugAndroidTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
                     platform                      : ANDROID
@@ -2947,13 +2912,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
                     - declaredDependsOnSourceSets : commonTest
-                    - dependencies                : 1
-                    - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2963,12 +2922,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
                     - resourceDirs                : <ROOT>/module2/src/androidAndroidTest/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidAndroidTest/kotlin
@@ -2982,7 +2935,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3042,20 +2995,20 @@ MODULE                        : kotlinMultiPlatform.module2
                 - declaredSourceSets          : androidDebugAndroidTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidAndroidTestDebug (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 1
-                - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
-                - dependencies                : 6
+                - dependencies                : 9
+                - dependencies                : 10
+                - dependencies                : 11
+                - dependencies                : 12
+                - dependencies                : 13
+                - dependencies                : 14
+                - dependencies                : 15
+                - dependencies                : 16
+                - dependencies                : 17
+                - dependencies                : 18
+                - dependencies                : 19
                 - dependencies                : 20
-                - dependencies                : 21
-                - dependencies                : 22
-                - dependencies                : 23
-                - dependencies                : 24
-                - dependencies                : 25
                 disambiguationClassifier      : android
-                isTestModule                  : true
+                isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -3079,13 +3032,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 1
-                    - dependencies                : 11
-                    - dependencies                : 12
-                    - dependencies                : 13
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3095,12 +3042,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 11
-                    - regularDependencies         : 12
-                    - regularDependencies         : 13
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
                     - resourceDirs                : <ROOT>/module2/src/androidDebugUnitTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidDebugUnitTest/kotlin [-]
                     platform                      : ANDROID
@@ -3112,13 +3053,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
                     - declaredDependsOnSourceSets : commonTest
-                    - dependencies                : 1
-                    - dependencies                : 11
-                    - dependencies                : 12
-                    - dependencies                : 13
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3128,12 +3063,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 11
-                    - regularDependencies         : 12
-                    - regularDependencies         : 13
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
                     - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/test/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidTest/kotlin
@@ -3148,13 +3077,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 1
-                    - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3164,12 +3087,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
                     - resourceDirs                : <ROOT>/module2/src/androidTestDebug/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/testDebug/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/kotlin [-]
@@ -3221,20 +3138,20 @@ MODULE                        : kotlinMultiPlatform.module2
                 - declaredSourceSets          : androidDebugUnitTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidTestDebug (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 1
-                - dependencies                : 11
-                - dependencies                : 12
+                - dependencies                : 9
+                - dependencies                : 21
+                - dependencies                : 22
+                - dependencies                : 23
                 - dependencies                : 13
-                - dependencies                : 5
-                - dependencies                : 6
-                - dependencies                : 20
-                - dependencies                : 26
-                - dependencies                : 27
-                - dependencies                : 28
+                - dependencies                : 14
+                - dependencies                : 15
                 - dependencies                : 24
                 - dependencies                : 25
+                - dependencies                : 26
+                - dependencies                : 19
+                - dependencies                : 20
                 disambiguationClassifier      : android
-                isTestModule                  : true
+                isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>

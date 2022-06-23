@@ -1048,8 +1048,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>
-            VersionString                 : <KOTLIN_SDK_VERSION>
+            HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1124,8 +1123,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>
-            VersionString                 : <KOTLIN_SDK_VERSION>
+            HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test

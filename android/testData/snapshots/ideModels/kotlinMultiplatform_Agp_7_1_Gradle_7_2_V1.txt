@@ -2983,7 +2983,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - platforms                   : COMMON
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3009,7 +3009,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 4
                     - dependencies                : 5
                     - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3043,7 +3043,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 4
                     - dependencies                : 5
                     - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3072,7 +3072,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3145,7 +3145,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 24
                 - dependencies                : 25
                 disambiguationClassifier      : android
-                isTestModule                  : true
+                isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -3175,7 +3175,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 13
                     - dependencies                : 5
                     - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3208,7 +3208,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 13
                     - dependencies                : 5
                     - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3244,7 +3244,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 4
                     - dependencies                : 5
                     - dependencies                : 6
-                    isTestModule                  : true
+                    isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3324,7 +3324,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 24
                 - dependencies                : 25
                 disambiguationClassifier      : android
-                isTestModule                  : true
+                isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
