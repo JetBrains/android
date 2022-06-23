@@ -35,7 +35,7 @@ import java.nio.file.Paths
 bazel test [target]  \
    --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
    --sandbox_writable_path=$(bazel info workspace) \
-   --spawn_strategy=local \
+   --test_strategy=standalone \
    --nocache_test_results \
    --test_timeout=6000
 ```
