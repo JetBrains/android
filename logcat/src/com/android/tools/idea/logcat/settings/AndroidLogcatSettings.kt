@@ -23,7 +23,8 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 private const val DEFAULT_BUFFER_SIZE = 1024 * 1024
-private const val DEFAULT_FILTER = LogcatFilter.MY_PACKAGE
+// Append a space at the end so user can press Ctrl+Space to get completions
+private const val DEFAULT_FILTER = "${LogcatFilter.MY_PACKAGE} "
 
 @State(name = "AndroidLogcatSettings", storages = [Storage("androidLogcatSettings.xml")])
 internal data class AndroidLogcatSettings(

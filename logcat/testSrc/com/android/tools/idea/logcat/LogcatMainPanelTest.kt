@@ -511,7 +511,7 @@ class LogcatMainPanelTest {
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isInstanceOf(ProjectAppFilter::class.java)
-    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine ")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isFalse()
   }
 

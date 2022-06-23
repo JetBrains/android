@@ -47,6 +47,8 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
+import com.intellij.ui.GotItTooltip
+import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
 import com.intellij.ui.JBColor.BLUE
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
@@ -67,6 +69,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.net.URL
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.LINE_AXIS
@@ -107,6 +110,12 @@ private val HISTORY_ICON_BORDER = JBUI.Borders.empty(0, 5, 0, 4)
 private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
 
 private val NAMED_FILTER_HISTORY_ITEM_COLOR = SimpleTextAttributes.fromTextAttributes(TextAttributes(BLUE, null, null, null, Font.PLAIN))
+
+private const val GOT_IT_ID = "filter.tip"
+
+private val LOGCAT_FILTER_HELP_URL = URL(
+  "https://developer.android.com/studio/preview/features" +
+  "?utm_source=android-studio-2021-3-1&utm_medium=studio-assistant-preview#logcat-search")
 
 /**
  * A text field for the filter.
@@ -192,6 +201,12 @@ internal class FilterTextField(
         }
       })
       addFocusListener(object : FocusAdapter() {
+        override fun focusGained(e: FocusEvent?) {
+          GotItTooltip(GOT_IT_ID, LogcatBundle.message("logcat.filter.hint"), project)
+            .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), LOGCAT_FILTER_HELP_URL)
+            .show(textField, BOTTOM_LEFT)
+        }
+
         override fun focusLost(e: FocusEvent?) {
           addToHistory()
         }
