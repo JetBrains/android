@@ -104,6 +104,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
 
     init {
+      templatePresentation.isHideGroupIfEmpty = true
       val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
       val colorBlindEnabled = StudioFlags.COMPOSE_COLORBLIND_MODE.get()
       if (blueprintEnabled || colorBlindEnabled) {
@@ -127,8 +128,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         )
       }
     }
-
-    override fun hideIfNoVisibleChildren() = true
 
     override fun createCustomComponent(presentation: Presentation, place: String) =
       ActionButtonWithToolTipDescription(this, presentation, place).apply {

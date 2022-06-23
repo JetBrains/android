@@ -72,13 +72,12 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
   }
 
   init {
+    templatePresentation.isHideGroupIfEmpty = true
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
     }
   }
-
-  override fun hideIfNoVisibleChildren(): Boolean = true
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
