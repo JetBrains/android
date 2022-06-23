@@ -17,19 +17,18 @@ package com.android.tools.idea.logcat.testing
 
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceList
+import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
+import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.adblib.testing.FakeAdbHostServices
 import com.android.tools.idea.logcat.devices.Device
-
-private const val PROP_RELEASE = "ro.build.version.release"
-private const val PROP_SDK = "ro.build.version.sdk"
-private const val PROP_MANUFACTURER = "ro.product.manufacturer"
-private const val PROP_MODEL = "ro.product.model"
-private const val PROP_AVD_NAME = "ro.boot.qemu.avd_name"
-private const val PROP_AVD_NAME_PRE_31 = "ro.kernel.qemu.avd_name"
 
 internal class TestDevice(
   val serialNumber: String,
@@ -50,12 +49,12 @@ internal class TestDevice(
   }
 
   private val properties = mapOf(
-    PROP_RELEASE to "$release",
-    PROP_SDK to "$sdk",
-    PROP_MANUFACTURER to manufacturer,
-    PROP_MODEL to model,
-    PROP_AVD_NAME to avdName,
-    PROP_AVD_NAME_PRE_31 to avdNamePre31,
+    RO_BUILD_VERSION_RELEASE to "$release",
+    RO_BUILD_VERSION_SDK to "$sdk",
+    RO_PRODUCT_MANUFACTURER to manufacturer,
+    RO_PRODUCT_MODEL to model,
+    RO_BOOT_QEMU_AVD_NAME to avdName,
+    RO_KERNEL_QEMU_AVD_NAME to avdNamePre31,
   )
 
   // Return a new TestDevice with a different serial number
@@ -75,25 +74,25 @@ private fun String.isEmulatorSerial() = startsWith("emulator") || isBlank()
 internal fun FakeAdbDeviceServices.setupCommandsForDevice(testDevice: TestDevice) {
   configureProperties(
     testDevice,
-    PROP_RELEASE,
-    PROP_SDK,
-    PROP_MANUFACTURER,
-    PROP_MODEL,
+    RO_BUILD_VERSION_RELEASE,
+    RO_BUILD_VERSION_SDK,
+    RO_PRODUCT_MANUFACTURER,
+    RO_PRODUCT_MODEL,
   )
   configureProperties(
     testDevice,
-    PROP_RELEASE,
-    PROP_SDK,
+    RO_BUILD_VERSION_RELEASE,
+    RO_BUILD_VERSION_SDK,
   )
   if (testDevice.device.isEmulator) {
     configureProperties(
       testDevice,
-      PROP_RELEASE,
-      PROP_SDK,
-      PROP_AVD_NAME,
-      PROP_AVD_NAME_PRE_31,
+      RO_BUILD_VERSION_RELEASE,
+      RO_BUILD_VERSION_SDK,
+      RO_BOOT_QEMU_AVD_NAME,
+      RO_KERNEL_QEMU_AVD_NAME,
     )
-    configureProperties(testDevice, PROP_AVD_NAME, PROP_AVD_NAME_PRE_31)
+    configureProperties(testDevice, RO_BOOT_QEMU_AVD_NAME, RO_KERNEL_QEMU_AVD_NAME)
   }
 }
 

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -74,8 +78,8 @@ internal data class LogcatPanelConfig(
           Device.createEmulator(
             oldDevice.serialNumber,
             isOnline = false,
-            oldDevice.properties["ro.build.version.release"]?.toIntOrNull() ?: 0,
-            oldDevice.properties["ro.build.version.sdk"]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_BUILD_VERSION_RELEASE]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
             oldDevice.avdName,
           )
         }
@@ -83,10 +87,10 @@ internal data class LogcatPanelConfig(
           Device.createPhysical(
             oldDevice.serialNumber,
             isOnline = false,
-            oldDevice.properties["ro.build.version.release"]?.toIntOrNull() ?: 0,
-            oldDevice.properties["ro.build.version.sdk"]?.toIntOrNull() ?: 0,
-            oldDevice.properties["ro.product.manufacturer"] ?: "",
-            oldDevice.properties["ro.product.model"] ?: "",
+            oldDevice.properties[RO_BUILD_VERSION_RELEASE]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_PRODUCT_MANUFACTURER] ?: "",
+            oldDevice.properties[RO_PRODUCT_MODEL] ?: "",
           )
         }
 

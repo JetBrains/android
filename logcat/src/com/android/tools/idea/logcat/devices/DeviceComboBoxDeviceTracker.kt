@@ -17,6 +17,12 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.AdbLibSession
 import com.android.adblib.DeviceInfo
+import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
+import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.shellAsText
@@ -38,13 +44,6 @@ import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
-
-private const val PROP_RELEASE = "ro.build.version.release"
-private const val PROP_SDK = "ro.build.version.sdk"
-private const val PROP_MANUFACTURER = "ro.product.manufacturer"
-private const val PROP_MODEL = "ro.product.model"
-private const val PROP_AVD_NAME = "ro.boot.qemu.avd_name"
-private const val PROP_AVD_NAME_PRE_31 = "ro.kernel.qemu.avd_name"
 
 private val ADB_TIMEOUT = Duration.ofMillis(1000)
 
@@ -116,11 +115,11 @@ internal class DeviceComboBoxDeviceTracker(
               existingDevice.copy(isOnline = true, serialNumber = serialNumber)
             }
             else {
-              val properties = deviceInfo.getProperties(PROP_RELEASE, PROP_SDK)
+              val properties = deviceInfo.getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK)
               existingDevice.copy(
                 isOnline = true,
-                release = properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
-                sdk = properties.getValue(PROP_SDK).toIntOrNull() ?: 0)
+                release = properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
+                sdk = properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0)
 
             }
             onlineDevicesBySerial[serialNumber] = copy
@@ -149,35 +148,35 @@ internal class DeviceComboBoxDeviceTracker(
 
   private suspend fun DeviceInfo.toDevice(): Device {
     if (serialNumber.startsWith("emulator-")) {
-      val properties = getProperties(PROP_RELEASE, PROP_SDK, PROP_AVD_NAME, PROP_AVD_NAME_PRE_31)
+      val properties = getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK, RO_BOOT_QEMU_AVD_NAME, RO_KERNEL_QEMU_AVD_NAME)
       return Device.createEmulator(
         serialNumber,
         isOnline = true,
-        properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
-        properties.getValue(PROP_SDK).toIntOrNull() ?: 0,
+        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
         getAvdName(properties))
     }
     else {
-      val properties = getProperties(PROP_RELEASE, PROP_SDK, PROP_MANUFACTURER, PROP_MODEL)
+      val properties = getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK, RO_PRODUCT_MANUFACTURER, RO_PRODUCT_MODEL)
       return Device.createPhysical(
         serialNumber,
         isOnline = true,
-        properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
-        properties.getValue(PROP_SDK).toIntOrNull() ?: 0,
-        properties.getValue(PROP_MANUFACTURER),
-        properties.getValue(PROP_MODEL))
+        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
+        properties.getValue(RO_PRODUCT_MANUFACTURER),
+        properties.getValue(RO_PRODUCT_MODEL))
     }
   }
 
   private fun DeviceInfo.getAvdName(properties: Map<String, String>): String =
-    properties.getValue(PROP_AVD_NAME).ifBlank { properties.getValue(PROP_AVD_NAME_PRE_31) }.ifBlank {
+    properties.getValue(RO_BOOT_QEMU_AVD_NAME).ifBlank { properties.getValue(RO_KERNEL_QEMU_AVD_NAME) }.ifBlank {
       LOGGER.warn("Emulator has no avd_name property")
       serialNumber
     }
 
   private suspend fun DeviceInfo.getDeviceId(): String {
     return when {
-      serialNumber.startsWith("emulator-") -> getAvdName(getProperties(PROP_AVD_NAME, PROP_AVD_NAME_PRE_31))
+      serialNumber.startsWith("emulator-") -> getAvdName(getProperties(RO_BOOT_QEMU_AVD_NAME, RO_KERNEL_QEMU_AVD_NAME))
       else -> serialNumber
     }
   }

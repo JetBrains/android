@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.actions.screenrecord
 
 import com.android.adblib.AdbLibSession
 import com.android.adblib.CoroutineScopeCache.Key
+import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.adblib.DeviceSelector
 import com.android.adblib.deviceCache
 import com.android.adblib.shellAsText
@@ -73,7 +74,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   }
 
   private suspend fun isWatch(serialNumber: String): Boolean {
-    val out = execute(serialNumber, "getprop ro.build.characteristics")
+    val out = execute(serialNumber, "getprop $RO_BUILD_CHARACTERISTICS")
     return out.trim().split(",").contains("watch")
   }
 
