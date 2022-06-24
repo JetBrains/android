@@ -122,12 +122,10 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -402,7 +400,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (lib1 != lib2) {
       return lib1 ? 1 : -1;
     }
-    return p1.compareTo(p2);
+    return 0;
   };
 
   private void recordLocationReferences(@NotNull Node node, @NotNull Set<File> files) {
@@ -456,15 +454,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     }
   }
 
-  public void updateDetails(@Nullable ManifestTreeNode node) {
+  private void updateDetails(@Nullable ManifestTreeNode node) {
     Node manifestNode = node != null ? node.getUserObject() : null;
     HtmlBuilder sb = prepareHtmlReport(manifestNode);
     myDetails.setText(sb.getHtml());
     myDetails.setCaretPosition(0);
   }
 
-  @VisibleForTesting
-  public @NotNull HtmlBuilder prepareHtmlReport(@Nullable Node node) {
+  private @NotNull HtmlBuilder prepareHtmlReport(@Nullable Node node) {
     HtmlBuilder sb = new HtmlBuilder();
     prepareReportHeader(sb);
 
@@ -508,8 +505,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     }
   }
 
-  @VisibleForTesting
-  public void prepareSelectedNodeReport(@NotNull Node manifestNode, @NotNull HtmlBuilder sb) {
+  private void prepareSelectedNodeReport(@NotNull Node manifestNode, @NotNull HtmlBuilder sb) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, manifestNode);
     sb.beginUnderline().beginBold();
     sb.add("Merging Log");
