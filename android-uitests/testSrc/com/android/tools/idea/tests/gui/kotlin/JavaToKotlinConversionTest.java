@@ -84,6 +84,7 @@ public class JavaToKotlinConversionTest {
     //Need to add gradle wait time
     guiTest.waitForBackgroundTasks();
 
+    //Changing Kotlin version according to build file
     ConversionTestUtil.changeKotlinVersionForSimpleApplication(guiTest);
 
     // Doing it twice because after the first time we have only added Kotlin support to the project
@@ -95,20 +96,24 @@ public class JavaToKotlinConversionTest {
      *  this conversion. Do you want to find such code and correct it too?'
      */
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
-      .withTimeout(SECONDS.toMillis(120)).using(guiTest.robot());
+      .withTimeout(SECONDS.toMillis(300)).using(guiTest.robot());
 
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
+    guiTest.waitForBackgroundTasks();
+
     EditorFixture editor = ideFrameFixture.getEditor();
 
-    Wait.seconds(20).expecting("Wait for kt file is generated.")
+    Wait.seconds(60).expecting("Wait for kt file is generated.")
       .until(() -> "MyActivity.kt".equals(editor.getCurrentFileName()));
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(240), "Build", "Rebuild Project");
+    guiTest.waitForBackgroundTasks();
+
+    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project");
   }
 
   private static void openJavaAndPressConvertToKotlin(@NotNull IdeFrameFixture ideFrameFixture) {
