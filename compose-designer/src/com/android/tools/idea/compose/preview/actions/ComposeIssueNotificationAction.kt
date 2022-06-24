@@ -21,7 +21,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -192,10 +191,12 @@ private sealed class ComposePreviewStatusNotification(
 
 private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
   val previewStatus = status()
-  val fastPreviewEnabled = FastPreviewManager.getInstance(project).isEnabled
+  val fastPreviewEnabled = project.fastPreviewManager.isEnabled
   return when {
-    // No Fast Preview and Preview is out of date
-    !fastPreviewEnabled && previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
+    // No Fast Preview and Preview is out of date (only when is user disabled)
+    !fastPreviewEnabled &&
+    !project.fastPreviewManager.isAutoDisabled &&
+    previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
 
     // Refresh status
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
@@ -211,7 +212,7 @@ private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePrevie
     previewStatus.hasSyntaxErrors -> ComposePreviewStatusNotification.SyntaxError
 
     // Fast preview refresh/failures
-    fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
+    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
     fastPreviewEnabled && project.fastPreviewManager.isCompiling -> ComposePreviewStatusNotification.FastPreviewCompiling
 
     // Up-to-date
@@ -266,6 +267,44 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
   }
 
 /**
+ * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for things like the current editor.
+ */
+@VisibleForTesting
+fun defaultCreateInformationPopup(
+  project: Project,
+  composePreviewManager: ComposePreviewManager,
+  dataContext: DataContext): InformationPopup {
+  return composePreviewManager.getStatusInfo(project).let {
+    val isAutoDisabled = it is ComposePreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
+    return@let InformationPopup(
+      null,
+      it.description,
+      listOfNotNull(
+        StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }
+      ),
+      listOfNotNull(
+        actionLink(
+          message("action.build.and.refresh.title")
+            .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
+          BuildAndRefresh(composePreviewManager), dataContext),
+        if (isAutoDisabled)
+          actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), dataContext)
+        else null,
+        if (isAutoDisabled)
+          actionLink(message("fast.preview.disabled.notification.stop.autodisable.action.title"), ReEnableFastPreview(false), dataContext)
+        else null,
+        if (it is ComposePreviewStatusNotification.FastPreviewFailed)
+          actionLink(message("fast.preview.disabled.notification.show.details.action.title"), ShowEventLogAction(), dataContext)
+        else null
+      )).also { newPopup ->
+      // Register the data provider of the popup to be the same as the one used in the toolbar. This allows for actions within the
+      // popup to query for things like the Editor even when the Editor is not directly related to the popup.
+      DataManager.registerDataProvider(newPopup.component()) { dataId -> dataContext.getData(dataId) }
+    }
+  }
+}
+
+/**
  * Action that reports the current state of the Compose Preview. Local issues for a given preview are reported as part of the preview itself
  * and not in this action.
  * This action reports:
@@ -275,8 +314,9 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
  * Clicking on the action will open a pop-up with additional details and action buttons.
  */
 @VisibleForTesting
-class ComposeIssueNotificationAction : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
-  /**
+class ComposeIssueNotificationAction(
+  private val createInformationPopup: (Project, ComposePreviewManager, DataContext) -> InformationPopup = ::defaultCreateInformationPopup)
+  : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {  /**
    * [Alarm] used to trigger the popup as a hint.
    */
   private val popupAlarm = Alarm()
@@ -373,37 +413,9 @@ class ComposeIssueNotificationAction : AnAction(), RightAlignedToolbarAction, Cu
     popupAlarm.cancelAllRequests()
     val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
-    composePreviewManager.getStatusInfo(project).let {
-      val isAutoDisabled = it is ComposePreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
-      popup = InformationPopup(
-        null,
-        it.description,
-        listOfNotNull(
-          StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }
-        ),
-        listOfNotNull(
-          actionLink(
-            message("action.build.and.refresh.title")
-              .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
-            BuildAndRefresh(composePreviewManager), e.dataContext),
-          if (isAutoDisabled)
-            actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), e.dataContext)
-          else null,
-          if (isAutoDisabled)
-            actionLink(message("fast.preview.disabled.notification.stop.autodisable.action.title"), ReEnableFastPreview(false),
-                       e.dataContext)
-          else null,
-          if (it is ComposePreviewStatusNotification.FastPreviewFailed)
-            actionLink(message("fast.preview.disabled.notification.show.details.action.title"), ShowEventLogAction(), e.dataContext)
-          else null
-        )).also { newPopup ->
-        // Register the data provider of the popup to be the same as the one used in the toolbar. This allows for actions within the
-        // popup to query for things like the Editor even when the Editor is not directly related to the popup.
-        DataManager.registerDataProvider(newPopup.component()) { dataId -> e.dataContext.getData(dataId) }
-
-        Disposer.register(this, newPopup)
-        newPopup.showPopup(e.inputEvent)
-      }
+    popup = createInformationPopup(project, composePreviewManager, e.dataContext).also { newPopup ->
+      Disposer.register(this, newPopup)
+      newPopup.showPopup(e.inputEvent)
     }
   }
 
