@@ -112,7 +112,7 @@
         "com.github.benmanes.gradle.versions.VersionsPlugin"
       ],
       "pluginArtifact": "com.github.ben-manes:gradle-versions-plugin",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "0.42.0"
     },
     {
       "name": "de.undercouch.download",
@@ -248,7 +248,7 @@
         "de.fayard.refreshVersions."
       ],
       "pluginArtifact": "de.fayard.refreshVersions:refreshVersions",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "0.40.1"
     },
     {
       "name": "org.jetbrains.intellij",
@@ -257,6 +257,54 @@
       ],
       "pluginArtifact": "org.jetbrains.intellij.plugins:gradle-intellij-plugin",
       "configurationCachingCompatibleFrom": "1.1.4"
+    },
+    {
+      "name": "com.newrelic.agent.android",
+      "pluginClasses": [
+        "com.newrelic.agent.android.NewRelicGradlePlugin"
+      ],
+      "pluginArtifact": "com.newrelic.agent.android:agent-gradle-plugin",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "com.jaredsburrows.spoon",
+      "pluginClasses": [
+        "com.jaredsburrows.spoon.SpoonPlugin"
+      ],
+      "pluginArtifact": "com.jaredsburrows:gradle-spoon-plugin",
+      "configurationCachingCompatibleFrom": "1.6.0"
+    },
+    {
+      "name": "com.github.sherter.google-java-format",
+      "pluginClasses": [
+        "com.github.sherter.googlejavaformatgradleplugin.GoogleJavaFormatPlugin"
+      ],
+      "pluginArtifact": "gradle.plugin.com.github.sherter.google-java-format:google-java-format-gradle-plugin",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "com.alibaba.arouter",
+      "pluginClasses": [
+        "com.alibaba.android.arouter.register.launch.PluginLaunch"
+      ],
+      "pluginArtifact": "com.alibaba:arouter-register",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "ru.vyarus.animalsniffer",
+      "pluginClasses": [
+        "ru.vyarus.gradle.plugin.animalsniffer.AnimalSnifferPlugin"
+      ],
+      "pluginArtifact": "ru.vyarus:gradle-animalsniffer-plugin",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "de.mannodermaus.android-junit5",
+      "pluginClasses": [
+        "de.mannodermaus.gradle.plugins.junit5.AndroidJUnitPlatformPlugin"
+      ],
+      "pluginArtifact": "de.mannodermaus.gradle.plugins:android-junit5",
+      "configurationCachingCompatibleFrom": "1.8.2.1"
     }
   ],
   "pluginEntryTemplate": {
