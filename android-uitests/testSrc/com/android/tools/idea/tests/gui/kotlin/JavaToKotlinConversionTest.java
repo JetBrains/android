@@ -27,6 +27,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Wait;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,6 +66,7 @@ public class JavaToKotlinConversionTest {
    *   </pre>
    * <p>
    */
+
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
@@ -79,7 +81,10 @@ public class JavaToKotlinConversionTest {
     ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
       .clickOkAndWaitDialogDisappear();
 
+    //Need to add gradle wait time
     guiTest.waitForBackgroundTasks();
+
+    ConversionTestUtil.changeKotlinVersionForSimpleApplication(guiTest);
 
     // Doing it twice because after the first time we have only added Kotlin support to the project
     openJavaAndPressConvertToKotlin(ideFrameFixture);
@@ -91,6 +96,7 @@ public class JavaToKotlinConversionTest {
      */
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
       .withTimeout(SECONDS.toMillis(120)).using(guiTest.robot());
+
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
     EditorFixture editor = ideFrameFixture.getEditor();
@@ -100,10 +106,7 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
-    ConversionTestUtil.changeKotlinVersion(guiTest);
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
-
-    guiTest.waitForBackgroundTasks();
 
     ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(240), "Build", "Rebuild Project");
   }
