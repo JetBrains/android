@@ -79,8 +79,10 @@ public class JavaDepTest {
 
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, "App", "app")
-      .openFromMenu(ProjectStructureDialogFixture.Companion::find, "Open Module Settings");
+      .clickPath(RIGHT_BUTTON, "App", "app");
+
+    guiTest.waitForBackgroundTasks();
+    ideFrame.invokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =
