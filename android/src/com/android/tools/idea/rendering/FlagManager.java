@@ -85,28 +85,6 @@ public class FlagManager {
   @Nullable
   public Icon getFlag(@Nullable String language, @Nullable String region) {
     assert region != null || language != null;
-    if (region == null || region.isEmpty()) {
-      // Look up the region for a given language
-      assert language != null;
-
-      if (!showFlagsForLanguages()) {
-        return null;
-      }
-
-      // Special cases where we have a dedicated flag available:
-      if (language.equals("ca")) {        //$NON-NLS-1$
-        return getIcon("catalonia");      //$NON-NLS-1$
-      }
-      else if (language.equals("gd")) { //$NON-NLS-1$
-        return getIcon("scotland");     //$NON-NLS-1$
-      }
-      else if (language.equals("cy")) { //$NON-NLS-1$
-        return getIcon("wales");        //$NON-NLS-1$
-      }
-
-      // Pick based on various heuristics
-      region = LocaleManager.getLanguageRegion(language);
-    }
 
     if (region == null || region.isEmpty() || region.length() == 3) {
       // No country specified, and the language is for a country we
@@ -115,10 +93,6 @@ public class FlagManager {
     }
 
     return getIcon(region);
-  }
-
-  public static boolean showFlagsForLanguages() {
-    return AndroidEditorAppearanceSettings.Companion.getInstance().getState().getEnableFlagsForLanguages();
   }
 
   /**

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import com.android.tools.idea.rendering.AndroidEditorAppearanceSettings;
 import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,7 +28,6 @@ import javax.swing.*;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
   public void testFlagIcons() throws Exception {
-    AndroidEditorAppearanceSettings.Companion.getInstance().getState().setEnableFlagsForLanguages(false);
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
     checkIcon("res/layout-land/file.xml", null);
@@ -37,13 +35,6 @@ public class AndroidIconProviderTest extends AndroidTestCase {
     checkIcon("res/values-no-rNO/strings.xml", "NO");
     checkIcon("res/values-en-rUS/strings.xml", "US");
     checkIcon("res/values-en-rGB/strings.xml", "GB");
-  }
-
-  public void testFlagForLanguageEnabled() throws Exception {
-    AndroidEditorAppearanceSettings.Companion.getInstance().getState().setEnableFlagsForLanguages(true);
-    checkIcon("res/layout-land/file.xml", null);
-    checkIcon("res/values-no/strings.xml", "NO");
-    checkIcon("res/values-en-rUS/strings.xml", "US");
   }
 
   private void checkIcon(@NotNull String path, @Nullable String region) throws Exception {

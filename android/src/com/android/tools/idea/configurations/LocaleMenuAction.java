@@ -172,8 +172,7 @@ public class LocaleMenuAction extends DropDownAction {
       // Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      presentation.setIcon(
-        locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? FlagManager.getFlagImage(locale) : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
       String brief = Locale.getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
@@ -192,8 +191,7 @@ public class LocaleMenuAction extends DropDownAction {
     public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
-      super(renderContext, title,
-            !isCurrentLocale && FlagManager.showFlagsForLanguages() && locale != Locale.ANY ? FlagManager.getFlagImage(locale) : null);
+      super(renderContext, title, null);
       myLocale = locale;
       myIsCurrentLocale = isCurrentLocale;
     }

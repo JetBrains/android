@@ -45,11 +45,7 @@ final class LocaleRenderer implements TableCellRenderer {
     if (component instanceof JLabel && model instanceof StringResourceTableModel) {
       Locale locale = ((StringResourceTableModel)model).getLocale(table.convertColumnIndexToModel(column));
       assert locale != null;
-      if (FlagManager.showFlagsForLanguages()) {
-        ((JLabel)component).setIcon(FlagManager.getFlagImage(locale));
-      } else {
-        ((JLabel)component).setIcon(null);
-      }
+      ((JLabel)component).setIcon(FlagManager.getFlagImage(locale));
     }
 
     return component;

@@ -69,42 +69,6 @@ public class FlagManagerTest {
 
     assertSame(us, manager.getFlagForFolderName("values-en-rUS"));
     assertSame(gb, manager.getFlagForFolderName("values-en-rGB"));
-
-    if (!FlagManager.showFlagsForLanguages()) {
-      return;
-    }
-    Locale.setDefault(Locale.US);
-    assertSame(us, manager.getFlag("en", null));
-    Locale.setDefault(Locale.UK);
-    assertSame(gb, manager.getFlag("en", null));
-    Locale.setDefault(Locale.CANADA);
-    assertSame(ca, manager.getFlag("en", null));
-    assertSame(manager.getFlag("NO"), manager.getFlag("nb", null));
-    assertSame(manager.getFlag("FR"), manager.getFlag("fr", null));
-    Locale.setDefault(Locale.US);
-    assertSame(manager.getFlag("FR"), manager.getFlag("fr", null));
-
-    Locale.setDefault(new Locale("pt", "br"));
-    assertSame(br, manager.getFlag("pt", null));
-    assertSame(pt, manager.getFlag("pt", "PT"));
-    Locale.setDefault(new Locale("pt", "pt"));
-    assertSame(pt, manager.getFlag("pt", null));
-    assertSame(br, manager.getFlag("pt", "BR"));
-
-    // Special cases where we have custom flags
-    assertNotSame(gb, manager.getFlag("cy", null)); // Wales
-    assertNotSame(es, manager.getFlag("ca", null)); // Catalonia
-
-    // Aliases - http://developer.android.com/reference/java/util/Locale.html
-    assertSame(manager.getFlag("yi", null), manager.getFlag("ji", null));
-    assertSame(manager.getFlag("in", null), manager.getFlag("id", null));
-    assertSame(manager.getFlag("iw", null), manager.getFlag("he", null));
-    assertSame(LocaleManager.getLanguageName("iw"), LocaleManager.getLanguageName("he"));
-    assertSame(LocaleManager.getLanguageName("in"), LocaleManager.getLanguageName("id"));
-    assertSame(LocaleManager.getLanguageName("yi"), LocaleManager.getLanguageName("ji"));
-
-    Locale.setDefault(Locale.CANADA);
-    assertSame(ca, manager.getFlagForFolderName("values-en"));
   }
 
   @Test
