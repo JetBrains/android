@@ -74,6 +74,9 @@ public class IdeaTestSuiteBase {
     // On bazel we pack each directory in a jar, so we have to tell IJ explicitely that we are still "in directory mode"
     System.setProperty("resolve.descriptors.in.resources", "true");
 
+    // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
+    System.setProperty("kotlin.script.classpath", "");
+
     setRealJdkPathForGradle();
   }
 
