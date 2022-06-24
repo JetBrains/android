@@ -20,12 +20,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import com.intellij.util.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -71,7 +73,7 @@ public class DisposerExplorer {
 
   @NotNull
   private static Object getTreeLock() {
-    return getFieldValue(Disposer.getTree(), "treeLock");
+    return invokeNoArgumentsMethod(Disposer.getTree(), "getTreeLock");
   }
 
   /**
@@ -277,6 +279,16 @@ public class DisposerExplorer {
       Field field = object.getClass().getDeclaredField(fieldName);
       field.setAccessible(true);
       return (T)field.get(object);
+    }
+    catch (ReflectiveOperationException e) {
+      throw new Error(e); // Should not happen unless there is a bug in this class.
+    }
+  }
+  private static <T> T invokeNoArgumentsMethod(@NotNull Object object, @NotNull String name) {
+    try {
+      Method method = ReflectionUtil.getDeclaredMethod(object.getClass(), name);
+      method.setAccessible(true);
+      return (T)method.invoke(object);
     }
     catch (ReflectiveOperationException e) {
       throw new Error(e); // Should not happen unless there is a bug in this class.
