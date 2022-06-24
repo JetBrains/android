@@ -52,6 +52,7 @@
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.inspections" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.formatter" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
