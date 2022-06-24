@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -26,16 +27,20 @@ import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.IconButton;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.LaunchOrStopButtonTableCellEditor.SetEnabled;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchOrStopValue;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
 import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
@@ -44,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
@@ -56,14 +63,24 @@ public final class LaunchOrStopButtonTableCellEditorTest {
   @Test
   public void onSuccessDeviceIsOnline() throws InterruptedException {
     // Arrange
-    Mockito.when(myConnection.stopAvdAsync(myAvd)).thenReturn(Futures.immediateVoidFuture());
+    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
+
+    DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
+    Mockito.when(bridge.findDevice(null, key)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+
     CountDownLatch latch = new CountDownLatch(1);
+    EmulatorConsole console = Mockito.mock(EmulatorConsole.class);
     CellEditorListener listener = Mockito.mock(CellEditorListener.class);
-
-    myEditor = new LaunchOrStopButtonTableCellEditor(null, () -> myConnection, (editor) -> newSetEnabled(editor, latch));
-    myEditor.addCellEditorListener(listener);
-
     JTable table = DeviceTables.mock(TestVirtualDevices.onlinePixel5Api31(myAvd));
+
+    myEditor = new LaunchOrStopButtonTableCellEditor(null,
+                                                     bridge,
+                                                     editor -> newSetEnabled(editor, latch),
+                                                     device -> console,
+                                                     AvdManagerConnection::getDefaultAvdManagerConnection,
+                                                     VirtualTabMessages::showErrorDialog);
+
+    myEditor.addCellEditorListener(listener);
     myEditor.getTableCellEditorComponent(table, LaunchOrStopValue.INSTANCE, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
@@ -74,6 +91,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     // Assert
     CountDownLatchAssert.await(latch);
 
+    Mockito.verify(console).kill();
     assertTrue(button.isEnabled());
     Mockito.verify(listener).editingCanceled(myEditor.getChangeEvent());
   }
@@ -81,12 +99,17 @@ public final class LaunchOrStopButtonTableCellEditorTest {
   @Test
   public void onSuccess() throws InterruptedException {
     // Arrange
-    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
     CountDownLatch latch = new CountDownLatch(1);
+    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
     CellEditorListener listener = Mockito.mock(CellEditorListener.class);
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
 
-    myEditor = new LaunchOrStopButtonTableCellEditor(null, () -> myConnection, (editor) -> newSetEnabled(editor, latch));
+    myEditor = new LaunchOrStopButtonTableCellEditor(null,
+                                                     new DeviceManagerAndroidDebugBridge(),
+                                                     editor -> newSetEnabled(editor, latch),
+                                                     EmulatorConsole::getConsole,
+                                                     () -> myConnection,
+                                                     VirtualTabMessages::showErrorDialog);
 
     myEditor.addCellEditorListener(listener);
     myEditor.getTableCellEditorComponent(DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd)), LaunchOrStopValue.INSTANCE, false, 0, 3);
@@ -101,6 +124,58 @@ public final class LaunchOrStopButtonTableCellEditorTest {
 
     assertTrue(button.isEnabled());
     Mockito.verify(listener).editingCanceled(myEditor.getChangeEvent());
+  }
+
+  @Test
+  public void onFailure() throws Exception {
+    // Arrange
+    DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.newKey("Pixel_5_API_31"))).thenReturn(Futures.immediateFuture(null));
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    @SuppressWarnings("unchecked")
+    BiConsumer<Throwable, Project> showErrorDialog = Mockito.mock(BiConsumer.class);
+
+    CellEditorListener listener = Mockito.mock(CellEditorListener.class);
+    JTable table = DeviceTables.mock(TestVirtualDevices.onlinePixel5Api31(myAvd));
+
+    myEditor = new LaunchOrStopButtonTableCellEditor(null,
+                                                     bridge,
+                                                     editor -> newSetEnabled(editor, latch),
+                                                     EmulatorConsole::getConsole,
+                                                     AvdManagerConnection::getDefaultAvdManagerConnection,
+                                                     showErrorDialog);
+
+    myEditor.addCellEditorListener(listener);
+    myEditor.getTableCellEditorComponent(table, LaunchOrStopValue.INSTANCE, false, 0, 3);
+
+    AbstractButton button = myEditor.getButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    assertTrue(button.isEnabled());
+    Mockito.verify(listener).editingCanceled(myEditor.getChangeEvent());
+
+    ArgumentMatcher<Throwable> matcher = actual -> matches("Unable to stop Pixel 5 API 31",
+                                                           "An error occurred stopping Pixel 5 API 31. To stop the device, try manually " +
+                                                           "closing the Pixel 5 API 31 emulator window.",
+                                                           actual);
+
+    Mockito.verify(showErrorDialog).accept(ArgumentMatchers.argThat(matcher), ArgumentMatchers.isNull());
+  }
+
+  private static boolean matches(@NotNull String expectedTitle, @NotNull String expectedMessage, @NotNull Throwable actual) {
+    if (!(actual instanceof ErrorDialogException)) {
+      return false;
+    }
+
+    ErrorDialogException exception = ((ErrorDialogException)actual);
+    return expectedTitle.equals(exception.getTitle()) && expectedMessage.equals(exception.getMessage());
   }
 
   private static @NotNull FutureCallback<@Nullable Object> newSetEnabled(@NotNull LaunchOrStopButtonTableCellEditor editor,

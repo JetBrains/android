@@ -15,22 +15,30 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchOrStopValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.awt.Component;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +47,11 @@ import org.jetbrains.annotations.Nullable;
 // TODO The EDT, application pool threads, and who knows what other ones are accessing the AvdInfo. I don't like that.
 final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor {
   private final @Nullable Project myProject;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
   private final @NotNull NewSetEnabled myNewSetEnabled;
+  private final @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> myGetConsole;
+  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> myShowErrorDialog;
 
   private VirtualDevice myDevice;
 
@@ -49,19 +60,32 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
     @NotNull FutureCallback<@NotNull Object> apply(@NotNull LaunchOrStopButtonTableCellEditor editor);
   }
 
+  @UiThread
   LaunchOrStopButtonTableCellEditor(@Nullable Project project) {
-    this(project, AvdManagerConnection::getDefaultAvdManagerConnection, SetEnabled::new);
+    this(project,
+         new DeviceManagerAndroidDebugBridge(),
+         SetEnabled::new,
+         EmulatorConsole::getConsole,
+         AvdManagerConnection::getDefaultAvdManagerConnection,
+         VirtualTabMessages::showErrorDialog);
   }
 
+  @UiThread
   @VisibleForTesting
   LaunchOrStopButtonTableCellEditor(@Nullable Project project,
+                                    @NotNull DeviceManagerAndroidDebugBridge bridge,
+                                    @NotNull NewSetEnabled newSetEnabled,
+                                    @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> getConsole,
                                     @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                                    @NotNull NewSetEnabled newSetEnabled) {
+                                    @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> showErrorDialog) {
     super(LaunchOrStopValue.INSTANCE);
 
     myProject = project;
-    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myBridge = bridge;
     myNewSetEnabled = newSetEnabled;
+    myGetConsole = getConsole;
+    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myShowErrorDialog = showErrorDialog;
 
     myButton.addActionListener(actionEvent -> {
       if (myDevice.isOnline()) {
@@ -73,6 +97,7 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
     });
   }
 
+  @UiThread
   private void stop() {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
       .setKind(EventKind.VIRTUAL_STOP_ACTION)
@@ -81,10 +106,29 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
     DeviceManagerUsageTracker.log(event);
     myButton.setEnabled(false);
 
-    ListenableFuture<Void> future = myGetDefaultAvdManagerConnection.get().stopAvdAsync(myDevice.getAvdInfo());
-    Futures.addCallback(future, myNewSetEnabled.apply(this), EdtExecutorService.getInstance());
+    // noinspection UnstableApiUsage
+    FluentFuture.from(myBridge.findDevice(myProject, myDevice.getKey()))
+      .transform(this::stop, AppExecutorUtil.getAppExecutorService())
+      .addCallback(myNewSetEnabled.apply(this), EdtExecutorService.getInstance());
   }
 
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  @SuppressWarnings("SameReturnValue")
+  private @Nullable Void stop(@Nullable IDevice device) {
+    if (device == null) {
+      throw new ErrorDialogException("Unable to stop " + myDevice,
+                                     "An error occurred stopping " + myDevice + ". To stop the device, try manually closing the " +
+                                     myDevice + " emulator window.");
+    }
+
+    myGetConsole.apply(device).kill();
+    return null;
+  }
+
+  @UiThread
   private void launch(@Nullable Project project) {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
       .setKind(EventKind.VIRTUAL_LAUNCH_ACTION)
@@ -101,26 +145,30 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
   static final class SetEnabled implements FutureCallback<Object> {
     private final @NotNull LaunchOrStopButtonTableCellEditor myEditor;
 
+    @UiThread
     @VisibleForTesting
     SetEnabled(@NotNull LaunchOrStopButtonTableCellEditor editor) {
       myEditor = editor;
     }
 
+    @UiThread
     @Override
     public void onSuccess(@Nullable Object result) {
       myEditor.myButton.setEnabled(true);
       myEditor.fireEditingCanceled();
     }
 
+    @UiThread
     @Override
     public void onFailure(@NotNull Throwable throwable) {
       myEditor.myButton.setEnabled(true);
       myEditor.fireEditingCanceled();
 
-      VirtualTabMessages.showErrorDialog(throwable, myEditor.myProject);
+      myEditor.myShowErrorDialog.accept(throwable, myEditor.myProject);
     }
   }
 
+  @UiThread
   @Override
   public @NotNull Component getTableCellEditorComponent(@NotNull JTable table,
                                                         @NotNull Object value,

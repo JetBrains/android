@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class VirtualTabMessages {
-  private VirtualTabMessages() {
+final class ErrorDialogException extends RuntimeException {
+  private final @NotNull String myTitle;
+
+  ErrorDialogException(@NotNull String title, @NotNull String message) {
+    super(message);
+    myTitle = title;
   }
 
-  static void showErrorDialog(@NotNull Throwable throwable, @Nullable Project project) {
-    String title = throwable instanceof ErrorDialogException ? ((ErrorDialogException)throwable).getTitle() : "Device Manager";
-    String message = throwable.getMessage();
-
-    if (message == null) {
-      message = "There was an unspecified error in the device manager. Please consult idea.log for more information.";
-    }
-
-    Messages.showErrorDialog(project, message, title);
+  @NotNull String getTitle() {
+    return myTitle;
   }
 }

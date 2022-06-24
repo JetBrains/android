@@ -38,5 +38,6 @@ public final class CountDownLatchFutureCallback<V> implements FutureCallback<V> 
   @Override
   public void onFailure(@NotNull Throwable throwable) {
     myDelegate.onFailure(throwable);
+    myLatch.countDown();
   }
 }
