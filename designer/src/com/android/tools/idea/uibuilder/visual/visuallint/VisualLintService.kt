@@ -147,11 +147,12 @@ class VisualLintService(project: Project) {
           WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet)
         }
         val latch = CountDownLatch(modelsToAnalyze.size)
+        val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
         for (model in modelsToAnalyze) {
           inflate(model).handleAsync({ result, _ ->
             if (result != null) {
               updateHierarchy(result, model)
-              analyzeAfterModelUpdate(result, model, VisualLintBaseConfigIssues(), VisualLintUsageTracker.getInstance(surface), true)
+              analyzeAfterModelUpdate(result, model, visualLintBaseConfigIssues, VisualLintUsageTracker.getInstance(surface), true)
             }
             Disposer.dispose(model)
             latch.countDown()
