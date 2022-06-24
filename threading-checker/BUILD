@@ -11,6 +11,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
 
