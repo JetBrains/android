@@ -28,7 +28,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
