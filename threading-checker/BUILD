@@ -17,6 +17,7 @@ iml_module(
 iml_module(
     name = "intellij.android.threading-checker.tests",
     iml_files = ["intellij.android.threading-checker.tests.iml"],
+    test_class = "com.android.tools.idea.instrumentation.threading.ThreadingCheckerTestSuite",
     test_friends = ["//tools/adt/idea/threading-checker:intellij.android.threading-checker"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -31,5 +32,6 @@ iml_module(
         "//tools/adt/idea/threading-checker:intellij.android.threading-checker[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
