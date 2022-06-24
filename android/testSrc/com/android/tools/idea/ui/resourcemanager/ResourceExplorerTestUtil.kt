@@ -42,12 +42,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertTrue
 
-/**
- * Return a fake directory on a DummyFileSystem.
- * The application must be set to [com.intellij.mock.MockApplication] to use this.
- *
- * @see com.intellij.openapi.application.ApplicationManager.setApplication
- */
+/** Return a fake directory on a DummyFileSystem. */
 fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   val fileSystem = DummyFileSystem()
   val root = fileSystem.createRoot("design")
