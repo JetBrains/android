@@ -6,10 +6,15 @@ iml_module(
     name = "intellij.android.designer-perf-tests",
     iml_files = ["intellij.android.designer-perf-tests.iml"],
     split_test_targets = {
-        "perfgate": {
+        "perfgateCompose": {
             "tags": ["perfgate"],
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComposeTest",
+        },
+        "perfgateVisualLint": {
+            "tags": ["perfgate"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.uibuilder.visual.visuallint",
         },
         "non-perfgate": {
         },
@@ -59,6 +64,8 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )
 
