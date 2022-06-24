@@ -99,12 +99,4 @@ class KnownGradlePluginsServiceImplTest {
     service.refreshSynchronously()
     assertThat(service.gradlePluginsData).isNotEqualTo(GradlePluginsData.emptyData)
   }
-
-/*
-  TODO (b/173784161): add tests:
-      normal - downloaded from url (mock is triggered), copied to temp
-      test second request in a row doesn't try to download
-      test failed request => tries to load previous download
-      (if possible and have time) test long async then sync => sync waits for async to finish
-*/
 }
