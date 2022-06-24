@@ -263,7 +263,6 @@ class AddLocaleActionTest {
                 "ja",
                 "li-NL",
                 "ru",
-                "sah-RU",
                 "ng",
                 "ii",
                 "es-US",
