@@ -72,6 +72,7 @@ studio_plugin(
         "//tools/data-binding:compilerCommon.antlr.shaded",
     ],
     licenses = [
+        "//prebuilts/r8:license",
         "//tools/adt/idea/android/lib:licenses",
     ],
     modules = {
