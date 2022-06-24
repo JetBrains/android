@@ -440,17 +440,7 @@ public class AndroidFileChangeListener implements Disposable {
         runnable.run();
       }
       else {
-        runInEdt(() -> application.runWriteAction(runnable));
-      }
-    }
-
-    private void runInEdt(@NotNull Runnable runnable) {
-      Application application = ApplicationManager.getApplication();
-      if (application.isDispatchThread()) {
-        runnable.run();
-      }
-      else {
-        application.invokeLater(runnable);
+        application.invokeLater(() -> application.runWriteAction(runnable));
       }
     }
   }
