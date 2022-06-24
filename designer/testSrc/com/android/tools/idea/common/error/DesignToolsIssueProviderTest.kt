@@ -17,8 +17,9 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -87,15 +88,19 @@ class DesignToolsIssueProviderTest {
   fun testFileClosed() {
     val messageBus = rule.project.messageBus
     val provider = DesignToolsIssueProvider(rule.project)
+    val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
-    runInEdt {
-      val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "")
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), listOf(TestIssue()))
-      assertEquals(1, provider.getFilteredIssues().size)
-
-      FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
-
-      assertEquals(0, provider.getFilteredIssues().size)
+    val file = runInEdtAndGet {
+      val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "").virtualFile
+      fileEditorManager.openFile(layoutFile, true)
+      layoutFile
     }
+    runInEdtAndWait {
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), listOf(TestIssue(source = IssueSourceWithFile(file))))
+    }
+    assertEquals(1, provider.getFilteredIssues().size)
+
+    runInEdtAndWait { fileEditorManager.closeFile(file) }
+    assertEquals(0, provider.getFilteredIssues().size)
   }
 }
