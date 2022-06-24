@@ -60,6 +60,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.StatusBarEx
+import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -462,7 +463,7 @@ public class MyWebView extends android.webkit.WebView {
   }
 
   private fun registerMockStatusBar(): StatusBarEx {
-    val windowManager: WindowManager = mock()
+    val windowManager: WindowManagerEx = mock()
     val frame: IdeFrame = mock()
     val statusBar: StatusBarEx = mock()
     projectRule.replaceService(WindowManager::class.java, windowManager)
