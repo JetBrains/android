@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.manifest
 
+import com.android.tools.idea.editors.manifest.ManifestPanel.ManifestTreeNode
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getMainModule
@@ -23,6 +24,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
@@ -35,15 +37,22 @@ import org.junit.Test
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.w3c.dom.Node
 import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import java.io.StringWriter
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 @RunWith(JUnit4::class)
 class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
 
   companion object {
     private const val MANIFEST_REPORT_SNAPSHOT_SUFFIX = "_manifest_report.html"
+    private const val MERGED_MANIFEST_SHAPSHOT_SUFFIX = "_merged_manifest.xml"
   }
   @get:Rule
   var testName = TestName()
@@ -75,15 +84,17 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
       val panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
       panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
       val detailsPaneContent = panel.detailsPane.text
+      val manifestPaneContent = (panel.tree.model.root as ManifestTreeNode).userObject.transformToString()
 
       ProjectDumper().nest(projectRoot, "PROJECT_DIR") {
-        assertIsEqualToSnapshot(
-          normalizeContentForTest(detailsPaneContent),
-          snapshotTestSuffix = MANIFEST_REPORT_SNAPSHOT_SUFFIX
+        assertAreEqualToSnapshots(
+          normalizeContentForTest(detailsPaneContent) to MANIFEST_REPORT_SNAPSHOT_SUFFIX,
+          normalizeContentForTest(manifestPaneContent) to MERGED_MANIFEST_SHAPSHOT_SUFFIX
         )
       }
     }
   }
+
   /* Goes through each line, removing empty lines and replacing hyperlinks with files with stable naming across different config/runs. */
   private fun ProjectDumper.normalizeContentForTest(htmlString: String) = htmlString
     .lines()
@@ -112,4 +123,13 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
     if (columns < 2) suffixPosition = fileAndPosition.length
     return fileAndPosition.substring(0, suffixPosition) to fileAndPosition.substring(suffixPosition, fileAndPosition.length)
   }
+
+  private fun Node.transformToString() =
+    StringWriter().let {
+      TransformerFactory.newInstance().newTransformer().apply {
+        setOutputProperty(OutputKeys.INDENT, "yes")
+        setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      }.transform(DOMSource(this), StreamResult(it))
+      it.buffer.toString()
+    }
 }
