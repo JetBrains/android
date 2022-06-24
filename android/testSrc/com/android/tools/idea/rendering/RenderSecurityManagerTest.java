@@ -22,6 +22,9 @@ import com.google.common.io.Files;
 import java.io.IOException;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.UUID;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,7 +58,7 @@ public class RenderSecurityManagerTest {
   @Test
   public void testExec() throws IOException {
     assertNull(RenderSecurityManager.getCurrent());
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     RecordingLogger logger = new RecordingLogger();
     manager.setLogger(logger);
     try {
@@ -71,9 +74,7 @@ public class RenderSecurityManagerTest {
       fail("Should have thrown security exception");
     }
     catch (SecurityException exception) {
-      assertEquals(RenderSecurityManager.RESTRICT_READS
-                          ? "Read access not allowed during rendering (/bin/ls)"
-                          : "Exec access not allowed during rendering (/bin/ls)", exception.toString());
+      assertEquals("Exec access not allowed during rendering (/bin/ls)", exception.toString());
       // pass
     }
     finally {
@@ -86,7 +87,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testSetSecurityManager() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
       System.setSecurityManager(null);
@@ -102,25 +103,112 @@ public class RenderSecurityManagerTest {
   }
 
   @Test
-  public void testReadWrite() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
-    try {
-      manager.setActive(true, myCredential);
-      manager.checkPermission(new FilePermission("/foo", "read,write"));
-      fail("Should have thrown security exception");
+  public void testRead() {
+    RenderSecurityManager manager = new RenderSecurityManager(
+      "/Users/userHome/Sdk",
+      "/Users/userHome/Projects/project1",
+      true);
+
+    // Not allowed paths
+    String[] notAllowedPaths = new String[] {
+      "/foo",
+      "/Users/userHome/Sdk/../foo",
+      "/Users/userHome",
+      "/Users/userHome/Projects/project1/../../test",
+    };
+    for (String path: notAllowedPaths) {
+      try {
+        manager.setActive(true, myCredential);
+        manager.checkPermission(new FilePermission(path, "read"));
+        fail(String.format("Should have thrown security exception (%s)", path));
+      }
+      catch (SecurityException exception) {
+        assertEquals(
+          String.format("Read access not allowed during rendering (%s)", path), exception.toString());
+        // pass
+      }
+      finally {
+        manager.dispose(myCredential);
+      }
     }
-    catch (SecurityException exception) {
-      assertEquals("Write access not allowed during rendering (/foo)", exception.toString());
-      // pass
+
+    // allowed paths
+    String[] allowedReadPaths = new String[] {
+      "/Users/userHome/Sdk/foo",
+      "/Users/userHome/Sdk/foo.jar",
+      "/Users/userHome/Sdk/foo/test",
+      "/Users/userHome/Sdk/foo/../foo.jar",
+      "/Users/userHome/Sdk/foo/../../Sdk/test/foo.jar",
+      "/Users/userHome/Projects/project1/path/test.kt",
+      "/Users/userHome/Projects/project1/test.kt",
+      "/Users/userHome/Projects/project1/test.kt",
+      "/Users/userHome/Projects/project1/../project1/test.kt",
+    };
+    for (String path: allowedReadPaths) {
+      try {
+        manager.setActive(true, myCredential);
+        manager.checkPermission(new FilePermission(path, "read"));
+      }
+      finally {
+        manager.dispose(myCredential);
+      }
     }
-    finally {
-      manager.dispose(myCredential);
+  }
+
+  @Test
+  public void testWrite() {
+    RenderSecurityManager manager = new RenderSecurityManager(
+      "/Users/userHome/Sdk",
+      "/Users/userHome/Projects/project1",
+      false);
+
+    String cachePath = PathManager.getSystemPath() + "/caches/";
+    String indexPath = PathManager.getIndexRoot() + "/";
+
+    // Not allowed paths
+    String[] notAllowedPaths = new String[] {
+      "foo",
+      cachePath,
+      indexPath,
+      cachePath + "../foo",
+      cachePath + "../../test.jar",
+      indexPath + "../foo",
+    };
+    for (String path: notAllowedPaths) {
+      try {
+        manager.setActive(true, myCredential);
+        manager.checkPermission(new FilePermission(path, "write"));
+        fail(String.format("Should have thrown security exception (%s)", path));
+      }
+      catch (SecurityException exception) {
+        assertEquals(
+          String.format("Write access not allowed during rendering (%s)", path), exception.toString());
+        // pass
+      }
+      finally {
+        manager.dispose(myCredential);
+      }
+    }
+
+    // allowed paths
+    String[] allowedWritePaths = new String[] {
+      cachePath + "/test/../test.jar",
+      cachePath + "/foo.jar",
+    };
+    for (String path: allowedWritePaths) {
+      try {
+        manager.setActive(true, myCredential);
+        manager.checkPermission(new FilePermission(path, "write"));
+      }
+      finally {
+        manager.dispose(myCredential);
+      }
     }
   }
 
   @Test
   public void testExecute() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
       manager.checkPermission(new FilePermission("/foo", "execute"));
@@ -137,7 +225,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testDelete() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
       manager.checkPermission(new FilePermission("/foo", "delete"));
@@ -154,7 +242,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testLoadLibrary() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -175,7 +263,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testAllowedLoadLibrary() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -192,33 +280,17 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("CheckReturnValue")
   @Test
   public void testInvalidRead() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
-      if (RenderSecurityManager.RESTRICT_READS) {
-        try {
-          File file = new File(System.getProperty("user.home"));
-          //noinspection ResultOfMethodCallIgnored
-          file.lastModified();
-
-          fail("Should have thrown security exception");
-        }
-        catch (SecurityException exception) {
-          assertEquals("Read access not allowed during rendering (" +
-                              System.getProperty("user.home") + ")", exception.toString());
-          // pass
-        }
+      try {
+        File file = new File(System.getProperty("user.home"));
+        //noinspection ResultOfMethodCallIgnored
+        file.lastModified();
       }
-      else {
-        try {
-          File file = new File(System.getProperty("user.home"));
-          //noinspection ResultOfMethodCallIgnored
-          file.lastModified();
-        }
-        catch (SecurityException exception) {
-          fail("Reading should be allowed");
-        }
+      catch (SecurityException exception) {
+        fail("Reading should be allowed");
       }
     }
     finally {
@@ -228,7 +300,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testInvalidPropertyWrite() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -250,7 +322,7 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("CheckReturnValue")
   @Test
   public void testReadOk() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -273,7 +345,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testProperties() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -293,7 +365,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testExit() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -326,7 +398,7 @@ public class RenderSecurityManagerTest {
         }
       }
     };
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -358,7 +430,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testActive() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -427,7 +499,7 @@ public class RenderSecurityManagerTest {
           barrier1.await();
           assertNull(RenderSecurityManager.getCurrent());
 
-          RenderSecurityManager manager = new RenderSecurityManager(null, null);
+          RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
           manager.setActive(true, myCredential);
 
           barrier2.await();
@@ -555,7 +627,7 @@ public class RenderSecurityManagerTest {
   public void testDisabled() {
     assertNull(RenderSecurityManager.getCurrent());
 
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     RenderSecurityManager.sEnabled = false;
     try {
       assertNull(RenderSecurityManager.getCurrent());
@@ -614,7 +686,7 @@ public class RenderSecurityManagerTest {
     });
     thread.start();
 
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     RecordingLogger logger = new RecordingLogger();
     manager.setLogger(logger);
     try {
@@ -646,7 +718,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testEnterExitSafeRegion() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     Object credential = new Object();
     try {
       manager.setActive(true, credential);
@@ -721,7 +793,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testRunSafeRegion() throws Exception {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     Object credential = new Object();
     try {
       manager.setActive(true, credential);
@@ -767,7 +839,7 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("UnstableApiUsage")
   @Test
   public void testImageIo() throws IOException, InterruptedException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -811,7 +883,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testTempDir() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -832,7 +904,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testAppTempDir() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setAppTempDir("/random/path/");
       manager.setActive(true, myCredential);
@@ -845,7 +917,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testSetTimeZone() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -876,15 +948,13 @@ public class RenderSecurityManagerTest {
    */
   @Test
   public void testLogDir() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
       String logPath = PathManager.getLogPath();
       assertNotNull(logPath);
 
-      manager.checkPermission(new FilePermission(logPath, "read,write"));
-      manager.checkPermission(new FilePermission(logPath + separator, "read,write"));
       manager.checkPermission(new FilePermission(logPath + separator + "fake.log", "read,write"));
 
     }
@@ -894,7 +964,7 @@ public class RenderSecurityManagerTest {
   }
   @Test
   public void testLogException() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
@@ -920,8 +990,93 @@ public class RenderSecurityManagerTest {
   }
 
   @Test
+  public void testNoLinkCreationAllowed() throws IOException {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
+    Path attackLink = testTemp.resolve("attack");
+    File victimFile = new File(PathManager.getConfigPath() + "/victim-" + UUID.randomUUID().toString());
+    victimFile.deleteOnExit();
+    try {
+      manager.setActive(true, myCredential);
+      java.nio.file.Files.createSymbolicLink(attackLink, victimFile.toPath());
+      fail("Should have thrown security exception");
+    }
+    catch (SecurityException exception) {
+      assertThat(exception.toString()).startsWith("SymbolicLinks access not allowed during rendering");
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  @Test
+  public void testCheckWriteToNonExistingLink() throws IOException {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+
+    Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
+    Path attackLink = testTemp.resolve("attack");
+    File victimFile = new File(PathManager.getConfigPath() + "/victim-" + UUID.randomUUID());
+    victimFile.deleteOnExit();
+    java.nio.file.Files.createSymbolicLink(attackLink, victimFile.toPath());
+
+    try {
+      manager.setActive(true, myCredential);
+      manager.checkPermission(new FilePermission(attackLink.toString(), "read,write"));
+      fail("Should have thrown security exception");
+    }
+    catch (SecurityException exception) {
+      assertThat(exception.toString()).startsWith("Write access not allowed during rendering");
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  @Test
+  public void testCheckWriteToExistingLink() throws IOException {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+
+    Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
+    Path attackLink = testTemp.resolve("attack");
+    File victimFile = new File(PathManager.getConfigPath() + "/victim-" + UUID.randomUUID());
+    victimFile.deleteOnExit();
+    java.nio.file.Files.createSymbolicLink(attackLink, victimFile.toPath());
+    java.nio.file.Files.writeString(victimFile.toPath(), "existing-file", Charset.defaultCharset());
+    try {
+      manager.setActive(true, myCredential);
+      manager.checkPermission(new FilePermission(attackLink.toString(), "read,write"));
+      fail("Should have thrown security exception");
+    }
+    catch (SecurityException exception) {
+      assertThat(exception.toString()).startsWith("Write access not allowed during rendering");
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  /**
+   * Regression test for b/236865896.
+   */
+  @Test
+  public void testPathTraversal() throws IOException {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    try {
+      manager.setActive(true, myCredential);
+      manager.checkPermission(new FilePermission("/tmp/../dev/null", "read,write"));
+      fail("Should have thrown security exception");
+    }
+    catch (SecurityException exception) {
+      assertThat(exception.toString()).startsWith("Write access not allowed during rendering");
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  @Test
   public void testSystemPropertiesAccess() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 

@@ -155,11 +155,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       deleteManifest();
     }
 
-    if (RenderSecurityManager.RESTRICT_READS) {
-      // Unit test class loader includes disk directories which security manager does not allow access to
-      RenderSecurityManager.sEnabled = false;
-    }
-
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
@@ -216,9 +211,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       mySettings = null;
 
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      if (RenderSecurityManager.RESTRICT_READS) {
-        RenderSecurityManager.sEnabled = true;
-      }
     }
     finally {
       try {

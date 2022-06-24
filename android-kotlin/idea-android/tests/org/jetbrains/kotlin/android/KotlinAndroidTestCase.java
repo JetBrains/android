@@ -109,11 +109,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
       }
     }
 
-    if (RenderSecurityManager.RESTRICT_READS) {
-      // Unit test class loader includes disk directories which security manager does not allow access to
-      RenderSecurityManager.sEnabled = false;
-    }
-
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
     AndroidTestCase.applyAndroidCodeStyleSettings(mySettings);
@@ -147,9 +142,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
       mySettings = null;
 
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      if (RenderSecurityManager.RESTRICT_READS) {
-        RenderSecurityManager.sEnabled = true;
-      }
     }
     finally {
       try {

@@ -24,8 +24,10 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.PropertyPermission;
@@ -48,11 +50,6 @@ public class RenderSecurityManager extends SecurityManager {
    * Property used to disable sandbox
    */
   public static final String ENABLED_PROPERTY = "android.render.sandbox";
-
-  /**
-   * Whether we should restrict reading to certain paths
-   */
-  public static final boolean RESTRICT_READS = false;
 
   /**
    * Whether the security manager is enabled for this session (it might still
@@ -106,6 +103,18 @@ public class RenderSecurityManager extends SecurityManager {
   private SecurityManager myPreviousSecurityManager;
   private ILogger mLogger;
 
+  private boolean isRestrictReads;
+
+  @NotNull
+  private static String normalizeDirectoryPath(@NotNull Path originalPath) {
+    return originalPath.normalize() + originalPath.getFileSystem().getSeparator();
+  }
+
+  @NotNull
+  private static String normalizeDirectoryPath(@NotNull String stringPath) {
+    return normalizeDirectoryPath(Paths.get(stringPath));
+  }
+
   /**
    * Returns the current render security manager, if any. This will only return
    * non-null if there is an active {@linkplain RenderSecurityManager} as the
@@ -140,17 +149,23 @@ public class RenderSecurityManager extends SecurityManager {
    *                    this is used to allow specific path prefixes for layoutlib resource
    *                    lookup
    * @param projectPath a path to the project directory, used for similar purposes
+   * @param restrictReads when true, reads will be restricted to only a set of directories including temp directory and the given sdkPath
+   *                      and projectPath directories.
    */
-  public RenderSecurityManager(@Nullable String sdkPath, @Nullable String projectPath) {
+  public RenderSecurityManager(
+    @Nullable String sdkPath,
+    @Nullable String projectPath,
+    boolean restrictReads) {
     mSdkPath = sdkPath;
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
-    mIndexRootPath = PathManager.getIndexRoot().toString();
-    mLogRootPath = PathManager.getLogPath();
-    mCachePath = PathManager.getSystemPath() + "/caches/";
+    mIndexRootPath = normalizeDirectoryPath(PathManager.getIndexRoot());
+    mLogRootPath = normalizeDirectoryPath(PathManager.getLogPath());
+    mCachePath = normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches"));
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
+    isRestrictReads = restrictReads;
   }
 
   /**
@@ -369,7 +384,7 @@ public class RenderSecurityManager extends SecurityManager {
   @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions"})
   @Override
   public void checkRead(String file) {
-    if (RESTRICT_READS && isRelevant() && !isReadingAllowed(file)) {
+    if (isRestrictReads && isRelevant() && !isReadingAllowed(file)) {
       throw RenderSecurityException.create("Read", file);
     }
   }
@@ -377,13 +392,20 @@ public class RenderSecurityManager extends SecurityManager {
   @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions"})
   @Override
   public void checkRead(String file, Object context) {
-    if (RESTRICT_READS && isRelevant() && !isReadingAllowed(file)) {
+    if (isRestrictReads && isRelevant() && !isReadingAllowed(file)) {
       throw RenderSecurityException.create("Read", file);
     }
   }
 
   private boolean isReadingAllowed(String path) {
-    if (RESTRICT_READS) {
+    if (isRestrictReads) {
+      try {
+        path = canonicalize(path);
+      }
+      catch (IOException e) {
+        return false;
+      }
+
       // Allow reading files in the SDK install (fonts etc)
       if (mSdkPath != null && path.startsWith(mSdkPath)) {
         return true;
@@ -430,8 +452,21 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
+  private static String canonicalize(@NotNull String path) throws IOException {
+    return Paths.get(path).normalize().toFile().getCanonicalPath();
+  }
+
   @SuppressWarnings("RedundantIfStatement")
   private boolean isWritingAllowed(String path) {
+    try {
+      path = canonicalize(path);
+      // We do not allow writing to links of paths that do not exist. If the path had existed, it would have
+      // been resolved by the canonicalize call.
+      if (Files.isSymbolicLink(Paths.get(path))) return false;
+    }
+    catch (IOException e) {
+      return false;
+    }
     return isTempDirPath(path) ||
            // When loading classes, IntelliJ might sometimes drop a corruption marker
            path.startsWith(mIndexRootPath) ||
@@ -453,10 +488,10 @@ public class RenderSecurityManager extends SecurityManager {
     // Work around weird temp directories
     try {
       if (mCanonicalTempDir == null) {
-        mCanonicalTempDir = new File(mNormalizedTempDir).getCanonicalPath();
+        mCanonicalTempDir = canonicalize(mNormalizedTempDir);
       }
 
-      if (path.startsWith(mCanonicalTempDir) || new File(path).getCanonicalPath().startsWith(mCanonicalTempDir)) {
+      if (path.startsWith(mCanonicalTempDir) || canonicalize(path).startsWith(mCanonicalTempDir)) {
         return true;
       }
     }
@@ -668,10 +703,14 @@ public class RenderSecurityManager extends SecurityManager {
         throw RenderSecurityException.create("Window", null);
       }
     }
-    else if (isRelevant()) {
+    else if ("symbolic".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("SymbolicLinks", null);
+      }
+    } else if (isRelevant()) {
       String actions = permission.getActions();
       //noinspection PointlessBooleanExpression,ConstantConditions
-      if (RESTRICT_READS && "read".equals(actions)) {
+      if (isRestrictReads && "read".equals(actions)) {
         if (!isReadingAllowed(name)) {
           throw RenderSecurityException.create("Read", name);
         }
