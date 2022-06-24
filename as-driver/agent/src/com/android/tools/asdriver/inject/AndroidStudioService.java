@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ToolWindow;
@@ -34,7 +35,9 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -126,4 +129,23 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void waitForIndex(ASDriver.WaitForIndexRequest request, StreamObserver<ASDriver.WaitForIndexResponse> responseObserver) {
+    try {
+      Project[] projects = ProjectManager.getInstance().getOpenProjects();
+      CountDownLatch latch = new CountDownLatch(projects.length);
+      for (Project p : projects) {
+        DumbService.getInstance(p).smartInvokeLater(latch::countDown);
+      }
+      latch.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    responseObserver.onNext(ASDriver.WaitForIndexResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
 }
+
+
+

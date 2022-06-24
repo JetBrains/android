@@ -53,7 +53,7 @@ public class OpenProjectTest {
     install.trustPath(projectPath);
 
     // Create a maven repo and set it up in the installation and environment
-    MavenRepo mavenRepo = new MavenRepo("tools/adt/idea/android/integration/test_deps.manifest");
+    MavenRepo mavenRepo = new MavenRepo("tools/adt/idea/android/integration/openproject_deps.manifest");
     mavenRepo.install(tempDir, install, env);
 
     try (Display display = Display.createDefault();

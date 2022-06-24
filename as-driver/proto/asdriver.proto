@@ -12,8 +12,10 @@ service AndroidStudio {
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
   rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
-  
+
   rpc InvokeComponent(InvokeComponentRequest) returns (InvokeComponentResponse) {}
+
+  rpc WaitForIndex(WaitForIndexRequest) returns (WaitForIndexResponse) {}
 }
 
 message GetVersionRequest {}
@@ -85,3 +87,7 @@ message InvokeComponentResponse {
   }
   InvokeComponentResponse.Result result = 1;
 }
+
+message WaitForIndexRequest {}
+
+message WaitForIndexResponse {}

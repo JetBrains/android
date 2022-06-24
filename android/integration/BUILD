@@ -14,6 +14,7 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
     ],
 )
 
@@ -29,7 +30,7 @@ iml_test(
         ],
     }) + [
         ":minapp",
-        ":test_deps",
+        ":openproject_deps",
         "//tools/base/build-system:gradle-distrib-7.2",
     ],
     module = ":intellij.android.core.integration",
@@ -60,16 +61,52 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorTest",
 )
 
-filegroup(
-    name = "minapp",
-    srcs = glob(["testData/minapp/**"]),
-)
-
 maven_repository(
-    name = "test_deps",
+    name = "openproject_deps",
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.31",
     ],
+)
+
+iml_test(
+    name = "BuildProjectTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+    }) + [
+        ":buildproject_deps",
+        ":minapp",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//tools/base/build-system:gradle-distrib-7.2",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.BuildProjectTest",
+)
+
+maven_repository(
+    name = "buildproject_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.31",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.31",
+    ],
+)
+
+filegroup(
+    name = "minapp",
+    srcs = glob(["testData/minapp/**"]),
 )

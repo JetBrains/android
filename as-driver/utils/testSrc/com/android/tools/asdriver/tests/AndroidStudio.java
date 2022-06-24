@@ -206,4 +206,9 @@ public class AndroidStudio implements AutoCloseable {
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
+
+  public void waitForIndex() {
+    ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
+    ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
+  }
 }
