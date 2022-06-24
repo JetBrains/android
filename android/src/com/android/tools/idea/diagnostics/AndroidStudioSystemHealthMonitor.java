@@ -26,8 +26,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PreloadingActivity;
-import com.intellij.openapi.progress.ProgressIndicator;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.PropertyKey;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.PropertyKey;
  */
 public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
   public static final HProfDatabase ourHProfDatabase = new HProfDatabase(
-    Paths.get(PathManager.getTempPath()));
+    Path.of(PathManager.getTempPath()));
 
   // FIXME-ank: this is stub class (com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;)!
 
@@ -45,12 +44,10 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
   private final NotificationGroup myGroup = NotificationGroup.findRegisteredGroup("System Health");
 
   @Override
-  public void preload(@NotNull ProgressIndicator indicator) {
-
+  public void preload() {
   }
 
   public void start() {
-
   }
 
   public static @Nullable
