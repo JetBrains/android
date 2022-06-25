@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
+import com.intellij.ide.ProjectGroup;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -37,9 +38,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collections;
+import java.util.List;
+import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.mockito.Mock;
 
 /**
@@ -126,7 +130,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     }
   }
 
-  private static final class RecentProjectsManagerStub extends RecentProjectsManager {
+  private static final class RecentProjectsManagerStub implements RecentProjectsManager {
     @NotNull private String myLastProjectLocation;
 
     RecentProjectsManagerStub(@NotNull String lastProjectLocation) {
@@ -161,15 +165,52 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
       return false;
     }
 
-    @Override
-    public CompletableFuture<Boolean> reopenLastProjectsOnStart() {
-      return CompletableFuture.completedFuture(false);
-    }
-
     @NotNull
     @Override
     public String suggestNewProjectLocation() {
       return "";
+    }
+
+    @Override
+    public void setLastProjectCreationLocation(@Nullable Path value) {
+    }
+
+    @NotNull
+    @Override
+    public List<ProjectGroup> getGroups() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    public void addGroup(@NotNull ProjectGroup group) {
+    }
+
+    @Override
+    public void removeGroup(@NotNull ProjectGroup group) {
+    }
+
+    @Override
+    public void moveProjectToGroup(@NotNull String projectPath, @NotNull ProjectGroup to) {
+    }
+
+    @Override
+    public void removeProjectFromGroup(@NotNull String projectPath, @NotNull ProjectGroup from) {
+    }
+
+    @Override
+    public boolean hasPath(@Nullable @SystemIndependent String path) {
+      return false;
+    }
+
+    @Override
+    public AnAction @NotNull [] getRecentProjectsActions(boolean addClearListItem, boolean useGroups) {
+      return AnAction.EMPTY_ARRAY;
+    }
+
+    @Nullable
+    @Override
+    public Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
+      return null;
     }
   }
 }
