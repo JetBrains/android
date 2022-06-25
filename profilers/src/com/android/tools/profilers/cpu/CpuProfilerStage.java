@@ -200,7 +200,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     myCaptureParser = captureParser;
 
     List<Cpu.CpuTraceInfo> existingCompletedTraceInfoList =
-      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession, true).stream()
+      CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
     myInProgressTraceHandler = new InProgressTraceHandler();
@@ -611,7 +611,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
       Range dataRange = getTimeline().getDataRange();
       List<Cpu.CpuTraceInfo> traceInfoList =
-        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange, true);
+        CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange);
       for (int i = 0; i < traceInfoList.size(); i++) {
         Cpu.CpuTraceInfo trace = traceInfoList.get(i);
         if (trace.getToTimestamp() == -1) {
@@ -712,7 +712,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range, true);
+      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
       for (Cpu.CpuTraceInfo protoTraceInfo : traceInfos) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
