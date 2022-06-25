@@ -114,8 +114,8 @@ public class AndroidStudio implements AutoCloseable {
       boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
       boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
       if (hasJdwpError && isAddressInUse) {
-        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your call to " +
-                                        "addDebugVmOption or by terminating the existing Android Studio process.");
+        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
+                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
       }
     }
     catch (IOException e) {

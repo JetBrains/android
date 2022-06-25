@@ -19,6 +19,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.util.SystemInfo;
+import com.google.common.collect.Sets;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -106,6 +107,11 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.log.path=%s%n", logsDir) +
                        String.format("-Duser.home=%s%n", fileSystem.getHome());
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
+
+    // Handy utility to allow run configurations to force debugging
+    if (Sets.newHashSet("true", "1").contains(System.getenv("AS_TEST_DEBUG"))) {
+      addDebugVmOption(true);
+    }
   }
 
   private static void unzip(Path zipFile, Path outDir) throws IOException {
@@ -261,7 +267,7 @@ public class AndroidStudioInstallation {
     }
   }
 
-  public void addDebugVmOption(boolean suspend) throws IOException {
+  private void addDebugVmOption(boolean suspend) throws IOException {
     // It's easy to forget that debugging was left on, so this emits a warning in that case.
     if (suspend) {
       String hr = "*".repeat(80);
