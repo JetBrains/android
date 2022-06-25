@@ -89,6 +89,7 @@ public class AndroidStudioInstallation {
 
     String vmOptions = String.format("-javaagent:%s%n", agentZip) +
                        String.format("-javaagent:%s%n", threadingCheckerAgentZip) +
+                       String.format("-Dgradle.ide.save.log.to.file=true%n") +
                        String.format("-Didea.config.path=%s%n", configDir) +
                        String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
                        String.format("-Didea.system.path=%s/system%n", workDir) +

@@ -39,6 +39,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.flags.Flags;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -68,6 +69,7 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -96,6 +98,11 @@ import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -359,6 +366,16 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
 
             @Override
             public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+              // For test use only: save the logs to a file. Note that if there are multiple tasks at once
+              // the output will be interleaved.
+              if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
+                try {
+                  Path path = Paths.get(PathManager.getLogPath(), "gradle.log");
+                  Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                } catch (IOException e) {
+                  // Ignore
+                }
+              }
               if (myBuildStopper.contains(id)) {
                 taskListener.onTaskOutput(id, text, stdOut);
               }
