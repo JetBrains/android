@@ -52,6 +52,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -195,7 +196,13 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
     runningJob = GlobalScope.launch(Dispatchers.IO) {
-      for (operation in updateDevicesChannel) {
+      while (isActive) {
+        withTimeoutOrNull(60_000) { // Wake up when there is an event, or from time to time (to check pairing state)
+          updateDevicesChannel.receive()
+        }
+        if (!isActive) {
+          break
+        }
         try {
           updateListAndForwardState()
         }
@@ -439,14 +446,19 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   private suspend fun updateForwardState(phoneWearPair: PhoneWearPair, onlineDevices: Map<String, IDevice>) {
     val onlinePhone = onlineDevices[phoneWearPair.phone.deviceID]
     val onlineWear = onlineDevices[phoneWearPair.wear.deviceID]
-    val bothDeviceOnline = onlinePhone != null && onlineWear != null
     try {
-      if (bothDeviceOnline && phoneWearPair.pairingStatus == PairingState.OFFLINE) {
-        // Both devices are online, and before one (or both) were offline. Time to bridge
-        createPairedDeviceBridge(phoneWearPair.phone, onlinePhone!!, phoneWearPair.wear, onlineWear!!)
-        showReconnectMessageBalloon(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
+      if (onlinePhone != null && onlineWear != null) { // Are both devices online?
+        if (phoneWearPair.pairingStatus == PairingState.OFFLINE) {
+          // Both devices are online, and before one (or both) were offline. Time to bridge.
+          createPairedDeviceBridge(phoneWearPair.phone, onlinePhone, phoneWearPair.wear, onlineWear)
+          showReconnectMessageBalloon(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
+        }
+        else {
+          // Check if pairing was removed from the companion app and if pairing is still OK.
+          updateDeviceStatus(phoneWearPair, onlinePhone, onlineWear)
+        }
       }
-      else if (!bothDeviceOnline && phoneWearPair.pairingStatus != PairingState.OFFLINE) {
+      else if (phoneWearPair.pairingStatus != PairingState.OFFLINE) {
         // One (or both) devices are offline, and before were online. Show "connection dropped" message
         updatePairingStatus(phoneWearPair, PairingState.OFFLINE)
         val offlineName = if (onlinePhone == null) phoneWearPair.phone.displayName else phoneWearPair.wear.displayName
