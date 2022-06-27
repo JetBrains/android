@@ -1085,13 +1085,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION = Flag.create(
-    COMPOSE, "preview.animation.label.inspection",
-    "Enable 'label' parameter inspection of Compose animations PropKeys",
-    "If enabled, show a warning when the 'label' parameter of Compose animations PropKeys are not set.",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",
