@@ -50,8 +50,6 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
-    if (!isComposeRunConfigurationEnabled()) return false
-
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
@@ -76,9 +74,6 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   }
 
   final override fun isConfigurationFromContext(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext): Boolean {
-    if (!isComposeRunConfigurationEnabled()) {
-      return false
-    }
     context.containingComposePreviewFunction()?.let {
       val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
       if (createdFromContext) {

@@ -991,11 +991,6 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
-    COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
-    "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
-    true);
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
     "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +

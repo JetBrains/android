@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
@@ -25,12 +24,7 @@ class ComposePreviewRunConfigurationStartupActivity : StartupActivity.DumbAware 
   override fun runActivity(project: Project) {
     val producerClass = ComposePreviewRunConfigurationProducer::class.java
     val producerService = RunConfigurationProducerService.getInstance(project)
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
-      producerService.addIgnoredProducer(producerClass)
-    }
-    else {
-      // Make sure to remove the producer from the ignored list in case it was added at some point when the flag was disabled.
-      producerService.state.ignoredProducers.remove(producerClass.name)
-    }
+    // Make sure to remove the producer from the ignored list in case it was added at some point when the flag was disabled.
+    producerService.state.ignoredProducers.remove(producerClass.name)
   }
 }

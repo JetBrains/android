@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement
@@ -36,8 +35,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
 
   override fun getInfo(element: PsiElement): Info? {
-    if (!isComposeRunConfigurationEnabled()) return null
-
     // Marker should be in a single LeafPsiElement. We choose the identifier and return null for other elements within the function.
     if (element !is LeafPsiElement) return null
     if (element.node.elementType != KtTokens.IDENTIFIER) return null

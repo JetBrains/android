@@ -41,7 +41,6 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
     StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
@@ -49,7 +48,6 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
     StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 

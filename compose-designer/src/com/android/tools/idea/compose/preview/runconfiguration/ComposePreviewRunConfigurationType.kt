@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.intellij.execution.configurations.SimpleConfigurationType
-import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue
 import icons.StudioIcons
@@ -28,11 +27,5 @@ class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePrevi
                                                                    NotNullLazyValue.createValue {
                                                                      StudioIcons.Compose.Toolbar.RUN_CONFIGURATION
                                                                    }) {
-  init {
-    if (!isComposeRunConfigurationEnabled()) {
-      throw ExtensionNotApplicableException.create()
-    }
-  }
-
   override fun createTemplateConfiguration(project: Project) = ComposePreviewRunConfiguration(project, this)
 }

@@ -46,9 +46,6 @@ class ComposePreviewRunConfigurationGradleTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
 
-  @get:Rule
-  val previewRunConfigRule = SetFlagRule(StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION, true)
-
   @Before
   fun setUp() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
