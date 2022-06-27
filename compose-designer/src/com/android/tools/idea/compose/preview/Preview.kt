@@ -34,9 +34,9 @@ import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
-import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -99,7 +99,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -360,10 +359,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       composeWorkBench.showPinToolbar = false
       composeWorkBench.updateVisibilityAndNotifications()
 
-      if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
-        // While in interactive mode, display a small ripple when clicking
-        surface.enableMouseClickDisplay()
-      }
+      // While in interactive mode, display a small ripple when clicking
+      surface.enableMouseClickDisplay()
       surface.background = INTERACTIVE_BACKGROUND_COLOR
       interactiveMode = ComposePreviewManager.InteractiveMode.READY
       ActivityTracker.getInstance().inc()

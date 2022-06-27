@@ -1078,13 +1078,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
-    COMPOSE, "preview.animated.click.enable",
-    "Enable displaying clicks on the animated preview",
-    "If enabled, clicking on the animated preview will generate a ripple",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",
