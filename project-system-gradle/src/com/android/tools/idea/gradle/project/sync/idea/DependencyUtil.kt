@@ -22,6 +22,7 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
@@ -340,7 +341,10 @@ private class AndroidDependenciesSetupContext(
       if (newTargetData == null) {
         val exception = ExternalSystemException(
           "Could not match dependency with project path ${targetModuleGradlePath.path} and source set ${targetModuleGradlePath.sourceSet}")
-        logger<AndroidGradleProjectResolver>().warnInProduction(exception)
+        val logger = logger<AndroidGradleProjectResolver>()
+        if (IdeInfo.getInstance().isAndroidStudio) {
+          logger.warnInProduction(exception)
+        }
       }
       return null
     }
