@@ -29,22 +29,6 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/run/deployment/liveedit/AndroidLiveEditJvmIrCodegenFactory.kt"
-            line="123"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/run/deployment/liveedit/AndroidLiveEditJvmIrCodegenFactory.kt"
-            line="251"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
             file="src/com/android/tools/idea/stats/AndroidStudioStatisticsEventLoggerProvider.kt"
             line="25"/>
     </issue>

@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
+import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
@@ -197,7 +198,7 @@ private object CompileScopeImpl : CompileScope {
                                                          compilerConfiguration);
 
     if (useComposeIR) {
-      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
+      generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
         compilerConfiguration,
         PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
         jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
@@ -206,7 +207,8 @@ private object CompileScopeImpl : CompileScope {
               descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
             return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
           }
-        }
+        },
+        shouldStubAndNotLinkUnboundSymbols = true,
       ))
     }
 
