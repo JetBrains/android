@@ -84,11 +84,17 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
 
-    ConversionTestUtil.changeKotlinVersion(guiTest);
+    guiTest.waitForBackgroundTasks();
+
+    guiTest.robot().waitForIdle();
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+    guiTest.waitForBackgroundTasks();
+
+    guiTest.robot().waitForIdle();
+
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(240)).isBuildSuccessful()).isTrue();
   }
 
   @Ignore

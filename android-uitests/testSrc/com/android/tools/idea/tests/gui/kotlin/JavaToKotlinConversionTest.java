@@ -84,6 +84,8 @@ public class JavaToKotlinConversionTest {
     //Need to add gradle wait time
     guiTest.waitForBackgroundTasks();
 
+    guiTest.robot().waitForIdle();
+
     //Changing Kotlin version according to build file
     ConversionTestUtil.changeKotlinVersionForSimpleApplication(guiTest);
 
@@ -102,6 +104,8 @@ public class JavaToKotlinConversionTest {
 
     guiTest.waitForBackgroundTasks();
 
+    guiTest.robot().waitForIdle();
+
     EditorFixture editor = ideFrameFixture.getEditor();
 
     Wait.seconds(60).expecting("Wait for kt file is generated.")
@@ -109,9 +113,13 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
+    guiTest.robot().waitForIdle();
+
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
     guiTest.waitForBackgroundTasks();
+
+    guiTest.robot().waitForIdle();
 
     ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project");
   }
