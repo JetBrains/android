@@ -21,6 +21,7 @@ import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
@@ -186,7 +187,9 @@ private class AndroidDependenciesSetupContext(
     val targetModuleGradlePath = computeModuleIdForLibraryTarget(library)
     val targetData = gradleProjectPathToModuleData(targetModuleGradlePath)
     if (targetData == null) {
-      LOG.warnInProduction(ExternalSystemException("Cannot find module with id: $targetModuleGradlePath"))
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        LOG.warnInProduction(ExternalSystemException("Cannot find module with id: $targetModuleGradlePath"))
+      }
       return null;
     }
     return ModuleLibraryWorkItem(targetModuleGradlePath, targetData)
