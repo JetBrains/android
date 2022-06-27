@@ -1085,13 +1085,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
-    COMPOSE, "preview.animation.inspector",
-    "Enable compose preview animation inspection",
-    "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION = Flag.create(
     COMPOSE, "preview.animation.label.inspection",
     "Enable 'label' parameter inspection of Compose animations PropKeys",

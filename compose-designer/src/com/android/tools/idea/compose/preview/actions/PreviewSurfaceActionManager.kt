@@ -70,9 +70,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface<La
               PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
             }
           },
-          StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
-          },
+          AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
           EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
         ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview() +
