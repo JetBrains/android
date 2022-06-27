@@ -42,7 +42,7 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     MockitoAnnotations.initMocks(this)
     myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(myUsageTracker)
-    myService = ToolWindowTrackerService(project)
+    myService = ToolWindowTrackerService()
     project.registerServiceInstance(ToolWindowManager::class.java, myMockToolWindowManager)
   }
 
@@ -55,7 +55,8 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
   fun testOpen() {
     // registered a tool window in closed state
     val testId = "test"
-    myService.toolWindowRegistered(testId)
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    myService.toolWindowsRegistered(listOf(testId), toolWindowManager)
 
     val mockToolWindow = Mockito.mock(ToolWindow::class.java)
 
@@ -63,11 +64,11 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     `when`(mockToolWindow.isActive).thenReturn(false)
 
     `when`(myMockToolWindowManager.getToolWindow(testId)).thenReturn(mockToolWindow)
-    myService.stateChanged()
+    myService.stateChanged(toolWindowManager)
 
     // Open tool window
     `when`(mockToolWindow.isActive).thenReturn(true)
-    myService.stateChanged()
+    myService.stateChanged(toolWindowManager)
 
     // check
     val usages = myUsageTracker.usages.filterNotNull()

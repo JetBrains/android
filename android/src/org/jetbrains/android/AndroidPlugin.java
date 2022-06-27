@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android;
 
 import com.android.tools.analytics.AnalyticsSettings;
@@ -9,6 +9,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.ApplicationInitializedListener;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,12 +26,18 @@ public final class AndroidPlugin {
     VirtualFileSystemOpener.INSTANCE.mount();
   }
 
+  static final class AndroidPluginAppInitializer implements ApplicationInitializedListener {
+    @Override
+    public void componentsInitialized() {
+      if (!IdeInfo.getInstance().isAndroidStudio()) {
+        initializeForNonStudio();
+      }
+    }
+  }
+
   static final class ActionCustomizer implements ActionConfigurationCustomizer {
     @Override
     public void customize(@NotNull ActionManager actionManager) {
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
-        initializeForNonStudio(actionManager);
-      }
       setUpActionsUnderFlag(actionManager);
     }
   }
@@ -39,7 +46,7 @@ public final class AndroidPlugin {
    * Initializes the Android plug-in when it runs outside of Android Studio.
    * Reduces prominence of the Android related UI elements to keep low profile.
    */
-  private static void initializeForNonStudio(ActionManager actionManager) {
+  private static void initializeForNonStudio() {
     AnalyticsSettings.disable();
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
