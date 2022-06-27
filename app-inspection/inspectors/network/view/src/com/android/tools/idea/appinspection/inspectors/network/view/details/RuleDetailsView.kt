@@ -27,12 +27,16 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Method
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.Protocol
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerTabKeyAction
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
+import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.TableUtil
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBCheckBox
@@ -240,6 +244,24 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
       when (model) {
         is RuleData.HeaderRulesTableModel -> HeaderRuleDialog(null, addRowAction).show()
         is RuleData.BodyRulesTableModel -> BodyRuleDialog(null, addRowAction).show()
+      }
+    }
+    decorator.setRemoveAction {
+      val message = when (model) {
+        is RuleData.HeaderRulesTableModel -> NetworkInspectorBundle.message("confirmation.header")
+        else -> NetworkInspectorBundle.message("confirmation.body")
+      }
+      val isConfirmed = MessageDialogBuilder.okCancel(
+        NetworkInspectorBundle.message("confirmation.title"),
+        message
+      ).ask(table)
+      if (isConfirmed) {
+        if (TableUtil.doRemoveSelectedItems(table, model, null)) {
+          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
+            IdeFocusManager.getGlobalInstance().requestFocus(table, true)
+          }
+          TableUtil.updateScroller(table)
+        }
       }
     }
 

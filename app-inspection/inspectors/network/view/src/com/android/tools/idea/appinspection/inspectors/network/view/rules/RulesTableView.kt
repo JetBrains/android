@@ -22,6 +22,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
+import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
 import kotlinx.coroutines.CoroutineScope
@@ -62,19 +66,29 @@ class RulesTableView(
       }
       usageTracker.trackRuleCreated()
     }.setRemoveAction {
+      val isConfirmed = MessageDialogBuilder.okCancel(
+        NetworkInspectorBundle.message("confirmation.title"),
+        NetworkInspectorBundle.message("confirmation.rule")
+      ).ask(table)
+      if (!isConfirmed) return@setRemoveAction
       val index = table.selectedRow
       if (index < 0) {
         return@setRemoveAction
       }
       val ruleData = table.selectedObject ?: return@setRemoveAction
-      tableModel.removeRow(table.convertRowIndexToModel(index))
-      model.setSelectedRule(null)
-      scope.launch {
-        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-          interceptRuleRemovedBuilder.apply {
-            ruleId = ruleData.id
-          }
-        }.build())
+      if (TableUtil.doRemoveSelectedItems(table, tableModel, null)) {
+        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
+          IdeFocusManager.getGlobalInstance().requestFocus(table, true)
+        }
+        TableUtil.updateScroller(table)
+        model.setSelectedRule(null)
+        scope.launch {
+          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+            interceptRuleRemovedBuilder.apply {
+              ruleId = ruleData.id
+            }
+          }.build())
+        }
       }
     }
     component = decorator.createPanel()

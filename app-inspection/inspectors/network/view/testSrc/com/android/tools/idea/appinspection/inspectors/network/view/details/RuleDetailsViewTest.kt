@@ -42,6 +42,8 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.NetworkInspectorEvent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
@@ -120,6 +122,7 @@ class RuleDetailsViewTest {
   @Before
   fun before() {
     enableHeadlessDialogs(testRootDisposable)
+    TestDialogManager.setTestDialog(TestDialog.YES)
 
     val codeNavigationProvider = FakeCodeNavigationProvider()
     client = TestNetworkInspectorClient()
@@ -145,6 +148,7 @@ class RuleDetailsViewTest {
 
   @After
   fun tearDown() {
+    TestDialogManager.setTestDialog(null)
     scope.cancel()
   }
 
@@ -160,8 +164,12 @@ class RuleDetailsViewTest {
     assertThat(table.selectedRow).isEqualTo(1)
 
     val remove = findAction(inspectorView.rulesView.component, "Remove")
+    TestDialogManager.setTestDialog(TestDialog.NO)
     remove.actionPerformed(TestActionEvent())
-    assertThat(table.selectedRow).isEqualTo(-1)
+    assertThat(table.selectedRow).isEqualTo(1)
+    TestDialogManager.setTestDialog(TestDialog.YES)
+    remove.actionPerformed(TestActionEvent())
+    assertThat(table.selectedRow).isEqualTo(0)
     client.verifyLatestCommand { command ->
       assertThat(command.hasInterceptRuleRemoved()).isTrue()
       assertThat(command.interceptRuleRemoved.ruleId).isEqualTo(secondRule.id)
@@ -419,7 +427,10 @@ class RuleDetailsViewTest {
 
     headerTable.selectionModel.addSelectionInterval(0, 0)
     val removeAction = findAction(headerTable.parent.parent.parent, "Remove")
+    TestDialogManager.setTestDialog(TestDialog.NO)
+    assertThat(headerTable.rowCount).isEqualTo(1)
     removeAction.actionPerformed(TestActionEvent())
+    TestDialogManager.setTestDialog(TestDialog.YES)
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(0)
@@ -650,6 +661,10 @@ class RuleDetailsViewTest {
 
     bodyTable.selectionModel.addSelectionInterval(0, 0)
     val removeAction = findAction(bodyTable.parent.parent.parent, "Remove")
+    TestDialogManager.setTestDialog(TestDialog.NO)
+    removeAction.actionPerformed(TestActionEvent())
+    assertThat(bodyTable.rowCount).isEqualTo(1)
+    TestDialogManager.setTestDialog(TestDialog.YES)
     removeAction.actionPerformed(TestActionEvent())
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
