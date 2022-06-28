@@ -113,7 +113,8 @@ class DeviceView(
   var frameNumber: Long = 0
     private set
 
-  private var connected = false
+  var connected = false
+    private set
   private var disposed = false
 
   private var multiTouchMode = false

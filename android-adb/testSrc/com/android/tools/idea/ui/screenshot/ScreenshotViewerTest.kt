@@ -98,7 +98,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE, isTv = false)
     val viewer = createScreenshotViewer(screenshotImage, null)
     val ui = FakeUi(viewer.rootPane)
 
@@ -112,7 +112,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE, isTv = false)
     val viewer = createScreenshotViewer(screenshotImage, null)
     val ui = FakeUi(viewer.rootPane)
 
@@ -126,7 +126,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshot() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -142,7 +142,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshotWithBackgroundColor() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -169,8 +169,9 @@ class ScreenshotViewerTest {
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
                                      screenshotPostprocessor: ScreenshotPostprocessor?): ScreenshotViewer {
     val screenshotFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+    val frames = screenshotPostprocessor?.let { listOf(testFrame) } ?: listOf()
     val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, null, screenshotPostprocessor,
-                                  listOf(testFrame), 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
+                                  frames, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer
   }

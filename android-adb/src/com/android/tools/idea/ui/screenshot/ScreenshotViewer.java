@@ -216,8 +216,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);
-    Preconditions.checkArgument(screenshotPostprocessor == null ||
-                                defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
+    Preconditions.checkArgument(framingOptions.isEmpty() || screenshotPostprocessor != null);
+    Preconditions.checkArgument(framingOptions.isEmpty() || defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
 
     setModal(false);
     setTitle(AndroidAdbBundle.message("screenshot.action.title"));

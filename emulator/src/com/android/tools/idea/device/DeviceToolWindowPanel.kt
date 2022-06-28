@@ -18,10 +18,12 @@ package com.android.tools.idea.device
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
+import com.android.tools.idea.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.emulator.AbstractDisplayPanel
 import com.android.tools.idea.emulator.DeviceId
 import com.android.tools.idea.emulator.RunningDevicePanel
 import com.android.tools.idea.emulator.installFileDropHandler
+import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
@@ -36,7 +38,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
@@ -47,7 +48,8 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
-  override val title: String
+  override val title: String,
+  private val deviceProperties: Map<String, String>,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber)) {
 
   private val mainToolbar: ActionToolbar
@@ -73,6 +75,8 @@ internal class DeviceToolWindowPanel(
       field = value
       displayPanel?.zoomToolbarVisible = value
     }
+
+  private var screenshotOptions: DeviceScreenshotOptions? = null
 
   init {
     background = primaryPanelBackground
@@ -114,6 +118,7 @@ internal class DeviceToolWindowPanel(
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
     primaryDeviceView = deviceView
+    screenshotOptions = DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, deviceView)
     mainToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
 
@@ -136,6 +141,7 @@ internal class DeviceToolWindowPanel(
     centerPanel.removeAll()
     displayPanel = null
     primaryDeviceView = null
+    screenshotOptions = null
     mainToolbar.targetComponent = this
     return uiState
   }
@@ -144,6 +150,7 @@ internal class DeviceToolWindowPanel(
     return when (dataId) {
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
+      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> if (primaryDeviceView?.connected == true) screenshotOptions else null
       else -> null
     }
   }

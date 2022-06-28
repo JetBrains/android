@@ -65,7 +65,8 @@ class ScreenshotAction : DumbAwareAction(
           screenshotImage.image.writeImage(SdkConstants.EXT_PNG, backingFile)
           val screenshotPostprocessor = screenshotOptions.screenshotPostprocessor
           val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-          val defaultFrame = screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)
+          val defaultFrame =
+              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage) else 0
           val viewer: ScreenshotViewer = object : ScreenshotViewer(
             project,
             screenshotImage,
@@ -118,12 +119,14 @@ class ScreenshotAction : DumbAwareAction(
     val screenshotViewerOptions: Set<ScreenshotViewer.Option>
     val screenshotPostprocessor: ScreenshotPostprocessor
 
-    fun createScreenshotImage(image: BufferedImage, displayInfo: String): ScreenshotImage
+    fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage
 
     /** Returns the list of available framing options for the given image. */
     fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption>
 
-    /** Returns the index of the default framing option for the given image. */
+    /**
+     * Returns the index of the default framing option for the given image.
+     * The default framing option is ignored if [getFramingOptions] returned an empty list. */
     fun getDefaultFramingOption(framingOptions: List<FramingOption>, screenshotImage: ScreenshotImage): Int
   }
 }

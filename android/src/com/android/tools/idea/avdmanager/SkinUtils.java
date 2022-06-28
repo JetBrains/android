@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-final class SkinUtils {
-  static final String NO_SKIN = "_no_skin";
+public final class SkinUtils {
+  public static final String NO_SKIN = "_no_skin";
 
   private SkinUtils() {
   }

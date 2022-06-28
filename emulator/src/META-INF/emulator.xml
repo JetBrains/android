@@ -67,7 +67,7 @@
       <action id="android.emulator.tilt" class="com.android.tools.idea.emulator.actions.TiltAction"
               icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.emulator.actions.DisplayModeActionGroup"
               text="Display Mode" description="Select display mode" popup="true">
         <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Phone"
@@ -103,6 +103,8 @@
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
       <action id="android.device.overview.button" class="com.android.tools.idea.device.actions.DeviceOverviewButtonAction"
               icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
+      <action id="android.device.screenshot" class="com.android.tools.idea.ui.screenshot.ScreenshotAction"
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
     </group>
   </actions>
 </idea-plugin>

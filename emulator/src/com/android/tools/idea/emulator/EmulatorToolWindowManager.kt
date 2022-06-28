@@ -315,8 +315,8 @@ internal class EmulatorToolWindowManager private constructor(
     addPanel(EmulatorToolWindowPanel(project, emulator))
   }
 
-  private fun addPhysicalDevicePanel(serialNumber: String, abi: String, title: String) {
-    addPanel(DeviceToolWindowPanel(project, serialNumber, abi, title))
+  private fun addPhysicalDevicePanel(serialNumber: String, abi: String, title: String, deviceProperties: Map<String, String>) {
+    addPanel(DeviceToolWindowPanel(project, serialNumber, abi, title, deviceProperties))
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
@@ -441,7 +441,7 @@ internal class EmulatorToolWindowManager private constructor(
       }
 
       UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-        addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title)
+        addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title, properties)
       }
     }
     catch (e: Exception) {

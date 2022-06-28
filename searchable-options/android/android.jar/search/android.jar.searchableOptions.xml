@@ -391,6 +391,12 @@
     <option name="project" path="ActionManager" hit="New Project" />
     <option name="new" path="ActionManager" hit="New Project..." />
     <option name="project" path="ActionManager" hit="New Project..." />
+    <option name="a" path="ActionManager" hit="Obtain a screenshot from the device" />
+    <option name="device" path="ActionManager" hit="Obtain a screenshot from the device" />
+    <option name="from" path="ActionManager" hit="Obtain a screenshot from the device" />
+    <option name="obtain" path="ActionManager" hit="Obtain a screenshot from the device" />
+    <option name="screenshot" path="ActionManager" hit="Obtain a screenshot from the device" />
+    <option name="the" path="ActionManager" hit="Obtain a screenshot from the device" />
     <option name="open" path="ActionManager" hit="Open" />
     <option name="an" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="asset" path="ActionManager" hit="Open Asset Studio to create an image asset" />
@@ -553,6 +559,8 @@
     <option name="running" path="ActionManager" hit="Running devices" />
     <option name="manager" path="ActionManager" hit="SDK Manager" />
     <option name="sdk" path="ActionManager" hit="SDK Manager" />
+    <option name="capture" path="ActionManager" hit="Screen Capture" />
+    <option name="screen" path="ActionManager" hit="Screen Capture" />
     <option name="build" path="ActionManager" hit="Select Build Variant..." />
     <option name="select" path="ActionManager" hit="Select Build Variant..." />
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />
@@ -606,9 +614,6 @@
     <option name="tablet" path="ActionManager" hit="Tablet" />
     <option name="screenshot" path="ActionManager" hit="Take Screenshot" />
     <option name="take" path="ActionManager" hit="Take Screenshot" />
-    <option name="a" path="ActionManager" hit="Take a screenshot" />
-    <option name="screenshot" path="ActionManager" hit="Take a screenshot" />
-    <option name="take" path="ActionManager" hit="Take a screenshot" />
     <option name="history" path="ActionManager" hit="Test History" />
     <option name="test" path="ActionManager" hit="Test History" />
     <option name="tilt" path="ActionManager" hit="Tilt" />

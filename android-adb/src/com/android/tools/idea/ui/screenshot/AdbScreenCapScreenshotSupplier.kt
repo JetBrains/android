@@ -63,14 +63,20 @@ internal class AdbScreenCapScreenshotSupplier(
       adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = COMMAND_TIMEOUT)
     }
 
+    val pmJob = coroutineScope.async {
+      adbLibService.session.deviceServices.shellAsText(deviceSelector, "pm list features", commandTimeout = COMMAND_TIMEOUT)
+    }
+
     return runBlocking {
       val dumpsysOutput = dumpsysJob.await()
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
+      val pmOutput = pmJob.await()
+      val isTv = pmOutput.contains("feature:android.software.leanback")
       val screenshotBytes = screenshotJob.await()
       @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes))
                   ?: throw RuntimeException(AndroidAdbBundle.message("screenshot.error.decode"))
-      screenshotOptions.createScreenshotImage(image, displayInfo)
+      screenshotOptions.createScreenshotImage(image, displayInfo, isTv)
     }
   }
 

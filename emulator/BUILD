@@ -53,6 +53,7 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
