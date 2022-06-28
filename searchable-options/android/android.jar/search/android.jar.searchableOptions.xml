@@ -1231,29 +1231,6 @@
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
   </configurable>
-  <configurable id="fileTemplates" configurable_name="File and Code Templates">
-    <option name="activity" hit="Activity" />
-    <option name="androidmanifest" hit="AndroidManifest" />
-    <option name="annotationtype" hit="AnnotationType" />
-    <option name="application" hit="Application" />
-    <option name="broadcast" hit="Broadcast_Receiver" />
-    <option name="receiver" hit="Broadcast_Receiver" />
-    <option name="class" hit="Class" />
-    <option name="enum" hit="Enum" />
-    <option name="fragment" hit="Fragment" />
-    <option name="interface" hit="Interface" />
-    <option name="interface" hit="Remote_Interface" />
-    <option name="remote" hit="Remote_Interface" />
-    <option name="service" hit="Service" />
-    <option name="singleton" hit="Singleton" />
-    <option name="default" hit="default" />
-    <option name="layoutresourcefile" hit="layoutResourceFile" />
-    <option name="layoutresourcefile" hit="layoutResourceFile_vertical" />
-    <option name="vertical" hit="layoutResourceFile_vertical" />
-    <option name="navigationresourcefile" hit="navigationResourceFile" />
-    <option name="resourcefile" hit="resourceFile" />
-    <option name="valueresourcefile" hit="valueResourceFile" />
-  </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit=" Note: These settings are for features that are considered experimental." />
     <option name="are" hit=" Note: These settings are for features that are considered experimental." />

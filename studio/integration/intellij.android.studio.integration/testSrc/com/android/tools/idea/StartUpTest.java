@@ -61,6 +61,7 @@ public class StartUpTest {
         "Clangd Support",
         "Clangd-CLion Bridge",
         "Code Coverage for Java",
+        "com.intellij.dev",
         "Configuration Script",
         "Copyright",
         "Design Tools",

@@ -28,3 +28,6 @@ Package 'com\.intellij\.grazie\.text' is not found
 // We do not bundle the IDE Features Trainer plugin.
 Package 'training' is not found
 Package 'org\.assertj\.swing' is not found
+
+// commit 8d8be187
+Abstract method org.jetbrains.uast.generate.UastCodeGenerationPlugin.*

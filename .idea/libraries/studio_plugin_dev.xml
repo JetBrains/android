@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-vcs-refactoring-detector">
+  <library name="studio-plugin-dev">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-222/$SDK_PLATFORM$/plugins/vcs-refactoring-detector/lib/vcs-refactoring-detector.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-222/$SDK_PLATFORM$/plugins/dev/lib/dev.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
