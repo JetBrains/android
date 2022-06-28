@@ -38,7 +38,7 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun isApplicable(project: Project): Boolean {
-    val available = isAndroidEnvironment(project) && canLaunchEmulator()
+    val available = isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
     if (available) {
       EmulatorToolWindowManager.initializeForProject(project)
     }
