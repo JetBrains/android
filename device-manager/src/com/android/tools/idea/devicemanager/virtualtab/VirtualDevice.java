@@ -33,12 +33,14 @@ public final class VirtualDevice extends Device {
   private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final long mySizeOnDisk;
+  private final @NotNull LaunchOrStopButtonState myState;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
     private boolean myOnline;
     private @Nullable String myCpuArchitecture;
     private long mySizeOnDisk;
+    private @NotNull LaunchOrStopButtonState myState = LaunchOrStopButtonState.STOPPED;
     private @Nullable AvdInfo myAvdInfo;
 
     @NotNull Builder setKey(@NotNull Key key) {
@@ -81,6 +83,11 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setState(@NotNull LaunchOrStopButtonState state) {
+      myState = state;
+      return this;
+    }
+
     @NotNull Builder setResolution(@Nullable Resolution resolution) {
       myResolution = resolution;
       return this;
@@ -112,6 +119,8 @@ public final class VirtualDevice extends Device {
     }
   }
 
+  private enum LaunchOrStopButtonState {STOPPED, LAUNCHING, LAUNCHED, STOPPING}
+
   private static final class PairingState {
     private final boolean myPairable;
     private final @Nullable String myMessage;
@@ -130,6 +139,7 @@ public final class VirtualDevice extends Device {
     myCpuArchitecture = builder.myCpuArchitecture;
 
     mySizeOnDisk = builder.mySizeOnDisk;
+    myState = builder.myState;
 
     assert builder.myAvdInfo != null;
     myAvdInfo = builder.myAvdInfo;
@@ -199,6 +209,7 @@ public final class VirtualDevice extends Device {
     hashCode = 31 * hashCode + myCpuArchitecture.hashCode();
     hashCode = 31 * hashCode + myAndroidVersion.hashCode();
     hashCode = 31 * hashCode + Long.hashCode(mySizeOnDisk);
+    hashCode = 31 * hashCode + myState.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
     hashCode = 31 * hashCode + myAbis.hashCode();
@@ -224,6 +235,7 @@ public final class VirtualDevice extends Device {
            myCpuArchitecture.equals(device.myCpuArchitecture) &&
            myAndroidVersion.equals(device.myAndroidVersion) &&
            mySizeOnDisk == device.mySizeOnDisk &&
+           myState.equals(device.myState) &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
            myAbis.equals(device.myAbis) &&
