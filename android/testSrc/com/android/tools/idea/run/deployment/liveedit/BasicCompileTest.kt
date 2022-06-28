@@ -100,6 +100,9 @@ class BasicCompileTest {
 
     files["HasInternalVar.kt"] = projectRule.fixture.configureByText("HasInternalVar.kt",
                                                                      "internal var x = 1\n fun getNum() = x")
+
+    files["HasPublicInline.kt"] = projectRule.fixture.configureByText("HasPublicInline.kt",
+                                                                     "public inline fun publicInlineFun() = 1")
   }
 
   @Test
@@ -189,6 +192,16 @@ class BasicCompileTest {
     Assert.assertTrue(output.classData.isNotEmpty())
     var returnedValue = invokeStatic("getNum", loadClass(output))
     Assert.assertEquals(1, returnedValue)
+  }
+
+  @Test
+  fun publicInlineFunction() {
+    try {
+      compile(files["HasPublicInline.kt"], "publicInlineFun")
+      Assert.fail("Expecting an exception thrown.")
+    } catch (e : LiveEditUpdateException) {
+      Assert.assertEquals(LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION, e.error)
+    }
   }
 
   private fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) :

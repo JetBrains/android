@@ -29,6 +29,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true),
     COMPILATION_ERROR("Compilation Error", "%", true),
+    NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true),
     UNABLE_TO_INLINE("Unable to inline function", "%", true),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
     INTERNAL_ERROR("Internal Error", "%", false),
@@ -57,6 +58,10 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source, cause)
+
+    fun nonPrivateInlineFunctionFailure(source: PsiFile? = null) =
+      LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
+                                                                 "Application needs to be rebuild.", source, null)
   }
 }
 

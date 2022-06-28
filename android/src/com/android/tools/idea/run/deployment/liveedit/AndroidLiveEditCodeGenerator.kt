@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -24,6 +25,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -226,7 +229,16 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
     val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
-    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
+    val result = CodeGeneratorOutput(
+      internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
+    checkNonPrivateInline(desc, function.containingFile)
+    return result;
+  }
+
+  private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {
+    if (desc.isInline && desc.visibility != DescriptorVisibilities.PRIVATE) {
+      throw nonPrivateInlineFunctionFailure(file)
+    }
   }
 
   private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
