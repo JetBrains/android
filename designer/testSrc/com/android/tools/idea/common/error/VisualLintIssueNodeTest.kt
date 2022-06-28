@@ -17,7 +17,6 @@ package com.android.tools.idea.common.error
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,9 +27,6 @@ import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.android.utils.HtmlBuilder
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
@@ -170,15 +166,4 @@ class VisualLintIssueNodeTest {
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }
-}
-
-private fun createTestVisualLintRenderIssue(type: VisualLintErrorType, components: MutableList<NlComponent>) : VisualLintRenderIssue {
-  return VisualLintRenderIssue.builder().model(components.first().model)
-    .summary("")
-    .severity(HighlightSeverity.WARNING)
-    .contentDescriptionProvider { HtmlBuilder() }
-    .model(components.first().model)
-    .components(components)
-    .type(type)
-    .build()
 }

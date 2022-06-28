@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.utils.HtmlBuilder
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.Project
@@ -64,4 +68,17 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
   override fun getChildren(): Collection<DesignerCommonIssueNode> = emptyList()
 
   override fun getLeafState(): LeafState = LeafState.ALWAYS
+}
+
+fun createTestVisualLintRenderIssue(type: VisualLintErrorType,
+                                    components: MutableList<NlComponent>,
+                                    summary: String = "") : VisualLintRenderIssue {
+  return VisualLintRenderIssue.builder().model(components.first().model)
+    .summary(summary)
+    .severity(HighlightSeverity.WARNING)
+    .contentDescriptionProvider { HtmlBuilder() }
+    .model(components.first().model)
+    .components(components)
+    .type(type)
+    .build()
 }

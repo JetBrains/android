@@ -271,6 +271,9 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
       if (issue1 !is VisualLintRenderIssue || issue2 !is VisualLintRenderIssue) {
         return TreeVisitor.Action.CONTINUE
       }
+      if (issue1.summary != issue2.summary) {
+        return TreeVisitor.Action.CONTINUE
+      }
       val files1 = issue1.models.toList()
       val files2 = issue2.models.toList()
       if (files1 != files2) {
