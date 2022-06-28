@@ -19,22 +19,17 @@ import com.intellij.ui.table.JBTable;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
-public class DeviceTable<D> extends JBTable {
+public abstract class DeviceTable<D> extends JBTable {
   private final @NotNull Class<@NotNull D> myDeviceClass;
-  private final int myDeviceModelColumnIndex;
 
-  protected DeviceTable(@NotNull TableModel model, @NotNull Class<@NotNull D> deviceClass, int deviceModelColumnIndex) {
+  protected DeviceTable(@NotNull TableModel model, @NotNull Class<@NotNull D> deviceClass) {
     super(model);
-
     myDeviceClass = deviceClass;
-    myDeviceModelColumnIndex = deviceModelColumnIndex;
   }
 
   public final @NotNull D getDeviceAt(int viewRowIndex) {
     return myDeviceClass.cast(getValueAt(viewRowIndex, deviceViewColumnIndex()));
   }
 
-  public final int deviceViewColumnIndex() {
-    return convertColumnIndexToView(myDeviceModelColumnIndex);
-  }
+  protected abstract int deviceViewColumnIndex();
 }

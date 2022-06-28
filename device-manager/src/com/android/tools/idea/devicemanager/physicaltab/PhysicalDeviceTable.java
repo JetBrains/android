@@ -57,7 +57,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
 
   @VisibleForTesting
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
-    super(model, PhysicalDevice.class, PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
+    super(model, PhysicalDevice.class);
 
     Project project = panel.getProject();
     assert project != null;
@@ -158,6 +158,11 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  @Override
+  protected int deviceViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
   }
 
   private int apiViewColumnIndex() {

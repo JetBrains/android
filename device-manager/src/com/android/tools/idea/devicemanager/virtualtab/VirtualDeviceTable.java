@@ -82,7 +82,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
                      @NotNull VirtualDeviceAsyncSupplier asyncSupplier,
                      @NotNull NewSetDevices newSetDevices) {
-    super(new VirtualDeviceTableModel(), VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
+    super(new VirtualDeviceTableModel(), VirtualDevice.class);
 
     myAsyncSupplier = asyncSupplier;
     myNewSetDevices = newSetDevices;
@@ -270,6 +270,11 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  @Override
+  protected int deviceViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
   }
 
   private int apiViewColumnIndex() {
