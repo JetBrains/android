@@ -35,7 +35,7 @@ sealed class EmulatorRotateAction(
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
     val rotation = emulatorView.displayRotation
-    val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + rotationAngleDegrees)
+    val angle = canonicalizeRotationAngle(rotation.number * 90F + rotationAngleDegrees)
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
       .addData(0F)

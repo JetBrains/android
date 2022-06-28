@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator.actions
 import com.android.SdkConstants
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.ddms.screenshot.FramingOption
 import com.android.tools.idea.ddms.screenshot.ScreenshotImage
@@ -147,7 +146,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
-      val skin = skinDefinition.createScaledLayout(w, h, SkinRotation.forNumber(screenshotImage.screenRotationQuadrants))
+      val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenRotationQuadrants)
       if (framingOption == null) {
         @Suppress("UndesirableClassUsage")
         val result = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)

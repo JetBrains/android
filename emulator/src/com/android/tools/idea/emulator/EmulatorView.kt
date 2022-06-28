@@ -329,7 +329,7 @@ class EmulatorView(
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(rotation, currentDisplaySize)
+      skin.getRotatedFrameSize(rotation.number, currentDisplaySize)
     }
     else {
       currentDisplaySize.rotated(rotation)
@@ -1035,7 +1035,7 @@ class EmulatorView(
       synchronized(this) {
         var layout = this.skinLayout
         if (displayShape != this.displayShape || layout == null) {
-          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
+          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation.number) ?:
                    SkinLayout(displayShape.width, displayShape.height)
           this.displayShape = displayShape
           this.skinLayout = layout

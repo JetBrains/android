@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
@@ -54,10 +53,10 @@ class SkinDefinitionTest {
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method.
-    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(1623, 3322))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE)).isEqualTo(Dimension(3322, 1623))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT)).isEqualTo(Dimension(1623, 3322))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(3322, 1623))
+    assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1623, 3322))
+    assertThat(skin.getRotatedFrameSize(1)).isEqualTo(Dimension(3322, 1623))
+    assertThat(skin.getRotatedFrameSize(2)).isEqualTo(Dimension(1623, 3322))
+    assertThat(skin.getRotatedFrameSize(3)).isEqualTo(Dimension(3322, 1623))
 
     // Check the createScaledLayout method without rotation or scaling.
     var layout = skin.layout
@@ -67,25 +66,25 @@ class SkinDefinitionTest {
     assertThat(layout.maskImages).hasSize(4) // Four round corners.
 
     // Check the createScaledLayout method with scaling.
-    layout = skin.createScaledLayout(325, 650, SkinRotation.PORTRAIT)
+    layout = skin.createScaledLayout(325, 650, 0)
     assertThat(layout.displaySize).isEqualTo(Dimension(325, 650))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-19, -55, 366, 750))
     assertSkinAppearance(layout, "pixel_2_xl")
 
     // Check the createScaledLayout method with 90-degree rotation and scaling.
-    layout = skin.createScaledLayout(650, 325, SkinRotation.LANDSCAPE)
+    layout = skin.createScaledLayout(650, 325, 1)
     assertThat(layout.displaySize).isEqualTo(Dimension(650, 325))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-55, -22, 750, 366))
     assertSkinAppearance(layout, "pixel_2_xl_90")
 
     // Check the createScaledLayout method with 180-degree rotation and scaling.
-    layout = skin.createScaledLayout(325, 650, SkinRotation.REVERSE_PORTRAIT)
+    layout = skin.createScaledLayout(325, 650, 2)
     assertThat(layout.displaySize).isEqualTo(Dimension(325, 650))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-22, -45, 366, 750))
     assertSkinAppearance(layout, "pixel_2_xl_180")
 
     // Check the createScaledLayout method with 270-degree rotation and scaling.
-    layout = skin.createScaledLayout(650, 325, SkinRotation.REVERSE_LANDSCAPE)
+    layout = skin.createScaledLayout(650, 325, 3)
     assertThat(layout.displaySize).isEqualTo(Dimension(650, 325))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-45, -19, 750, 366))
     assertSkinAppearance(layout, "pixel_2_xl_270")
@@ -97,16 +96,16 @@ class SkinDefinitionTest {
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method without scaling.
-    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(1584, 3245))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE)).isEqualTo(Dimension(3245, 1584))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT)).isEqualTo(Dimension(1584, 3245))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(3245, 1584))
+    assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1584, 3245))
+    assertThat(skin.getRotatedFrameSize(1)).isEqualTo(Dimension(3245, 1584))
+    assertThat(skin.getRotatedFrameSize(2)).isEqualTo(Dimension(1584, 3245))
+    assertThat(skin.getRotatedFrameSize(3)).isEqualTo(Dimension(3245, 1584))
 
     // Check the getRotatedFrameSize method with scaling.
-    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
+    assertThat(skin.getRotatedFrameSize(0, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
+    assertThat(skin.getRotatedFrameSize(1, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
+    assertThat(skin.getRotatedFrameSize(2, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
+    assertThat(skin.getRotatedFrameSize(3, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
 
     // Check the createScaledLayout method without rotation or scaling.
     var layout = skin.layout
@@ -116,25 +115,25 @@ class SkinDefinitionTest {
     assertThat(layout.maskImages).hasSize(5) // Four round corners and the cutout.
 
     // Check the createScaledLayout method with scaling.
-    layout = skin.createScaledLayout(341, 700, SkinRotation.PORTRAIT)
+    layout = skin.createScaledLayout(341, 700, 0)
     assertThat(layout.displaySize).isEqualTo(Dimension(341, 700))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-15, -17, 375, 767))
     assertSkinAppearance(layout, "pixel_3_xl")
 
     // Check the createScaledLayout method with 90-degree rotation and scaling.
-    layout = skin.createScaledLayout(700, 341, SkinRotation.LANDSCAPE)
+    layout = skin.createScaledLayout(700, 341, 1)
     assertThat(layout.displaySize).isEqualTo(Dimension(700, 341))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-17, -19, 767, 375))
     assertSkinAppearance(layout, "pixel_3_xl_90")
 
     // Check the createScaledLayout method with 180-degree rotation and scaling.
-    layout = skin.createScaledLayout(341, 700, SkinRotation.REVERSE_PORTRAIT)
+    layout = skin.createScaledLayout(341, 700, 2)
     assertThat(layout.displaySize).isEqualTo(Dimension(341, 700))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-19, -50, 375, 767))
     assertSkinAppearance(layout, "pixel_3_xl_180")
 
     // Check the createScaledLayout method with 270-degree rotation and scaling.
-    layout = skin.createScaledLayout(700, 341, SkinRotation.REVERSE_LANDSCAPE)
+    layout = skin.createScaledLayout(700, 341, 3)
     assertThat(layout.displaySize).isEqualTo(Dimension(700, 341))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-50, -15, 767, 375))
     assertSkinAppearance(layout, "pixel_3_xl_270")
@@ -146,7 +145,7 @@ class SkinDefinitionTest {
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the createScaledLayout method with scaling.
-    val layout = skin.createScaledLayout(8, 16, SkinRotation.PORTRAIT)
+    val layout = skin.createScaledLayout(8, 16, 0)
     assertThat(layout.displaySize).isEqualTo(Dimension(8, 16))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-0, -1, 8, 18))
     assertSkinAppearance(layout, "tiny_pixel_4_xl")
@@ -183,7 +182,7 @@ class SkinDefinitionTest {
     val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
     // Check the skin layout.
-    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(2348, 1080))
+    assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(2348, 1080))
   }
 
   @Test

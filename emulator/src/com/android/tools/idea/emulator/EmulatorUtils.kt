@@ -150,11 +150,11 @@ internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension {
 /**
  * Returns this [Point] rotated according to [rotation].
  */
-internal fun Point.rotated(rotation: SkinRotation): Point {
+internal fun Point.rotatedByQuadrants(rotation: Int): Point {
   return when (rotation) {
-    SkinRotation.LANDSCAPE -> Point(y, -x)
-    SkinRotation.REVERSE_PORTRAIT -> Point(-x, -y)
-    SkinRotation.REVERSE_LANDSCAPE -> Point(-y, x)
+    1 -> Point(y, -x)
+    2 -> Point(-x, -y)
+    3 -> Point(-y, x)
     else -> this
   }
 }

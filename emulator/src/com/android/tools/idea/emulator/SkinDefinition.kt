@@ -16,10 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.Slow
-import com.android.emulator.control.Rotation.SkinRotation
-import com.android.emulator.control.Rotation.SkinRotation.LANDSCAPE
-import com.android.emulator.control.Rotation.SkinRotation.REVERSE_LANDSCAPE
-import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
 import com.android.io.writeImage
 import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
@@ -53,15 +49,15 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
    *
    * @param displayWidth the width of the rotated display
    * @param displayHeight the height of the rotated display
-   * @param displayRotation the orientation of the display
+   * @param displayOrientationQuadrants the orientation of the display in quadrants counterclockwise
    */
-  fun createScaledLayout(displayWidth: Int, displayHeight: Int, displayRotation: SkinRotation): SkinLayout {
-    if (displayRotation == LANDSCAPE && displayWidth == layout.displaySize.width && displayHeight == layout.displaySize.height) {
+  fun createScaledLayout(displayWidth: Int, displayHeight: Int, displayOrientationQuadrants: Int): SkinLayout {
+    if (displayOrientationQuadrants == 0 && displayWidth == layout.displaySize.width && displayHeight == layout.displaySize.height) {
       return layout // No rotation or scaling needed.
     }
 
-    val rotatedFrameRect = layout.frameRectangle.rotated(displayRotation, layout.displaySize)
-    val rotatedDisplaySize = layout.displaySize.rotated(displayRotation)
+    val rotatedFrameRect = layout.frameRectangle.rotatedByQuadrants(displayOrientationQuadrants, layout.displaySize)
+    val rotatedDisplaySize = layout.displaySize.rotatedByQuadrants(displayOrientationQuadrants)
     val scaleX = displayWidth.toDouble() / rotatedDisplaySize.width
     val scaleY = displayHeight.toDouble() / rotatedDisplaySize.height
     // To avoid visible seams between parts of the skin scale the frame margins separately from the display.
@@ -70,18 +66,18 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     val frameWidth = -frameX + displayWidth + (rotatedFrameRect.right - rotatedDisplaySize.width).scaled(scaleX)
     val frameHeight = -frameY + displayHeight + (rotatedFrameRect.bottom - rotatedDisplaySize.height).scaled(scaleY)
     val frameRect = Rectangle(frameX, frameY, frameWidth, frameHeight)
-    val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
-    val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
+    val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
+    val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
     return SkinLayout(Dimension(displayWidth, displayHeight), frameRect, frameImages, maskImages)
   }
 
   /**
    * Returns the frame dimensions for the given display orientation.
    *
-   * @param displayRotation the orientation of the display
+   * @param displayRotationQuadrants the orientation of the display in quadrants counterclockwise
    * @param displaySize the size of the device display without rotation or scaling
    */
-  fun getRotatedFrameSize(displayRotation: SkinRotation, displaySize: Dimension = layout.displaySize): Dimension {
+  fun getRotatedFrameSize(displayRotationQuadrants: Int, displaySize: Dimension = layout.displaySize): Dimension {
     val scaleX = displaySize.getWidth() / layout.displaySize.getWidth()
     val scaleY = displaySize.getHeight() / layout.displaySize.getHeight()
     val frameRect = layout.frameRectangle
@@ -94,7 +90,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
                 -frameRect.y.scaled(scaleY) + displaySize.height + (frameRect.bottom - layout.displaySize.height).scaled(scaleY))
     }
 
-    return size.rotated(displayRotation)
+    return size.rotatedByQuadrants(displayRotationQuadrants)
   }
 
   companion object {
@@ -185,11 +181,11 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
      * @param displaySize the display dimensions before rotation
      */
     @JvmStatic
-    private fun Rectangle.rotated(rotation: SkinRotation, displaySize: Dimension): Rectangle {
+    private fun Rectangle.rotatedByQuadrants(rotation: Int, displaySize: Dimension): Rectangle {
       return when (rotation) {
-        LANDSCAPE -> Rectangle(y, displaySize.width - width - x, height, width)
-        REVERSE_PORTRAIT -> Rectangle(displaySize.width - width - x, displaySize.height - height - y, width, height)
-        REVERSE_LANDSCAPE -> Rectangle(displaySize.height - height - y, x, height, width)
+        1 -> Rectangle(y, displaySize.width - width - x, height, width)
+        2 -> Rectangle(displaySize.width - width - x, displaySize.height - height - y, width, height)
+        3 -> Rectangle(displaySize.height - height - y, x, height, width)
         else -> this
       }
     }
