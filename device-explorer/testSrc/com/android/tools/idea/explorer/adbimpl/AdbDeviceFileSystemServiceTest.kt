@@ -23,11 +23,16 @@ import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -36,6 +41,7 @@ import org.junit.Test
 import java.io.File
 import java.io.FileNotFoundException
 
+@RunsInEdt
 class AdbDeviceFileSystemServiceTest {
 
   @get:Rule
@@ -44,8 +50,13 @@ class AdbDeviceFileSystemServiceTest {
   @get:Rule
   val adb = FakeAdbRule()
 
+  @get:Rule
+  val edtRule = EdtRule()
+
   private val project: Project
     get() = androidProjectRule.project
+
+  private val edtExecutor = EdtExecutorService.getInstance()
 
   @Before
   fun setUp() {
@@ -55,7 +66,7 @@ class AdbDeviceFileSystemServiceTest {
   }
 
   @Test
-  fun initialDeviceList() = runBlocking {
+  fun initialDeviceList() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Prepare
     val service = getInstance(project)
 
@@ -69,7 +80,7 @@ class AdbDeviceFileSystemServiceTest {
   }
 
   @Test
-  fun debugBridgeListenersRemovedOnDispose() = runBlocking {
+  fun debugBridgeListenersRemovedOnDispose() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Prepare
     val service = getInstance(project)
     service.start()
@@ -85,7 +96,7 @@ class AdbDeviceFileSystemServiceTest {
   }
 
   @Test
-  fun startAlreadyStartedService() = runBlocking {
+  fun startAlreadyStartedService() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Prepare
     val service = getInstance(project)
 

@@ -26,7 +26,7 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.inOrder
@@ -96,7 +96,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     assertTrue(FileUtil.toSystemIndependentName(defaultLocalPath.toString()).endsWith("/fileSystem/foo/bar1"))
   }
 
-  fun testDownloadFileEntry() = runDispatching {
+  fun testDownloadFileEntry() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Setup
     val downloadProgress = mock(DownloadProgress::class.java)
     val orderVerifier = inOrder(downloadProgress)

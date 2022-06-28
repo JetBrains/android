@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.InOrder
@@ -101,7 +102,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     orderVerifier = inOrder(progress)
   }
 
-  fun testDownloadFilesFromSameDir() = runDispatching {
+  fun testDownloadFilesFromSameDir() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Act
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -124,7 +125,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     verify(progress).onCompleted("/foo/bar2")
   }
 
-  fun testDownloadFilesFromDifferentDir() = runDispatching {
+  fun testDownloadFilesFromDifferentDir() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Act
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -143,7 +144,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     verify(progress).onProgress("/foo2/bar1", 2000, 2000)
   }
 
-  fun testDownloadFilesMissingFile() = runDispatching {
+  fun testDownloadFilesMissingFile() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Act
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -160,7 +161,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     orderVerifier.verify(progress).onProgress("/foo/bar1", 2000, 2000)
   }
 
-  fun testDownloadFilesMissingDir() = runDispatching {
+  fun testDownloadFilesMissingDir() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Act
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -177,7 +178,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     orderVerifier.verify(progress).onProgress("/foo/bar1", 2000, 2000)
   }
 
-  fun testDownloadEmptyList() = runDispatching {
+  fun testDownloadEmptyList() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Act
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -190,7 +191,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     assertEquals(0, virtualFiles.size)
   }
 
-  fun testDeleteFile() = runDispatching {
+  fun testDeleteFile() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Prepare
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
@@ -207,7 +208,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     assertFalse(fileToDelete.exists())
   }
 
-  fun testDeleteMultipleFiles() = runDispatching {
+  fun testDeleteMultipleFiles() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
     // Prepare
     val virtualFiles = deviceFileDownloaderService.downloadFiles(
       "fileSystem",
