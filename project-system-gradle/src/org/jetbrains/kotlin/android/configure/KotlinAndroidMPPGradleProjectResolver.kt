@@ -107,7 +107,8 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
-      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets) {
+      @Suppress("DEPRECATION")
+      for (dependsOn in kotlinSourceSet.allDependsOnSourceSets) {
         val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
         androidGradleSourceSetDataNode.createChild(
           ProjectKeys.MODULE_DEPENDENCY,
