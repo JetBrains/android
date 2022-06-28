@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSdk
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.TestFileSystem
 import com.android.tools.asdriver.tests.XvfbServer
 import com.google.common.truth.Truth.assertThat
 import com.google.services.firebase.insights.client.grpc.FAKE_10_HOURS_AGO
@@ -101,8 +102,8 @@ class AppInsightsTest {
     println("Test gRPC server started at localhost:${grpcServerRule.server.port}")
     setUpDatabase()
 
-    val tempDir = tempFolder.newFolder("appinsights-test").toPath()
-    val install = AndroidStudioInstallation.fromZip(tempDir)
+    val fileSystem = TestFileSystem(tempFolder.root.toPath())
+    val install = AndroidStudioInstallation.fromZip(fileSystem)
     install.createFirstRunXml()
     val env = HashMap<String, String>()
 
@@ -113,14 +114,14 @@ class AppInsightsTest {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/appinsights")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
-    val projectPath = project.install(tempDir)
+    val projectPath = project.install(fileSystem.root)
 
     // Mark that project as trusted
     install.trustPath(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
     val mavenRepo = MavenRepo("tools/adt/idea/android/integration/openproject_deps.manifest")
-    mavenRepo.install(tempDir, install, env)
+    mavenRepo.install(fileSystem.root, install, env)
     
     install.addVmOption("-Dappinsights.enable.new.crashlytics.api=true")
     install.addVmOption("-Dappinsights.crashlytics.grpc.server=localhost:${grpcServerRule.server.port}")
