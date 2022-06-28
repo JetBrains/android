@@ -34,8 +34,8 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
+import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
@@ -192,6 +192,7 @@ abstract class SyncedProjectTest(
   fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
 
   @Test
+  @Ignore("b/237389151")
   fun testNewSyncKotlinTest() = testProject(TestProject.NEW_SYNC_KOTLIN_TEST)
 
   @Test
