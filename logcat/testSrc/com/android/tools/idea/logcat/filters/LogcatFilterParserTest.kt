@@ -253,17 +253,19 @@ class LogcatFilterParserTest {
   fun parse_topLevelExpressions_sameKey_or() {
     val parser = logcatFilterParser(topLevelSameKeyTreatment = OR)
 
-    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:WARN tag~:tag2")).isEqualTo(
+    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:WARN tag~:tag2 tag=:tag3 -tag=:ignore3")).isEqualTo(
       AndLogcatFilter(
         NegatedStringFilter("ignore1", TAG),
         StringFilter("foo", IMPLICIT_LINE),
         OrLogcatFilter(
           StringFilter("tag1", TAG),
           RegexFilter("tag2", TAG),
+          ExactStringFilter("tag3", TAG),
         ),
         NegatedRegexFilter("ignore2", TAG),
         StringFilter("bar", IMPLICIT_LINE),
         LevelFilter(WARN),
+        NegatedExactStringFilter("ignore3", TAG),
       )
     )
   }

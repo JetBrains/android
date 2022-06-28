@@ -412,6 +412,7 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
   return when {
     this is StringFilter && field != IMPLICIT_LINE -> FilterType(field)
     this is RegexFilter -> FilterType(field)
+    this is ExactStringFilter -> FilterType(field)
     this is LevelFilter -> FilterType("level")
     this is AgeFilter -> FilterType("age")
     this == CrashFilter -> FilterType("is")
