@@ -214,15 +214,22 @@ class ForegroundProcessDetection(
           if (activity is StreamConnected) {
             connectedStreams[streamChannel.stream.streamId] = streamChannel
 
+            val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(activity.streamChannel.stream.streamId).build()
+            val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
+
+            // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
             launch {
-              // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
-              streamChannel.eventFlow(StreamEventQuery(eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS))
-                .collect { streamEvent ->
-                  val foregroundProcess = streamEvent.toForegroundProcess()
-                  if (foregroundProcess != null) {
-                    foregroundProcessListener.onNewProcess(streamDevice, foregroundProcess)
-                  }
+              streamChannel.eventFlow(
+                StreamEventQuery(
+                  eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS,
+                  startTime = { currentTime }
+                )
+              ).collect { streamEvent ->
+                val foregroundProcess = streamEvent.toForegroundProcess()
+                if (foregroundProcess != null) {
+                  foregroundProcessListener.onNewProcess(streamDevice, foregroundProcess)
                 }
+              }
             }
 
             launch {
