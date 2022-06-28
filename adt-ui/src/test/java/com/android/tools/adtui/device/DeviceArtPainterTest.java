@@ -114,17 +114,15 @@ public class DeviceArtPainterTest {
     Dimension size = watch_round.getScreenSize(ScreenOrientation.LANDSCAPE);
     BufferedImage sample = createSampleImage(size, Color.RED);
 
-    BufferedImage framed = DeviceArtPainter.createFrame(sample, watch_round, true, false);
+    BufferedImage framed = DeviceArtPainter.createFrame(sample, watch_round);
 
     // make sure that a location outside the round frame is empty
     // (if the mask was not applied, this would be the same color as the source image)
     Point loc = watch_round.getScreenPos(ScreenOrientation.LANDSCAPE);
-    int c = framed.getRGB(loc.x, loc.y);
-    assertEquals(0x0, c);
+    assertEquals(0, framed.getRGB(loc.x, loc.y));
 
     // a point at the center should be the same as the source
-    c = framed.getRGB(loc.x + size.width / 2, loc.y + size.height / 2);
-    assertEquals(Color.RED.getRGB(), c);
+    assertEquals(Color.RED.getRGB(), framed.getRGB(loc.x + size.width / 2, loc.y + size.height / 2));
   }
 
   @NotNull

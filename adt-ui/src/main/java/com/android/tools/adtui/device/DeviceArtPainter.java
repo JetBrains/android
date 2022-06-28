@@ -15,32 +15,44 @@
  */
 package com.android.tools.adtui.device;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.DOT_PNG;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_RENDERING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.DOT_PNG;
-import static java.awt.RenderingHints.*;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A device frame painter is capable of directly painting a device frame surrounding
@@ -191,8 +203,13 @@ public class DeviceArtPainter {
     }
   }
 
-  /** Creates a frame around the given image, using the given descriptor */
-  public static BufferedImage createFrame(BufferedImage image, DeviceArtDescriptor descriptor, boolean addShadow, boolean addReflection) {
+  /** Creates a frame around the given image, using the given descriptor. */
+  public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor) {
+    return createFrame(image, descriptor, false, false);
+  }
+
+  public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor,
+                                                   boolean addShadow, boolean addReflection) {
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 

@@ -37,7 +37,7 @@ internal class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
       return if (screenshotImage.isRoundDisplay) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
-    val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor, false, false)
+    val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor)
     return ImageUtils.cropBlank(framedImage, null) ?: throw IllegalArgumentException("The screenshot is completely transparent")
   }
 
