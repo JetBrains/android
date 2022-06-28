@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,8 +93,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   }
 
   @Override
-  public @Nullable DeployTarget showPrompt(@NotNull AndroidFacet facet) {
-    Project project = facet.getModule().getProject();
+  public @Nullable DeployTarget showPrompt(@NotNull Project project) {
     List<Device> devicesWithError = selectedDevicesWithError(project);
     if (!devicesWithError.isEmpty()) {
       if (!mySelectedDevicesErrorDialog.get(project, devicesWithError).showAndGet()) {

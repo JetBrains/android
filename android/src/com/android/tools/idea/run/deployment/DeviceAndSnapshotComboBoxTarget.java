@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
@@ -64,8 +63,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
 
   @NotNull
   @Override
-  public DeviceFutures getDevices(@NotNull AndroidFacet facet) {
-    Project project = facet.getModule().getProject();
+  public DeviceFutures getDevices(@NotNull Project project) {
     List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
     Set<Target> selectedTargets = myGetSelectedTargets.get(project, devices);
     Collection<Device> selectedDevices = Target.filterDevices(selectedTargets, devices);

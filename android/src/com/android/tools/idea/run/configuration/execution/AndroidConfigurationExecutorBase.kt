@@ -33,7 +33,6 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
@@ -67,8 +66,8 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
 
   @Throws(ExecutionException::class)
   private fun getDevices(stats: RunStats): List<IDevice> {
-    val facet = AndroidFacet.getInstance(configuration.module!!)!!
-    val deviceFutureList = deployTarget.getDevices(facet) ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+    val deviceFutureList = deployTarget.getDevices(project) ?: throw ExecutionException(
+      AndroidBundle.message("deployment.target.not.found"))
 
     val devices = deviceFutureList.get().map {
       ProgressManager.checkCanceled()

@@ -24,7 +24,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.openapi.project.Project
 
 /** Deploy target  that provides the one device assigned during init.  */
 class TestDeployTarget(private val device: IDevice) : DeployTarget {
@@ -38,7 +38,7 @@ class TestDeployTarget(private val device: IDevice) : DeployTarget {
     throw UnsupportedOperationException()
   }
 
-  override fun getDevices(androidFacet: AndroidFacet): DeviceFutures {
+  override fun getDevices(project: Project): DeviceFutures {
     return DeviceFutures.forDevices(ImmutableList.of(device))
   }
 }

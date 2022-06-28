@@ -24,7 +24,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.Optional;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -57,11 +56,8 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(project);
 
-    AndroidFacet facet = Mockito.mock(AndroidFacet.class);
-    Mockito.when(facet.getModule()).thenReturn(module);
-
     // Act
-    Object futures = deployTarget.getDevices(facet);
+    Object futures = deployTarget.getDevices(module.getProject());
 
     // Assert
     Mockito.verify(target).boot(device, project);

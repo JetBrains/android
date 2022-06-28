@@ -20,7 +20,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,5 +35,5 @@ public interface DeployTarget {
    * if an error needs to be displayed, the target chooser should surface it.
    */
   @Nullable
-  DeviceFutures getDevices(@NotNull AndroidFacet facet);
+  DeviceFutures getDevices(@NotNull Project project);
 }

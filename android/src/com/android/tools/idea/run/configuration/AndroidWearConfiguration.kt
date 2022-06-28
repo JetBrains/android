@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchableAndroidDevice
@@ -25,7 +26,6 @@ import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProv
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
-import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.stats.RunStatsService
 import com.intellij.execution.ExecutionException
@@ -69,11 +69,9 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
-    val facet = AndroidFacet.getInstance(module!!) ?: throw RuntimeException("Cannot get AndroidFacet")
-
     val provider = DeviceAndSnapshotComboBoxTargetProvider()
     val deployTarget = if (provider.requiresRuntimePrompt(project)) {
-      invokeAndWaitIfNeeded { provider.showPrompt(facet) }
+      invokeAndWaitIfNeeded { provider.showPrompt(project) }
     }
     else {
       provider.getDeployTarget(project)
@@ -96,8 +94,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
 
   private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deployTarget: DeployTarget) {
     val stats = RunStatsService.get(project).create()
-    val facet = AndroidFacet.getInstance(module!!) ?: throw RuntimeException("Cannot get AndroidFacet")
-    stats.setDebuggable(LaunchUtils.canDebugApp(facet))
+    stats.setDebuggable(module!!.getModuleSystem().isDebuggable)
     stats.setExecutor(environment.executor.id)
     val appId = project.getProjectSystem().getApplicationIdProvider(this)?.packageName
                 ?: throw RuntimeException("Cannot get ApplicationIdProvider")
@@ -107,7 +104,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     // Save the stats so that before-run task can access it
     environment.putUserData(RunStats.KEY, stats)
 
-    val deviceFutureList = deployTarget.getDevices(facet) ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+    val deviceFutureList = deployTarget.getDevices(project) ?: throw ExecutionException(
+      AndroidBundle.message("deployment.target.not.found"))
 
     // Record stat if we launched a device.
     stats.setLaunchedDevices(deviceFutureList.devices.any { it is LaunchableAndroidDevice })

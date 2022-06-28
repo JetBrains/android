@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -81,14 +80,11 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(project);
 
-    AndroidFacet facet = Mockito.mock(AndroidFacet.class);
-    Mockito.when(facet.getModule()).thenReturn(module);
-
     boolean requiresRuntimePrompt = provider.requiresRuntimePrompt(project);
     assertTrue(requiresRuntimePrompt);
 
     // Act
-    Object deployTarget = provider.showPrompt(facet);
+    Object deployTarget = provider.showPrompt(project);
 
     // Assert
     assert deployTarget == null;

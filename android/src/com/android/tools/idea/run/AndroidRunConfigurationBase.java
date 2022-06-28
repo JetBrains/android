@@ -11,7 +11,6 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectS
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
@@ -299,7 +298,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     stats.setUserSelectedTarget(context.getCurrentDeployTargetProvider().requiresRuntimePrompt(facet.getModule().getProject()));
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
-    DeployTarget deployTarget = getDeployTarget(facet);
+    DeployTarget deployTarget = getDeployTarget();
     if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
       return null;
     }
@@ -309,7 +308,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    DeviceFutures deviceFutures = deployTarget.getDevices(facet);
+    DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
@@ -386,12 +385,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget(@NotNull AndroidFacet facet) {
+  private DeployTarget getDeployTarget() {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
     Project project = getProject();
 
     return currentTargetProvider.requiresRuntimePrompt(project) ?
-           currentTargetProvider.showPrompt(facet) : currentTargetProvider.getDeployTarget(project);
+           currentTargetProvider.showPrompt(project) : currentTargetProvider.getDeployTarget(project);
   }
 
   @Nullable
