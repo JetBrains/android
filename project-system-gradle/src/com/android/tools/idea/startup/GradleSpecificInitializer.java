@@ -370,7 +370,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       playIndex.setShowMessages(StudioFlags.SHOW_SDK_INDEX_MESSAGES.get());
       playIndex.setShowLinks(StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get());
       playIndex.setShowPolicyIssues(StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get());
-      playIndex.setLintClient(client);
       return playIndex;
     });
   }

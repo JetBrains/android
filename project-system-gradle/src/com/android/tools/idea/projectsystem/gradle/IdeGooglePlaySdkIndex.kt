@@ -44,8 +44,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
-  private var lintClient: LintClient? = null
-
   override fun readUrlData(url: String, timeout: Int): ByteArray? = HttpRequests
     .request(URL(url).toExternalForm())
     .connectTimeout(timeout)
@@ -53,7 +51,7 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
     .readBytes(null)
 
   override fun error(throwable: Throwable, message: String?) =
-    lintClient?.log(throwable, message) ?: Logger.getInstance(this::class.java).error(message, throwable)
+    Logger.getInstance(this::class.java).error(message, throwable)
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
@@ -93,10 +91,6 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
       })
     else
       null
-  }
-
-  fun setLintClient(client: LintClient) {
-    this.lintClient = client
   }
 
   private fun findProject(file: File): Project? {
