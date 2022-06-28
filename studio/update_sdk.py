@@ -248,38 +248,6 @@ sudo apt install android-fetch-artifact""")
   return dir
 
 
-def compatible(old_file, new_file):
-  if not os.path.isfile(old_file) or not os.path.isfile(new_file):
-    return False
-  for file in [old_file, new_file]:
-    if not (file.endswith(".jar") or file.endswith(".zip")):
-      return False
-  old_files = []
-  new_files = []
-  with zipfile.ZipFile(old_file) as old_zip:
-    old_files = [(info.filename, info.CRC) for info in old_zip.infolist()]
-  with zipfile.ZipFile(new_file) as new_zip:
-    new_files = [(info.filename, info.CRC) for info in new_zip.infolist()]
-  return sorted(old_files) == sorted(new_files)
-
-
-# Compares old_path with new_path and moves files from old
-# to new that are compatible. Compatible means jars that
-# didn't change content but only timestamps.
-# This preserves old files intact, reducing git pressure.
-def preserve_old(old_path, new_path):
-  if not os.path.isdir(old_path) or not os.path.isdir(new_path):
-    return
-  for file in os.listdir(new_path):
-    old_file = os.path.join(old_path, file)
-    new_file = os.path.join(new_path, file)
-    if os.path.isdir(new_file):
-      if os.path.isdir(old_file):
-        preserve_old(old_file, new_file)
-    else:
-      if compatible(old_file, new_file):
-        os.replace(old_file, new_file)
-
 def write_metadata(path, data):
   with open(os.path.join(path, "METADATA"), "w") as file:
     for k, v in data.items():
@@ -289,11 +257,9 @@ def extract(workspace, dir, delete_after, metadata):
   version, linux, sources, mac, win, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
-  # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
-  old_path = None
   if os.path.exists(path):
-    old_path = path + ".old"
-    os.rename(path, old_path)
+    shutil.rmtree(path)
+
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
   shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
@@ -317,9 +283,6 @@ def extract(workspace, dir, delete_after, metadata):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
-  if old_path:
-    preserve_old(old_path, path)
-
   if manifest:
     xml = ET.parse(dir + "/" + manifest)
     for project in xml.getroot().findall("project"):
@@ -327,8 +290,6 @@ def extract(workspace, dir, delete_after, metadata):
 
   if delete_after:
     shutil.rmtree(dir)
-  if old_path:
-    shutil.rmtree(old_path)
 
   write_metadata(path, metadata)
 
