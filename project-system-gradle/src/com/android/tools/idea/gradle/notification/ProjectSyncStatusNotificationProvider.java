@@ -56,6 +56,7 @@ import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
@@ -217,7 +218,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     @NotNull private final Type type;
 
     NotificationPanel(@NotNull Type type, @NotNull String text) {
-      super(EditorColors.READONLY_BACKGROUND_COLOR);
+      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND);
       this.type = type;
       setText(text);
     }
