@@ -103,6 +103,31 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_stringKey_escapeChars() {
+    for ((key, field) in KEYS) {
+      val filter = logcatFilterParser().parse("""
+        $key:foo\ bar
+        $key:'foobar'
+        $key:\'foobar\'
+        $key:"foobar"
+        $key:\"foobar\"
+        $key:foo\\bar
+      """.trimIndent())
+
+      assertThat(filter).isEqualTo(
+        AndLogcatFilter(
+          StringFilter("foo bar", field),
+          StringFilter("foobar", field),
+          StringFilter("'foobar'", field),
+          StringFilter("foobar", field),
+          StringFilter(""""foobar"""", field),
+          StringFilter("""foo\bar""", field),
+        )
+      )
+    }
+  }
+
+  @Test
   fun parse_negatedStringKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("-$key: Foo")).isEqualTo(NegatedStringFilter("Foo", field))
