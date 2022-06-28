@@ -86,6 +86,8 @@ public class AndroidDepTest {
       .clickPath(RIGHT_BUTTON, APP_NAME, "app");
 
     guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    guiTest.robot().findActivePopupMenu();
     ideFrame.invokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
@@ -98,6 +100,7 @@ public class AndroidDepTest {
     dialogFixture.clickOk();
 
     guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
       .moveBetween("setContentView(R.layout.activity_main);", "")
       .enterText("\nGson gson = new Gson();")
@@ -111,12 +114,14 @@ public class AndroidDepTest {
 
     invokeJavaClass(ideFrame).enterName("LibraryClass").clickOk();
     guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
 
     editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n");
 
     guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
       .moveBetween("public class LibraryClass {", "")
       .enterText("\nGson gson = new Gson();\n");
