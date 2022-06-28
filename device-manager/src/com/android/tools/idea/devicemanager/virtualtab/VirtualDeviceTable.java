@@ -32,8 +32,8 @@ import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice.LaunchOrStopButtonState;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchOrStopValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -90,7 +90,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     Project project = panel.getProject();
 
-    setDefaultEditor(LaunchOrStopValue.class, new LaunchOrStopButtonTableCellEditor(project));
+    setDefaultEditor(LaunchOrStopButtonState.class, new LaunchOrStopButtonTableCellEditor(project));
 
     setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
                      new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
@@ -103,7 +103,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
-    setDefaultRenderer(LaunchOrStopValue.class, new LaunchOrStopButtonTableCellRenderer());
+    setDefaultRenderer(LaunchOrStopButtonState.class, new LaunchOrStopButtonTableCellRenderer());
 
     setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
                        new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
@@ -259,7 +259,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      JBUIScale.scale(20));
 
     Tables.setWidths(columnModel.getColumn(launchOrStopViewColumnIndex()),
-                     IconButtonTableCellRenderer.getPreferredWidth(this, LaunchOrStopValue.class));
+                     IconButtonTableCellRenderer.getPreferredWidth(this, LaunchOrStopButtonState.class));
 
     Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
                      IconButtonTableCellRenderer.getPreferredWidth(this, ActivateDeviceFileExplorerWindowValue.class));

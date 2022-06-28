@@ -24,6 +24,7 @@ import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice.LaunchOrStopButtonState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
@@ -59,18 +60,6 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @VisibleForTesting
   interface NewSetOnline {
     @NotNull FutureCallback<@NotNull Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
-  }
-
-  static final class LaunchOrStopValue {
-    static final LaunchOrStopValue INSTANCE = new LaunchOrStopValue();
-
-    private LaunchOrStopValue() {
-    }
-
-    @Override
-    public @NotNull String toString() {
-      return "Launch or stop";
-    }
   }
 
   static final class EditValue {
@@ -244,7 +233,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return Long.class;
       case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-        return LaunchOrStopValue.class;
+        return LaunchOrStopButtonState.class;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.class;
       case EDIT_MODEL_COLUMN_INDEX:
@@ -283,7 +272,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getSizeOnDisk();
       case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-        return LaunchOrStopValue.INSTANCE;
+        return LaunchOrStopButtonState.STOPPED;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.INSTANCE;
       case EDIT_MODEL_COLUMN_INDEX:

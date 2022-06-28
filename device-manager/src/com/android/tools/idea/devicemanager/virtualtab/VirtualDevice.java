@@ -119,7 +119,7 @@ public final class VirtualDevice extends Device {
     }
   }
 
-  private enum LaunchOrStopButtonState {STOPPED, LAUNCHING, LAUNCHED, STOPPING}
+  enum LaunchOrStopButtonState {STOPPED, LAUNCHING, LAUNCHED, STOPPING}
 
   private static final class PairingState {
     private final boolean myPairable;
