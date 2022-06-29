@@ -1359,7 +1359,7 @@ public final class StudioFlags {
       "enable.new.crashlytics.api",
       "Enable new Crashlytics API",
       "If enabled, new Crashlytics API is adopted.",
-      false);
+      true);
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     Flag.create(
