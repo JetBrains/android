@@ -88,13 +88,12 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
         DeviceGroup.NEXUS,
         DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
         DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
+        DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
         DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
         DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
         DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
         DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
-        DeviceGroup.OTHER -> {
-          // Do nothing
-        }
+        DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
       }
     }
     devicesEnumValueBuilder.includeDefaultsAndBuild()
@@ -122,6 +121,10 @@ private fun DeviceEnumValueBuilder.addAuto(device: Device) {
 
 private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
   addGenericById(displayName = device.displayName, id = device.id)
+}
+
+private fun DeviceEnumValueBuilder.addDesktop(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 }
 
 /**

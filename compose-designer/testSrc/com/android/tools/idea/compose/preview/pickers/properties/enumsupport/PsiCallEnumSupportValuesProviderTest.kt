@@ -173,10 +173,11 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Reference Devices", deviceHeaders[0].header)
     assertEquals("Phone", deviceHeaders[1].header)
     assertEquals("Tablet", deviceHeaders[2].header)
-    assertEquals("Wear", deviceHeaders[3].header)
-    assertEquals("Tv", deviceHeaders[4].header)
-    assertEquals("Auto", deviceHeaders[5].header)
-    assertEquals("Generic Devices", deviceHeaders[6].header)
+    assertEquals("Desktop", deviceHeaders[3].header)
+    assertEquals("Wear", deviceHeaders[4].header)
+    assertEquals("Tv", deviceHeaders[5].header)
+    assertEquals("Auto", deviceHeaders[6].header)
+    assertEquals("Generic Devices", deviceHeaders[7].header)
 
     // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:" instead of "spec:")
     val wearIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Wear" }
