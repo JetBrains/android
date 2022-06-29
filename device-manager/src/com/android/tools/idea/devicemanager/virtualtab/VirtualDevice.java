@@ -152,6 +152,24 @@ public final class VirtualDevice extends Device {
     myAvdInfo = builder.myAvdInfo;
   }
 
+  @NotNull VirtualDevice withState(@NotNull State state) {
+    return new VirtualDevice.Builder()
+      .setKey(myKey)
+      .setType(myType)
+      .setName(myName)
+      .setTarget(myTarget)
+      .setCpuArchitecture(myCpuArchitecture)
+      .setAndroidVersion(myAndroidVersion)
+      .setSizeOnDisk(mySizeOnDisk)
+      .setState(state)
+      .setResolution(myResolution)
+      .setDensity(myDensity)
+      .addAllAbis(myAbis)
+      .setStorageDevice(myStorageDevice)
+      .setAvdInfo(myAvdInfo)
+      .build();
+  }
+
   @Override
   protected @NotNull Icon getIcon() {
     return myType.getVirtualIcon();

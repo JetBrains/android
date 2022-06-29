@@ -100,21 +100,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return;
       }
 
-      VirtualDevice oldDevice = model.myDevices.get(modelRowIndex);
-
-      VirtualDevice newDevice = new VirtualDevice.Builder()
-        .setKey(oldDevice.getKey())
-        .setType(oldDevice.getType())
-        .setName(oldDevice.getName())
-        .setTarget(oldDevice.getTarget())
-        .setCpuArchitecture(oldDevice.getCpuArchitecture())
-        .setAndroidVersion(oldDevice.getAndroidVersion())
-        .setSizeOnDisk(oldDevice.getSizeOnDisk())
-        .setState(VirtualDevice.State.valueOf(online))
-        .setAvdInfo(oldDevice.getAvdInfo())
-        .build();
-
-      model.myDevices.set(modelRowIndex, newDevice);
+      model.myDevices.set(modelRowIndex, model.myDevices.get(modelRowIndex).withState(VirtualDevice.State.valueOf(online)));
       model.fireTableCellUpdated(modelRowIndex, DEVICE_MODEL_COLUMN_INDEX);
     });
   }
@@ -276,6 +262,27 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return EditValue.INSTANCE;
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
         return PopUpMenuValue.INSTANCE;
+      default:
+        throw new AssertionError(modelColumnIndex);
+    }
+  }
+
+  @Override
+  public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
+    switch (modelColumnIndex) {
+      case DEVICE_MODEL_COLUMN_INDEX:
+      case API_MODEL_COLUMN_INDEX:
+      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+        throw new AssertionError(modelColumnIndex);
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
+        myDevices.set(modelRowIndex, myDevices.get(modelRowIndex).withState((VirtualDevice.State)value));
+        fireTableCellUpdated(modelRowIndex, LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+        break;
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+      case EDIT_MODEL_COLUMN_INDEX:
+      case POP_UP_MENU_MODEL_COLUMN_INDEX:
+        break;
       default:
         throw new AssertionError(modelColumnIndex);
     }
