@@ -44,6 +44,7 @@ import org.mockito.stubbing.Answer
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.util.EnumSet
 
 class BuildAttributionManagerImplTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
@@ -124,12 +125,12 @@ class BuildAttributionManagerImplTest {
 
     // Expect exception to be caught and logged.
     LoggedErrorProcessor.executeWith<RuntimeExceptionAnswer.TestException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String?, t: Throwable?, details: Array<out String>): Boolean {
+      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         if (t is RuntimeExceptionAnswer.TestException) {
           exceptionWasLogged = true
-          return false
+          return EnumSet.noneOf(Action::class.java)
         }
-        return super.processError(category, message, t, details)
+        return super.processError(category, message, details, t)
       }
     }) {
       buildAttributionManager.onBuildStart(request)

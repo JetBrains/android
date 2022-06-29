@@ -57,6 +57,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.EnumSet
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -178,9 +179,9 @@ class CoroutineUtilsTest {
     val messages = mutableListOf<String>()
 
     LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
+      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         messages.add(message)
-        return false
+        return EnumSet.noneOf(Action::class.java)
       }
     }) {
       val fooManager = FooManager()
