@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.utils.appendCapitalized
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -18,29 +17,26 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinAndroidSourceSetData
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.createContentRootData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.createGradleSourceSetData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.resourceType
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.sourceType
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
+import org.jetbrains.kotlin.idea.gradleJava.configuration.utils.KotlinModuleUtils
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
+import org.jetbrains.kotlin.idea.gradleTooling.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
-  private var isModulePerSourceSetMode: Boolean = false
-
-  override fun setProjectResolverContext(projectResolverContext: ProjectResolverContext) {
-    val project = projectResolverContext.externalSystemTaskId.findProject()
-    isModulePerSourceSetMode = project != null && project.isModulePerSourceSetEnabled()
-    super.setProjectResolverContext(projectResolverContext)
-  }
 
   override fun getToolingExtensionsClasses(): Set<Class<out Any>> {
     return setOf(KotlinMPPGradleModelBuilder::class.java, KotlinTarget::class.java, Unit::class.java)
@@ -52,30 +48,8 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {
     return super.createModule(gradleModule, projectDataNode)!!.also {
-      if (isModulePerSourceSetMode) {
-        maybeAttachKotlinSourceSetData(gradleModule, it)
-      } else {
-        initializeModuleData(gradleModule, it)
-      }
+      maybeAttachKotlinSourceSetData(gradleModule, it)
     }
-  }
-
-  private fun initializeModuleData(
-    gradleModule: IdeaModule,
-    mainModuleData: DataNode<ModuleData>
-  ) {
-    val isAndroidProject = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) != null
-    if (!isAndroidProject) return
-    val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
-
-    val androidSourceSets = mppModel
-      .targets
-      .asSequence()
-      .flatMap { it.compilations.asSequence() }
-      .filter { it.platform == KotlinPlatform.ANDROID }
-      .mapNotNull { KotlinMPPGradleProjectResolver.createSourceSetInfo(it, gradleModule, resolverCtx) }
-      .toList()
-    mainModuleData.createChild(KotlinAndroidSourceSetData.KEY, KotlinAndroidSourceSetData(androidSourceSets))
   }
 
   private fun maybeAttachKotlinSourceSetData(
@@ -87,12 +61,63 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     val selectedVariantName = androidModels.selectedVariantName
     val sourceSetByName = ideModule.sourceSetsByName()
 
-    for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-      val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: continue
-      val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
+    val androidCompilations = mppModel.androidCompilationsForVariant(selectedVariantName)
 
+    /*
+    Create 'KotlinSourceSetData' for each compilation (main, unitTest, androidTest)
+    */
+    androidCompilations.forEach { (sourceSetDesc, compilation) ->
+      val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: return@forEach
+      val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: return@forEach
       androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
     }
+
+    /*
+    Create modules for all 'root or intermediate' source sets, which are still considered 'android'.
+    e.g. this includes commonMain or commonTest if the only target present in the build is 'android' (effectively making
+    those two source sets 'android' as well)
+    */
+    androidCompilations
+      .flatMap { (_, compilation) -> mppModel.findRootOrIntermediateAndroidSourceSets(compilation) }.toSet()
+      .forEach { kotlinSourceSet ->
+        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(mppModel, kotlinSourceSet, gradleModule, resolverCtx) ?: return@forEach
+        val gradleSourceSetData = createGradleSourceSetData(kotlinSourceSet, gradleModule, ideModule, resolverCtx)
+        val dataNode = ideModule.createChild(GradleSourceSetData.KEY, gradleSourceSetData)
+        dataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
+      }
+  }
+
+  override fun populateModuleContentRoots(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
+    super.populateModuleContentRoots(gradleModule, ideModule)
+
+    val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
+    val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
+
+    /*
+    Find all special 'root or intermediate' android source sets that got created in 'maybeAttachKotlinSourceSetData'
+    and setup their content root data.
+     */
+    mppModel.androidCompilationsForVariant(androidModels.selectedVariantName)
+      .flatMap { (_, compilation) -> mppModel.findRootOrIntermediateAndroidSourceSets(compilation) }
+      .forEach { kotlinSourceSet ->
+        val gradleSourceSetData = ExternalSystemApiUtil.find(ideModule, GradleSourceSetData.KEY) {
+          it.data.id == KotlinModuleUtils.getKotlinModuleId(gradleModule, kotlinSourceSet, resolverCtx)
+        } ?: return@forEach
+
+        createContentRootData(
+          kotlinSourceSet.sourceDirs,
+          kotlinSourceSet.sourceType,
+          null,
+          gradleSourceSetData
+        )
+
+        createContentRootData(
+          kotlinSourceSet.resourceDirs,
+          kotlinSourceSet.resourceType,
+          null,
+          gradleSourceSetData
+        )
+      }
   }
 
   override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
@@ -107,6 +132,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
+      /* Add dependencies from the android source set to its dependsOn edges */
       @Suppress("DEPRECATION")
       for (dependsOn in kotlinSourceSet.allDependsOnSourceSets) {
         val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
@@ -140,6 +166,14 @@ private fun KotlinMPPGradleModel.androidCompilationsForVariant(
     }
     .toList()
 }
+
+/**
+ * Returns KotlinSourceSets from given Android compilation, if there are "dependsOn" edges to it.
+ */
+private fun KotlinMPPGradleModel.findRootOrIntermediateAndroidSourceSets(compilation: KotlinCompilation): Set<KotlinSourceSet> =
+  compilation.allSourceSets.flatMap { sourceSet -> resolveAllDependsOnSourceSets(sourceSet) }
+    .filter { sourceSet -> sourceSet.actualPlatforms.platforms.singleOrNull() == KotlinPlatform.ANDROID }
+    .toSet()
 
 private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<GradleSourceSetData>> {
   return ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).associateBy { it.data.moduleName }
