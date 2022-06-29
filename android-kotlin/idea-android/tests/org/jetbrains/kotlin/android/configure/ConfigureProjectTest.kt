@@ -24,7 +24,7 @@ import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
-import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
+import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import java.io.File
 
 abstract class ConfigureProjectTest : LightJavaCodeInsightTestCase() {
@@ -45,7 +45,7 @@ abstract class ConfigureProjectTest : LightJavaCodeInsightTestCase() {
     val version = versionFromFile ?: DEFAULT_VERSION
 
     val project = getProject()
-    val collector = createConfigureKotlinNotificationCollector(project)
+    val collector = NotificationMessageCollector.create(project)
 
     if (useAndroidX) {
       // Enable AndroidX

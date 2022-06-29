@@ -64,6 +64,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.rt" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.psi" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.project-configuration" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-java" scope="TEST" />
   </component>
 </module>
