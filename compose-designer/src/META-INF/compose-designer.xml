@@ -114,7 +114,7 @@
               language="DeviceSpec"
               implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"
               fieldName="INSTANCE"
-              extensions="pro"/>
+              extensions="dspec"/>
     <lang.parserDefinition language="DeviceSpec"
                            implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
     <languageInjector implementation="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjector"/>

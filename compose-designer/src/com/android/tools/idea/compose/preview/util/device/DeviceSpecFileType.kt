@@ -30,7 +30,7 @@ object DeviceSpecFileType : LanguageFileType(DeviceSpecLanguage) {
   }
 
   override fun getDefaultExtension(): String {
-    return "pro"
+    return "dspec"
   }
 
   override fun getIcon(): Icon? {
