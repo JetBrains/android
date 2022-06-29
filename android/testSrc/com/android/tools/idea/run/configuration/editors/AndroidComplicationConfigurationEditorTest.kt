@@ -82,7 +82,7 @@ class AndroidComplicationConfigurationEditorTest {
   private val componentComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ComboBox<String>>()[1]
   private val modulesComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ModulesComboBox>().first()
   private val addButton get() = TreeWalker(editor).descendants().filterIsInstance<ActionLink>().first()
-  private val slotsPanel get() = editor.components.firstIsInstance<JPanel>()
+  private val slotsPanel get() = editor.components.firstIsInstance<SlotsPanel>().slotsComponent
 
   private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
   private fun JPanel.getIdComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(1) as ComboBox<*>
@@ -117,6 +117,7 @@ class AndroidComplicationConfigurationEditorTest {
 
     // Don't delete. Is needed for [BaseRCSettingsConfigurable.isModified] be checked via serialization.
     configurationConfigurable.apply()
+    modulesComboBox.isEditable = true // To allow setting fake module names in the tests.
   }
 
   @After
@@ -368,7 +369,7 @@ class AndroidComplicationConfigurationEditorTest {
       .getListCellRendererComponent(JList(), slotsPanel.getTypeComboBoxForSlot(0).item as? ComplicationType, -1, false, false)
       as SimpleListCellRenderer<*>
 
-    assertThat(comboBoxRenderer.text).isEqualTo("Source doesn't provide types supported by slot")
+    assertThat(comboBoxRenderer.text).isEqualTo("Complication data source doesn't provide types supported by slot")
 
     // Saving configuration.
     configurationConfigurable.apply()
@@ -381,7 +382,9 @@ class AndroidComplicationConfigurationEditorTest {
 
   @Test
   fun testClearSlotsOnComplicationNameChange() {
-    modulesComboBox.selectedItem = module
+    assertThat(modulesComboBox.isEnabled).isTrue()
+    modulesComboBox.item = module
+    assertThat(modulesComboBox.item).isEqualTo(module)
 
     componentComboBox.item = "com.example.MyIconComplication"
     assertThat(slotsPanel.components).isEmpty()

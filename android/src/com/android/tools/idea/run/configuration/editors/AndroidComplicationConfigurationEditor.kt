@@ -15,177 +15,73 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
-import com.android.tools.deployer.model.component.Complication.ComplicationType
-import com.android.tools.idea.observable.collections.ObservableList
+import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
+import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationTypesFromManifest
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.panel
-import com.intellij.util.ui.JBUI
-import icons.StudioIcons
-import java.awt.Dimension
 import javax.swing.BoxLayout
-import javax.swing.JButton
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.JPanel
 
 
 class AndroidComplicationConfigurationEditor(project: Project, configuration: AndroidComplicationConfiguration) :
   AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
-  private var allAvailableSlots: List<ComplicationSlot> = listOf()
-  private val currentChosenSlots: ObservableList<AndroidComplicationConfiguration.ChosenSlot> = ObservableList()
-  private var notChosenSlotIds: List<Int> = emptyList()
-  private var typesSupportedByChosenComponent: List<ComplicationType> = listOf()
-  private lateinit var addSlotLink: JComponent
-  private lateinit var slotsComponent: JPanel
 
-  init {
-    Disposer.register(project, this)
-    currentChosenSlots.addListener { update() }
-  }
-
-  private fun update() {
-    repaintSlotsComponent()
-    addSlotLink.isEnabled = componentName != null && (currentChosenSlots.size < allAvailableSlots.size)
-  }
-
-  override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {
-    super.resetEditorFrom(runConfiguration)
-    allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
-    currentChosenSlots.apply {
-      beginUpdate()
-      addAll(runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() })
-      endUpdate()
-    }
-    update()
-  }
-
-  override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
-    super.applyEditorTo(runConfiguration)
-    runConfiguration.componentLaunchOptions.chosenSlots = currentChosenSlots.map { it.copy() }
-  }
-
-  override fun onComponentNameChanged(newComponent: String?) {
-    super.onComponentNameChanged(newComponent)
-    typesSupportedByChosenComponent = if (newComponent == null) {
-      emptyList()
-    }
-    else {
-      parseRawComplicationTypes(getComplicationTypesFromManifest(moduleSelector.module!!, newComponent) ?: emptyList())
-    }
-    currentChosenSlots.clear()
-    update()
-  }
-
-  override fun createEditor() =
-    panel {
+  private val slotsPanel = SlotsPanel()
+  private var allAvailableSlots : List<ComplicationSlot> = emptyList()
+  override fun createEditor() = panel {
+    row {
       getModuleChooser()
       getComponentCompoBox()
       getInstallFlagsTextField()
-      getSlotsPanel()
-    }
-
-  private fun LayoutBuilder.getSlotsPanel() {
-    row {
-      label("Slot launch options")
     }
     row {
-      slotsComponent = component(JPanel().apply {
+      component(slotsPanel.apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      }).component
-    }
-
-    row {
-      addSlotLink = link("+ Add Slot", style = null) {
-        val nextAvailableSlot = allAvailableSlots.first { notChosenSlotIds.contains(it.slotId) }
-        currentChosenSlots.add(
-          AndroidComplicationConfiguration.ChosenSlot(nextAvailableSlot.slotId, nextAvailableSlot.supportedTypes.first())
-        )
-      }.component
-      addSlotLink.isEnabled = currentChosenSlots.size < allAvailableSlots.size
-    }
-  }
-
-  private fun repaintSlotsComponent() {
-    slotsComponent.removeAll()
-    val chosenSlotsIds = currentChosenSlots.map { it.id }
-    notChosenSlotIds = allAvailableSlots.filter { !chosenSlotsIds.contains(it.slotId) }.map { it.slotId }
-    currentChosenSlots.forEach { slotsComponent.add(createSlot(it)) }
-    slotsComponent.revalidate()
-    slotsComponent.repaint()
-  }
-
-  private fun createSlot(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): JPanel {
-
-    return JPanel().apply {
-      // Slot id ComboBox.
-      add(JLabel("Slot").apply { border = JBUI.Borders.empty(0, 0, 0, 5) })
-      add(getSlotIdComboBox(chosenSlot))
-
-      // Slot type ComboBox.
-      add(JLabel("Type").apply { border = JBUI.Borders.empty(0, 10, 0, 5) })
-      add(getSlotTypeCompoBox(chosenSlot))
-
-      // Delete button.
-      add(JButton(StudioIcons.Common.CLOSE).apply {
-        addActionListener {
-          currentChosenSlots.remove(chosenSlot)
-        }
-        toolTipText = "Remove"
-        isContentAreaFilled = false
-        border = null
       })
     }
   }
 
-  private fun getSlotTypeCompoBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<ComplicationType> {
-    val options = typesSupportedBySlot(chosenSlot.id).intersect(typesSupportedByChosenComponent).toTypedArray()
-    if (chosenSlot.type !in options) {
-      chosenSlot.type = options.firstOrNull()
-    }
-    return ComboBox(options).apply {
-      renderer = object : SimpleListCellRenderer<ComplicationType>() {
-        override fun customize(list: JList<out ComplicationType>,
-                               value: ComplicationType?,
-                               index: Int,
-                               selected: Boolean,
-                               hasFocus: Boolean) {
-          text = value?.name ?: "Source doesn't provide types supported by slot"
-        }
-      }
-      preferredSize = Dimension(350, preferredSize.height)
-      item = chosenSlot.type
-      isEnabled = options.isNotEmpty()
-      addActionListener {
-        chosenSlot.type = this.item
-      }
+  init {
+    Disposer.register(project, this)
+  }
+
+  override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {
+    super.resetEditorFrom(runConfiguration)
+
+    allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
+    val complicationsModel = SlotsPanel.ComplicationsModel(
+      runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() }.toMutableList(),
+      allAvailableSlots,
+      getSupportedTypes(runConfiguration.componentLaunchOptions.componentName)
+    )
+    slotsPanel.setModel(complicationsModel)
+  }
+
+  override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
+    super.applyEditorTo(runConfiguration)
+
+    runConfiguration.componentLaunchOptions.chosenSlots = slotsPanel.getModel().currentChosenSlots.map { it.copy() }
+  }
+
+  override fun onComponentNameChanged(newComponent: String?) {
+    super.onComponentNameChanged(newComponent)
+
+    if (newComponent == null) {
+      slotsPanel.setModel(SlotsPanel.ComplicationsModel())
+    } else {
+      slotsPanel.setModel(SlotsPanel.ComplicationsModel(arrayListOf(), allAvailableSlots, getSupportedTypes(newComponent)))
     }
   }
 
-  private fun getSlotIdComboBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<Int> {
-    val availableSlotIds = (notChosenSlotIds + chosenSlot.id).toTypedArray()
-    availableSlotIds.sort()
-    return ComboBox(availableSlotIds).apply {
-      renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = allAvailableSlots.first { it.slotId == value }.name }
-      preferredSize = Dimension(150, preferredSize.height)
-      item = chosenSlot.id
-      addActionListener {
-        // When new slotId is chosen we are trying to save chosen type,
-        // if it is applicable for new slot Id, if not we set first supported type.
-        chosenSlot.id = this.item
-        // We should change available slots ids in each slotIdComboBox + update supportedTypes. It's easier repaint the whole [slotsComponent].
-        repaintSlotsComponent()
-      }
+  private fun getSupportedTypes(componentName: String?) : List<Complication.ComplicationType>{
+    if (componentName == null) {
+      return emptyList()
     }
+    return parseRawComplicationTypes(getComplicationTypesFromManifest(moduleSelector.module!!, componentName) ?: emptyList())
   }
-
-  private fun typesSupportedBySlot(slotId: Int) = allAvailableSlots.first { it.slotId == slotId }.supportedTypes
 }
