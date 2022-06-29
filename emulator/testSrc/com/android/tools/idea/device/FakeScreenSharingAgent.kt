@@ -181,6 +181,9 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
     catch (_: SocketException) {
       // Can happen if the shellProtocol's socket is already closed.
     }
+    catch(_: ClosedChannelException) {
+      // Can happen if the shellProtocol's socket is already closed.
+    }
   }
 
   override fun dispose() {
