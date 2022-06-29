@@ -40,18 +40,18 @@ AgpFlags
     TransitiveRClasses            : true
     UsesCompose                   : false
     MlModelBindingEnabled         : false
-VariantNames                  : basicBarDebug
-VariantNames                  : basicOtherBarDebug
-VariantNames                  : paidBarDebug
-VariantNames                  : paidOtherBarDebug
-VariantNames                  : basicBarRelease
-VariantNames                  : basicOtherBarRelease
-VariantNames                  : paidBarRelease
-VariantNames                  : paidOtherBarRelease
-VariantNames                  : basicBarSpecialRelease
-VariantNames                  : basicOtherBarSpecialRelease
-VariantNames                  : paidBarSpecialRelease
-VariantNames                  : paidOtherBarSpecialRelease
+- basicVariant:               : basicBarDebug
+- basicVariant:               : basicOtherBarDebug
+- basicVariant:               : paidBarDebug
+- basicVariant:               : paidOtherBarDebug
+- basicVariant:               : basicBarRelease
+- basicVariant:               : basicOtherBarRelease
+- basicVariant:               : paidBarRelease
+- basicVariant:               : paidOtherBarRelease
+- basicVariant:               : basicBarSpecialRelease
+- basicVariant:               : basicOtherBarSpecialRelease
+- basicVariant:               : paidBarSpecialRelease
+- basicVariant:               : paidOtherBarSpecialRelease
 FlavorDimensions              : foo
 FlavorDimensions              : bar
 BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar

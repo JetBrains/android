@@ -27,7 +27,7 @@ data class IdeAndroidProjectImpl(
   override val defaultConfig: IdeProductFlavorContainerImpl,
   override val buildTypes: Collection<IdeBuildTypeContainerImpl>,
   override val productFlavors: Collection<IdeProductFlavorContainerImpl>,
-  override val variantNames: Collection<String>,
+  override val basicVariants: Collection<IdeBasicVariantImpl>,
   override val flavorDimensions: Collection<String>,
   override val compileTarget: String,
   override val bootClasspath: Collection<String>,

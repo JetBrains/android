@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFla
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
@@ -1022,7 +1023,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,
     productFlavors = this.flavorDimensions.orEmpty().flatMap { this.productFlavorContainers(it) },
-    variantNames = this.variants.map { it.name },
+    basicVariants = this.variants.map { IdeBasicVariantImpl(name = it.name) },
     flavorDimensions = this.flavorDimensions.orEmpty(),
     compileTarget = getLatestAndroidPlatform(),
     bootClasspath = listOf(),

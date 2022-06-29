@@ -16,12 +16,17 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
 import java.io.Serializable
+
+data class IdeBasicVariantImpl(
+  override val name: String
+) : IdeBasicVariant, Serializable
 
 data class IdeVariantCoreImpl(
   override val name: String,

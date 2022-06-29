@@ -66,10 +66,8 @@ interface IdeAndroidProject : Serializable {
    * This does not include test variant. Test variants are additional artifacts in their
    * respective variant info.
    *
-   * @return a list of all the variant names.
-   * @since 3.2.
    */
-  val variantNames: Collection<String>?
+  val basicVariants: Collection<IdeBasicVariant>
 
   /**
    * Returns a list of all the flavor dimensions, may be empty.
@@ -187,3 +185,5 @@ interface IdeAndroidProject : Serializable {
 
   val isKaptEnabled: Boolean
 }
+
+val IdeAndroidProject.variantNames: Collection<String> get() = basicVariants.map { it.name }

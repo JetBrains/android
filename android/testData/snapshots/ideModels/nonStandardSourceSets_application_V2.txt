@@ -206,8 +206,8 @@ MODULE                        : application.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
     ViewBindingOptions

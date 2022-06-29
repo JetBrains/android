@@ -549,8 +549,8 @@ MODULE                        : TestCompositeLib1.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2106,8 +2106,8 @@ MODULE                        : TestCompositeLib1.lib
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -3486,8 +3486,8 @@ MODULE                        : TestCompositeLib3.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -4523,8 +4523,8 @@ MODULE                        : TestCompositeLib3.lib
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -6105,8 +6105,8 @@ MODULE                        : project.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -7180,8 +7180,8 @@ MODULE                        : project.lib
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

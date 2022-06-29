@@ -83,6 +83,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFla
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
@@ -1191,11 +1192,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val defaultConfigCopy: IdeProductFlavorContainerImpl = copyModel(project.defaultConfig, ::productFlavorContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
-    val variantNamesCopy: Collection<String> =
-      if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
-        copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
-      else
-        copy(project::getVariantNames, ::deduplicateString)
+    val basicVariantsCopy: Collection<IdeBasicVariantImpl> =
+      (
+        if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
+          copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
+        else
+          copy(project::getVariantNames, ::deduplicateString)
+        )
+        .map { IdeBasicVariantImpl(name = it) }
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)
@@ -1226,7 +1230,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,
-      variantNames = variantNamesCopy,
+      basicVariants = basicVariantsCopy,
       flavorDimensions = flavorDimensionCopy,
       compileTarget = project.compileTarget,
       bootClasspath = bootClasspathCopy,

@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
@@ -286,6 +287,9 @@ class ModelSerializationTest : AndroidGradleTestCase() {
 
   @Test
   fun testTestOptions() = Truth.assertThat(IdeTestOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test
+  fun testBasicVariant() = Truth.assertThat(IdeBasicVariantImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testVariantCore() = Truth.assertThat(IdeVariantCoreImpl::class.java).isAssignableTo(Serializable::class.java)

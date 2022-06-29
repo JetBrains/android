@@ -136,6 +136,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
         val projectNode = ExternalSystemApiUtil.findParent(
           moduleNode,
+
           ProjectKeys.PROJECT
         ) ?: return@mapNotNull null
 

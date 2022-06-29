@@ -398,8 +398,8 @@ MODULE                        : MultiFlavor.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : firstAbcSecondAbcDebug
-    VariantNames                  : firstAbcSecondAbcRelease
+    - basicVariant:               : firstAbcSecondAbcDebug
+    - basicVariant:               : firstAbcSecondAbcRelease
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar

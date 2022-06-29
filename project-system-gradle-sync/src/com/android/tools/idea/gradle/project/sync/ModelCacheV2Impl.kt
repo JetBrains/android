@@ -79,6 +79,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFla
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
@@ -1167,7 +1168,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       { it.sourceProvider.name },
       ::productFlavorContainerFrom
     )
-    val variantNamesCopy: Collection<String> = project.variants.map { it.name }
+    val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { IdeBasicVariantImpl(name = it.name) }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
@@ -1190,7 +1191,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,
-      variantNames = variantNamesCopy,
+      basicVariants = basicVariantsCopy,
       flavorDimensions = flavorDimensionCopy,
       compileTarget = androidDsl.compileTarget,
       bootClasspath = bootClasspathCopy,

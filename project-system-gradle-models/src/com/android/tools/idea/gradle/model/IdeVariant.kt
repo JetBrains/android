@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.model
 
 import java.io.File
 
+interface IdeBasicVariant {
+  val name: String
+}
+
 interface IdeVariantHeader {
   val name: String
   val buildType: String

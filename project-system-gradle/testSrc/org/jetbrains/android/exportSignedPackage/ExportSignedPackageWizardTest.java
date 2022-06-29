@@ -36,7 +36,7 @@ public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // debug and release
-    assertEquals(2, androidProject.getVariantNames().size());
+    assertEquals(2, androidProject.getBasicVariants().size());
 
     List<String> assembleTasks =
       ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.APK);
@@ -50,7 +50,7 @@ public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8
-    assertEquals(8, androidProject.getVariantNames().size());
+    assertEquals(8, androidProject.getBasicVariants().size());
 
     Set<String> assembleTasks = Sets.newHashSet(
       ExportSignedPackageWizard.getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"), ExportSignedPackageWizard.APK));
@@ -71,7 +71,7 @@ public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // debug and release
-    assertEquals(2, androidProject.getVariantNames().size());
+    assertEquals(2, androidProject.getBasicVariants().size());
 
     List<String> assembleTasks =
       ExportSignedPackageWizard.getGradleTasks("", getModel(), singletonList("release"), ExportSignedPackageWizard.BUNDLE);
@@ -85,7 +85,7 @@ public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8
-    assertEquals(8, androidProject.getVariantNames().size());
+    assertEquals(8, androidProject.getBasicVariants().size());
 
     Set<String> assembleTasks = Sets.newHashSet(ExportSignedPackageWizard
                                                   .getGradleTasks("", getModel(), asList("proX86Release", "freeArmRelease"),

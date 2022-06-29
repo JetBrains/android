@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
@@ -208,7 +209,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       dump(ideAndroidModel.lintOptions)
       dump(ideAndroidModel.javaCompileOptions)
       dump(ideAndroidModel.agpFlags)
-      ideAndroidModel.variantNames?.forEach { prop("VariantNames") { it } }
+      ideAndroidModel.basicVariants.forEach { dump(it) }
       ideAndroidModel.flavorDimensions.forEach { prop("FlavorDimensions") { it } }
       ideAndroidModel.bootClasspath.forEach { prop("BootClassPath") { it.toPrintablePath().replaceCurrentSdkVersion() } }
       ideAndroidModel.dynamicFeatures.forEach { prop("DynamicFeatures") { it } }
@@ -245,6 +246,12 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       head("VariantBuildInformation")
       nest {
         ideAndroidModel.variantsBuildInformation.forEach { dump(it) }
+      }
+    }
+
+    fun dump(ideBasicVariant: IdeBasicVariant) {
+      head("- basicVariant:") { ideBasicVariant.name }
+      nest {
       }
     }
 

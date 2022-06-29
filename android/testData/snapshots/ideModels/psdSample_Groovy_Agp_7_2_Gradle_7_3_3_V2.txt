@@ -1791,18 +1791,18 @@ MODULE                        : project.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : basicBarDebug
-    VariantNames                  : basicOtherBarDebug
-    VariantNames                  : paidBarDebug
-    VariantNames                  : paidOtherBarDebug
-    VariantNames                  : basicBarRelease
-    VariantNames                  : basicOtherBarRelease
-    VariantNames                  : paidBarRelease
-    VariantNames                  : paidOtherBarRelease
-    VariantNames                  : basicBarSpecialRelease
-    VariantNames                  : basicOtherBarSpecialRelease
-    VariantNames                  : paidBarSpecialRelease
-    VariantNames                  : paidOtherBarSpecialRelease
+    - basicVariant:               : basicBarDebug
+    - basicVariant:               : basicOtherBarDebug
+    - basicVariant:               : paidBarDebug
+    - basicVariant:               : paidOtherBarDebug
+    - basicVariant:               : basicBarRelease
+    - basicVariant:               : basicOtherBarRelease
+    - basicVariant:               : paidBarRelease
+    - basicVariant:               : paidOtherBarRelease
+    - basicVariant:               : basicBarSpecialRelease
+    - basicVariant:               : basicOtherBarSpecialRelease
+    - basicVariant:               : paidBarSpecialRelease
+    - basicVariant:               : paidOtherBarSpecialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -3611,8 +3611,8 @@ MODULE                        : project.dyn_feature
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BaseFeature                   : :app
     ViewBindingOptions
@@ -3958,8 +3958,8 @@ MODULE                        : project.lib
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -4665,8 +4665,8 @@ MODULE                        : project.nested1
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -4987,8 +4987,8 @@ MODULE                        : project.nested1.deep
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5319,10 +5319,10 @@ MODULE                        : project.nested2
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : basicDebug
-    VariantNames                  : paidDebug
-    VariantNames                  : basicRelease
-    VariantNames                  : paidRelease
+    - basicVariant:               : basicDebug
+    - basicVariant:               : paidDebug
+    - basicVariant:               : basicRelease
+    - basicVariant:               : paidRelease
     FlavorDimensions              : foo
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -5790,8 +5790,8 @@ MODULE                        : project.nested2.deep
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -6126,8 +6126,8 @@ MODULE                        : project.nested2.trans.deep2
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    - basicVariant:               : debug
+    - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

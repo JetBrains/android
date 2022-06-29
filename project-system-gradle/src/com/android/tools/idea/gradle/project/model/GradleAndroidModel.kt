@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.variantNames
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
