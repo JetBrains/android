@@ -129,9 +129,7 @@ class AppInsightsTest {
     XvfbServer().use { display ->
       env["GOOGLE_LOGIN_USER"] = "test_user@google.com"
       install.run(display, env, arrayOf(projectPath.toString())).use { studio ->
-        var matcher = install.ideaLog.waitForMatchingLine(".*Unindexed files update took (.*)", 120, TimeUnit.SECONDS)
-        println("Indexing took " + matcher.group(1))
-        matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 180, TimeUnit.SECONDS)
+        var matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS)
         println("Sync took " + matcher.group(1))
 
         studio.waitForIndex()

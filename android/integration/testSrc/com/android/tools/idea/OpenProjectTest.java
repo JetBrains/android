@@ -59,9 +59,7 @@ public class OpenProjectTest {
 
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display, env, new String[]{ projectPath.toString() })) {
-      Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Unindexed files update took (.*)", 120, TimeUnit.SECONDS);
-      System.out.println("Indexing took " + matcher.group(1));
-      matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", 180, TimeUnit.SECONDS);
+      Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS);
       System.out.println("Sync took " + matcher.group(1));
     }
   }
