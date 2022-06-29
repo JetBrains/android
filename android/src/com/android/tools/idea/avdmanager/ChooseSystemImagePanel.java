@@ -276,7 +276,8 @@ public class ChooseSystemImagePanel extends JPanel
       // system images (see issue #78947), we instead deliberately skip the other form factor images
       return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
              !imageTag.equals(SystemImage.WEAR_TAG) && !imageTag.equals(SystemImage.DESKTOP_TAG) &&
-             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
+             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG) &&
+             !imageTag.equals(SystemImage.AUTOMOTIVE_PLAY_STORE_TAG);
     }
 
     // 4K TV requires at least S (API 31)

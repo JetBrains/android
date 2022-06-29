@@ -543,6 +543,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myFreeform));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.tv30ImageDescription, my4KTV));
     assertTrue(systemImageMatchesDevice(mSysImgsX86.tv31ImageDescription, my4KTV));
+    assertFalse(systemImageMatchesDevice(mSysImgsX86.automotivePsImageDescription, myPlayStorePhoneDevice));
   }
 
   public void testDeviceType() {
