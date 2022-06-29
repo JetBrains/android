@@ -489,7 +489,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
       PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
-    var expectedModificationsCountdown = 20
+    var expectedModificationsCountdown = 21
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -562,12 +562,19 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       noParametersPreview.annotationText()
     )
 
+    // ChinSize is ignored in the device spec if IsRound is false
+    model.properties["", "IsRound"].value = "false"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240")""",
+      noParametersPreview.annotationText()
+    )
+
     // Since there's no orientation parameter, it's implied from the width/height values
     assertEquals("landscape", model.properties["", "Orientation"].value)
     // When changed, it has to be reflected explicitly in the spec, without affecting the width/height
     model.properties["", "Orientation"].value = "portrait"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,isRound=true,chinSize=45px,orientation=portrait")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,orientation=portrait")""",
       noParametersPreview.annotationText()
     )
 

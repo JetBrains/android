@@ -137,7 +137,7 @@ internal class DeviceParameterPropertyItem(
       getter = { it.isRound.toString() }) { config, newValue ->
       val newIsRound = newValue.toBooleanStrictOrNull()
       newIsRound?.let {
-        config.shape = Shape.Round
+        config.shape = if (it) Shape.Round else Shape.Normal
         PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
       } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
