@@ -1792,17 +1792,33 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : basicBarDebug
+        applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
+        testApplicationId             : com.example.psd.sample.app.default.test
     - basicVariant:               : basicOtherBarDebug
+        applicationId                 : com.example.psd.sample.app.defaultSuffix
+        testApplicationId             : com.example.psd.sample.app.default.test
     - basicVariant:               : paidBarDebug
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
+        testApplicationId             : com.example.psd.sample.app.paid.test
     - basicVariant:               : paidOtherBarDebug
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
+        testApplicationId             : com.example.psd.sample.app.paid.test
     - basicVariant:               : basicBarRelease
+        applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix.suffix
     - basicVariant:               : basicOtherBarRelease
+        applicationId                 : com.example.psd.sample.app.defaultSuffix.suffix
     - basicVariant:               : paidBarRelease
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix
     - basicVariant:               : paidOtherBarRelease
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.suffix
     - basicVariant:               : basicBarSpecialRelease
+        applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
     - basicVariant:               : basicOtherBarSpecialRelease
+        applicationId                 : com.example.psd.sample.app.defaultSuffix
     - basicVariant:               : paidBarSpecialRelease
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
     - basicVariant:               : paidOtherBarSpecialRelease
+        applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
     FlavorDimensions              : foo
     FlavorDimensions              : bar
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -3640,6 +3656,7 @@ MODULE                        : project.dyn_feature
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.dyn_feature.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BaseFeature                   : :app
@@ -3986,6 +4003,7 @@ MODULE                        : project.lib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.projectwithappandlib.lib.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -4693,6 +4711,7 @@ MODULE                        : project.nested1
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.nested1.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -5012,6 +5031,7 @@ MODULE                        : project.nested1.deep
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.nested1.deep.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -5341,7 +5361,9 @@ MODULE                        : project.nested2
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : basicDebug
+        testApplicationId             : com.example.nested2.test
     - basicVariant:               : paidDebug
+        testApplicationId             : com.example.nested2.test
     - basicVariant:               : basicRelease
     - basicVariant:               : paidRelease
     FlavorDimensions              : foo
@@ -5809,6 +5831,7 @@ MODULE                        : project.nested2.deep
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.nested2.deep.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -6142,6 +6165,7 @@ MODULE                        : project.nested2.trans.deep2
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.nested2.trans.deep2.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions

@@ -1029,9 +1029,15 @@ MODULE                        : MainActivity.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : localDebug
+        applicationId                 : com.example.mainactivity
+        testApplicationId             : com.example.mainactivity.test
     - basicVariant:               : remoteDebug
+        applicationId                 : com.example.mainactivity
+        testApplicationId             : com.example.mainactivity.test
     - basicVariant:               : localRelease
+        applicationId                 : com.example.mainactivity
     - basicVariant:               : remoteRelease
+        applicationId                 : com.example.mainactivity
     FlavorDimensions              : type
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -2344,6 +2350,7 @@ MODULE                        : MainActivity.lib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.lib.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions

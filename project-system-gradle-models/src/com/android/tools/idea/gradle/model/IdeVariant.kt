@@ -19,6 +19,16 @@ import java.io.File
 
 interface IdeBasicVariant {
   val name: String
+
+  /**
+   * See [IdeAndroidArtifactCore.applicationId] for details.
+   */
+  val applicationId: String?
+
+  /**
+   * See [IdeAndroidArtifactCore.applicationId] for details.
+   */
+  val testApplicationId: String?
 }
 
 interface IdeVariantHeader {

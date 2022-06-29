@@ -578,13 +578,25 @@ MODULE                        : MultiFlavor.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : firstAbcSecondAbcDebug
+        applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
+        testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
     - basicVariant:               : firstAbcSecondXyzDebug
+        applicationId                 : com.example.multiflavor.firstAbc.secondXyz.debug
+        testApplicationId             : com.example.multiflavor.firstAbc.secondXyz.debug.test
     - basicVariant:               : firstXyzSecondAbcDebug
+        applicationId                 : com.example.multiflavor.secondAbc.debug
+        testApplicationId             : com.example.multiflavor.secondAbc.debug.test
     - basicVariant:               : firstXyzSecondXyzDebug
+        applicationId                 : com.example.multiflavor.secondXyz.debug
+        testApplicationId             : com.example.multiflavor.secondXyz.debug.test
     - basicVariant:               : firstAbcSecondAbcRelease
+        applicationId                 : com.example.multiflavor.firstAbc.secondAbc.release
     - basicVariant:               : firstAbcSecondXyzRelease
+        applicationId                 : com.example.multiflavor.firstAbc.secondXyz.release
     - basicVariant:               : firstXyzSecondAbcRelease
+        applicationId                 : com.example.multiflavor.secondAbc.release
     - basicVariant:               : firstXyzSecondXyzRelease
+        applicationId                 : com.example.multiflavor.secondXyz.release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar

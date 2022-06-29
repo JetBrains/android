@@ -633,7 +633,10 @@ MODULE                        : kotlinMultiPlatform.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        applicationId                 : com.example.android.kotlin
+        testApplicationId             : com.example.android.kotlin.test
     - basicVariant:               : release
+        applicationId                 : com.example.android.kotlin
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2203,6 +2206,7 @@ MODULE                        : kotlinMultiPlatform.module2
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.test.multiproject.module2.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions

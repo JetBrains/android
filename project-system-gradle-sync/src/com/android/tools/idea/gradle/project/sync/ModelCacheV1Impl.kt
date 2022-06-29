@@ -734,8 +734,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // Legacy feature plugins are both library-like, and application/dynamic-feature-like
     // (with separate 'Feature'-suffixed variants for the application/dynamic-feature-like functionality)
     // From the IDE perspective attach the <variant>Feature applicationId to the library-like variant.
-    val apkVariantName = if(projectType == IdeAndroidProjectType.PROJECT_TYPE_FEATURE) variantName + "Feature" else variantName
-    val applicationId = when(ideArtifactName) {
+    val apkVariantName = if (projectType == IdeAndroidProjectType.PROJECT_TYPE_FEATURE) variantName + "Feature" else variantName
+    val applicationId = when (ideArtifactName) {
       // NB: the model will not be available for things that are not applicable, e.g. library and dynamic feature main
       IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(apkVariantName)
       IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
@@ -1176,7 +1176,15 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
   }
 
-  fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl {
+  fun basicVariantFrom(name: String, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeBasicVariantImpl {
+    return IdeBasicVariantImpl(
+      name,
+      applicationId = legacyApplicationIdModel?.componentToApplicationIdMap?.get(name),
+      testApplicationId = legacyApplicationIdModel?.componentToApplicationIdMap?.get(name + "AndroidTest")
+    )
+  }
+
+  fun androidProjectFrom(project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
     val parsedModelVersion = GradleVersion.tryParse(project.modelVersion)
 
@@ -1197,7 +1205,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         else
           copy(project::getVariantNames, ::deduplicateString)
         )
-        .map { IdeBasicVariantImpl(name = it) }
+        .map { basicVariantFrom(it, legacyApplicationIdModel) }
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)
@@ -1265,9 +1273,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       legacyApplicationIdModel: LegacyApplicationIdModel?,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantWithPostProcessor = lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId ) }
+    ): IdeVariantWithPostProcessor =
+      lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId) }
 
-    override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(project) }
+    override fun androidProjectFrom(project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
+      return lock.withLock { androidProjectFrom(project, legacyApplicationIdModel) }
+    }
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =
       lock.withLock { androidArtifactOutputFrom(output) }

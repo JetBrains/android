@@ -744,15 +744,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
 
-    val applicationId: String? = if (agpVersion.agpModelIncludesApplicationId) {
-      artifact.applicationId
-    } else {
-      when (name) {
-        IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName)
-        IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName + "AndroidTest")
-        IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
-      }
-    }
+    val applicationId: String? = getApplicationIdFromArtifact(agpVersion, artifact, name, legacyApplicationIdModel, mainVariantName)
 
     return IdeAndroidArtifactCoreImpl(
       name = name,
@@ -1136,11 +1128,22 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     else -> error("Unknown Android project type: $projectType")
   }
 
+  fun basicVariantFrom(variant: Variant, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeBasicVariantImpl {
+    val variantName = variant.name
+    return IdeBasicVariantImpl(
+      variantName,
+      applicationId = variant.mainArtifact.applicationId ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName),
+      testApplicationId = variant.androidTestArtifact?.applicationId
+        ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
+    )
+  }
+
   fun androidProjectFrom(
     basicProject: BasicAndroidProject,
     project: AndroidProject,
     modelsVersions: Versions,
-    androidDsl: AndroidDsl
+    androidDsl: AndroidDsl,
+    legacyApplicationIdModel: LegacyApplicationIdModel?
   ): IdeAndroidProjectImpl {
     val defaultConfigCopy: IdeProductFlavorContainerImpl = productFlavorContainerFrom(androidDsl.defaultConfig, basicProject.mainSourceSet)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
@@ -1157,7 +1160,13 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       { it.sourceProvider.name },
       ::productFlavorContainerFrom
     )
-    val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { IdeBasicVariantImpl(name = it.name) }
+    val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map {
+      IdeBasicVariantImpl(
+        name = it.name,
+        applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyApplicationIdModel, it.name),
+        testApplicationId = it.androidTestArtifact?.let{ androidTestArtifact -> getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name) }
+      )
+    }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
@@ -1232,10 +1241,27 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       basicProject: BasicAndroidProject,
       project: AndroidProject,
       androidVersion: Versions,
-      androidDsl: AndroidDsl
-    ): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(basicProject, project, androidVersion, androidDsl) }
+      androidDsl: AndroidDsl,
+      legacyApplicationIdModel: LegacyApplicationIdModel?
+    ): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel) }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
+  }
+}
+
+private fun getApplicationIdFromArtifact(
+  agpVersion: GradleVersion,
+  artifact: AndroidArtifact,
+  name: IdeArtifactName,
+  legacyApplicationIdModel: LegacyApplicationIdModel?,
+  mainVariantName: String
+) = if (agpVersion.agpModelIncludesApplicationId) {
+  artifact.applicationId
+} else {
+  when (name) {
+    IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName)
+    IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName + "AndroidTest")
+    IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
   }
 }
 

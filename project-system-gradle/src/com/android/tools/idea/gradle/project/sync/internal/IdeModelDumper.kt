@@ -252,6 +252,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     fun dump(ideBasicVariant: IdeBasicVariant) {
       head("- basicVariant:") { ideBasicVariant.name }
       nest {
+        prop("applicationId") { ideBasicVariant.applicationId }
+        prop("testApplicationId") { ideBasicVariant.testApplicationId }
       }
     }
 

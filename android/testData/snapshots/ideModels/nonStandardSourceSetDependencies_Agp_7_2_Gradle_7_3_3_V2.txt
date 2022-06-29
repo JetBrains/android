@@ -1099,7 +1099,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        applicationId                 : me.monori.gradleprojectpathissue
+        testApplicationId             : me.monori.gradleprojectpathissue.test
     - basicVariant:               : release
+        applicationId                 : me.monori.gradleprojectpathissue
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2328,6 +2331,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : me.monori.feature.a.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -3404,6 +3408,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.lib.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions

@@ -534,7 +534,10 @@ MODULE                        : My_First_App.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        applicationId                 : com.example.firstapp
+        testApplicationId             : com.example.firstapp.test
     - basicVariant:               : release
+        applicationId                 : com.example.firstapp
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2036,6 +2039,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
+        testApplicationId             : com.example.mysharedlibrary.test
     - basicVariant:               : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions

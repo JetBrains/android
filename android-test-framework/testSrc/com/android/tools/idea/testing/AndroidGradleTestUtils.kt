@@ -1023,7 +1023,13 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,
     productFlavors = this.flavorDimensions.orEmpty().flatMap { this.productFlavorContainers(it) },
-    basicVariants = this.variants.map { IdeBasicVariantImpl(name = it.name) },
+    basicVariants = this.variants.map {
+      IdeBasicVariantImpl(
+        name = it.name,
+        it.mainArtifact.applicationId,
+        it.androidTestArtifact?.applicationId
+      )
+    },
     flavorDimensions = this.flavorDimensions.orEmpty(),
     compileTarget = getLatestAndroidPlatform(),
     bootClasspath = listOf(),

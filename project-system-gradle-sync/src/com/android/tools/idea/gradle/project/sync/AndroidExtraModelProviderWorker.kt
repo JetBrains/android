@@ -236,8 +236,14 @@ internal class AndroidExtraModelProviderWorker(
 
                   val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion)
                   val androidProjectResult =
-                    AndroidProjectResult.V2Project(modelCache, basicAndroidProject, androidProject, it.versions,
-                                                   androidDsl, legacyApplicationIdModel)
+                    AndroidProjectResult.V2Project(
+                      modelCache,
+                      basicAndroidProject,
+                      androidProject,
+                      it.versions,
+                      androidDsl,
+                      legacyApplicationIdModel
+                    )
 
                   // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                   val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
@@ -562,7 +568,7 @@ internal class AndroidExtraModelProviderWorker(
     ) : AndroidProjectResult() {
       override val buildName: String? = null
       override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
-      override val ideAndroidProject: IdeAndroidProjectImpl = modelCache.androidProjectFrom(androidProject)
+      override val ideAndroidProject: IdeAndroidProjectImpl = modelCache.androidProjectFrom(androidProject, legacyApplicationIdModel)
       override val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
       override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")
@@ -583,8 +589,10 @@ internal class AndroidExtraModelProviderWorker(
       override val buildName: String = basicAndroidProject.buildName
       override val agpVersion: String = modelVersions.agp
       override val ideAndroidProject: IdeAndroidProjectImpl =
-        modelCache.androidProjectFrom(basicAndroidProject, androidProject, modelVersions, androidDsl)
+        modelCache.androidProjectFrom(basicAndroidProject, androidProject, modelVersions, androidDsl, legacyApplicationIdModel)
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
+      private val agpParsedVersion = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion)
+
       val v2Variants: List<IdeVariantCoreImpl> = let {
         val v2Variants: List<V2Variant> = androidProject.variants.toList()
         val basicVariantMap = basicVariants.associateBy { it.name }

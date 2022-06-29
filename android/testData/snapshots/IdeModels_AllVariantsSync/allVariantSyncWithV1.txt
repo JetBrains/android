@@ -41,17 +41,33 @@ AgpFlags
     UsesCompose                   : false
     MlModelBindingEnabled         : false
 - basicVariant:               : basicBarDebug
+    applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
+    testApplicationId             : com.example.psd.sample.app.default.test
 - basicVariant:               : basicOtherBarDebug
+    applicationId                 : com.example.psd.sample.app.defaultSuffix
+    testApplicationId             : com.example.psd.sample.app.default.test
 - basicVariant:               : paidBarDebug
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
+    testApplicationId             : com.example.psd.sample.app.paid.test
 - basicVariant:               : paidOtherBarDebug
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
+    testApplicationId             : com.example.psd.sample.app.paid.test
 - basicVariant:               : basicBarRelease
+    applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix.suffix
 - basicVariant:               : basicOtherBarRelease
+    applicationId                 : com.example.psd.sample.app.defaultSuffix.suffix
 - basicVariant:               : paidBarRelease
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix
 - basicVariant:               : paidOtherBarRelease
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.suffix
 - basicVariant:               : basicBarSpecialRelease
+    applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
 - basicVariant:               : basicOtherBarSpecialRelease
+    applicationId                 : com.example.psd.sample.app.defaultSuffix
 - basicVariant:               : paidBarSpecialRelease
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
 - basicVariant:               : paidOtherBarSpecialRelease
+    applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
 FlavorDimensions              : foo
 FlavorDimensions              : bar
 BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar

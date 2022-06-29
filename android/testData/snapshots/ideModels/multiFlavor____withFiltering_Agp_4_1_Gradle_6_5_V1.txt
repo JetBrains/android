@@ -399,7 +399,10 @@ MODULE                        : MultiFlavor.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : firstAbcSecondAbcDebug
+        applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
+        testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
     - basicVariant:               : firstAbcSecondAbcRelease
+        applicationId                 : com.example.multiflavor.firstAbc.secondAbc.release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
