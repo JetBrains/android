@@ -58,7 +58,7 @@ public class AndroidStudioInstallation {
     Path studioZip = TestUtils.getBinPath(String.format("tools/adt/idea/studio/android-studio.%s.zip", platform));
     unzip(studioZip, workDir);
 
-    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve("android-studio"));
+    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir));
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
@@ -154,11 +154,10 @@ public class AndroidStudioInstallation {
     String eapString = String.format(consentFormatString, EAP_FEEDBACK_OPTION_ID, version, isAccepted, time);
     String combinedString = String.format("%s;%s", nonEapString, eapString);
 
-    String consentFileLocation = "data/Google/consentOptions/accepted";
+    Path consentOptions = workDir.resolve("data/Google/consentOptions/accepted");
     if (SystemInfo.isMac) {
-      consentFileLocation = "home/Library/Application Support/Google/consentOptions/accepted";
+      consentOptions = fileSystem.getHome().resolve("Library/Application Support/Google/consentOptions/accepted");
     }
-    Path consentOptions = workDir.resolve(consentFileLocation);
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
   }
