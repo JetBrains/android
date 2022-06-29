@@ -1242,17 +1242,6 @@
     <option name="profile" hit="Default profile" />
     <option name="device" hit="Device Mirroring" />
     <option name="mirroring" hit="Device Mirroring" />
-    <option name="a" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="build" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="during" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="gradle" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="list" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="of" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="only" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="sync" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="task" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="tasks" hit="During Gradle sync, build a Gradle task list of test tasks only" />
-    <option name="test" hit="During Gradle sync, build a Gradle task list of test tasks only" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
@@ -1280,6 +1269,18 @@
     <option name="learn" hit="Learn more" />
     <option name="more" hit="Learn more" />
     <option name="logcat" hit="Logcat" />
+    <option name="during" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="generated" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="gradle" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="in" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="include" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="list" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="only" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="sync" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="task" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />

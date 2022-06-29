@@ -70,7 +70,7 @@
           <grid row="4" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="During Gradle sync, build a Gradle task list of test tasks only"/>
+          <text value="Only include test tasks in the Gradle task list generated during Gradle Sync"/>
         </properties>
       </component>
       <component id="c5310" class="javax.swing.JCheckBox" binding="myTraceGradleSyncCheckBox">
