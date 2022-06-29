@@ -132,9 +132,7 @@ import java.io.FileFilter
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
-
-  var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null
+internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths, lock: ReentrantLock): ModelCache.V1 {
 
   fun deduplicateString(s: String): String = internedModels.intern(s)
   fun String.deduplicate() = internedModels.intern(this)
@@ -607,7 +605,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           dependencies = artifactAddresses.map { address -> dependenciesById[address]!!.dependency }
         ),
         postProcessor = fun(): IdeDependenciesCoreImpl {
-          val refByArtifact = artifactToLibraryReferenceMap ?: error("ModelCache.prepare() hasn't been called.")
+          val refByArtifact = internedModels.artifactToLibraryReferenceMap ?: error("ModelCache.prepare() hasn't been called.")
 
           // (1) Any compile classpath dependencies are runtime classpath dependencies, if they are not `isProvided`.
           val regularRuntimeNotProvidedLibraryDependencies =
@@ -1258,28 +1256,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   return object : ModelCache.V1 {
-    private val lock = ReentrantLock()
     override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
-
-    override fun prepare() {
-      artifactToLibraryReferenceMap = lock.withLock {
-        createLibraryTable()
-          .libraries
-          .mapIndexed { index, ideLibrary ->
-            val reference = LibraryReference(index)
-            reference to ideLibrary
-          }
-          .flatMap { (reference, ideLibrary) ->
-            when (ideLibrary) {
-              is IdeAndroidLibrary -> ideLibrary.runtimeJarFiles.map { it to reference }
-              is IdeJavaLibrary -> listOf(ideLibrary.artifact to reference)
-              else -> emptyList()
-            }
-          }
-          .toMap()
-      }
-    }
 
     override fun variantFrom(
       androidProject: IdeAndroidProjectImpl,

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -27,6 +29,8 @@ import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import org.jetbrains.annotations.TestOnly
 import java.io.File
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class InternedModels(private val buildRootDirectory: File?) {
   private val strings: MutableMap<String, String> = HashMap()
@@ -43,6 +47,7 @@ class InternedModels(private val buildRootDirectory: File?) {
   private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
   private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
   private val moduleLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
+  var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
 
   fun resolve(reference: LibraryReference): IdeLibrary = libraries[reference.libraryIndex]
 
@@ -126,6 +131,28 @@ class InternedModels(private val buildRootDirectory: File?) {
   @TestOnly
   fun createResolvedLibraryTable(): IdeResolvedLibraryTableImpl {
     return IdeResolvedLibraryTableImpl(libraries.map(::listOf))
+  }
+
+  /**
+   * Prepares [ModelCache] for running any post-processors previously returned in [IdeModelWithPostProcessor] instances.
+   */
+  fun prepare(lock: ReentrantLock) {
+    artifactToLibraryReferenceMap = lock.withLock {
+      createLibraryTable()
+        .libraries
+        .mapIndexed { index, ideLibrary ->
+          val reference = LibraryReference(index)
+          reference to ideLibrary
+        }
+        .flatMap { (reference, ideLibrary) ->
+          when (ideLibrary) {
+            is IdeAndroidLibrary -> ideLibrary.runtimeJarFiles.map { it to reference }
+            is IdeJavaLibrary -> listOf(ideLibrary.artifact to reference)
+            else -> emptyList()
+          }
+        }
+        .toMap()
+    }
   }
 
   private fun nameLibrary(unnamed: IdeArtifactLibrary) =

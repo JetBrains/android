@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.Version
 import com.android.build.OutputFile
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Library
@@ -51,6 +52,7 @@ import com.intellij.openapi.util.io.FileUtil
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
+import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
   val libraryResolver: (LibraryReference) -> IdeLibrary
@@ -68,6 +70,9 @@ interface ModelCache {
     fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
+
+    fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
+    fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl
   }
 
   interface V2 : ModelCache {
@@ -79,8 +84,7 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
-      modelVersion: GradleVersion?
+      legacyApplicationIdModel: LegacyApplicationIdModel?
     ): IdeVariantCoreImpl
 
     /**
@@ -104,41 +108,30 @@ interface ModelCache {
   }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl
-  fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl
-
-  /**
-   * Prepares [ModelCache] for running any post-processors previously returned in [IdeModelWithPostProcessor] instances.
-   */
-  fun prepare()
 
   companion object {
     const val LOCAL_AARS = "__local_aars__"
     const val LOCAL_JARS = "__local_jars__"
 
     @JvmStatic
-    fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache {
-      val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
-      if (useV2BuilderModels) {
-        return modelCacheV2Impl(internedModels)
-      }
-      return modelCacheV1Impl(internedModels, buildFolderPaths)
-    }
-
-    @JvmStatic
-    fun create(useV2BuilderModels: Boolean): ModelCache {
+    fun createForTests(useV2BuilderModels: Boolean): ModelCache {
       val internedModels = InternedModels(null)
+      val modelCacheLock = ReentrantLock()
       return if (useV2BuilderModels) {
-        modelCacheV2Impl(internedModels)
+        modelCacheV2Impl(
+          internedModels,
+          modelCacheLock,
+          GradleVersion.parseAndroidGradlePluginVersion(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+        )
       } else {
-        modelCacheV1Impl(internedModels, BuildFolderPaths())
+        modelCacheV1Impl(internedModels, BuildFolderPaths(), modelCacheLock)
       }
     }
 
     @JvmStatic
-    fun create(): V1 {
+    fun createForPostBuildModels(): V1 {
       val internedModels = InternedModels(null)
-      return modelCacheV1Impl(internedModels, BuildFolderPaths())
+      return modelCacheV1Impl(internedModels, BuildFolderPaths(), ReentrantLock())
     }
   }
 }

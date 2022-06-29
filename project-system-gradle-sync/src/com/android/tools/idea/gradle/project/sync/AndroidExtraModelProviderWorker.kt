@@ -59,6 +59,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.LinkedList
+import java.util.concurrent.locks.ReentrantLock
 import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
 import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
@@ -124,7 +125,8 @@ internal class AndroidExtraModelProviderWorker(
     private val actionRunner: SyncActionRunner
   )
   {
-    private val modelCache: ModelCache = ModelCache.create(canFetchV2Models, buildFolderPaths)
+    private val modelCacheLock = ReentrantLock()
+    private val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
 
     /**
      * Requests Android project models for the given [buildModels]
@@ -180,7 +182,7 @@ internal class AndroidExtraModelProviderWorker(
       getAdditionalClassifierArtifactsModel(
         actionRunner,
         androidModules,
-        modelCache.libraryResolver,
+        internedModels::resolve,
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
         syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
       )
@@ -189,9 +191,9 @@ internal class AndroidExtraModelProviderWorker(
       // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
       populateProjectSyncIssues(androidModules, canFetchV2Models)
-      modelCache.prepare()
+      internedModels.prepare(modelCacheLock)
       val indexedModels = indexModels(modules)
-      return modules.map { it.prepare(indexedModels) } + GradleProject(buildModel, modelCache.createLibraryTable())
+      return modules.map { it.prepare(indexedModels) } + GradleProject(buildModel, internedModels.createLibraryTable())
     }
 
     private fun indexModels(modules: List<GradleModule>): IndexedModels {
@@ -225,13 +227,16 @@ internal class AndroidExtraModelProviderWorker(
                                        ?: error("Cannot get V2AndroidProject model for ${it.gradleProject}")
                   val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
                                    ?: error("Cannot get AndroidDsl model for ${it.gradleProject}")
-                  val modelIncludesApplicationId = GradleVersion.tryParse(it.versions.agp)?.agpModelIncludesApplicationId == true
+                  val agpVersion = GradleVersion.tryParse(it.versions.agp)
+                    ?: error("AGP returned incorrect version: ${it.versions.agp}")
+                  val modelIncludesApplicationId = agpVersion.agpModelIncludesApplicationId
                   val legacyApplicationIdModel = if (!modelIncludesApplicationId) {
                     controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
                   } else { null }
 
+                  val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion)
                   val androidProjectResult =
-                    AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions,
+                    AndroidProjectResult.V2Project(modelCache, basicAndroidProject, androidProject, it.versions,
                                                    androidDsl, legacyApplicationIdModel)
 
                   // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
@@ -257,7 +262,8 @@ internal class AndroidExtraModelProviderWorker(
                   val legacyApplicationIdModel = controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
 
                   if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
-                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject, legacyApplicationIdModel)
+                    val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
+                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache, androidProject, legacyApplicationIdModel)
 
                     val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
                     val nativeAndroidProject: NativeAndroidProject? =
@@ -447,7 +453,7 @@ internal class AndroidExtraModelProviderWorker(
         syncVariantResultCore?.let {
           SyncVariantResult(
             syncVariantResultCore,
-            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, modelCache.libraryResolver),
+            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, internedModels::resolve),
           )
         }
       }
@@ -473,7 +479,7 @@ internal class AndroidExtraModelProviderWorker(
 
         abiToRequest = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
         nativeVariantAbi = abiToRequest?.let {
-          controller.findNativeVariantAbiModel(modelCache, module, variantName, it)
+          controller.findNativeVariantAbiModel(modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock), module, variantName, it)
         } ?: NativeVariantAbiResult.None
 
         fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
@@ -499,11 +505,13 @@ internal class AndroidExtraModelProviderWorker(
   inner class NativeVariantsSyncActionWorker(
     private val syncOptions: NativeVariantsSyncActionOptions
   ) {
+    private val modelCacheLock = ReentrantLock()
+    private val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
     // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
     private val actionRunner = safeActionRunner
 
     fun fetchNativeVariantsAndroidModels(): List<GradleModelCollection> {
-      val modelCache = ModelCache.create(false)
+      val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
       val nativeModules = actionRunner.runActions(
         buildModels.projects.map { gradleProject ->
           ActionToRun(fun(controller: BuildController): GradleModule? {
@@ -586,8 +594,7 @@ internal class AndroidExtraModelProviderWorker(
             androidProject = ideAndroidProject,
             basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
             variant = it,
-            legacyApplicationIdModel = legacyApplicationIdModel,
-            modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion)
+            legacyApplicationIdModel = legacyApplicationIdModel
           )
         }
       }
@@ -958,7 +965,7 @@ private fun createAndroidModule(
   nativeAndroidProject: NativeAndroidProject?,
   nativeModule: NativeModule?,
   buildNameMap: Map<String, BuildId>,
-  modelCache: ModelCache
+  modelCache: ModelCache.V1
 ): AndroidModule {
   val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
 

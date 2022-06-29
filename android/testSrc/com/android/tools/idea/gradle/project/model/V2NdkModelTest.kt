@@ -27,7 +27,7 @@ import java.io.File
 import java.nio.file.Files
 
 class V2NdkModelTest {
-  val modelCache = ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get())
+  val modelCache = ModelCache.createForTests(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get())
   private val tempDir = Files.createTempDirectory("V2NdkModelTest").toFile()
   private val nativeModule = object : NativeModule {
     override val name: String = "moduleName"
