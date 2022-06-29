@@ -113,7 +113,7 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
 Parameter: unit should be one of: px, dp.
 
 Missing parameter: dpi.""",
-      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480"
+      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=dp,dpi=420"
     )
   }
 
@@ -151,7 +151,7 @@ Parameter: isRound should be one of: true, false.
 Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
-      replaceWithMessage = "Replace with spec:width=1080px,isRound=false,chinSize=30px,orientation=portrait,height=1920px"
+      replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
     )
   }
 

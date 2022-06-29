@@ -78,7 +78,7 @@ internal class DeviceConfigTest {
     assertNotNull(config)
     assertEquals(200.4f, config.width)
     assertEquals(300.5f, config.height)
-    assertEquals(480, config.dpi)
+    assertEquals(420, config.dpi)
     assertTrue(config.isRound)
     assertEquals(10.6f, config.chinSize)
     assertEquals(DimUnit.dp, config.dimUnit)
@@ -86,7 +86,7 @@ internal class DeviceConfigTest {
     // Verify default values
     config = parseDeviceSpec("spec:width=300dp,height=200dp")
     assertNotNull(config)
-    assertEquals(480, config.dpi)
+    assertEquals(420, config.dpi)
     assertFalse(config.isRound)
     assertEquals(0f, config.chinSize)
     assertEquals(Orientation.landscape, config.orientation) // orientation implied
@@ -113,18 +113,18 @@ internal class DeviceConfigTest {
   @Test
   fun modificationsTest() {
     val config = MutableDeviceConfig()
-    assertEquals(1080f, config.width)
-    assertEquals(1920f, config.height)
+    assertEquals(411f, config.width)
+    assertEquals(891f, config.height)
 
-    config.dimUnit = DimUnit.dp
-    assertEquals(360f, config.width)
-    assertEquals(640f, config.height)
-
-    // We change the dpi, which should result in different dimensions in pixels (half pixel density = half pixels on each dimension)
-    config.dpi = config.dpi / 2
     config.dimUnit = DimUnit.px
-    assertEquals(540f, config.width)
-    assertEquals(960f, config.height)
+    assertEquals(1078.875f, config.width)
+    assertEquals(2338.875f, config.height)
+
+    // We change the dpi, which should result in different dimensions in dp (half pixel density = twice as the length on each dimension)
+    config.dpi = config.dpi / 2
+    config.dimUnit = DimUnit.dp
+    assertEquals(822f, config.width)
+    assertEquals(1782f, config.height)
 
     assertEquals(Orientation.portrait, config.orientation)
 
@@ -153,12 +153,12 @@ internal class DeviceConfigTest {
 
     // For old DeviceSpec format, width and height are swapped based on orientation.
     config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.portrait)
-    assertEquals("spec:shape=Normal,width=100,height=200,unit=px,dpi=480", config.deviceSpec())
+    assertEquals("spec:shape=Normal,width=100,height=200,unit=dp,dpi=420", config.deviceSpec())
     config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.landscape)
-    assertEquals("spec:shape=Normal,width=200,height=100,unit=px,dpi=480", config.deviceSpec())
+    assertEquals("spec:shape=Normal,width=200,height=100,unit=dp,dpi=420", config.deviceSpec())
 
     // For legacy DeviceSpec format, no floating point supported, rounded numbers
-    assertEquals("spec:shape=Normal,width=123,height=568,unit=px,dpi=480", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
+    assertEquals("spec:shape=Normal,width=123,height=568,unit=dp,dpi=420", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
   }
 
   @Test
@@ -176,25 +176,25 @@ internal class DeviceConfigTest {
 
     // Implied Orientation of width/height is not reflected in spec
     config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.landscape)
-    assertEquals("spec:width=200px,height=100px", config.deviceSpec())
+    assertEquals("spec:width=200dp,height=100dp", config.deviceSpec())
     config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.portrait)
-    assertEquals("spec:width=200px,height=100px,orientation=portrait", config.deviceSpec())
+    assertEquals("spec:width=200dp,height=100dp,orientation=portrait", config.deviceSpec())
 
     // Parameters with default values are not shown (except for width & height)
     // Default dpi not shown
-    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Round, chinSize = 40f)
+    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 420, shape = Shape.Round, chinSize = 40f)
     assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp", config.deviceSpec())
 
     // Default chinSize not shown
-    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Round, chinSize = 0f)
+    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 420, shape = Shape.Round, chinSize = 0f)
     assertEquals("spec:width=100dp,height=200dp,isRound=true", config.deviceSpec())
 
     // Default isRound not shown, chinSize is dependent on device being round
-    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Normal, chinSize = 40f)
+    config = DeviceConfig(width = 100f, height = 200f, dimUnit = DimUnit.dp, dpi = 420, shape = Shape.Normal, chinSize = 40f)
     assertEquals("spec:width=100dp,height=200dp", config.deviceSpec())
 
     // For DeviceSpec Language, one decimal for floating point supported
-    assertEquals("spec:width=123.5px,height=567.9px", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
+    assertEquals("spec:width=123.5dp,height=567.9dp", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 }

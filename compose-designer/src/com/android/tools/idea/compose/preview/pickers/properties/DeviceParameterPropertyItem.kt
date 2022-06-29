@@ -26,10 +26,10 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.BooleanValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.DeviceSpecDimValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
@@ -70,8 +70,8 @@ internal class DeviceParameterPropertyItem(
   private val defaultDeviceValues: DeviceConfig =
     ConfigurationManager.findExistingInstance(model.module)?.getDefaultPreviewDevice()?.toDeviceConfig() ?: DeviceConfig(
       shape = DEFAULT_SHAPE,
-      width = DEFAULT_WIDTH_PX.toFloat(),
-      height = DEFAULT_HEIGHT_PX.toFloat(),
+      width = DEFAULT_WIDTH_DP.toFloat(),
+      height = DEFAULT_HEIGHT_DP.toFloat(),
       dimUnit = DEFAULT_UNIT,
       dpi = DEFAULT_DPI
     )

@@ -116,7 +116,7 @@ internal class PreviewAnnotationCheckTest {
       result.issues.map { it::class }
     )
     assertEquals(
-      "spec:shape=Normal,width=1080,unit=px,dpi=320,height=1920",
+      "spec:shape=Normal,width=411,unit=dp,dpi=320,height=891",
       result.proposedFix
     )
 
@@ -161,7 +161,7 @@ internal class PreviewAnnotationCheckTest {
       ),
       result.issues.map { it::class }
     )
-    assertEquals("spec:width=100px,isRound=false,height=1920px", result.proposedFix)
+    assertEquals("spec:width=100dp,isRound=false,height=891dp", result.proposedFix)
 
     // First valid unit is `dp`, other dimension parameters should have the same unit
     result = addKotlinFileAndCheckPreviewAnnotation(

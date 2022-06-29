@@ -21,12 +21,12 @@ import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_IS_ROUND
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_ORIENTATION
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.OPERATOR
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_CHIN_SIZE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_DPI
@@ -59,8 +59,8 @@ import kotlin.reflect.KProperty
  * @param backingDeviceId ID of the device this configuration represents, null if it's a custom device
  */
 internal open class DeviceConfig(
-  open val width: Float = DEFAULT_WIDTH_PX.toFloat(),
-  open val height: Float = DEFAULT_HEIGHT_PX.toFloat(),
+  open val width: Float = DEFAULT_WIDTH_DP.toFloat(),
+  open val height: Float = DEFAULT_HEIGHT_DP.toFloat(),
   open val dimUnit: DimUnit = DEFAULT_UNIT,
   open val dpi: Int = DEFAULT_DPI,
   open val shape: Shape = DEFAULT_SHAPE,
@@ -335,8 +335,8 @@ internal open class DeviceConfig(
  * Note that modifying [MutableDeviceConfig.dimUnit] or [MutableDeviceConfig.orientation] will also change the width and height values.
  */
 internal class MutableDeviceConfig(
-  initialWidth: Float = DEFAULT_WIDTH_PX.toFloat(),
-  initialHeight: Float = DEFAULT_HEIGHT_PX.toFloat(),
+  initialWidth: Float = DEFAULT_WIDTH_DP.toFloat(),
+  initialHeight: Float = DEFAULT_HEIGHT_DP.toFloat(),
   initialDimUnit: DimUnit = DEFAULT_UNIT,
   initialDpi: Int = DEFAULT_DPI,
   initialShape: Shape = DEFAULT_SHAPE,

@@ -38,13 +38,13 @@ internal object LegacyParameterRule {
   val width = simpleParameterRule(
     name = DeviceSpec.PARAMETER_WIDTH,
     expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_WIDTH_PX.toString()
+    defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString()
   ) { it.toIntOrNull() != null }
 
   val height = simpleParameterRule(
     name = DeviceSpec.PARAMETER_HEIGHT,
     expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_HEIGHT_PX.toString()
+    defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString()
   ) { it.toIntOrNull() != null }
 
   val unit = simpleParameterRule(
@@ -80,12 +80,12 @@ internal object LanguageParameterRule {
 
   val width = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_WIDTH,
-    defaultNumber = DeviceSpec.DEFAULT_WIDTH_PX,
+    defaultNumber = DeviceSpec.DEFAULT_WIDTH_DP,
   )
 
   val height = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_HEIGHT,
-    defaultNumber = DeviceSpec.DEFAULT_HEIGHT_PX,
+    defaultNumber = DeviceSpec.DEFAULT_HEIGHT_DP,
   )
 
   val chinSize = DimensionParameterRule(

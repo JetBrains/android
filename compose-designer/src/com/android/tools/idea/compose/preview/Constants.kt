@@ -18,6 +18,8 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
+import kotlin.math.roundToInt
 
 // region Preview
 internal const val PARAMETER_NAME = "name"
@@ -87,13 +89,13 @@ object Preview {
     internal const val PARAMETER_PARENT = "parent"
     // endregion
 
-    internal const val DEFAULT_WIDTH_PX = 1080
-    internal const val DEFAULT_HEIGHT_PX = 1920
-    internal val DEFAULT_SHAPE = Shape.Normal
-    internal val DEFAULT_UNIT = DimUnit.px
-    internal const val DEFAULT_DPI = 480
-    internal const val DEFAULT_IS_ROUND = false
-    internal const val DEFAULT_CHIN_SIZE_ZERO = 0
+    internal val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
+    internal val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
+    internal val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
+    internal val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
+    internal val DEFAULT_DPI: Int = ReferencePhoneConfig.dpi
+    internal val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
+    internal const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
     internal val DEFAULT_ORIENTATION = Orientation.portrait
 
     /**

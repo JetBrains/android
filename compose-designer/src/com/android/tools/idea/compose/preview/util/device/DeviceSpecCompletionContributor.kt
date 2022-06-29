@@ -132,8 +132,8 @@ private fun <T : PsiElement> PsiElementPattern<T, PsiElementPattern.Capture<T>>.
  */
 private val customSpecParamsToDefaultValues: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
   mapOf(
-    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
-    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
+    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_DP.toString(),
+    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_DP.toString(),
     DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
     DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
     DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
@@ -156,8 +156,8 @@ private val parentBasedSpecParamsToDefaultValues: Map<String, String> by lazy(La
  */
 private val allSpecParamsToDefaultValues: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
   mapOf(
-    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
-    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
+    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_DP.toString(),
+    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_DP.toString(),
     DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
     DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
     DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),

@@ -512,34 +512,34 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // Device parameters modifications
     model.properties["", "Width"].value = "720" // In pixels, this change should populate 'device' parameter in annotation
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=720,height=1920,unit=px,dpi=480")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=720,height=891,unit=dp,dpi=420")""",
       noParametersPreview.annotationText()
     )
 
-    model.properties["", "DimensionUnit"].value = "dp" // Should modify width and height in 'device' parameter
+    model.properties["", "DimensionUnit"].value = "px" // Should modify width and height in 'device' parameter
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=240,height=640,unit=dp,dpi=480")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1890,height=2339,unit=px,dpi=420")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "Density"].value = "240" // When changing back to pixels, the width and height should be different than originally
-    model.properties["", "DimensionUnit"].value = "px"
+    model.properties["", "DimensionUnit"].value = "dp"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=360,height=960,unit=px,dpi=240")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1260,height=1559,unit=dp,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "Orientation"].value = "landscape" // Changing orientation swaps width/height values
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=960,height=360,unit=px,dpi=240")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1559,height=1260,unit=dp,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     // Trigger a change while using the DeviceSpec Language
-    model.properties["", "Width"].value = "961"
+    model.properties["", "Width"].value = "1560"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=961px,height=360px,dpi=240")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=1560dp,height=1260dp,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
@@ -548,17 +548,17 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     model.properties["", "ChinSize"].value = "30"
     assertEquals("true", model.properties["", "IsRound"].value)
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=961px,height=360px,dpi=240,isRound=true,chinSize=30px")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=1560dp,height=1260dp,dpi=240,isRound=true,chinSize=30dp")""",
       noParametersPreview.annotationText()
     )
 
     // When using DeviceSpec Language, conversions should support floating point
-    model.properties["", "DimensionUnit"].value = DimUnit.dp.name
-    assertEquals("640.7", model.properties["", "Width"].value)
-    assertEquals("240", model.properties["", "Height"].value)
-    assertEquals("20", model.properties["", "ChinSize"].value)
+    model.properties["", "DimensionUnit"].value = DimUnit.px.name
+    assertEquals("2340", model.properties["", "Width"].value)
+    assertEquals("1890", model.properties["", "Height"].value)
+    assertEquals("45", model.properties["", "ChinSize"].value)
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,isRound=true,chinSize=45px")""",
       noParametersPreview.annotationText()
     )
 
@@ -567,7 +567,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // When changed, it has to be reflected explicitly in the spec, without affecting the width/height
     model.properties["", "Orientation"].value = "portrait"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=640.7dp,height=240dp,dpi=240,isRound=true,chinSize=20dp,orientation=portrait")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,isRound=true,chinSize=45px,orientation=portrait")""",
       noParametersPreview.annotationText()
     )
 

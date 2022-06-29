@@ -25,7 +25,6 @@ import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertFails
 
-
 internal class DimensionParameterRuleTest {
 
   lateinit var dataProvider: DataProvider
@@ -91,37 +90,37 @@ internal class DimensionParameterRuleTest {
     }
 
     // Bad statement -> default number of parameter rule + default unit
-    assertEquals("100px", checkAndFix("abc"))
+    assertEquals("100dp", checkAndFix("abc"))
 
     // Missing unit -> add default unit
-    assertEquals("200px", checkAndFix("200"))
+    assertEquals("200dp", checkAndFix("200"))
 
     // Bad number -> fix number and add default unit (common unit is only defined on valid values)
-    assertEquals("300.1px", checkAndFix("300.12dp"))
+    assertEquals("300.1dp", checkAndFix("300.12px"))
 
-    // Valid value -> no change, the common unit is now 'dp'
-    assertEquals("400dp", checkAndFix("400dp"))
+    // Valid value -> no change, the common unit is now 'px'
+    assertEquals("400px", checkAndFix("400px"))
 
     // Wrong unit -> substitute with common unit
-    assertEquals("500dp", checkAndFix("500px"))
+    assertEquals("500px", checkAndFix("500dp"))
 
     // Missing unit -> add the common unit
-    assertEquals("600dp", checkAndFix("600"))
+    assertEquals("600px", checkAndFix("600"))
 
     // Nothing to fix, `700.` can be parsed to a float
-    assertEquals("700.dp", checkAndFix("700.dp"))
+    assertEquals("700.px", checkAndFix("700.px"))
 
     // Rounded to 1 decimal
-    assertEquals("800.6dp", checkAndFix("800.55dp"))
+    assertEquals("800.6px", checkAndFix("800.55px"))
 
     // Rounded to 1 decimal, simplified to an integer
-    assertEquals("900dp", checkAndFix("900.04dp"))
-    assertEquals("901dp", checkAndFix("900.95dp"))
+    assertEquals("900px", checkAndFix("900.04px"))
+    assertEquals("901px", checkAndFix("900.95px"))
 
     // Extract a valid number when possible
-    assertEquals("1000.7dp", checkAndFix("1000.74ABCdp"))
+    assertEquals("1000.7px", checkAndFix("1000.74ABCpx"))
 
     // Bad statement -> default number + common unit
-    assertEquals("100dp", checkAndFix("abcdp"))
+    assertEquals("100px", checkAndFix("abcdp"))
   }
 }
