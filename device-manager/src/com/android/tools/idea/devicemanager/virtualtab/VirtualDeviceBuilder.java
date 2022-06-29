@@ -74,11 +74,11 @@ final class VirtualDeviceBuilder {
       .setKey(new VirtualDeviceName(myDevice.getId()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
-      .setOnline(myIsAvdRunning.get())
       .setTarget(Targets.toString(version, tag))
       .setCpuArchitecture(myDevice.getCpuArch())
       .setAndroidVersion(version)
       .setSizeOnDisk(myRecursiveSize.get())
+      .setState(VirtualDevice.State.valueOf(myIsAvdRunning.get()))
       .setAvdInfo(myDevice)
       .build();
   }

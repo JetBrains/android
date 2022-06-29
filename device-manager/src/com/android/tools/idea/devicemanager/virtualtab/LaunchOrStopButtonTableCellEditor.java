@@ -24,7 +24,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice.LaunchOrStopButtonState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
@@ -78,7 +77,7 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
                                     @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> getConsole,
                                     @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
                                     @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> showErrorDialog) {
-    super(LaunchOrStopButtonState.STOPPED);
+    super(VirtualDevice.State.STOPPED);
 
     myProject = project;
     myBridge = bridge;

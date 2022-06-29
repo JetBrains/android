@@ -40,10 +40,10 @@ public final class TestVirtualDevices {
     return new VirtualDevice.Builder()
       .setKey(newKey("Pixel_5_API_31"))
       .setName("Pixel 5 API 31")
-      .setOnline(true)
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
       .setAndroidVersion(new AndroidVersion(31))
+      .setState(VirtualDevice.State.LAUNCHED)
       .setAvdInfo(avd)
       .build();
   }

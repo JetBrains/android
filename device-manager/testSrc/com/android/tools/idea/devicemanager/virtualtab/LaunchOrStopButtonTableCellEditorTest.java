@@ -33,7 +33,6 @@ import com.android.tools.idea.devicemanager.IconButton;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.LaunchOrStopButtonTableCellEditor.SetEnabled;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice.LaunchOrStopButtonState;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.project.Project;
@@ -81,7 +80,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
                                                      VirtualTabMessages::showErrorDialog);
 
     myEditor.addCellEditorListener(listener);
-    myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
 
@@ -113,7 +112,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
                                                      VirtualTabMessages::showErrorDialog);
 
     myEditor.addCellEditorListener(listener);
-    myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
 
@@ -149,7 +148,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
                                                      showErrorDialog);
 
     myEditor.addCellEditorListener(listener);
-    myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
 
@@ -191,7 +190,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     JTable table = DeviceTables.mock(TestVirtualDevices.onlinePixel5Api31(myAvd));
 
     // Act
-    Object component = myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    Object component = myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     // Assert
     IconButton button = (IconButton)component;
@@ -219,7 +218,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     JTable table = DeviceTables.mock(device);
 
     // Act
-    Object component = myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    Object component = myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     // Assert
     IconButton button = (IconButton)component;
@@ -237,7 +236,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd));
 
     // Act
-    Object component = myEditor.getTableCellEditorComponent(table, LaunchOrStopButtonState.STOPPED, false, 0, 3);
+    Object component = myEditor.getTableCellEditorComponent(table, VirtualDevice.State.STOPPED, false, 0, 3);
 
     // Assert
     IconButton button = (IconButton)component;

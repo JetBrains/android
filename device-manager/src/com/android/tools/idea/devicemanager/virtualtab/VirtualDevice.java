@@ -30,17 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
-  private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final long mySizeOnDisk;
-  private final @NotNull LaunchOrStopButtonState myState;
+  private final @NotNull State myState;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
-    private boolean myOnline;
     private @Nullable String myCpuArchitecture;
     private long mySizeOnDisk;
-    private @NotNull LaunchOrStopButtonState myState = LaunchOrStopButtonState.STOPPED;
+    private @NotNull State myState = State.STOPPED;
     private @Nullable AvdInfo myAvdInfo;
 
     @NotNull Builder setKey(@NotNull Key key) {
@@ -55,11 +53,6 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder setName(@NotNull String name) {
       myName = name;
-      return this;
-    }
-
-    @NotNull Builder setOnline(boolean online) {
-      myOnline = online;
       return this;
     }
 
@@ -83,7 +76,7 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setState(@NotNull LaunchOrStopButtonState state) {
+    @NotNull Builder setState(@NotNull State state) {
       myState = state;
       return this;
     }
@@ -119,7 +112,22 @@ public final class VirtualDevice extends Device {
     }
   }
 
-  enum LaunchOrStopButtonState {STOPPED, LAUNCHING, LAUNCHED, STOPPING}
+  enum State {
+    STOPPED(false),
+    LAUNCHING(false),
+    LAUNCHED(true),
+    STOPPING(true);
+
+    private final boolean myOnline;
+
+    State(boolean online) {
+      myOnline = online;
+    }
+
+    static @NotNull State valueOf(boolean online) {
+      return online ? LAUNCHED : STOPPED;
+    }
+  }
 
   private static final class PairingState {
     private final boolean myPairable;
@@ -133,7 +141,6 @@ public final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
-    myOnline = builder.myOnline;
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
@@ -152,7 +159,7 @@ public final class VirtualDevice extends Device {
 
   @Override
   public boolean isOnline() {
-    return myOnline;
+    return myState.myOnline;
   }
 
   @NotNull String getCpuArchitecture() {
@@ -204,7 +211,6 @@ public final class VirtualDevice extends Device {
 
     hashCode = 31 * hashCode + myType.hashCode();
     hashCode = 31 * hashCode + myName.hashCode();
-    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myCpuArchitecture.hashCode();
     hashCode = 31 * hashCode + myAndroidVersion.hashCode();
@@ -230,7 +236,6 @@ public final class VirtualDevice extends Device {
     return myKey.equals(device.myKey) &&
            myType.equals(device.myType) &&
            myName.equals(device.myName) &&
-           myOnline == device.myOnline &&
            myTarget.equals(device.myTarget) &&
            myCpuArchitecture.equals(device.myCpuArchitecture) &&
            myAndroidVersion.equals(device.myAndroidVersion) &&
