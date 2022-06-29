@@ -16,11 +16,27 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.annotations.TestOnly
 
-object ZoomActualAction : SetZoomAction(ZoomType.ACTUAL) {
+class ZoomActualAction private constructor(): SetZoomAction(ZoomType.ACTUAL) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToActual() ?: false
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(): ZoomActualAction {
+      return ActionManager.getInstance().getAction("Adtui.ZoomToActualAction") as ZoomActualAction
+    }
+
+    /**
+     * Create [ZoomActualAction] instance if the test environment doesn't load adt-ui.xml. Do not use this function in production code.
+     */
+    @TestOnly
+    @JvmStatic
+    fun createInstance(): ZoomActualAction = ZoomActualAction()
   }
 }

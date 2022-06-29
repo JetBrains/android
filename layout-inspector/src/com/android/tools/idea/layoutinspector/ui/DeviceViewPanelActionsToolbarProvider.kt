@@ -161,8 +161,8 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
   override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomInAction)
-    add(ZoomOutAction)
-    add(ZoomToFitAction)
+    add(ZoomInAction.getInstance())
+    add(ZoomOutAction.getInstance())
+    add(ZoomToFitAction.getInstance())
   }
 }

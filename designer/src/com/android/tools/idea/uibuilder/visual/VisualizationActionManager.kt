@@ -40,9 +40,9 @@ import javax.swing.JPanel
 
 class VisualizationActionManager(surface: NlDesignSurface,
                                  private val visualizationModelsProvider: () -> VisualizationModelsProvider) : NlActionManager(surface) {
-  private val zoomInAction: AnAction = ZoomInAction
-  private val zoomOutAction: AnAction = ZoomOutAction
-  private val zoomToFitAction: AnAction = ZoomToFitAction
+  private val zoomInAction: AnAction = ZoomInAction.getInstance()
+  private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
+  private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
 
   override fun registerActionsShortcuts(component: JComponent) = Unit
 

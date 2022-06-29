@@ -58,10 +58,10 @@ class BasicDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
 fun createZoomControlsGroup(): ActionGroup {
   return DefaultActionGroup().apply {
-    add(ZoomInAction)
-    add(ZoomOutAction)
-    add(ZoomActualAction)
-    add(ZoomToFitAction)
+    add(ZoomInAction.getInstance())
+    add(ZoomOutAction.getInstance())
+    add(ZoomActualAction.getInstance())
+    add(ZoomToFitAction.getInstance())
   }
 }
 

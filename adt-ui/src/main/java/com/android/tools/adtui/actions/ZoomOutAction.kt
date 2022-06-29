@@ -16,12 +16,19 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-object ZoomOutAction : SetZoomAction(ZoomType.OUT) {
+class ZoomOutAction private constructor(): SetZoomAction(ZoomType.OUT) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomOut() ?: false
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(): ZoomOutAction {
+      return ActionManager.getInstance().getAction("Adtui.ZoomOutAction") as ZoomOutAction
+    }
   }
 }

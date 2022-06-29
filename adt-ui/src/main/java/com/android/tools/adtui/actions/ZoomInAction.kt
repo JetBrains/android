@@ -16,11 +16,19 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-object ZoomInAction : SetZoomAction(ZoomType.IN) {
+class ZoomInAction private constructor() : SetZoomAction(ZoomType.IN) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomIn() ?: false
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(): ZoomInAction {
+      return ActionManager.getInstance().getAction("Adtui.ZoomInAction") as ZoomInAction
+    }
   }
 }

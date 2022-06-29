@@ -106,13 +106,13 @@ class InspectorBannerTest {
         if (!addedSecond) {
           addedSecond = true
           service.notification = StatusNotificationImpl("There is an error somewhere else",
-                                                        listOf(ZoomToFitAction, ZoomActualAction))
+                                                        listOf(ZoomToFitAction.getInstance(), ZoomActualAction.getInstance()))
         }
       }
     })
     // Set the initial banner. It will be overridden by the second.
     service.notification = StatusNotificationImpl ("There is an error somewhere",
-                                                   listOf(ZoomInAction, ZoomOutAction))
+                                                   listOf(ZoomInAction.getInstance(), ZoomOutAction.getInstance()))
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }

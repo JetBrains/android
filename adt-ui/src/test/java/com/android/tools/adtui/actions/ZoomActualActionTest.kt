@@ -36,7 +36,7 @@ class ZoomActualActionTest {
   val dataContext: DataContext = mock(DataContext::class.java)
   val zoomable: Zoomable = mock(Zoomable::class.java)
 
-  val zoomAction = ZoomActualAction
+  val zoomAction = ZoomActualAction.createInstance()
 
   @Before
   fun setUp() {
