@@ -56,12 +56,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatNamedFilters"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory"/>
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.actions.screenrecord.ScreenRecorderPersistentOptions"/>
-
-    <projectService
-        serviceInterface="com.android.tools.idea.logcat.actions.screenrecord.ScreenRecordingSupportedCache"
-        serviceImplementation="com.android.tools.idea.logcat.actions.screenrecord.ScreenRecordingSupportedCacheImpl"
-    />
+    <applicationService serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecorderPersistentOptions"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/LogcatColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/LogcatColorSchemeDarcula.xml"/>
