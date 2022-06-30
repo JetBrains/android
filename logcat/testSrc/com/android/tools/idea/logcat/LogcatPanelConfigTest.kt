@@ -109,26 +109,49 @@ class LogcatPanelConfigTest {
   @Test
   fun restoreDeviceStateFromPreviousVersion_intsAsString() {
     val state = """
-{
-  'device': {
-    'deviceId': 'HT85F1A00630',
-    'name': 'Google Pixel 2',
-    'serialNumber': 'HT85F1A00630',
-    'isOnline': false,
-    'release': '11',
-    'sdk': '30',
-    'isEmulator': false,
-    'model': 'Pixel 2'
-  },
-  'formattingConfig': {
-    'preset': 'STANDARD'
-  },
-  'filter': 'tag:ActivityManager ',
-  'isSoftWrap': false
-}    """.trimIndent()
+      {
+        'device': {
+          'deviceId': 'HT85F1A00630',
+          'name': 'Google Pixel 2',
+          'serialNumber': 'HT85F1A00630',
+          'isOnline': false,
+          'release': '11',
+          'sdk': '30',
+          'isEmulator': false,
+          'model': 'Pixel 2'
+        },
+        'formattingConfig': {
+          'preset': 'STANDARD'
+        },
+        'filter': 'tag:ActivityManager ',
+        'isSoftWrap': false
+      }    """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
       .isEqualTo(Device.createPhysical("HT85F1A00630", false, 11, 30, "Google", "Pixel 2"))
+  }
+
+  @Test
+  fun deserialize_missingModel() {
+    val state = """{
+      "device": {
+        "deviceId": "0A091FDD4002XX",
+        "name": "Google Pixel 5",
+        "serialNumber": "0A091FDD4002XX",
+        "isOnline": false,
+        "release": 12,
+        "sdk": 32,
+        "isEmulator": false
+      },
+      "formattingConfig": {
+        "preset": "STANDARD"
+      },
+      "filter": "name:\"My App\" package:mine",
+      "isSoftWrap": false
+    }""".trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state)?.device)
+      .isEqualTo(Device.createPhysical("0A091FDD4002XX", false, 12, 32, "Google", "Pixel 5").copy(model = ""))
   }
 
 }

@@ -61,7 +61,14 @@ internal data class LogcatPanelConfig(
           fromOldFormat(json)
         }
         else {
-          gson.fromJson(json, LogcatPanelConfig::class.java)
+          val config = gson.fromJson(json, LogcatPanelConfig::class.java)
+          config?.device?.let {
+            @Suppress("SENSELESS_COMPARISON") // GSON doesn't care that model is non-null
+            if (it.model == null) {
+              config.device = it.copy(model = "")
+            }
+          }
+          config
         }
       }
       catch (e: JsonSyntaxException) {
