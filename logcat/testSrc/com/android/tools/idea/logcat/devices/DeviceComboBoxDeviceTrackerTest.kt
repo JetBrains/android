@@ -87,10 +87,9 @@ class DeviceComboBoxDeviceTrackerTest {
     val events = async { deviceTracker.trackDevices().toList() }
 
     hostServices.use {
-      it.sendDevices(
-        emulator,
-        emulator.withState(OFFLINE),
-      )
+      it.sendDevices(emulator)
+      it.sendDevices(emulator.withState(OFFLINE))
+      it.sendDevices()
     }
 
     assertThat(events.await()).containsExactly(
@@ -110,10 +109,9 @@ class DeviceComboBoxDeviceTrackerTest {
     val events = async { deviceTracker.trackDevices().toList() }
 
     hostServices.use {
-      it.sendDevices(
-        emulator,
-        emulator.withState(OFFLINE),
-      )
+      it.sendDevices(emulator)
+      it.sendDevices(emulator.withState(OFFLINE))
+      it.sendDevices()
     }
 
     assertThat(events.await()).containsExactly(
@@ -173,7 +171,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
     hostServices.use {
       it.sendDevices(device1, device2)
-      it.sendDevices(emulator1)
+      it.sendDevices(device1, device2, emulator1)
     }
 
     assertThat(events.await()).containsExactly(
@@ -259,6 +257,7 @@ class DeviceComboBoxDeviceTrackerTest {
     hostServices.use {
       it.sendDevices(device1.withState(ONLINE))
       it.sendDevices(device1.withState(OFFLINE))
+      it.sendDevices()
       it.sendDevices(device1.withState(ONLINE))
     }
 
@@ -278,6 +277,7 @@ class DeviceComboBoxDeviceTrackerTest {
     hostServices.use {
       it.sendDevices(emulator1.withState(ONLINE).withSerialNumber("emulator-1"))
       it.sendDevices(emulator1.withState(OFFLINE))
+      it.sendDevices()
       it.sendDevices(emulator1.withState(ONLINE).withSerialNumber("emulator-2"))
     }
 

@@ -80,7 +80,8 @@ internal class DeviceComboBoxDeviceTracker(
 
     // Initialize state by reading all current devices
     coroutineScope {
-      adbSession.hostServices.devices().filter { it.isOnline() }.map { async { it.toDevice() } }.awaitAll().forEach {
+      val devices = adbSession.hostServices.devices()
+      devices.filter { it.isOnline() }.map { async { it.toDevice() } }.awaitAll().forEach {
         onlineDevicesBySerial[it.serialNumber] = it
         allDevicesById[it.deviceId] = it
         emit(Added(it))
@@ -89,59 +90,39 @@ internal class DeviceComboBoxDeviceTracker(
 
     // Add the preexisting device.
     if (preexistingDevice != null && !allDevicesById.containsKey(preexistingDevice.deviceId)) {
-      onlineDevicesBySerial[preexistingDevice.serialNumber] = preexistingDevice
       allDevicesById[preexistingDevice.deviceId] = preexistingDevice
       emit(Added(preexistingDevice))
     }
 
     // Track devices changes:
-    // There are 3 distinct cases:
-    // 1. A device that has not been seen before comes online -> callback.deviceAdded()
-    // 2. A device that was seen before and is now offline comes online -> callback.deviceStateChanged()
-    // 3. A device that is currently online goes offline -> callback.deviceStateChanged()
+    // We only care about devices that are online.
+    // If a previously unknown device comes online, we emit Added
+    // If a previously known device comes online, we emit StateChanged
+    // If previously online device is missing from the kist, we emit a StateChanged.
     adbSession.hostServices.trackDevices().collect { deviceList ->
-      for (deviceInfo in deviceList) {
-        val serialNumber = deviceInfo.serialNumber
-        val isOnline = deviceInfo.isOnline()
-        if (isOnline) {
-          if (onlineDevicesBySerial.containsKey(serialNumber)) {
-            continue
-          }
-
-          val deviceId = deviceInfo.getDeviceId()
-          val existingDevice = allDevicesById[deviceId]
-          if (existingDevice != null) {
-            val copy = if (existingDevice.isEmulator) {
-              existingDevice.copy(isOnline = true, serialNumber = serialNumber)
-            }
-            else {
-              val properties = deviceInfo.getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK)
-              existingDevice.copy(
-                isOnline = true,
-                release = properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
-                sdk = properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0)
-
-            }
-            onlineDevicesBySerial[serialNumber] = copy
-            allDevicesById[serialNumber] = copy
-            emit(StateChanged(copy))
+      val devices = deviceList.entries.filter { it.isOnline() }.associateBy { it.serialNumber }
+      devices.values.forEach {
+        val serialNumber = it.serialNumber
+        if (!onlineDevicesBySerial.containsKey(serialNumber)) {
+          val device = it.toDevice()
+          if (allDevicesById.containsKey(device.deviceId)) {
+            emit(StateChanged(device))
           }
           else {
-            val newDevice = deviceInfo.toDevice()
-            allDevicesById[deviceId] = newDevice
-            onlineDevicesBySerial[serialNumber] = newDevice
-            emit(Added(newDevice))
+            emit(Added(device))
           }
+          onlineDevicesBySerial[serialNumber] = device
+          allDevicesById[device.deviceId] = device
         }
-        else {
-          val device = onlineDevicesBySerial[serialNumber]
-          if (device != null) {
-            val copy = device.copy(isOnline = false)
-            onlineDevicesBySerial.remove(serialNumber)
-            allDevicesById[device.serialNumber] = copy
-            emit(StateChanged(copy))
-          }
-        }
+      }
+
+      // Find devices that were online and are not anymore, then remove them.
+      onlineDevicesBySerial.keys.filter { !devices.containsKey(it) }.forEach {
+        val device = onlineDevicesBySerial[it] ?: return@forEach
+        val deviceOffline = device.copy(isOnline = false)
+        emit(StateChanged(deviceOffline))
+        onlineDevicesBySerial.remove(it)
+        allDevicesById[device.deviceId] = deviceOffline
       }
     }
   }
@@ -174,13 +155,7 @@ internal class DeviceComboBoxDeviceTracker(
       serialNumber
     }
 
-  private suspend fun DeviceInfo.getDeviceId(): String {
-    return when {
-      serialNumber.startsWith("emulator-") -> getAvdName(getProperties(RO_BOOT_QEMU_AVD_NAME, RO_KERNEL_QEMU_AVD_NAME))
-      else -> serialNumber
-    }
-  }
-
+  @Suppress("SameParameterValue") // The inspection is wrong. It only considers the first arg in the vararg
   private suspend fun DeviceInfo.getProperties(vararg properties: String): Map<String, String> {
     val selector = DeviceSelector.fromSerialNumber(serialNumber)
     val command = properties.joinToString(" ; ") { "getprop $it" }
