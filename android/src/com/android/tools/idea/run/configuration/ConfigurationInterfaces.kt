@@ -17,9 +17,11 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
+import com.android.tools.idea.run.configuration.execution.DeployOptions
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ModuleRunConfiguration
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.module.Module
 
@@ -27,7 +29,8 @@ import com.intellij.openapi.module.Module
  * Interfaces in this file eventually should become one single interface as we migrate all configuration on the new code flow and support all
  * features for them.
  */
-interface ComponentSpecificConfiguration : ModuleRunConfiguration {
+interface ComponentSpecificConfiguration : RunConfiguration {
+  val deployOptions: DeployOptions
   val componentType: ComponentType
   val module: Module?
 }
@@ -36,6 +39,6 @@ interface RunConfigurationWithDebugger : ModuleRunConfiguration {
   val androidDebuggerContext: AndroidDebuggerContext
 }
 
-interface RunConfigurationWithAndroidConfigurationExecutorBase {
+interface RunConfigurationWithAndroidConfigurationExecutor {
   fun getExecutor(environment: ExecutionEnvironment, deployTarget: DeployTarget): AndroidConfigurationExecutorBase
 }

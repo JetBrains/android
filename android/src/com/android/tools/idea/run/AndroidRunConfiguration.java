@@ -29,9 +29,10 @@ import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration;
-import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutorBase;
+import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase;
+import com.android.tools.idea.run.configuration.execution.DeployOptions;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
@@ -91,7 +92,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
                                                                                     ComponentSpecificConfiguration,
-                                                                                    RunConfigurationWithAndroidConfigurationExecutorBase {
+                                                                                    RunConfigurationWithAndroidConfigurationExecutor {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -158,6 +159,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       .setDeployAsInstant(DEPLOY_AS_INSTANT)
       .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM)
       .setClearAppStorage(CLEAR_APP_STORAGE);
+  }
+
+  @Override
+  public @NotNull DeployOptions getDeployOptions() {
+    return new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
   }
 
   @NotNull

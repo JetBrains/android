@@ -22,6 +22,7 @@ import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
+import com.android.tools.idea.run.configuration.execution.DeployOptions
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
@@ -48,13 +49,16 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, ComponentSpecificConfiguration, RunConfigurationWithAndroidConfigurationExecutorBase {
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, ComponentSpecificConfiguration, RunConfigurationWithAndroidConfigurationExecutor {
   var componentName: String? = null
   var installFlags = ""
 
   abstract val userVisibleComponentTypeName: String
   abstract val componentBaseClassesFqNames: Array<String>
   val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(AndroidJavaDebugger.ID)
+
+  override val deployOptions: DeployOptions
+    get() = DeployOptions(emptyList(), installFlags, installOnAllUsers = true, alwaysInstallWithPm = true)
 
   override fun getConfigurationEditor(): AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
   override fun checkConfiguration() {

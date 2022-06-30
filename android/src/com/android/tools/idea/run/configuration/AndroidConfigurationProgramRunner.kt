@@ -51,7 +51,7 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     val supportExecutor = DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId
-    val supportConfiguration = profile is RunConfigurationWithAndroidConfigurationExecutorBase
+    val supportConfiguration = profile is RunConfigurationWithAndroidConfigurationExecutor
 
     if (supportExecutor && supportConfiguration) {
       // TODO: remove when StudioFlags.NEW_EXECUTION_FLOW_ENABLED is permanently enabled
