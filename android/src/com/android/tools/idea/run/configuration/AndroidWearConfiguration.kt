@@ -18,10 +18,13 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.DeployOptions
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
@@ -72,12 +75,14 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     componentName ?: throw RuntimeConfigurationError("$userVisibleComponentTypeName is not chosen")
   }
 
-  final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
+  final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState = EmptyRunProfileState()
+
+  final override fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutor {
     val provider = DeviceAndSnapshotComboBoxTargetProvider()
     val deployTarget = if (provider.requiresRuntimePrompt(project)) {
       invokeAndWaitIfNeeded { provider.showPrompt(project) }
     }
-    else {
+                       else {
       provider.getDeployTarget(project)
     } ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
 
@@ -86,7 +91,14 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     val stats = RunStats.from(environment)
     return try {
       stats.start()
-      val state: RunProfileState = AndroidRunProfileStateAdapter(getExecutor(environment, deployTarget))
+      val apkProvider = project.getProjectSystem().getApkProvider(this) ?: throw ExecutionException(
+        AndroidBundle.message("android.run.configuration.not.supported",
+                              name)) // There is no test ApkInfo for AndroidWearConfiguration, thus it should be always single ApkInfo. Only App.
+
+      val applicationIdProvider = project.getProjectSystem().getApplicationIdProvider(this) ?: throw RuntimeException(
+        "Cannot get ApplicationIdProvider")
+
+      val state = getExecutor(environment, deployTarget, applicationIdProvider, apkProvider)
       stats.markStateCreated()
       state
     }
@@ -95,6 +107,13 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
       throw t
     }
   }
+
+  abstract fun getExecutor(
+    environment: ExecutionEnvironment,
+    deployTarget: DeployTarget,
+    applicationIdProvider: ApplicationIdProvider,
+    apkProvider: ApkProvider
+  ): AndroidConfigurationExecutor
 
   private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deployTarget: DeployTarget) {
     val stats = RunStatsService.get(project).create()

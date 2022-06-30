@@ -17,9 +17,10 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings
 import com.android.tools.idea.stats.RunStats
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -38,7 +39,7 @@ import org.jetbrains.concurrency.Promise
 /**
  * Class required by platform to determine which execution buttons are available for a given configuration. See [canRun] method.
  *
- * Actual execution for a configuration, after build, happens in [AndroidConfigurationExecutorBase].
+ * Actual execution for a configuration, after build, happens in [AndroidConfigurationExecutor].
  */
 class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   companion object {
@@ -51,9 +52,8 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     val supportExecutor = DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId
-    val supportConfiguration = profile is RunConfigurationWithAndroidConfigurationExecutor
 
-    if (supportExecutor && supportConfiguration) {
+    if (supportExecutor && profile is RunConfigurationWithAndroidConfigurationExecutor) {
       // TODO: remove when StudioFlags.NEW_EXECUTION_FLOW_ENABLED is permanently enabled
       if (profile is AndroidRunConfiguration) {
         return useNewExecutionForActivities
@@ -63,23 +63,39 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
     return false
   }
 
+  @Throws(ExecutionException::class)
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
-    val promise = AsyncPromise<RunContentDescriptor?>()
-    val executor = (state as AndroidRunProfileStateAdapter).executor
+    val runProfile = environment.runProfile
+
+    val executor = (runProfile as RunConfigurationWithAndroidConfigurationExecutor).getExecutor(environment)
 
     FileDocumentManager.getInstance().saveAllDocuments()
-    val stats = RunStats.from(environment)
 
+    val stats = RunStats.from(environment)
+    val promise = AsyncPromise<RunContentDescriptor?>()
     fun handleError(error: Throwable) {
       stats.fail()
       promise.setError(error)
     }
 
-    ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${environment.runProfile.name}") {
+    ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
-        executor.execute()
-          .onSuccess { promise.setResult(it) }
-          .onError(::handleError)
+
+        when (environment.executor.id) {
+          DefaultRunExecutor.EXECUTOR_ID -> {
+            executor.run()
+              .onSuccess { promise.setResult(it) }
+              .onError(::handleError)
+          }
+          DefaultDebugExecutor.EXECUTOR_ID -> {
+            executor.debug()
+              .onSuccess { promise.setResult(it) }
+              .onError(::handleError)
+          }
+          else -> {
+            throw RuntimeException("Unsupported executor")
+          }
+        }
       }
 
       override fun onThrowable(error: Throwable) = handleError(error)

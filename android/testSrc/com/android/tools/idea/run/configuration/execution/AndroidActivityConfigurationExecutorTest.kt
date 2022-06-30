@@ -63,14 +63,16 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     }
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
+
+    val executor = Mockito.spy(
+      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    executor.doOnDevices(listOf(device))
+    executor.run().blockingGet(10, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
 
@@ -111,14 +113,16 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Executor we test.
-    val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env, TestDeployTarget(device)))
+    val executor = Mockito.spy(
+      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
+
+    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
     // Emulate stopping debug session.

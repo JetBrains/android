@@ -385,7 +385,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget() {
+  protected DeployTarget getDeployTarget() {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
     Project project = getProject();
 

@@ -25,67 +25,54 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
-import com.android.tools.idea.run.AndroidProcessHandler
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.concurrency.Promise
 import java.time.Duration
 
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
-                                       deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
+                                       deployTarget: DeployTarget,
+                                       applicationIdProvider: ApplicationIdProvider,
+                                       apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                    applicationIdProvider, apkProvider) {
   override val configuration = environment.runProfile as AndroidTileConfiguration
+  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
+    val tileName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
+    return getStopTileCallback(tileName, console, isDebug)
+  }
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
-    val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
-    if (isDebug && devices.size > 1) {
-      throw ExecutionException("Debugging is allowed only for a single device")
-    }
-    val console = createConsole()
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller(console)
-    val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val tileName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
-    val processHandler = AndroidProcessHandler(project, appId, getStopTileCallback(tileName, console, isDebug))
-    devices.forEach { device ->
-      terminatePreviousAppInstance(device)
-      processHandler.addTargetDevice(device)
-      val version = device.getWearDebugSurfaceVersion()
-      if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
-        throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
-      }
-      if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
-        console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
-      }
-      indicator?.checkCanceled()
-      indicator?.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
-      // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
-      Thread.sleep(Duration.ofSeconds(2).toMillis())
-      val tileIndex = setWatchTile(app, mode, indicator, console)
-      val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
-      val showTileReceiver = CommandResultReceiver()
-      device.executeShellCommand(showTileCommand, console, showTileReceiver)
-      verifyResponse(showTileReceiver, console)
-    }
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
     ProgressManager.checkCanceled()
-    if (isDebug) {
-      return startDebugSession(devices.single(), console).then { it.runContentDescriptor }
+    val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
+
+    val version = device.getWearDebugSurfaceVersion()
+    if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
+      throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
-    return createRunContentDescriptor(processHandler, console, environment)
+    if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
+      console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+    }
+
+    // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
+    Thread.sleep(Duration.ofSeconds(2).toMillis())
+    val tileIndex = setWatchTile(app, mode, indicator, console)
+    val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
+    val showTileReceiver = CommandResultReceiver()
+    device.executeShellCommand(showTileCommand, console, showTileReceiver)
+    verifyResponse(showTileReceiver, console)
   }
 
   private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
@@ -110,15 +97,6 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
-  }
-
-  private fun startDebugSession(
-    device: IDevice,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
-    checkAndroidVersionForWearDebugging(device.version, console)
-    val tileName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
-    return DebugSessionStarter(environment).attachDebuggerToClient(device, getStopTileCallback(tileName, console, true), console)
   }
 }
 

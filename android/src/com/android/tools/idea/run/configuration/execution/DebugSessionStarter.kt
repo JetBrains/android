@@ -17,11 +17,10 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.debug.attachJavaDebuggerToClient
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicatorProvider
@@ -29,11 +28,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.concurrency.Promise
 
-class DebugSessionStarter(private val environment: ExecutionEnvironment) {
+class DebugSessionStarter(private val environment: ExecutionEnvironment, applicationIdProvider: ApplicationIdProvider) {
 
   private val project = environment.project
-  private val appId = project.getProjectSystem().getApplicationIdProvider(environment.runProfile as RunConfiguration)?.packageName
-                      ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+  private val appId = applicationIdProvider.packageName
 
   @WorkerThread
   fun attachDebuggerToClient(device: IDevice,

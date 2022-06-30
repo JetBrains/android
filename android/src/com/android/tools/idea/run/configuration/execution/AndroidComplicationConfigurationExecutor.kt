@@ -23,96 +23,68 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
-import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration.ChosenSlot
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
+import java.io.File
 
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment,
-                                               deployTarget: DeployTarget) : AndroidConfigurationExecutorBase(environment, deployTarget) {
+                                               deployTarget: DeployTarget,
+                                               applicationIdProvider: ApplicationIdProvider,
+                                               apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                            applicationIdProvider,
+                                                                                                            apkProvider) {
   override val configuration = environment.runProfile as AndroidComplicationConfiguration
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
-    val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
-    if (isDebug && devices.size > 1) {
-      throw ExecutionException("Debugging is allowed only for single device")
-    }
-    val console = createConsole()
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller(console)
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val watchFaceInfo = "${configuration.watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
-    val complicationComponentName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
-    val processHandler = AndroidProcessHandler(project, appId, getStopComplicationCallback(complicationComponentName, console, isDebug))
-    devices.forEach { device ->
-      terminatePreviousAppInstance(device)
-      processHandler.addTargetDevice(device)
-      val version = device.getWearDebugSurfaceVersion()
-      if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
-        throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
-      }
-      if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
-        console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
-      }
-      indicator?.checkCanceled()
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
-      val provider = project.getProjectSystem().getApkProvider(configuration)
-      if (provider == null) {
-        Logger.getInstance(this::class.java).warn("Apk could not be retrieved.")
-      } else {
-        configuration.verifyProviderTypes(parseRawComplicationTypes(getComplicationSourceTypes(provider.getApks(device))))
-      }
-      indicator?.checkCanceled()
-      installWatchApp(device, console)
 
-      if (isDebug) {
-        val promise = AsyncPromise<RunContentDescriptor>()
-        executeOnPooledThread {
-          startDebugSession(devices.single(), console)
-            .onError(promise::setError)
-            .then { it.runContentDescriptor }.processed(promise)
-        }
-        configuration.chosenSlots.forEach { slot ->
-          setComplicationOnWatchFace(app, configuration, watchFaceInfo, slot, mode, indicator)
-        }
-        showWatchFace(device, console)
-        return promise
-      }
-      configuration.chosenSlots.forEach { slot -> setComplicationOnWatchFace(app, configuration, watchFaceInfo, slot, mode, indicator) }
-      showWatchFace(device, console)
+    val version = device.getWearDebugSurfaceVersion()
+    if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
+      throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
+    }
+    if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
+      console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
     ProgressManager.checkCanceled()
-    return createRunContentDescriptor(processHandler, console, environment)
+
+    configuration.verifyProviderTypes(parseRawComplicationTypes(getComplicationSourceTypes(apkProvider.getApks(device))))
+
+    ProgressManager.checkCanceled()
+
+    installWatchApp(device, console)
+
+    configuration.chosenSlots.forEach { slot ->
+      setComplicationOnWatchFace(app, configuration, slot, mode, ProgressIndicatorProvider.getGlobalProgressIndicator())
+    }
+    showWatchFace(device, console)
   }
 
-  internal fun setComplicationOnWatchFace(app : App, configuration: AndroidComplicationConfiguration, watchFaceInfo: String,
-                                          slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?) {
+  private fun setComplicationOnWatchFace(app: App, configuration: AndroidComplicationConfiguration, slot: ChosenSlot,
+                                         mode: AppComponent.Mode, indicator: ProgressIndicator?) {
     if (slot.type == null) {
       throw ExecutionException("Slot type is not specified for slot(id: ${slot.id}).")
     }
     val receiver = RecordOutputReceiver { indicator?.isCanceled == true }
+
+    val watchFaceInfo = "${configuration.watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
     try {
       app.activateComponent(
         configuration.componentType,
@@ -137,18 +109,14 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {
     val watchFaceInfo = configuration.watchFaceInfo
-    return getApplicationInstaller(console).installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "")
+
+    val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
+    return getApplicationInstaller(console).fullDeploy(device, listOf(apkInfo), configuration.deployOptions).app
   }
 
-  private fun startDebugSession(
-    device: IDevice,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
-    checkAndroidVersionForWearDebugging(device.version, console)
+  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
     val complicationComponentName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
-    return DebugSessionStarter(environment).attachDebuggerToClient(device,
-                                                                   getStopComplicationCallback(complicationComponentName, console, true),
-                                                                   console)
+    return getStopComplicationCallback(complicationComponentName, console, isDebug)
   }
 }
 

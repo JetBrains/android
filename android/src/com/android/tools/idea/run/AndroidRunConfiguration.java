@@ -31,12 +31,11 @@ import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration;
 import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.DeployOptions;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
-import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
@@ -405,7 +404,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  public AndroidConfigurationExecutorBase getExecutor(@NotNull ExecutionEnvironment environment, @NotNull DeployTarget deployTarget) {
-    return new AndroidActivityConfigurationExecutor(environment, deployTarget);
+  public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
+    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), getApplicationIdProvider(), getApkProvider());
   }
 }

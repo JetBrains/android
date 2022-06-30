@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
-import com.android.tools.idea.run.editor.AndroidDebugger
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 
-/**
- * Delegates execution of configuration from [RunProfileState.execute] to [AndroidConfigurationExecutorBase.execute].
- *
- * [RunProfileState.execute] doesn't work for Android configurations because we delegate creation of run content descriptors to
- * [AndroidDebugger]s in case on debug.
- *
- * See [AndroidConfigurationExecutorBase.createRunContentDescriptor], [AndroidConfigurationProgramRunner].
- */
-internal class AndroidRunProfileStateAdapter(val executor: AndroidConfigurationExecutorBase) : RunProfileState {
 
-  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
+/**
+ * Configuration that delegates execution from [RunProfileState.execute] to
+ * [AndroidConfigurationExecutor].
+ *
+ * See [AndroidConfigurationProgramRunner.execute].
+ */
+interface RunConfigurationWithAndroidConfigurationExecutor {
+  fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutor
+}
+
+internal class EmptyRunProfileState : RunProfileState {
+
+  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult {
     throw RuntimeException("Unexpected code path")
   }
 }
