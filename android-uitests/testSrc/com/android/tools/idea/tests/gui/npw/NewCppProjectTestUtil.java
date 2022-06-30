@@ -49,6 +49,7 @@ public class NewCppProjectTestUtil {
 
     guiTest.waitForBackgroundTasks();
     runAppOnEmulator(ideFrame);
+    ideFrame.stopApp();
   }
 
   protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
