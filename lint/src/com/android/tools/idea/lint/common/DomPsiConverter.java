@@ -1039,6 +1039,12 @@ public class DomPsiConverter {
 
     @NotNull
     @Override
+    public String getPrefix() {
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getNamespacePrefix);
+    }
+
+    @NotNull
+    @Override
     public String getNamespaceURI() {
       return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getNamespace);
     }
