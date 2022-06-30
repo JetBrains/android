@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.adblib.DevicePropertyNames
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
@@ -23,6 +24,7 @@ import com.android.tools.idea.emulator.AbstractDisplayPanel
 import com.android.tools.idea.emulator.DeviceId
 import com.android.tools.idea.emulator.RunningDevicePanel
 import com.android.tools.idea.emulator.installFileDropHandler
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
@@ -67,6 +69,12 @@ internal class DeviceToolWindowPanel(
   val component: JComponent
     get() = this
 
+  private val apiLevel
+    get() = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: 0
+
+  private val avdName
+    get() = deviceProperties[DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME]
+
   override val preferredFocusableComponent: JComponent
     get() = primaryDeviceView ?: this
 
@@ -75,8 +83,6 @@ internal class DeviceToolWindowPanel(
       field = value
       displayPanel?.zoomToolbarVisible = value
     }
-
-  private var screenshotOptions: DeviceScreenshotOptions? = null
 
   init {
     background = primaryPanelBackground
@@ -118,7 +124,6 @@ internal class DeviceToolWindowPanel(
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
     primaryDeviceView = deviceView
-    screenshotOptions = DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, deviceView)
     mainToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
 
@@ -141,7 +146,6 @@ internal class DeviceToolWindowPanel(
     centerPanel.removeAll()
     displayPanel = null
     primaryDeviceView = null
-    screenshotOptions = null
     mainToolbar.targetComponent = this
     return uiState
   }
@@ -150,7 +154,10 @@ internal class DeviceToolWindowPanel(
     return when (dataId) {
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
-      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> if (primaryDeviceView?.connected == true) screenshotOptions else null
+      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
+          primaryDeviceView?.let { if (it.connected) DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, it) else null }
+      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
+          primaryDeviceView?.let { ScreenRecorderAction.Parameters(deviceSerialNumber, apiLevel, avdName, it) }
       else -> null
     }
   }

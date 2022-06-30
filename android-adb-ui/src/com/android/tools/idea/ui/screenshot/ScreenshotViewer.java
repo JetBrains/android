@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.screenshot;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
-import com.android.tools.idea.AndroidAdbBundle;
+import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
@@ -128,9 +128,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private static final class DecorationOption {
     private static final DecorationOption RECTANGULAR =
-      new DecorationOption(AndroidAdbBundle.message("screenshot.dialog.decoration.rectangular"));
+      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.rectangular"));
     private static final DecorationOption DISPLAY_SHAPE_CLIP =
-      new DecorationOption(AndroidAdbBundle.message("screenshot.dialog.decoration.display.shape"));
+      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.display.shape"));
 
     private final @Nullable String myClipAction;
     private final @Nullable FramingOption myFramingOption;
@@ -220,7 +220,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     Preconditions.checkArgument(framingOptions.isEmpty() || defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
 
     setModal(false);
-    setTitle(AndroidAdbBundle.message("screenshot.action.title"));
+    setTitle(AndroidAdbUiBundle.message("screenshot.action.title"));
 
     myProject = project;
     myScreenshotSupplier = screenshotSupplier;
@@ -294,12 +294,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myCopyButton.addActionListener(event -> {
       BufferedImage currentImage = myImageFileEditor.getImageEditor().getDocument().getValue();
       CopyPasteManager.getInstance().setContents(new BufferedImageTransferable(currentImage));
-      String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidAdbBundle.message("screenshot.notification.title"));
+      String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidAdbUiBundle.message("screenshot.notification.title"));
       Notifications.Bus.notify(
         new Notification(
           groupId,
-          AndroidAdbBundle.message("screenshot.notification.title"),
-          AndroidAdbBundle.message("screenshot.notification.copied.to.clipboard"),
+          AndroidAdbUiBundle.message("screenshot.notification.title"),
+          AndroidAdbUiBundle.message("screenshot.notification.copied.to.clipboard"),
           NotificationType.INFORMATION), myProject);
     });
 
@@ -347,7 +347,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       public void onSuccess() {
         String msg = getError();
         if (msg != null) {
-          Messages.showErrorDialog(myProject, msg, AndroidAdbBundle.message("screenshot.action.title"));
+          Messages.showErrorDialog(myProject, msg, AndroidAdbUiBundle.message("screenshot.action.title"));
           return;
         }
 
@@ -407,7 +407,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                               @Nullable FramingOption framingOption,
                               @Nullable VirtualFile writeToFile,
                               @Nullable Color backgroundColor) {
-      super(project, AndroidAdbBundle.message("screenshot.dialog.image.processor.task.title"), false);
+      super(project, AndroidAdbUiBundle.message("screenshot.dialog.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
       myRotationQuadrants = rotateByQuadrants;
@@ -501,12 +501,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @Override
   protected void createDefaultActions() {
     super.createDefaultActions();
-    getOKAction().putValue(Action.NAME, AndroidAdbBundle.message("screenshot.dialog.ok.button.text"));
+    getOKAction().putValue(Action.NAME, AndroidAdbUiBundle.message("screenshot.dialog.ok.button.text"));
   }
 
   @Override
   protected void doOKAction() {
-    FileSaverDescriptor descriptor = new FileSaverDescriptor(AndroidAdbBundle.message("screenshot.dialog.title"), "", EXT_PNG);
+    FileSaverDescriptor descriptor = new FileSaverDescriptor(AndroidAdbUiBundle.message("screenshot.dialog.title"), "", EXT_PNG);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
     VirtualFile baseDir = loadScreenshotPath();
     VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(getDefaultFileName()));
@@ -519,8 +519,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       writePng(myDisplayedImageRef.get(), myScreenshotFile);
     }
     catch (IOException e) {
-      Messages.showErrorDialog(myProject, AndroidAdbBundle.message("screenshot.dialog.error", e),
-                               AndroidAdbBundle.message("screenshot.action.title"));
+      Messages.showErrorDialog(myProject, AndroidAdbUiBundle.message("screenshot.dialog.error", e),
+                               AndroidAdbUiBundle.message("screenshot.action.title"));
       return;
     }
 

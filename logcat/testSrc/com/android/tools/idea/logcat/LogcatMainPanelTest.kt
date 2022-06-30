@@ -20,7 +20,6 @@ import com.android.adblib.DeviceState
 import com.android.adblib.testing.FakeAdbLibSession
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
@@ -175,8 +174,8 @@ class LogcatMainPanelTest {
       "Split Panels",
       "  Splitter Action",
       "-",
-      "Screen Capture",
-      "Screen Record",
+      "Take Screenshot",
+      "Record Screen",
       "-", // ActionManager.createActionToolbar() seems to add a separator at the end
     ).inOrder()
     toolbar.actions.forEach {

@@ -93,7 +93,6 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
-import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
@@ -443,7 +442,7 @@ internal class LogcatMainPanel(
       add(LogcatSplitterActions(splitterPopupActionGroup))
       add(Separator.create())
       add(ScreenshotAction())
-      add(ScreenRecorderAction(this@LogcatMainPanel, project))
+      add(ScreenRecorderAction())
     }
   }
 
@@ -507,11 +506,10 @@ internal class LogcatMainPanel(
     return when (dataId) {
       LOGCAT_PRESENTER_ACTION.name -> this
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.sdk, it.model) }
-      ScreenRecorderAction.SERIAL_NUMBER_KEY.name -> device?.serialNumber
-      ScreenRecorderAction.AVD_NAME_KEY.name -> if (device?.isEmulator == true) device.deviceId else null
-      ScreenRecorderAction.SDK_KEY.name -> device?.sdk
+      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
+        ScreenRecorderAction.Parameters(it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
+      }
       EDITOR.name -> editor
-      PROJECT.name -> project
       else -> null
     }
   }

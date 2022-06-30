@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.device
 
+import com.android.adblib.DevicePropertyNames
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -26,7 +28,10 @@ import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.emulator.DeviceMirroringSettings
+import com.android.tools.idea.testing.registerServiceInstance
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
@@ -35,11 +40,13 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestDataProvider
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -66,6 +73,7 @@ class DeviceToolWindowPanelTest {
   private val device by lazy { agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a") }
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
   private val ui: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
+  private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.testRootDisposable
   private val agent: FakeScreenSharingAgent get() = device.agent
 
@@ -74,6 +82,10 @@ class DeviceToolWindowPanelTest {
   @Before
   fun setUp() {
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
+    val mockScreenRecordingCache = MockitoKt.mock<ScreenRecordingSupportedCache>()
+    MockitoKt.whenever(mockScreenRecordingCache.isScreenRecordingSupported(MockitoKt.any(), Mockito.anyInt())).thenReturn(true)
+    project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
     savedClipboardSynchronizationState = DeviceMirroringSettings.getInstance().synchronizeClipboard
     DeviceMirroringSettings.getInstance().synchronizeClipboard = false
   }
@@ -155,7 +167,7 @@ class DeviceToolWindowPanelTest {
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
     assertThat(deviceView.preferredSize).isEqualTo(Dimension(270, 570))
     val viewport = deviceView.parent as JViewport
-    assertThat(viewport.viewSize).isEqualTo(Dimension(270, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(280, 570))
     // Scroll to the bottom.
     val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
     viewport.viewPosition = scrollPosition
@@ -172,7 +184,7 @@ class DeviceToolWindowPanelTest {
 
     // Check that zoom level and scroll position are restored.
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
-    assertThat(viewport.viewSize).isEqualTo(Dimension(270, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(280, 570))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
 
     panel.destroyContent()
@@ -198,13 +210,14 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val panel = DeviceToolWindowPanel(agentRule.project, device.serialNumber, device.deviceState.cpuAbi, "Test device", emptyMap())
+    val panel = DeviceToolWindowPanel(project, device.serialNumber, device.deviceState.cpuAbi, "Test device",
+                                      mapOf(DevicePropertyNames.RO_BUILD_VERSION_SDK to device.deviceState.buildVersionSdk))
     Disposer.register(testRootDisposable) {
       if (panel.deviceView != null) {
         panel.destroyContent()
       }
     }
-    panel.size = Dimension(230, 300)
+    panel.size = Dimension(280, 300)
     panel.zoomToolbarVisible = true
     return panel
   }

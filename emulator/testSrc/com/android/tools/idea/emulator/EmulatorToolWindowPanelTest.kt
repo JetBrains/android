@@ -40,6 +40,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
@@ -55,6 +56,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
@@ -63,8 +65,8 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
 import java.awt.Component
@@ -107,7 +109,7 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, EdtRule())
 
   @get:Rule
   val portableUiFontRule = SetPortableUiFontRule()
@@ -125,6 +127,9 @@ class EmulatorToolWindowPanelTest {
   fun setUp() {
     // Necessary to properly update toolbar button states.
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
+    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), Mockito.anyInt())).thenReturn(true)
+    projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
   }
 
   @Test

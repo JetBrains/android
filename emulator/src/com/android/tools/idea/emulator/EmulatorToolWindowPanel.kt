@@ -28,6 +28,7 @@ import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.emulator.actions.showExtendedControls
 import com.android.tools.idea.emulator.actions.showManageSnapshotsDialog
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
@@ -270,6 +271,8 @@ class EmulatorToolWindowPanel(
       EMULATOR_CONTROLLER_KEY.name -> emulator
       EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
       NUMBER_OF_DISPLAYS.name -> displayPanels.size
+      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
+          primaryEmulatorView?.let { ScreenRecorderAction.Parameters(id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, it) }
       else -> null
     }
   }

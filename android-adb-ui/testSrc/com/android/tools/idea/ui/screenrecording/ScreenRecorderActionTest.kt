@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.testing.FakeAdbLibSession
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.registerServiceInstance
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.AVD_NAME_KEY
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.SDK_KEY
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.SERIAL_NUMBER_KEY
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.SCREEN_RECORDER_PARAMETERS_KEY
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
@@ -44,28 +41,27 @@ import org.mockito.Mockito.anyInt
  */
 @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class ScreenRecorderActionTest {
-  private val projectRule = ProjectRule()
-
   @get:Rule
-  val rule = RuleChain(projectRule)
+  val projectRule = ProjectRule()
 
   private val project get() = projectRule.project
+  @Suppress("UnstableApiUsage")
+  private val testRootDisposable get() = project.earlyDisposable
   private val userData = mutableMapOf<String, Any?>()
   private val mockScreenRecordingSupportedCache = mock<ScreenRecordingSupportedCache>()
+  private val action = ScreenRecorderAction()
 
   @Before
   fun setUp() {
-    project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache, project)
-
-    userData[SERIAL_NUMBER_KEY.name] = "device"
-    userData[SDK_KEY.name] = 30
+    project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache, testRootDisposable)
+    userData[CommonDataKeys.PROJECT.name] = project
+    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = ScreenRecorderAction.Parameters("device", 30, null, testRootDisposable)
   }
 
   @Test
   fun update_noSerial_disabled() {
-    userData[SERIAL_NUMBER_KEY.name] = null
+    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = null
     val event = TestActionEvent { userData[it] }
-    val action = ScreenRecorderAction(project, project, FakeAdbLibSession())
 
     action.update(event)
 
@@ -75,9 +71,7 @@ class ScreenRecorderActionTest {
   @Test
   fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
-    userData[SERIAL_NUMBER_KEY.name] = "device"
     val event = TestActionEvent { userData[it] }
-    val action = ScreenRecorderAction(project, project, FakeAdbLibSession(), coroutineContext = coroutineContext)
 
     action.update(event)
 
@@ -86,12 +80,8 @@ class ScreenRecorderActionTest {
 
   @Test
   fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
-    userData[SERIAL_NUMBER_KEY.name] = "device"
-    userData[SDK_KEY.name] = 30
-    userData[AVD_NAME_KEY.name] = null
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
     val event = TestActionEvent { userData[it] }
-    val action = ScreenRecorderAction(project, project, FakeAdbLibSession(), coroutineContext = coroutineContext)
 
     action.update(event)
 

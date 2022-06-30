@@ -129,6 +129,9 @@ public class StudioIcons {
     public static final Icon REORDER = load("/studio/icons/common/reorder.svg"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.svg"); // 16x16
 
+    public static final Icon SCREENSHOT = load("/studio/icons/common/screenshot.svg"); // 16x16
+    public static final Icon VIDEO_CAPTURE = load("/studio/icons/common/video-capture.svg"); // 16x16
+
     /** @deprecated use AllIcons.Actions.Find */
     @Deprecated
     public static final Icon SEARCH = load("/studio/icons/common/search.svg"); // 16x16
@@ -668,8 +671,6 @@ public class StudioIcons {
       public static final Icon PAUSE = load("/studio/icons/logcat/toolbar/pause.svg"); // 16x16
       public static final Icon RESUME = load("/studio/icons/logcat/toolbar/resume.svg"); // 16x16
       public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
-      public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg"); // 16x16
-      public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.svg"); // 16x16
       public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.svg"); // 16x16
     }
   }

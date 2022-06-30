@@ -37,7 +37,7 @@ import java.awt.image.BufferedImage
 class ScreenshotAction : DumbAwareAction(
   AndroidAdbUiBundle.message("screenshot.action.title"),
   AndroidAdbUiBundle.message("screenshot.action.description"),
-  StudioIcons.Logcat.Toolbar.SNAPSHOT) {
+  StudioIcons.Common.SCREENSHOT) {
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = event.getData(SCREENSHOT_OPTIONS_KEY) != null

@@ -37,13 +37,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Dimension
 import java.nio.file.Path
-import java.time.Clock
 import java.time.Duration
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 private const val REMOTE_PATH = "/sdcard/screen-recording-%d.mp4"
@@ -58,74 +57,67 @@ private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
  *
  * TODO(b/235094713): Add more tests. Existing tests are just for completeness with tests in DDMS
  */
-class ScreenRecorderAction(
-  private val disposableParent: Disposable,
-  private val project: Project,
-  private val adbLibSession: AdbLibSession = AdbLibService.getSession(project),
-  private val clock: Clock = Clock.systemDefaultZone(),
-  coroutineContext: CoroutineContext = EmptyCoroutineContext
-) : DumbAwareAction(
+class ScreenRecorderAction : DumbAwareAction(
   AndroidAdbUiBundle.message("screenrecord.action.title"),
-  AndroidAdbUiBundle.message("screenrecord.action.description"), StudioIcons.Logcat.Toolbar.VIDEO_CAPTURE
+  AndroidAdbUiBundle.message("screenrecord.action.description"),
+  StudioIcons.Common.VIDEO_CAPTURE
 ) {
-  private val logger = thisLogger()
-  private val exceptionHandler = coroutineExceptionHandler()
-  private val screenRecordingSupportedCache = ScreenRecordingSupportedCache.getInstance(project)
-  private val coroutineScope = AndroidCoroutineScope(disposableParent, coroutineContext)
 
-  /**
-   * Devices that are currently recording.
-   */
+  private val logger = thisLogger()
+
+  /** Serial numbers of devices that are currently recording. */
   private val recordingInProgress = mutableSetOf<String>()
 
   override fun update(event: AnActionEvent) {
-    val presentation = event.presentation
-    val serialNumber = event.getData(SERIAL_NUMBER_KEY)
-    val sdk = event.getData(SDK_KEY) ?: 0
-
-    if (serialNumber == null || sdk < 19) {
-      presentation.isEnabled = false
-      return
-    }
-    presentation.isEnabled = screenRecordingSupportedCache.isScreenRecordingSupported(serialNumber, sdk)
-
+    val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY)
+    val project = event.project
+    event.presentation.isEnabled = project != null && params != null && isScreenRecordingSupported(params, project)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val serialNumber = event.getData(SERIAL_NUMBER_KEY) ?: return
+    val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
+    val project = event.project ?: return
+    val serialNumber = params.serialNumber
     val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator())
-    if (!dialog.showAndGet()) {
-      return
+    if (dialog.showAndGet()) {
+      startRecordingAsync(params, dialog.useEmulatorRecording, project)
     }
-
-    startRecordingAsync(dialog.useEmulatorRecording, serialNumber, event.getData(AVD_NAME_KEY))
   }
 
-  private suspend fun execute(serialNumber: String, command: String) =
-    adbLibSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+  private fun isScreenRecordingSupported(params: Parameters, project: Project): Boolean {
+    return params.apiLevel >= 19 &&
+           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber, params.apiLevel)
+  }
 
   @UiThread
-  private fun startRecordingAsync(useEmulatorRecording: Boolean, serialNumber: String, avdName: String?) {
+  private fun startRecordingAsync(params: Parameters, useEmulatorRecording: Boolean, project: Project) {
+    val adbLibSession: AdbLibSession = AdbLibService.getSession(project)
     val manager: AvdManager? = getVirtualDeviceManager()
+    val serialNumber = params.serialNumber
+    val avdName = params.avdName
     val emulatorRecordingFile =
       if (manager != null && useEmulatorRecording && avdName != null) getTemporaryVideoPathForVirtualDevice(avdName, manager) else null
     recordingInProgress.add(serialNumber)
 
+    val disposableParent = params.recordingLifetimeDisposable
+    val coroutineScope = AndroidCoroutineScope(disposableParent, EmptyCoroutineContext)
+    val exceptionHandler = coroutineExceptionHandler(project, coroutineScope)
     coroutineScope.launch(exceptionHandler) {
-      val showTouchEnabled = isShowTouchEnabled(serialNumber)
-      val size = getDeviceScreenSize(serialNumber)
+      val showTouchEnabled = isShowTouchEnabled(adbLibSession, serialNumber)
+      val size = getDeviceScreenSize(adbLibSession, serialNumber)
       val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size)
       if (options.showTouches != showTouchEnabled) {
-        setShowTouch(serialNumber, options.showTouches)
+        setShowTouch(adbLibSession, serialNumber, options.showTouches)
       }
       try {
         val recodingProvider = when (emulatorRecordingFile) {
           null -> ShellCommandRecordingProvider(
             disposableParent,
             serialNumber,
-            REMOTE_PATH.format(clock.millis()),
+            REMOTE_PATH.format(System.currentTimeMillis()),
             options,
             adbLibSession)
+
           else -> EmulatorConsoleRecordingProvider(
             serialNumber,
             emulatorRecordingFile,
@@ -136,7 +128,7 @@ class ScreenRecorderAction(
       }
       finally {
         if (options.showTouches != showTouchEnabled) {
-          setShowTouch(serialNumber, showTouchEnabled)
+          setShowTouch(adbLibSession, serialNumber, showTouchEnabled)
         }
         withContext(uiThread) {
           recordingInProgress.remove(serialNumber)
@@ -155,9 +147,9 @@ class ScreenRecorderAction(
     }
   }
 
-  private suspend fun getDeviceScreenSize(serialNumber: String): Dimension? {
+  private suspend fun getDeviceScreenSize(adbLibSession: AdbLibSession, serialNumber: String): Dimension? {
     try {
-      val out = execute(serialNumber, "wm size")
+      val out = execute(adbLibSession, serialNumber, "wm size")
       val matchResult = WM_SIZE_OUTPUT_REGEX.find(out)
       if (matchResult == null) {
         logger.warn("Unexpected output from 'wm size': $out")
@@ -177,22 +169,25 @@ class ScreenRecorderAction(
     return null
   }
 
-  private suspend fun setShowTouch(serialNumber: String, isEnabled: Boolean) {
+  private suspend fun execute(adbLibSession: AdbLibSession, serialNumber: String, command: String) =
+    adbLibSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+
+  private suspend fun setShowTouch(adbLibSession: AdbLibSession, serialNumber: String, isEnabled: Boolean) {
     val value = if (isEnabled) 1 else 0
     try {
-      execute(serialNumber, "settings put system show_touches $value")
+      execute(adbLibSession, serialNumber, "settings put system show_touches $value")
     }
     catch (e: Exception) {
       logger.warn("Failed to set show taps to $isEnabled", e)
     }
   }
 
-  private suspend fun isShowTouchEnabled(serialNumber: String): Boolean {
-    val out = execute(serialNumber, "settings get system show_touches")
+  private suspend fun isShowTouchEnabled(adbLibSession: AdbLibSession, serialNumber: String): Boolean {
+    val out = execute(adbLibSession, serialNumber, "settings get system show_touches")
     return out.trim() == "1"
   }
 
-  private fun coroutineExceptionHandler() = CoroutineExceptionHandler { _, throwable ->
+  private fun coroutineExceptionHandler(project: Project, coroutineScope: CoroutineScope) = CoroutineExceptionHandler { _, throwable ->
     logger.warn("Failed to record screen", throwable)
     coroutineScope.launch(uiThread) {
       Messages.showErrorDialog(
@@ -203,10 +198,16 @@ class ScreenRecorderAction(
   }
 
   companion object {
-    val SERIAL_NUMBER_KEY = DataKey.create<String>("ScreenRecorderDeviceSerialNumber")
-    val AVD_NAME_KEY = DataKey.create<String>("ScreenRecorderDeviceAvdName")
-    val SDK_KEY = DataKey.create<Int>("ScreenRecorderDeviceSdk")
+    @JvmStatic
+    val SCREEN_RECORDER_PARAMETERS_KEY = DataKey.create<Parameters>("ScreenRecorderParameters")
   }
+
+  data class Parameters(
+    val serialNumber: String,
+    val apiLevel: Int,
+    val avdName: String?,
+    val recordingLifetimeDisposable: Disposable,
+  )
 }
 
 private fun getTemporaryVideoPathForVirtualDevice(avdName: String, manager: AvdManager): Path? {

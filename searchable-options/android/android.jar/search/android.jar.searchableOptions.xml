@@ -515,6 +515,15 @@
     <option name="them" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="project" path="ActionManager" hit="Rebuild Project" />
     <option name="rebuild" path="ActionManager" hit="Rebuild Project" />
+    <option name="record" path="ActionManager" hit="Record Screen" />
+    <option name="screen" path="ActionManager" hit="Record Screen" />
+    <option name="a" path="ActionManager" hit="Record a video of the device display" />
+    <option name="device" path="ActionManager" hit="Record a video of the device display" />
+    <option name="display" path="ActionManager" hit="Record a video of the device display" />
+    <option name="of" path="ActionManager" hit="Record a video of the device display" />
+    <option name="record" path="ActionManager" hit="Record a video of the device display" />
+    <option name="the" path="ActionManager" hit="Record a video of the device display" />
+    <option name="video" path="ActionManager" hit="Record a video of the device display" />
     <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="linked" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="projects" path="ActionManager" hit="Refresh Linked C++ Projects" />
@@ -559,8 +568,6 @@
     <option name="running" path="ActionManager" hit="Running devices" />
     <option name="manager" path="ActionManager" hit="SDK Manager" />
     <option name="sdk" path="ActionManager" hit="SDK Manager" />
-    <option name="capture" path="ActionManager" hit="Screen Capture" />
-    <option name="screen" path="ActionManager" hit="Screen Capture" />
     <option name="build" path="ActionManager" hit="Select Build Variant..." />
     <option name="select" path="ActionManager" hit="Select Build Variant..." />
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />

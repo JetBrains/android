@@ -47,10 +47,10 @@ import kotlin.math.min
 /**
  * Captures a screenshot of the device display.
  */
-class DeviceScreenshotAction(private val myProject: Project,
-                             context: DeviceContext
-) : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot.title"),
-                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.Toolbar.SNAPSHOT), DumbAware {
+class DeviceScreenshotAction(private val myProject: Project, context: DeviceContext)
+  : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot.title"),
+                         AndroidBundle.message("android.ddms.actions.screenshot.description"),
+                         StudioIcons.Common.SCREENSHOT), DumbAware {
 
   override fun performAction(event: AnActionEvent, device: IDevice) {
     val project = myProject
