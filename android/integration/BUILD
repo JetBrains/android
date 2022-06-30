@@ -81,7 +81,6 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "manual",  # b/235857661 flaky
         "no_mac",  # Untested.
         "no_windows",
     ],
