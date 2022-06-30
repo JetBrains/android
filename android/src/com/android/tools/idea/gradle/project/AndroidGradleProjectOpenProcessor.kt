@@ -38,8 +38,9 @@ import com.intellij.projectImport.ProjectOpenProcessor
  *
  * It supports opening projects with or without .idea directory.
  */
-class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
-  override fun getName(): String = "Android Gradle"
+internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
+  override val name: String
+    get() = "Android Gradle"
 
   override fun canOpenProject(file: VirtualFile): Boolean =
       (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
@@ -88,5 +89,6 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   private fun canOpenAsExistingProject(file: VirtualFile): Boolean =
       file.toPathString().resolve(Project.DIRECTORY_STORE_FOLDER).toVirtualFile(true) != null
 
-  override fun isStrongProjectInfoHolder(): Boolean = ApplicationManager.getApplication().isHeadlessEnvironment
+  override val isStrongProjectInfoHolder: Boolean
+    get() = ApplicationManager.getApplication().isHeadlessEnvironment
 }
