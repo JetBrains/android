@@ -167,9 +167,9 @@ class CoroutineUtilsTest {
     val messages = mutableListOf<String>()
 
     LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): MutableSet<Action> {
+      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         messages.add(message)
-        return EnumSet.noneOf(Action::class.java)
+        return Action.NONE
       }
     }) {
       val fooManager = FooManager()
