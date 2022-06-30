@@ -654,7 +654,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="135"/>
+            line="136"/>
     </issue>
 
     <issue
@@ -662,7 +662,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="149"/>
+            line="150"/>
     </issue>
 
     <issue
@@ -670,7 +670,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="297"/>
+            line="308"/>
     </issue>
 
     <issue
@@ -678,7 +678,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="533"/>
+            line="562"/>
     </issue>
 
     <issue
@@ -686,7 +686,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="536"/>
+            line="565"/>
     </issue>
 
     <issue
@@ -694,7 +694,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="539"/>
+            line="568"/>
     </issue>
 
     <issue
@@ -702,7 +702,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="542"/>
+            line="571"/>
     </issue>
 
     <issue
@@ -742,7 +742,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
-            line="372"/>
+            line="373"/>
     </issue>
 
     <issue
@@ -829,16 +829,8 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="904"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="359"/>
+            line="364"/>
     </issue>
 
     <issue
@@ -854,7 +846,7 @@
         message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
-            line="93"/>
+            line="98"/>
     </issue>
 
     <issue
@@ -886,7 +878,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="834"/>
+            line="835"/>
     </issue>
 
     <issue

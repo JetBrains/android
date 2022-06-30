@@ -55,7 +55,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -70,15 +69,12 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -101,7 +97,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -146,7 +141,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
-  private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/navigation(-[^/]*)?/[^/]*$");
+  private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/res/.*navigation(-[^/]*)?/[^/]*$");
 
   /**
    * We don't have an exact position for values coming from the
@@ -166,8 +161,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private MergedManifestSnapshot myManifest;
   private boolean myManifestEditable;
-  private final List<File> myFiles = new ArrayList<>();
-  private final List<File> myOtherFiles = new ArrayList<>();
+  private final List<ManifestFileWithMetadata> myFiles = new ArrayList<>();
+  private final List<ManifestFileWithMetadata> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
@@ -355,12 +350,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     Element root = document != null ? document.getDocumentElement() : null;
     myTree.setModel(root == null ? null : new DefaultTreeModel(new ManifestTreeNode(root)));
 
-    myFiles.clear();
-    myOtherFiles.clear();
+    List<ManifestFileWithMetadata> sortedFiles = new ArrayList<>();
+    List<ManifestFileWithMetadata> sortedOtherFiles = new ArrayList<>();
+
+
     List<VirtualFile> manifestFiles = myManifest.getManifestFiles();
 
     // make sure that the selected manifest is always the first color
-    myFiles.add(VfsUtilCore.virtualToIoFile(selectedManifest));
+    sortedFiles.add(createMetadataForFile(myFacet, new SourceFilePosition(VfsUtilCore.virtualToIoFile(selectedManifest), SourcePosition.UNKNOWN)));
     Set<File> referenced = Sets.newHashSet();
     if (root != null) {
       recordLocationReferences(root, referenced);
@@ -370,19 +367,26 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (!f.equals(selectedManifest)) {
         File file = VfsUtilCore.virtualToIoFile(f);
         if (referenced.contains(file)) {
-          myFiles.add(file);
+          sortedFiles.add(createMetadataForFile(myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN)));
         } else {
-          myOtherFiles.add(file);
+          sortedOtherFiles.add(createMetadataForFile(myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN)));
         }
       }
     }
-    Collections.sort(myFiles, MANIFEST_SORTER);
-    Collections.sort(myOtherFiles, MANIFEST_SORTER);
 
     // Build.gradle - injected
     if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
-      myFiles.add(GRADLE_MODEL_MARKER_FILE);
+      sortedFiles.add(createMetadataForFile(myFacet, new SourceFilePosition(GRADLE_MODEL_MARKER_FILE, SourcePosition.UNKNOWN)));
     }
+
+    Collections.sort(sortedFiles);
+    Collections.sort(sortedOtherFiles);
+
+    myFiles.clear();
+    myFiles.addAll(sortedFiles);
+    myOtherFiles.clear();
+    myOtherFiles.addAll(sortedOtherFiles);
+
 
     if (root != null) {
       TreeUtil.expandAll(myTree);
@@ -391,17 +395,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     // display the LoggingRecords from the merger
     updateDetails(null);
   }
-
-  private static final Comparator<File> MANIFEST_SORTER = (o1, o2) -> {
-    String p1 = o1.getPath();
-    String p2 = o2.getPath();
-    boolean lib1 = p1.contains(FilenameConstants.EXPLODED_AAR);
-    boolean lib2 = p2.contains(FilenameConstants.EXPLODED_AAR);
-    if (lib1 != lib2) {
-      return lib1 ? 1 : -1;
-    }
-    return 0;
-  };
 
   private void recordLocationReferences(@NotNull Node node, @NotNull Set<File> files) {
     short type = node.getNodeType();
@@ -493,7 +486,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add(" ");
       try {
         sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0)), myManifestEditable));
+                                LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0).getFile()), myManifestEditable));
       }
       catch (Exception ex) {
         Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
@@ -557,16 +550,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     sb.endBold().endUnderline().newline();
     sb.addHtml("<table border=\"0\">");
     String borderColor = ColorUtil.toHex(JBColor.GRAY);
-    for (File file : myFiles) {
-      Color color = getFileColor(file);
-      sb.addHtml("<tr><td width=\"24\" height=\"24\" style=\"background-color:#");
-      sb.addHtml(ColorUtil.toHex(color));
-      sb.addHtml("; border: 1px solid #");
-      sb.addHtml(borderColor);
-      sb.addHtml(";\">");
-      sb.addHtml("</td><td>");
-      describePosition(sb, myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN));
-      sb.addHtml("</td></tr>");
+    for (ManifestFileWithMetadata file : myFiles) {
+      if (file.getFile() != null) {
+        Color color = getFileColor(file.getFile());
+        sb.addHtml("<tr><td width=\"24\" height=\"24\" style=\"background-color:#");
+        sb.addHtml(ColorUtil.toHex(color));
+        sb.addHtml("; border: 1px solid #");
+        sb.addHtml(borderColor);
+        sb.addHtml(";\">");
+        sb.addHtml("</td><td>");
+        describePosition(sb, file);
+        sb.addHtml("</td></tr>");
+      }
     }
     sb.addHtml("</table>");
     sb.newline();
@@ -575,14 +570,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add("Other Manifest Files");
       sb.endBold().endUnderline().newline();
       sb.add("(Included in merge, but did not contribute any elements)").newline();
-      boolean first = true;
-      for (File file : myOtherFiles) {
-        if (first) {
-          first = false;
-        } else {
-          sb.add(", ");
-        }
-        describePosition(sb, myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN));
+      for (ManifestFileWithMetadata file : myOtherFiles) {
+        describePosition(sb, file);
+        sb.newline();
       }
       sb.newline().newline();
     }
@@ -595,9 +585,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       Actions.Record record = records.get(0);
       File file;
       if (record.getActionType() == Actions.ActionType.INJECTED) {
-        file = GRADLE_MODEL_MARKER_FILE;
+        file = createMetadataForFile(myFacet, new SourceFilePosition(GRADLE_MODEL_MARKER_FILE, SourcePosition.UNKNOWN)).getFile();
       } else {
-        file = ManifestUtils.getActionLocation(myFacet.getModule(), record).getFile().getSourceFile();
+        file = createMetadataForFile(myFacet, ManifestUtils.getActionLocation(myFacet.getModule(), record)).getFile();
       }
       if (file != null) {
         return getFileColor(file);
@@ -608,10 +598,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private Color getFileColor(@NotNull File file) {
-    if (!myFiles.contains(file)) {
-      myFiles.add(file);
-    }
-    int index = myFiles.indexOf(file);
+    List<String> filesMapped = myFiles.stream().map(test -> test.getFile().getAbsolutePath()).collect(Collectors.toList());
+
+    int index = filesMapped.indexOf(file.getAbsolutePath());
     if (index == 0) {
       // current file shouldn't be highlighted with a background
       return myBackgroundColor;
@@ -887,38 +876,37 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   @NotNull
   String getHtml(@NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
     HtmlBuilder sb = new HtmlBuilder();
-    describePosition(sb, facet, sourceFilePosition);
+    describePosition(sb, createMetadataForFile(facet, sourceFilePosition));
     return sb.getHtml();
   }
 
-
-  private void describePosition(@NotNull HtmlBuilder sb, @NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
+  private ManifestFileWithMetadata createMetadataForFile(@NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
 
-    if (file == GRADLE_MODEL_MARKER_FILE) {
+    if (file != null && file.getAbsolutePath().equals(GRADLE_MODEL_MARKER_FILE.getAbsolutePath())) {
       VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(facet.getModule());
       if (gradleBuildFile != null) {
         file = VfsUtilCore.virtualToIoFile(gradleBuildFile);
-        sb.addHtml("<a href=\"");
-        sb.add(file.toURI().toString());
-        sb.addHtml("\">");
-        sb.add(file.getName());
-        sb.addHtml("</a>");
-        sb.add(" injection");
+        return new InjectedBuildDotGradleFile(file);
       } else {
-        sb.add("build.gradle injection (source location unknown)");
+        return new InjectedBuildDotGradleFile(null);
       }
-      return;
     }
 
     if (file != null && NAV_FILE_PATTERN.matcher(FileUtils.toSystemIndependentPath(file.toString())).matches()) {
       String source = "";
+      Boolean isProjectFile = false;
+
 
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
+        Module module = ModuleUtilCore.findModuleForFile(vResDir, facet.getModule().getProject());
+        if (module != null) {
+          isProjectFile = true;
+        }
         for (NamedIdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
           if (Iterables.contains(provider.getResDirectories(), vResDir)) {
             source += provider.getName() + " ";
@@ -928,29 +916,12 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
       source += file.getName();
 
-      sb.addHtml("<a href=\"");
-      sb.add(file.toURI().toString());
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartLine()));
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartColumn()));
-      }
-      sb.addHtml("\">");
-
-      sb.add(source);
-      sb.addHtml("</a>");
-      sb.add(" navigation file");
-
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(", line ");
-        sb.add(Integer.toString(sourcePosition.getStartLine()));
-      }
-      return;
+      return new ManifestXmlWithMetadata(ManifestXmlType.NAVIGATION_XML, file, source, isProjectFile, sourcePosition);
     }
 
     if (file != null) {
       String source = null;
+      boolean isProjectFile = false;
 
       Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
@@ -958,6 +929,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         String path = file.getPath();
         Module module = ModuleUtilCore.findModuleForFile(vFile, facet.getModule().getProject());
         if (module != null) {
+          isProjectFile = true;
           if (modules.length >= 2) {
             source = ModuleSystemUtil.getHolderModule(module).getName();
           }
@@ -996,29 +968,75 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           source += ":" + String.valueOf(sourcePosition);
         }
       }
+      return new ManifestXmlWithMetadata(ManifestXmlType.ANDROID_MANIFEST_XML, file, source, isProjectFile, sourcePosition);
+    }
+    return UnknownManifestFile.INSTANCE;
+  }
 
-      sb.addHtml("<a href=\"");
-
-      sb.add(file.toURI().toString());
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartLine()));
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartColumn()));
+  private void describePosition(@NotNull HtmlBuilder sb, ManifestFileWithMetadata manifestFile) {
+    if (manifestFile instanceof InjectedBuildDotGradleFile) {
+      InjectedBuildDotGradleFile injectedFile = (InjectedBuildDotGradleFile) manifestFile;
+      if (injectedFile.getFile() != null) {
+        sb.addHtml("<a href=\"");
+        sb.add(injectedFile.getFile() .toURI().toString());
+        sb.addHtml("\">");
+        sb.add(injectedFile.getFile() .getName());
+        sb.addHtml("</a>");
+        sb.add(" injection");
+      } else {
+        sb.add("build.gradle injection (source location unknown)");
       }
-      sb.addHtml("\">");
+      return;
+    }
+    if (manifestFile instanceof ManifestXmlWithMetadata) {
+      ManifestXmlWithMetadata manifestXml = (ManifestXmlWithMetadata)manifestFile;
 
-      sb.add(source);
-      sb.addHtml("</a>");
-      sb.add(" manifest");
+      if (manifestXml.getType() == ManifestXmlType.NAVIGATION_XML) {
+        sb.addHtml("<a href=\"");
+        sb.add(manifestXml.getFile().toURI().toString());
+        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
+          sb.add(":");
+          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartLine()));
+          sb.add(":");
+          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartColumn()));
+        }
+        sb.addHtml("\">");
 
-      if (FileUtil.filesEqual(file, VfsUtilCore.virtualToIoFile(myFile))) {
-        sb.add(" (this file)");
+        sb.add(manifestXml.getSourceLibrary());
+        sb.addHtml("</a>");
+        sb.add(" navigation file");
+
+        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
+          sb.add(", line ");
+          sb.add(Integer.toString(manifestXml.getSourcePosition().getStartLine()));
+        }
+        return;
       }
 
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(", line ");
-        sb.add(Integer.toString(sourcePosition.getStartLine()));
+      if (manifestXml.getType() == ManifestXmlType.ANDROID_MANIFEST_XML) {
+        sb.addHtml("<a href=\"");
+
+        sb.add(manifestXml.getFile().toURI().toString());
+        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
+          sb.add(":");
+          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartLine()));
+          sb.add(":");
+          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartColumn()));
+        }
+        sb.addHtml("\">");
+
+        sb.add(manifestXml.getSourceLibrary());
+        sb.addHtml("</a>");
+        sb.add(" manifest");
+
+        if (FileUtil.filesEqual(manifestXml.getFile(), VfsUtilCore.virtualToIoFile(myFile))) {
+          sb.add(" (this file)");
+        }
+
+        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
+          sb.add(", line ");
+          sb.add(Integer.toString(manifestXml.getSourcePosition().getStartLine()));
+        }
       }
     }
   }

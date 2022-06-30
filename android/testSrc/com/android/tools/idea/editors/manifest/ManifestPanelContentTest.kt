@@ -103,12 +103,7 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
       it.replace(Regex("\"file:(.*)\"")) { matchResult ->
         val fileAndPosition = matchResult.groupValues[1]
         val (file, suffix) = splitFileAndSuffixPosition(fileAndPosition)
-        // build.gradle file depends on the source location, so replacing that with something generic
-        if (file.endsWith("build.gradle")) {
-          "<BUILD.GRADLE>"
-        } else {
-          "'${toSystemIndependentPath(File(file).absolutePath).toPrintablePath()}$suffix'"
-        }
+        "'${toSystemIndependentPath(File(file).absolutePath).toPrintablePath()}$suffix'"
       }.trimEnd()
     }.trimIndent()
 
