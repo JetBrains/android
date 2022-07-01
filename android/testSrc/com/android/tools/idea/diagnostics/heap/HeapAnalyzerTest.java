@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 
+@org.junit.Ignore("b/243081723")
 public class HeapAnalyzerTest {
 
   private static final int MAX_DEPTH = 100;
