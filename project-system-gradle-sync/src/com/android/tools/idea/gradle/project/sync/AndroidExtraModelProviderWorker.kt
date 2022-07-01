@@ -34,7 +34,6 @@ import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.composites.BuildMap
-import com.android.ide.gradle.model.impl.LegacyV1AgpVersionModelImpl
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
@@ -84,21 +83,7 @@ internal class AndroidExtraModelProviderWorker(
         when (syncOptions) {
           is SyncProjectActionOptions -> {
             val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
-            // First : make sure that we are using the same AGP version across all the android projects.
-            val agpVersionsAndGradleBuilds = modules.mapNotNull {
-              when (it) {
-                is BasicV2AndroidModuleGradleProject -> it.versions.agp to getRootProject(it.gradleProject).name
-                is BasicV1AndroidModuleGradleProject -> if (it.legacyV1AgpVersion!= null) {
-                  it.legacyV1AgpVersion.agp to getRootProject(it.gradleProject).name
-                } else {
-                  null
-                }
-                is BasicNonAndroidIncompleteGradleModule -> null
-              }
-            }
-            // Fail Sync if we do not use the same AGP version across all the android projects.
-            if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
-              throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
+            verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules)
 
             val canFetchV2Models = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>().isNotEmpty()
 
@@ -136,6 +121,24 @@ internal class AndroidExtraModelProviderWorker(
       )
     }
   }
+
+  private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<BasicIncompleteGradleModule>) {
+    val agpVersionsAndGradleBuilds = modules.mapNotNull {
+      when (it) {
+        is BasicV2AndroidModuleGradleProject -> it.versions.agp to getRootProject(it.gradleProject).name
+        is BasicV1AndroidModuleGradleProject -> if (it.legacyV1AgpVersion != null) {
+          it.legacyV1AgpVersion.agp to getRootProject(it.gradleProject).name
+        } else {
+          null
+        }
+        is BasicNonAndroidIncompleteGradleModule -> null
+      }
+    }
+    // Fail Sync if we do not use the same AGP version across all the android projects.
+    if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
+      throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
+  }
+
 
   private fun getRootProject(gradleProject: BasicGradleProject): BasicGradleProject {
     var parentProject = gradleProject

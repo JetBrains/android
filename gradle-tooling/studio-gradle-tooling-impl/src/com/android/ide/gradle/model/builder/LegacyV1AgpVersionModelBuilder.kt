@@ -47,7 +47,7 @@ class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
     } catch (e: Exception) {
       // We know this is an AndroidProject, but we just couldn't get the agp version through LegacyV1AgpVersionModel. This means
       // the android project is using an AGP version lower than 7.0.0-alpha15.
-      val versionClazz = extension.javaClass.classLoader.loadClass("com.android.Version")
+      val versionClazz = Class.forName("com.android.Version", true, extension.javaClass.classLoader)
       LegacyV1AgpVersionModelImpl(versionClazz.getDeclaredField("ANDROID_GRADLE_PLUGIN_VERSION").get(null) as String)
     }
   }
