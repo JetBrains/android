@@ -16,9 +16,10 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
@@ -31,7 +32,10 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInsight.lookup.LookupElementRenderer
 import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
@@ -41,59 +45,84 @@ import com.intellij.util.ProcessingContext
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val MY_PACKAGE_VALUE = "mine"
-
-private const val PACKAGE_KEY = "package"
-
-private const val MY_PACKAGE = "$PACKAGE_KEY:$MY_PACKAGE_VALUE "
-
-private val PACKAGE_KEYS = PACKAGE_KEY.getKeyVariants().toSet()
-
-private const val TAG_KEY = "tag"
-private val TAG_KEYS = TAG_KEY.getKeyVariants().toSet()
-
-private val STRING_KEYS = listOf(
-  "line",
-  "message",
-  PACKAGE_KEY,
-  TAG_KEY,
-)
-
 private const val LEVEL_KEY = "level:"
-
 private const val AGE_KEY = "age:"
-
 private const val IS_KEY = "is:"
-
 private const val NAME_KEY = "name:"
 
-// The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
-private val KEYS
-  get() = STRING_KEYS.map { "$it:" } + LEVEL_KEY + AGE_KEY + NAME_KEY + maybeAddIsKey()
-private val ALL_KEYS
-  get() = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + NAME_KEY + maybeAddIsKey()
+private class StringKey(name: String, hint: String) {
+  val normalKey = "$name:"
+  val normalHint = message("logcat.filter.completion.hint.key", hint)
 
-private fun maybeAddIsKey() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf(IS_KEY) else emptyList()
+  val negatedKey = "-$name:"
+  val negatedHint = message("logcat.filter.completion.hint.key.negated", hint)
+
+  val regexKey = "$name~:"
+  val regexHint = message("logcat.filter.completion.hint.key.regex", hint)
+
+  val regexNegatedKey = "-$name~:"
+  val regexNegatedHint = message("logcat.filter.completion.hint.key.regex.negated", hint)
+
+  val exactKey = "$name=:"
+  val exactHint = message("logcat.filter.completion.hint.key.exact", hint)
+
+  val exactNegatedKey = "-$name=:"
+  val exactNegatedHint = message("logcat.filter.completion.hint.key.exact.negated", hint)
+
+  val keys = setOf(normalKey, negatedKey, regexKey, regexNegatedKey, exactKey, exactNegatedKey)
+}
+
+private val MESSAGE_KEY = StringKey("message", message("logcat.filter.completion.hint.key.message"))
+private val PACKAGE_KEY = StringKey("package", message("logcat.filter.completion.hint.key.package"))
+private val TAG_KEY = StringKey("tag", message("logcat.filter.completion.hint.key.tag"))
+
+private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY)
+
+private val BASE_KEY_LOOKUPS = listOf(
+  createLookupElement(LEVEL_KEY, message("logcat.filter.completion.hint.level")),
+  createLookupElement(AGE_KEY, message("logcat.filter.completion.hint.age")),
+  createLookupElement(NAME_KEY, message("logcat.filter.completion.hint.name")),
+  createLookupElement(IS_KEY, message("logcat.filter.completion.hint.is")),
+)
+
+private val KEY_LOOKUPS = STRING_KEYS.map { createLookupElement(it.normalKey, it.normalHint) } + BASE_KEY_LOOKUPS
+private val ALL_KEY_LOOKUPS = KEY_LOOKUPS + STRING_KEYS.flatMap {
+  listOf(
+    createLookupElement(it.negatedKey, it.negatedHint),
+    createLookupElement(it.regexKey, it.regexHint),
+    createLookupElement(it.regexNegatedKey, it.regexNegatedHint),
+    createLookupElement(it.exactKey, it.exactHint),
+    createLookupElement(it.exactNegatedKey, it.exactNegatedHint),
+  )
+}
 
 private val LEVEL_LOOKUPS_LOWERCASE = LogLevel.values()
-  .map { it.name.lowercase().toLookupElement(suffix = " ") }
+  .map { createLookupElement("${it.name.lowercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
 private val LEVEL_LOOKUPS_UPPERCASE = LogLevel.values()
-  .map { it.name.uppercase().toLookupElement(suffix = " ") }
+  .map { createLookupElement("${it.name.uppercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
-private val IS_LOOKUPS = listOf("crash", "stacktrace").map { it.toLookupElement(suffix = " ") }
-
-private val AGE_LOOKUPS = listOf("30s", "5m", "3h", "1d").map { it.toLookupElement(suffix = " ") }
+private val IS_LOOKUPS = listOf(
+  createLookupElement("crash ", message("logcat.filter.completion.hint.is.crash")),
+  createLookupElement("stacktrace ", message("logcat.filter.completion.hint.is.stacktrace")),
+)
+private val AGE_LOOKUPS = listOf(
+  createLookupElement("30s ", message("logcat.filter.completion.hint.age.30s")),
+  createLookupElement("5m ", message("logcat.filter.completion.hint.age.5m")),
+  createLookupElement("3h ", message("logcat.filter.completion.hint.age.3h")),
+  createLookupElement("1d ", message("logcat.filter.completion.hint.age.1d")),
+)
 
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"
 
 private val HINTS = listOf(
-  LogcatBundle.message("logcat.filter.completion.hint1"),
-  LogcatBundle.message("logcat.filter.completion.hint2"),
-  LogcatBundle.message("logcat.filter.completion.hint3"),
-  LogcatBundle.message("logcat.filter.completion.hint4"),
-  LogcatBundle.message("logcat.filter.completion.hint5"),
-  LogcatBundle.message("logcat.filter.completion.hint6"),
+  message("logcat.filter.completion.hint1"),
+  message("logcat.filter.completion.hint2"),
+  message("logcat.filter.completion.hint3"),
+  message("logcat.filter.completion.hint4"),
+  message("logcat.filter.completion.hint5"),
+  message("logcat.filter.completion.hint6"),
 )
 
 /**
@@ -125,10 +154,9 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                    return
                  }
                }
-               result.addAllElements(
-                 if (text == DUMMY_IDENTIFIER_TRIMMED) KEYS.lookupsWithHistory() else ALL_KEYS.lookupsWithHistory())
+               result.addAllElements((if (text == DUMMY_IDENTIFIER_TRIMMED) KEY_LOOKUPS else ALL_KEY_LOOKUPS) + historyLookups())
                if (hasAndroidProject(parameters.editor)) {
-                 result.addElement(MY_PACKAGE.toLookupElement())
+                 result.addElement(createLookupElement("$MY_PACKAGE ", message("logcat.filter.completion.hint.package.mine")))
                }
                result.addHints()
              }
@@ -148,16 +176,15 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                when (parameters.findPreviousText()) {
-                 "$PACKAGE_KEY:" -> {
-                   result.addAllElements((parameters.getPackageNames()).map { it.toLookupElement(suffix = " ") })
+                 PACKAGE_KEY.normalKey -> {
+                   result.addAllElements((parameters.getPackageNames()).map { createLookupElement("$it ") })
                    if (hasAndroidProject(parameters.editor)) {
-                     result.addElement(MY_PACKAGE_VALUE.toLookupElement(suffix = " "))
+                     result.addElement(createLookupElement("$MY_PACKAGE_VALUE ", message("logcat.filter.completion.hint.package.mine")))
                    }
                  }
-                 in PACKAGE_KEYS ->
-                   result.addAllElements((parameters.getPackageNames()).map { it.toLookupElement(suffix = " ") })
-                 in TAG_KEYS ->
-                   result.addAllElements(parameters.getTags().filter(String::isNotBlank).map { it.toLookupElement(suffix = " ") })
+                 in PACKAGE_KEY.keys -> result.addAllElements((parameters.getPackageNames()).map { createLookupElement("$it ") })
+                 in TAG_KEY.keys ->
+                   result.addAllElements(parameters.getTags().filter(String::isNotBlank).map { createLookupElement("$it ") })
                }
                result.addHints()
              }
@@ -178,7 +205,13 @@ private fun CompletionResultSet.addHints() {
 @VisibleForTesting
 internal fun String.getKeyVariants() = listOf("$this:", "-$this:", "$this~:", "-$this~:", "$this=:", "-$this=:")
 
-private fun String.toLookupElement(suffix: String = "") = LookupElementBuilder.create("$this$suffix")
+private fun createLookupElement(text: String, hint: String? = null) = LookupElementBuilder.create(text)
+  .withRenderer(object : LookupElementRenderer<LookupElement>() {
+    override fun renderElement(element: LookupElement, presentation: LookupElementPresentation) {
+      presentation.itemText = element.lookupString
+      presentation.typeText = hint
+    }
+  })
 
 private fun CompletionParameters.findPreviousText() = PsiTreeUtil.skipWhitespacesBackward(position)?.text
 
@@ -199,14 +232,12 @@ private fun hasAndroidProject(editor: Editor): Boolean {
   return editor.getUserData(AndroidProjectDetector.KEY)?.isAndroidProject(project) ?: false
 }
 
-private fun List<String>.lookupsWithHistory(): List<LookupElementBuilder> {
-  val history = AndroidLogcatFilterHistory.getInstance()
-  val lookups = mutableSetOf<String>()
-  lookups.addAll(this)
-  if (AndroidLogcatSettings.getInstance().filterHistoryAutocomplete) {
-    lookups.addAll(history.favorites)
-    lookups.addAll(history.nonFavorites)
+private fun historyLookups(): List<LookupElement> {
+  return if (AndroidLogcatSettings.getInstance().filterHistoryAutocomplete) {
+    val history = AndroidLogcatFilterHistory.getInstance()
+    (history.favorites + history.nonFavorites).map { createLookupElement(it) }
   }
-
-  return lookups.map(String::toLookupElement)
+  else {
+    emptyList()
+  }
 }
