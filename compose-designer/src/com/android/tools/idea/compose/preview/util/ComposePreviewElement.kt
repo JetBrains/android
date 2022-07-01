@@ -91,7 +91,7 @@ internal class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
-) : FakeLightVirtualFile(name, content, originFileProvider)
+) : FakeLightVirtualFile("compose-$name", content, originFileProvider)
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value

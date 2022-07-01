@@ -47,7 +47,7 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
  * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
  * that do not simply render in a first pass.
  */
-internal suspend fun LayoutlibSceneManager.requestComposeRender() {
+internal suspend fun LayoutlibSceneManager.requestDoubleRender() {
   render()
   if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
     executeCallbacks()

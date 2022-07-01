@@ -19,7 +19,7 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
-import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -35,11 +35,11 @@ internal val SceneViewPeerPanel.displayName: String
 
 internal class TestComposePreviewView(parentDisposable: Disposable, project: Project) : ComposePreviewView, JPanel() {
   override val surfaces: List<NlDesignSurface> = listOf(NlDesignSurface.builder(project, parentDisposable)
-    .setNavigationHandler(PreviewNavigationHandler())
+    .setNavigationHandler(ComposePreviewNavigationHandler())
     .build())
   override val mainSurface: NlDesignSurface = createMainDesignSurfaceBuilder(
     project,
-    PreviewNavigationHandler(),
+    ComposePreviewNavigationHandler(),
     DelegateInteractionHandler(),
     { null },
     parentDisposable,

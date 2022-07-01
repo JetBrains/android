@@ -36,13 +36,14 @@ import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
-import com.android.tools.idea.compose.preview.util.requestComposeRender
+import com.android.tools.idea.compose.preview.util.requestDoubleRender
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -61,6 +62,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
@@ -192,7 +194,7 @@ internal suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreview
       progressIndicator.text = message("refresh.progress.indicator.rendering.preview", index + 1, previewElementsToSceneManagers.size)
       val (previewElement, sceneManager) = pair
       // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager).requestComposeRender()
+      configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager).requestDoubleRender()
     }
 }
 
@@ -249,6 +251,7 @@ internal suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefre
   modelToPreview: NlModel.() -> T?,
   calcAffinity: (el1: T, el2: T?) -> Int,
   applyToConfiguration: T.(Configuration) -> Unit,
+  lightVirtualFileFactory: (String, String, () -> VirtualFile?) -> FakeLightVirtualFile,
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
@@ -292,7 +295,7 @@ internal suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefre
       else {
         val now = System.currentTimeMillis()
         debugLogger?.log("No models to reuse were found. New model $now.")
-        val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFile.virtualFile }
+        val file = lightVirtualFileFactory("model-$now.xml", fileContents) { psiFile.virtualFile }
         val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
         runBlocking(AndroidDispatchers.workerThread) {
           val newModel = NlModel.builder(facet, file, configuration)
@@ -309,7 +312,7 @@ internal suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefre
             .build()
           configureLayoutlibSceneManager(
             previewElement.displaySettings,
-            addModelWithoutRender(newModel) as LayoutlibSceneManager)
+            addModelWithoutRender(newModel))
           newModel
         }
       }
@@ -323,7 +326,7 @@ internal suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefre
         getPsiFileSafely(project, it)
       } ?: psiFile
 
-      (navigationHandler as PreviewNavigationHandler).setDefaultLocation(model, defaultFile, offset)
+      (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(model, defaultFile, offset)
 
       previewElement.applyToConfiguration(model.configuration)
 
@@ -415,6 +418,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
     modelToPreview,
     ::calcComposeElementsAffinity,
     ComposePreviewElementInstance::applyTo,
+    ::ComposeAdapterLightVirtualFile,
     configureLayoutlibSceneManager
   )
 }

@@ -31,7 +31,7 @@ import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAct
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
-import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
@@ -327,7 +327,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   @Volatile
   private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
-  private val navigationHandler = PreviewNavigationHandler()
+  private val navigationHandler = ComposePreviewNavigationHandler()
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
