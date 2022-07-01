@@ -5,16 +5,16 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/adblib/AndroidAdbLibHost.kt"
-            line="28"/>
+            file="src/com/android/tools/idea/adblib/AndroidAdbLoggerFactory.kt"
+            line="26"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/adblib/AndroidAdbLoggerFactory.kt"
-            line="26"/>
+            file="src/com/android/tools/idea/adblib/AndroidAdbSessionHost.kt"
+            line="28"/>
     </issue>
 
     <issue

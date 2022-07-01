@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.AdbLibHost
 import com.android.adblib.AdbLoggerFactory
+import com.android.adblib.AdbSessionHost
 import com.android.tools.idea.concurrency.AndroidDispatchers
 
 /**
- * Implementation of [AdbLibHost] that integrates with the IntelliJ/Android Studio platform.
+ * Implementation of [AdbSessionHost] that integrates with the IntelliJ/Android Studio platform.
  *
  * See also [AndroidAdbLoggerFactory] and [AndroidDispatchers].
  */
-internal class AndroidAdbLibHost : AdbLibHost() {
+internal class AndroidAdbSessionHost : AdbSessionHost() {
   override val loggerFactory: AdbLoggerFactory by lazy {
     AndroidAdbLoggerFactory()
   }
