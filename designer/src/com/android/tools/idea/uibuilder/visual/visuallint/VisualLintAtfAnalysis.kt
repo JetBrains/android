@@ -46,7 +46,9 @@ class VisualLintAtfAnalysis(
 
     // Enable retrieving text character locations from TextView to improve the
     // accuracy of TextContrastCheck in ATF.
-    LayoutValidator.setObtainCharacterLocations(true)
+    // Temporarily disabled because of performance issues
+    // TODO(b/237789808): re-enabled when performance issue fixed
+    LayoutValidator.setObtainCharacterLocations(false)
   }
 
   fun pause() {
