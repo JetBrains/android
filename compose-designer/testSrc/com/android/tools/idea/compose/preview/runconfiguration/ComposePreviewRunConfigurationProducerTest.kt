@@ -18,6 +18,8 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.intellij.compiler.options.CompileStepBeforeRun
+import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -221,8 +223,14 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     return runConfiguration
   }
 
-  private fun newComposePreviewRunConfiguration() =
-    ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as ComposePreviewRunConfiguration
+  private fun newComposePreviewRunConfiguration(): ComposePreviewRunConfiguration {
+    val templateConfiguration = ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project)
+    // Create the configuration with the RunManager to make sure that BeforeRunTasks are loaded
+    val runConfiguration = RunManager.getInstance(project)
+      .createConfiguration(templateConfiguration, ComposePreviewRunConfigurationType().configurationFactories[0]).configuration
+    assertTrue(runConfiguration.beforeRunTasks.none { it is CompileStepBeforeRun.MakeBeforeRunTask })
+    return runConfiguration as ComposePreviewRunConfiguration
+  }
 
   private fun configurationContext(element: PsiElement): ConfigurationContext {
     return ConfigurationContext(element)
