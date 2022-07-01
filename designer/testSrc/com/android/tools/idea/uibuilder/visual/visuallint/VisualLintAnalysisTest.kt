@@ -110,7 +110,8 @@ class VisualLintAnalysisTest {
           assertEquals(3, it.models.size)
           assertEquals("text_dashboard <TextView> is covered by imageView <ImageView>", it.summary)
           assertEquals(
-            "The content of TextView is partially hidden.<BR/>This may pose a problem for the readability of the text it contains.",
+            "Content of text_dashboard &lt;TextView> is partially covered by imageView &lt;ImageView> in 3 preview configurations." +
+            "<BR/>This may affect text readability. Fix this issue by adjusting widget positioning.",
             it.description)
           assertNull(it.hyperlinkListener)
         }
@@ -118,10 +119,10 @@ class VisualLintAnalysisTest {
           assertEquals(3, it.models.size)
           assertEquals("Bottom navigation bar is not recommended for breakpoints over 600dp", it.summary)
           assertEquals(
-            "Bottom navigation bar is not recommended for breakpoints over 600dp, which affects 3 preview configurations." +
+            "Bottom navigation bar is not recommended for breakpoints >= 600dp, which affects 3 preview configurations." +
             "<BR/>Material Design recommends replacing bottom navigation bar with " +
             "<A HREF=\"https://material.io/components/navigation-rail/android\">navigation rail</A> or " +
-            "<A HREF=\"https://material.io/components/navigation-drawer/android\">navigation drawer</A> for breakpoints over 600dp.",
+            "<A HREF=\"https://material.io/components/navigation-drawer/android\">navigation drawer</A> for breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
         }
@@ -132,7 +133,7 @@ class VisualLintAnalysisTest {
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
             "reducing the width of TextView or switching to a " +
             "<A HREF=\"https://material.io/design/layout/responsive-layout-grid.html#breakpoints\">multi-column layout</A> for " +
-            "breakpoints over 600dp.",
+            "breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
         }

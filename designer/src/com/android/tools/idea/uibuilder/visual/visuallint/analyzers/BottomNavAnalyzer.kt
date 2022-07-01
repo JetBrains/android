@@ -61,14 +61,14 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val content = { count: Int ->
       HtmlBuilder()
-        .add("Bottom navigation bar is not recommended for breakpoints over 600dp, ")
+        .add("Bottom navigation bar is not recommended for breakpoints >= 600dp, ")
         .add("which affects ${previewConfigurations(count)}.")
         .newline()
         .add("Material Design recommends replacing bottom navigation bar with ")
         .addLink("navigation rail", NAVIGATION_RAIL_URL)
         .add(" or ")
         .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
-        .add(" for breakpoints over 600dp.")
+        .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(view, "Bottom navigation bar is not recommended for breakpoints over 600dp", content)
   }

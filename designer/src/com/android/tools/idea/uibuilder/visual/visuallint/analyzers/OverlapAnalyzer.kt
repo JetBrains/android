@@ -76,10 +76,13 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(firstView: ViewInfo, secondView: ViewInfo): VisualLintIssueContent {
     val summary = "${nameWithId(firstView)} is covered by ${nameWithId(secondView)}"
-    val content = HtmlBuilder().add("The content of ${simpleName(firstView)} is partially hidden.")
-      .newline()
-      .add("This may pose a problem for the readability of the text it contains.")
-    return VisualLintIssueContent(firstView, summary) { content }
+    val content = { count: Int ->
+      HtmlBuilder()
+        .add("Content of ${nameWithId(firstView)} is partially covered by ${nameWithId(secondView)} in ${previewConfigurations(count)}.")
+        .newline()
+        .add("This may affect text readability. Fix this issue by adjusting widget positioning.")
+    }
+    return VisualLintIssueContent(firstView, summary, content)
   }
 
   /**

@@ -76,7 +76,7 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
         .newline()
         .add("Material Design recommends reducing the width of TextView or switching to a ")
         .addLink("multi-column layout", url)
-        .add(" for breakpoints over 600dp.")
+        .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(view, summary, provider)
   }
