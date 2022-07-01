@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -64,6 +65,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidTargetData {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
+
+  @NotNull private final List<String> myPublicFileNames = ImmutableList.of("public.xml", "public-final.xml", "public-staging.xml");
 
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
@@ -131,6 +134,7 @@ public class AndroidTargetData {
     }
   }
 
+  // TODO(b/237867274): Remove this method and use resource repositories instead
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
 
@@ -143,22 +147,33 @@ public class AndroidTargetData {
 
   private void parsePublicResCache() {
     Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve("public.xml");
-    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
 
-    if (publicXml != null) {
-      try {
-        MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
-        NanoXmlUtil.parse(publicXml.getInputStream(), builder);
+    Map<String, Set<String>> resourceCache = new HashMap<>();
+    TIntObjectHashMap<String> resourceIdMap = new TIntObjectHashMap<>();
 
-        synchronized (myPublicResourceCacheLock) {
-          myPublicResourceCache = builder.getPublicResourceCache();
-          myPublicResourceIdMap = builder.getIdMap();
+    for (String fileName : myPublicFileNames) {
+      Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve(fileName);
+      VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
+
+      if (publicXml != null) {
+        try {
+          MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
+          NanoXmlUtil.parse(publicXml.getInputStream(), builder);
+
+          resourceCache.putAll(builder.getPublicResourceCache());
+          builder.getIdMap().forEachEntry((key, value) -> {
+            resourceIdMap.put(key, value);
+            return true;
+          });
+        }
+        catch (IOException e) {
+          LOG.error(e);
         }
       }
-      catch (IOException e) {
-        LOG.error(e);
-      }
+    }
+    synchronized (myPublicResourceCacheLock) {
+      myPublicResourceCache = resourceCache;
+      myPublicResourceIdMap = resourceIdMap;
     }
   }
 
