@@ -153,10 +153,6 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (iconRef == null) {
         // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
         Icon icon = IconLoader.getReflectiveIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName), StudioIcons.class.getClassLoader());
-        // TODO: Eliminate AndroidIcons once all icons are provided by StudioIcons.LayoutEditor.Palette.
-        if (icon == null) {
-          icon = IconLoader.getReflectiveIcon("AndroidIcons.Views." + keyName, AndroidIcons.class.getClassLoader());
-        }
         iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
       }
