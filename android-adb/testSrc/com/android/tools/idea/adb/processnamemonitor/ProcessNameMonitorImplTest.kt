@@ -18,7 +18,7 @@ package com.android.tools.idea.adb.processnamemonitor
 import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.android.tools.idea.concurrency.waitForCondition
@@ -48,7 +48,7 @@ class ProcessNameMonitorImplTest {
   @get:Rule
   val rule = RuleChain(projectRule)
 
-  private val fakeAdbDeviceServices = FakeAdbDeviceServices(FakeAdbLibSession())
+  private val fakeAdbDeviceServices = FakeAdbDeviceServices(FakeAdbSession())
 
   @Before
   fun setUp() {

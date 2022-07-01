@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
 import com.android.annotations.concurrency.UiThread
@@ -91,7 +91,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   @UiThread
   private fun startRecordingAsync(params: Parameters, useEmulatorRecording: Boolean, project: Project) {
-    val adbLibSession: AdbLibSession = AdbLibService.getSession(project)
+    val adbSession: AdbSession = AdbLibService.getSession(project)
     val manager: AvdManager? = getVirtualDeviceManager()
     val serialNumber = params.serialNumber
     val avdName = params.avdName
@@ -103,11 +103,11 @@ class ScreenRecorderAction : DumbAwareAction(
     val coroutineScope = AndroidCoroutineScope(disposableParent, EmptyCoroutineContext)
     val exceptionHandler = coroutineExceptionHandler(project, coroutineScope)
     coroutineScope.launch(exceptionHandler) {
-      val showTouchEnabled = isShowTouchEnabled(adbLibSession, serialNumber)
-      val size = getDeviceScreenSize(adbLibSession, serialNumber)
+      val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
+      val size = getDeviceScreenSize(adbSession, serialNumber)
       val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size)
       if (options.showTouches != showTouchEnabled) {
-        setShowTouch(adbLibSession, serialNumber, options.showTouches)
+        setShowTouch(adbSession, serialNumber, options.showTouches)
       }
       try {
         val recodingProvider = when (emulatorRecordingFile) {
@@ -116,19 +116,19 @@ class ScreenRecorderAction : DumbAwareAction(
             serialNumber,
             REMOTE_PATH.format(System.currentTimeMillis()),
             options,
-            adbLibSession)
+            adbSession)
 
           else -> EmulatorConsoleRecordingProvider(
             serialNumber,
             emulatorRecordingFile,
             options,
-            adbLibSession)
+            adbSession)
         }
         ScreenRecorder(project, recodingProvider).recordScreen()
       }
       finally {
         if (options.showTouches != showTouchEnabled) {
-          setShowTouch(adbLibSession, serialNumber, showTouchEnabled)
+          setShowTouch(adbSession, serialNumber, showTouchEnabled)
         }
         withContext(uiThread) {
           recordingInProgress.remove(serialNumber)
@@ -147,9 +147,9 @@ class ScreenRecorderAction : DumbAwareAction(
     }
   }
 
-  private suspend fun getDeviceScreenSize(adbLibSession: AdbLibSession, serialNumber: String): Dimension? {
+  private suspend fun getDeviceScreenSize(adbSession: AdbSession, serialNumber: String): Dimension? {
     try {
-      val out = execute(adbLibSession, serialNumber, "wm size")
+      val out = execute(adbSession, serialNumber, "wm size")
       val matchResult = WM_SIZE_OUTPUT_REGEX.find(out)
       if (matchResult == null) {
         logger.warn("Unexpected output from 'wm size': $out")
@@ -169,21 +169,21 @@ class ScreenRecorderAction : DumbAwareAction(
     return null
   }
 
-  private suspend fun execute(adbLibSession: AdbLibSession, serialNumber: String, command: String) =
-    adbLibSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+  private suspend fun execute(adbSession: AdbSession, serialNumber: String, command: String) =
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
 
-  private suspend fun setShowTouch(adbLibSession: AdbLibSession, serialNumber: String, isEnabled: Boolean) {
+  private suspend fun setShowTouch(adbSession: AdbSession, serialNumber: String, isEnabled: Boolean) {
     val value = if (isEnabled) 1 else 0
     try {
-      execute(adbLibSession, serialNumber, "settings put system show_touches $value")
+      execute(adbSession, serialNumber, "settings put system show_touches $value")
     }
     catch (e: Exception) {
       logger.warn("Failed to set show taps to $isEnabled", e)
     }
   }
 
-  private suspend fun isShowTouchEnabled(adbLibSession: AdbLibSession, serialNumber: String): Boolean {
-    val out = execute(adbLibSession, serialNumber, "settings get system show_touches")
+  private suspend fun isShowTouchEnabled(adbSession: AdbSession, serialNumber: String): Boolean {
+    val out = execute(adbSession, serialNumber, "settings get system show_touches")
     return out.trim() == "1"
   }
 

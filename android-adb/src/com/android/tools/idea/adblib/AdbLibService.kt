@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannelProviderFactory
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.tools.idea.adb.AdbFileProvider
@@ -31,7 +31,7 @@ import java.net.InetSocketAddress
 import java.time.Duration
 
 /**
- * [Project] service that provides access to the corresponding [AdbLibSession] for that project.
+ * [Project] service that provides access to the corresponding [AdbSession] for that project.
  *
  * Example: `AdbLibService.getInstance(project).hostServices`
  *
@@ -47,7 +47,7 @@ class AdbLibService(val project: Project) : Disposable {
     listOf(getAdbSocketAddress())
   }
 
-  val session: AdbLibSession = AdbLibSession.create(
+  val session: AdbSession = AdbSession.create(
     host = host,
     channelProvider = channelProvider,
     connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut ().toLong())

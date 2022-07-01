@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -36,7 +36,7 @@ internal class ShellCommandRecordingProvider(
   serialNumber: String,
   private val remotePath: String,
   private val options: ScreenRecorderOptions,
-  private val adbLibSession: AdbLibSession,
+  private val adbSession: AdbSession,
 ) : RecordingProvider {
   private val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
   private var job: Job? = null
@@ -45,7 +45,7 @@ internal class ShellCommandRecordingProvider(
 
   override suspend fun startRecording() {
     job = AndroidCoroutineScope(disposableParent).launch {
-      adbLibSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
+      adbSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
     }
   }
 
@@ -55,20 +55,20 @@ internal class ShellCommandRecordingProvider(
   }
 
   override suspend fun pullRecording(target: Path) {
-    adbLibSession.deviceServices.sync(deviceSelector).use { sync ->
+    adbSession.deviceServices.sync(deviceSelector).use { sync ->
       try {
-        adbLibSession.channelFactory.createNewFile(target).use {
+        adbSession.channelFactory.createNewFile(target).use {
           sync.recv(remotePath, it, progress = null)
         }
       }
       finally {
-        adbLibSession.deviceServices.shellAsText(deviceSelector, "rm $remotePath", commandTimeout = CMD_TIMEOUT)
+        adbSession.deviceServices.shellAsText(deviceSelector, "rm $remotePath", commandTimeout = CMD_TIMEOUT)
       }
     }
   }
 
   override suspend fun doesRecordingExist(): Boolean {
-    val out = adbLibSession.deviceServices.shellAsText(deviceSelector, "ls $remotePath", commandTimeout = CMD_TIMEOUT)
+    val out = adbSession.deviceServices.shellAsText(deviceSelector, "ls $remotePath", commandTimeout = CMD_TIMEOUT)
     return out.trim() == remotePath
   }
 

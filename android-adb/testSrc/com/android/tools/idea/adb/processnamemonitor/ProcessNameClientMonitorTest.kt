@@ -16,12 +16,10 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.adblib.DeviceSelector
-import com.android.adblib.testing.FakeAdbDeviceServices
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.use
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -52,7 +50,7 @@ class ProcessNameClientMonitorTest {
 
   private val device = mockDevice("device1")
 
-  private val fakeAdbDeviceServices = FakeAdbLibSession().deviceServices
+  private val fakeAdbDeviceServices = FakeAdbSession().deviceServices
 
   @Before
   fun setUp() {

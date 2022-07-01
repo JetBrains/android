@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
@@ -170,7 +170,7 @@ internal class LogcatMainPanel(
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
-  adbSession: AdbLibSession = AdbLibService.getInstance(project).session,
+  adbSession: AdbSession = AdbLibService.getInstance(project).session,
   private val logcatService: LogcatService =
     LogcatServiceImpl(project, { AdbLibService.getInstance(project).session.deviceServices }, ProcessNameMonitor.getInstance(project)),
   zoneId: ZoneId = ZoneId.systemDefault()

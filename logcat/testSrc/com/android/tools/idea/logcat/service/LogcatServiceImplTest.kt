@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.service
 import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices.ShellRequest
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.TestResources
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
@@ -54,7 +54,7 @@ class LogcatServiceImplTest {
   private val device30 = Device.createPhysical("device", isOnline = true, release = 10, sdk = 30, manufacturer = "Google", model = "Pixel")
   private val device23 = Device.createPhysical("device", isOnline = true, release = 7, sdk = 23, manufacturer = "Google", model = "Pixel")
 
-  private val fakeDeviceServices = FakeAdbLibSession().deviceServices
+  private val fakeDeviceServices = FakeAdbSession().deviceServices
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 
   @Before

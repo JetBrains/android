@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
@@ -124,7 +124,7 @@ class LogcatMainPanelTest {
 
   private val mockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
-  private val fakeAdbLibSession = FakeAdbLibSession()
+  private val fakeAdbSession = FakeAdbSession()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
 
   @Before
@@ -358,10 +358,10 @@ class LogcatMainPanelTest {
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
-    fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbLibSession.hostServices.setDevices(testDevice)
+    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
+    fakeAdbSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbLibSession).also {
+      logcatMainPanel(adbSession = fakeAdbSession).also {
         waitForCondition(TIMEOUT_SEC, SECONDS) { it.getConnectedDevice() != null }
         it.editor.document.setText("not-empty")
       }
@@ -378,12 +378,12 @@ class LogcatMainPanelTest {
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
     val testDevice1 = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     val testDevice2 = TestDevice("device2", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
-    fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice1)
-    fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice2)
-    fakeAdbLibSession.hostServices.setDevices(testDevice1, testDevice2)
+    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice1)
+    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice2)
+    fakeAdbSession.hostServices.setDevices(testDevice1, testDevice2)
 
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbLibSession).also {
+      logcatMainPanel(adbSession = fakeAdbSession).also {
         waitForCondition(TIMEOUT_SEC, SECONDS) { it.getConnectedDevice() != null }
         it.editor.document.setText("not-empty")
       }
@@ -957,7 +957,7 @@ class LogcatMainPanelTest {
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
-    adbSession: AdbLibSession = FakeAdbLibSession(),
+    adbSession: AdbSession = FakeAdbSession(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ) =
     LogcatMainPanel(

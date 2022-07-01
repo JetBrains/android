@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.CoroutineScopeCache.Key
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.adblib.DeviceSelector
@@ -44,12 +44,12 @@ private val IS_SUPPORTED_RETRY_TIMEOUT = Duration.ofSeconds(2)
  * TODO(b/235094713): Add tests
  */
 internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecordingSupportedCache {
-  private val adbLibSession: AdbLibSession = AdbLibService.getSession(project)
+  private val adbSession: AdbSession = AdbLibService.getSession(project)
   private val cacheKey = Key<Boolean>("ScreenRecordingSupportedCache")
 
   @UiThread
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    return adbLibSession.deviceCache(serialNumber)
+    return adbSession.deviceCache(serialNumber)
       .getOrPutSuspending(cacheKey,
                           fastDefaultValue = { false },
                           defaultValue = { computeIsSupported(serialNumber, sdk) })
@@ -84,7 +84,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   }
 
   private suspend fun execute(serialNumber: String, command: String) =
-    adbLibSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
 }
 
 private fun String.isEmulator() = startsWith("emulator-")

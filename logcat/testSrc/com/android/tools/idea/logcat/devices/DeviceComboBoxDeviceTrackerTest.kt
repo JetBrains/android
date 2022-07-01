@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState.AUTHORIZING
 import com.android.adblib.DeviceState.OFFLINE
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
@@ -47,7 +47,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  private val adbSession = FakeAdbLibSession()
+  private val adbSession = FakeAdbSession()
   private val hostServices = adbSession.hostServices
   private val deviceServices = adbSession.deviceServices
 
@@ -309,7 +309,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   private fun deviceComboBoxDeviceTracker(
     preexistingDevice: Device? = null,
-    adbSession: AdbLibSession = this@DeviceComboBoxDeviceTrackerTest.adbSession,
+    adbSession: AdbSession = this@DeviceComboBoxDeviceTrackerTest.adbSession,
   ) = DeviceComboBoxDeviceTracker(projectRule.project, preexistingDevice, adbSession, EmptyCoroutineContext)
 }
 

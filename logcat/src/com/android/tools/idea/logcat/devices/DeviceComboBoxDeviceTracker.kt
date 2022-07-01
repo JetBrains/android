@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
@@ -48,12 +48,12 @@ import kotlin.coroutines.CoroutineContext
 private val ADB_TIMEOUT = Duration.ofMillis(1000)
 
 /**
- * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbLibSession]
+ * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession]
  */
 internal class DeviceComboBoxDeviceTracker(
   project: Project,
   private val preexistingDevice: Device?,
-  private val adbSession: AdbLibSession = AdbLibService.getSession(project),
+  private val adbSession: AdbSession = AdbLibService.getSession(project),
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
 

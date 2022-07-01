@@ -17,7 +17,7 @@ package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
 
-import com.android.adblib.AdbLibSession;
+import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
@@ -382,7 +382,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
   @NotNull
   private static ClientManager getClientManager() {
-    AdbLibSession session = AdbLibApplicationService.getInstance().getSession();
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
     return session.getCache().getOrPut(CLIENT_MANAGER_KEY, () -> AdbLibClientManagerFactory.createClientManager(session));
   }
 

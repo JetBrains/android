@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.adblib.tools.EmulatorConsole
 import com.android.adblib.tools.localConsoleAddress
 import com.android.adblib.tools.openEmulatorConsole
@@ -35,14 +35,14 @@ internal class EmulatorConsoleRecordingProvider(
   private val serialNumber: String,
   private val localPath: Path,
   private val options: ScreenRecorderOptions,
-  private val adbLibSession: AdbLibSession,
+  private val adbSession: AdbSession,
 ) : RecordingProvider {
   override val fileExtension = "webm"
 
   private lateinit var emulatorConsole: EmulatorConsole
 
   override suspend fun startRecording() {
-    emulatorConsole = adbLibSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
+    emulatorConsole = adbSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
     emulatorConsole.startScreenRecording(localPath, *getRecorderOptions(options))
   }
 
