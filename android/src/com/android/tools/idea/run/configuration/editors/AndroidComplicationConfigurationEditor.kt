@@ -30,8 +30,6 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.Dimension
-import java.awt.event.ContainerEvent
-import java.awt.event.ContainerListener
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -43,7 +41,6 @@ import javax.swing.JPanel
 class AndroidComplicationConfigurationEditor(project: Project, configuration: AndroidComplicationConfiguration) :
   AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
   private var allAvailableSlots: List<ComplicationSlot> = listOf()
-  private var originalChosenSlots: List<AndroidComplicationConfiguration.ChosenSlot> = listOf()
   private val currentChosenSlots: ObservableList<AndroidComplicationConfiguration.ChosenSlot> = ObservableList()
   private var notChosenSlotIds: List<Int> = emptyList()
   private var typesSupportedByChosenComponent: List<ComplicationType> = listOf()
@@ -63,7 +60,6 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {
     super.resetEditorFrom(runConfiguration)
     allAvailableSlots = runConfiguration.watchFaceInfo.complicationSlots
-    originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
     currentChosenSlots.apply {
       beginUpdate()
       addAll(runConfiguration.chosenSlots.map { it.copy() })
@@ -75,7 +71,6 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
     super.applyEditorTo(runConfiguration)
     runConfiguration.chosenSlots = currentChosenSlots.map { it.copy() }
-    originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
   }
 
   override fun onComponentNameChanged(newComponent: String?) {
@@ -105,16 +100,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     row {
       slotsComponent = component(JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        addContainerListener(object : ContainerListener {
-          override fun componentAdded(e: ContainerEvent?) = fireEditorStateChanged()
-          override fun componentRemoved(e: ContainerEvent?) = fireEditorStateChanged()
-        })
-      })
-        .onIsModified {
-          currentChosenSlots.size != originalChosenSlots.size ||
-          currentChosenSlots.union(originalChosenSlots).size != originalChosenSlots.size
-        }
-        .component
+      }).component
     }
 
     row {

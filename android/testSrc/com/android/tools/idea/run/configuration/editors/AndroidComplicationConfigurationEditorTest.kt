@@ -25,6 +25,7 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.PositionXmlParser
 import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.base.Charsets
@@ -32,14 +33,23 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.application.options.ModulesComboBox
+import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
+import com.intellij.execution.impl.RunManagerImpl
+import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
+import com.intellij.execution.impl.SingleConfigurationConfigurable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
@@ -51,9 +61,19 @@ import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 
 
-class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
+class AndroidComplicationConfigurationEditorTest {
+  private val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+
+  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+
+  private val module get() = projectRule.module
+
   private lateinit var manifestSnapshot: MergedManifestSnapshot
   private lateinit var runConfiguration: AndroidComplicationConfiguration
+  private lateinit var configurationConfigurable: SingleConfigurationConfigurable<AndroidComplicationConfiguration>
   private lateinit var settingsEditor: AndroidComplicationConfigurationEditor
   private val editor get() = settingsEditor.component as DialogPanel
 
@@ -67,13 +87,12 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
   private fun JPanel.getIdComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(1) as ComboBox<*>
   private fun JPanel.getTypeComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(3) as ComboBox<*>
   private fun JPanel.getDeleteButtonForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(4) as JButton
-  //endregion edito-utils
+  //endregion editor-utils
 
-  override fun setUp() {
-    super.setUp()
-    manifestSnapshot = TestMergedManifestSnapshotBuilder.builder(myModule).build()
-    mockMergedManifest()
-    myFixture.addComplicationServiceClass()
+  @Before
+  fun setUp() {
+    manifestSnapshot = TestMergedManifestSnapshotBuilder.builder(projectRule.module).build()
+    fixture.addComplicationServiceClass()
 
     //List of FQ Complication names added and their supported types as String in manifest.
     val complicationsInProject = mapOf(
@@ -82,19 +101,30 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       "com.example.MyNoTypeComplication" to "",
     )
 
-    complicationsInProject.forEach(addComplication())
+    complicationsInProject.forEach(addComplicationToProjectAndManifest())
 
     val runConfigurationFactory = AndroidComplicationConfigurationType().configurationFactories[0]
-    runConfiguration = AndroidComplicationConfiguration(project, runConfigurationFactory)
-    settingsEditor = runConfiguration.configurationEditor
+    val runManager = RunManagerImpl.getInstanceImpl(projectRule.project)
+    runConfiguration = AndroidComplicationConfiguration(projectRule.project, runConfigurationFactory)
+
+    val settings = RunnerAndConfigurationSettingsImpl(runManager, runConfiguration)
+    configurationConfigurable = SingleConfigurationConfigurable.editSettings(settings, null)
+
+    settingsEditor = (configurationConfigurable.editor as ConfigurationSettingsEditorWrapper)
+      .selectTabAndGetEditor(AndroidComplicationConfigurationEditor::class.java)
     mockMergedManifest()
   }
 
-  private fun addComplication() = { name: String, supportedTypes: String ->
-    myFixture.addComplication(name)
+  @After
+  fun tearDown() {
+    configurationConfigurable.disposeUIResources()
+  }
+
+  private fun addComplicationToProjectAndManifest() = { name: String, supportedTypes: String ->
+    fixture.addComplication(name)
     val newServiceInManifest = getServiceDomElement(name, supportedTypes)
     manifestSnapshot = TestMergedManifestSnapshotBuilder
-      .builder(myModule)
+      .builder(module)
       .setServices(manifestSnapshot.services + newServiceInManifest)
       .build()
   }
@@ -122,14 +152,16 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     }
     val mockMergedManifestManager = Mockito.mock(MergedManifestManager::class.java)
     whenever(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
-    myModule.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, testRootDisposable)
+    module.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, projectRule.project)
   }
 
+  @Test
   fun testResetFromEmptyConfiguration() {
     assertThat(runConfiguration.module).isNull()
-    settingsEditor.resetFrom(runConfiguration)
+    configurationConfigurable.reset()
   }
 
+  @Test
   fun testResetFromConfigurationWithChosenSlots() {
     runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
@@ -145,35 +177,37 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     }
     runConfiguration.chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(3, ComplicationType.ICON))
     runConfiguration.componentName = "com.example.MyIconComplication"
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(module)
 
-    settingsEditor.resetFrom(runConfiguration)
+    configurationConfigurable.reset()
     assertThat(slotsPanel.components).hasLength(1)
     assertThat(slotsPanel.getIdComboBoxForSlot(0).item).isEqualTo(3)
     assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
   }
 
+  @Test
   fun testCleanupComplicationNameOnModuleChange() {
     runConfiguration.componentName = "com.example.MyIconComplication"
-    runConfiguration.setModule(myModule)
-    settingsEditor.resetFrom(runConfiguration)
+    runConfiguration.setModule(module)
+    configurationConfigurable.reset()
 
     assertThat(componentComboBox.item).isEqualTo("com.example.MyIconComplication")
 
     modulesComboBox.selectedItem = null
     assertThat(componentComboBox.item).isEqualTo(null)
-    settingsEditor.applyTo(runConfiguration)
+    configurationConfigurable.apply()
     assertThat(runConfiguration.componentName).isEqualTo(null)
     assertThat(addButton.isEnabled).isFalse()
 
-    modulesComboBox.selectedItem = myModule
+    modulesComboBox.selectedItem = module
     componentComboBox.item = "com.example.MyLongShortTextComplication"
-    settingsEditor.applyTo(runConfiguration)
+    configurationConfigurable.apply()
 
     assertThat(runConfiguration.componentName).isEqualTo("com.example.MyLongShortTextComplication")
     assertThat(addButton.isEnabled).isTrue()
   }
 
+  @Test
   fun testFilterComponentTypes() {
     runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
@@ -191,8 +225,8 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       override val appId = ""
       override val watchFaceFQName = ""
     }
-    settingsEditor.resetFrom(runConfiguration)
-    modulesComboBox.item = myModule
+    configurationConfigurable.reset()
+    modulesComboBox.item = module
     editor.apply()
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
@@ -243,8 +277,9 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     //endregion MyIconComplication
   }
 
+  @Test
   fun `test update slot type from invalid to first available`() {
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(module)
     runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
         ComplicationSlot(
@@ -262,8 +297,8 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       override val watchFaceFQName = ""
     }
 
-    settingsEditor.resetFrom(runConfiguration)
-    modulesComboBox.item = myModule
+    configurationConfigurable.reset()
+    modulesComboBox.item = module
     editor.apply()
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
@@ -279,16 +314,17 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     // first available is ICON
     assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
     // Saving configuration.
-    settingsEditor.applyTo(runConfiguration)
-    assertThat(editor.isModified()).isFalse()
+    configurationConfigurable.apply()
+    assertThat(configurationConfigurable.isModified).isFalse()
 
     assertThat(runConfiguration.chosenSlots).hasSize(1)
     // save first available for configuration
     assertThat(runConfiguration.chosenSlots.single().type).isEqualTo(ComplicationType.ICON)
   }
 
+  @Test
   fun testNullType() {
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(module)
     runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
         ComplicationSlot(
@@ -301,8 +337,8 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       override val watchFaceFQName = ""
     }
 
-    settingsEditor.resetFrom(runConfiguration)
-    modulesComboBox.item = myModule
+    configurationConfigurable.reset()
+    modulesComboBox.item = module
     editor.apply()
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
@@ -320,17 +356,17 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     assertThat(comboBoxRenderer.text).isEqualTo("Source doesn't provide types supported by slot")
 
     // Saving configuration.
-    settingsEditor.applyTo(runConfiguration)
-    assertThat(editor.isModified()).isFalse()
+    configurationConfigurable.apply()
+    assertThat(configurationConfigurable.isModified).isFalse()
 
     assertThat(runConfiguration.chosenSlots).hasSize(1)
     // save first available for configuration
     assertThat(runConfiguration.chosenSlots.single().type).isEqualTo(null)
   }
 
+  @Test
   fun testClearSlotsOnComplicationNameChange() {
-    settingsEditor.resetFrom(runConfiguration)
-    modulesComboBox.selectedItem = myModule
+    modulesComboBox.selectedItem = module
 
     componentComboBox.item = "com.example.MyIconComplication"
     assertThat(slotsPanel.components).isEmpty()
@@ -346,9 +382,10 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     assertThat(slotsPanel.components).isEmpty()
   }
 
+  @Test
   fun testResetFromAndApplyTo() {
     runConfiguration.componentName = "com.example.MyLongShortTextComplication"
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(module)
     runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
         ComplicationSlot(
@@ -366,11 +403,8 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
       override val watchFaceFQName = ""
     }
 
-    assertThat(addButton.isEnabled).isFalse()
-
-    settingsEditor.resetFrom(runConfiguration)
-    settingsEditor.applyTo(runConfiguration)  // Apply now to avoid clearing the slots on the next "applyTo".
-    assertThat(modulesComboBox.item).isEqualTo(myModule)
+    configurationConfigurable.reset()
+    assertThat(modulesComboBox.item).isEqualTo(module)
 
     // runConfiguration has available slots, add button should become enabled.
     assertThat(addButton.isEnabled).isTrue()
@@ -418,22 +452,22 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     assertThat(slotTypeComboBox2.items).containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)
     // Choose LONG_TEXT for slot with id 2.
     slotTypeComboBox2.item = ComplicationType.LONG_TEXT
-    assertThat(editor.isModified()).isTrue()
+    assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
-    settingsEditor.applyTo(runConfiguration)
-    assertThat(editor.isModified()).isFalse()
+    configurationConfigurable.apply()
+    assertThat(configurationConfigurable.isModified).isFalse()
 
     assertThat(runConfiguration.chosenSlots).hasSize(2)
     assertThat(runConfiguration.chosenSlots.find { it.id == 2 }!!.type).isEqualTo(ComplicationType.LONG_TEXT)
 
     //Changing type.
     slotsPanel.getTypeComboBoxForSlot(1).item = ComplicationType.SHORT_TEXT
-    assertThat(editor.isModified()).isTrue()
+    assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
-    settingsEditor.applyTo(runConfiguration)
-    assertThat(editor.isModified()).isFalse()
+    configurationConfigurable.apply()
+    assertThat(configurationConfigurable.isModified).isFalse()
 
     assertThat(runConfiguration.chosenSlots).hasSize(2)
     assertThat(runConfiguration.chosenSlots.find { it.id == 2 }!!.type).isEqualTo(ComplicationType.SHORT_TEXT)
@@ -441,26 +475,27 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     //Delete slot with id 2.
     slotsPanel.getDeleteButtonForSlot(1).doClick()
     assertThat(slotsPanel.components).hasLength(1)
-    assertThat(editor.isModified()).isTrue()
+    assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
-    settingsEditor.applyTo(runConfiguration)
-    assertThat(editor.isModified()).isFalse()
+    configurationConfigurable.apply()
+    assertThat(configurationConfigurable.isModified).isFalse()
 
     assertThat(runConfiguration.chosenSlots).hasSize(1)
     assertThat(runConfiguration.chosenSlots.single().id).isEqualTo(0)
   }
 
+  @Test
   fun testRestoreComponentName() {
     runConfiguration.componentName = "com.example.MyIconComplication"
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(module)
 
-    settingsEditor.resetFrom(runConfiguration)
+    configurationConfigurable.reset()
     assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyIconComplication")
   }
 
   fun testApkFound() {
-    assertTrue(Files.isRegularFile(Paths.get(runConfiguration.watchFaceInfo.apk)))
+    assertThat(Files.isRegularFile(Paths.get(runConfiguration.watchFaceInfo.apk))).isTrue()
   }
 }
 
