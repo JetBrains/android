@@ -54,7 +54,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
-    assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getOnlineLabel().getIcon());
+    assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getStateLabel().getIcon());
     assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
   }
 
@@ -121,7 +121,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
-    assertNull(renderer.getOnlineLabel().getIcon());
+    assertNull(renderer.getStateLabel().getIcon());
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
   }
 

@@ -52,7 +52,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
-  private final @NotNull JLabel myOnlineLabel;
+  private final @NotNull JLabel myStateLabel;
   private final @NotNull JLabel myLine2Label;
   private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
@@ -68,7 +68,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
-    myOnlineLabel = new JBLabel();
+    myStateLabel = new JBLabel();
     myLine2Label = new JBLabel();
     myPairedLabel = new JBLabel();
 
@@ -82,7 +82,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                   .addGroup(layout.createSequentialGroup()
                               .addComponent(myNameLabel, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                               .addPreferredGap(ComponentPlacement.RELATED)
-                              .addComponent(myOnlineLabel))
+                              .addComponent(myStateLabel))
                   .addComponent(myLine2Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
       .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addComponent(myPairedLabel)
@@ -94,7 +94,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                   .addGroup(layout.createParallelGroup(Alignment.CENTER)
                               .addComponent(myIconLabel)
                               .addComponent(myNameLabel)
-                              .addComponent(myOnlineLabel))
+                              .addComponent(myStateLabel))
                   .addComponent(myLine2Label)
                   .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       .addComponent(myPairedLabel);
@@ -121,8 +121,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myNameLabel.setForeground(foreground);
     myNameLabel.setText(getName(device));
 
-    myOnlineLabel.setForeground(foreground);
-    setIcon(myOnlineLabel, device.isOnline() ? StudioIcons.Avd.STATUS_DECORATOR_ONLINE : null, selected);
+    myStateLabel.setForeground(foreground);
+    setIcon(myStateLabel, getStateIcon(device), selected);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
@@ -181,6 +181,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return device.getName();
   }
 
+  protected @Nullable Icon getStateIcon(@NotNull D device) {
+    return device.isOnline() ? StudioIcons.Avd.STATUS_DECORATOR_ONLINE : null;
+  }
+
   protected @NotNull String getLine2(@NotNull D device) {
     return device.getTarget();
   }
@@ -220,12 +224,12 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   }
 
   @VisibleForTesting
-  final @NotNull JLabel getOnlineLabel() {
-    return myOnlineLabel;
+  public final @NotNull JLabel getStateLabel() {
+    return myStateLabel;
   }
 
   @VisibleForTesting
-  final @NotNull JLabel getLine2Label() {
+  public final @NotNull JLabel getLine2Label() {
     return myLine2Label;
   }
 
