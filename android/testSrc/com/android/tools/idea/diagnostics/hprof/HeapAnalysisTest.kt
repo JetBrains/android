@@ -163,9 +163,11 @@ class HeapAnalysisTest {
     val scenario: HProfBuilder.() -> Unit = {
       addDisposer(this, objectTree)
     }
+/* b/243081723
     object : HProfScenarioRunner(tmpFolder, remapInMemory) {
       override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithDisposerTreeSummaryOnly()
     }.run(scenario, "testDisposerTreeSummarySection.txt", null)
+b/243081723 */
   }
 
   @Test
