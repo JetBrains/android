@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
@@ -173,6 +174,26 @@ abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
         expect.that(packageName).isEqualTo("com.example.multiflavor")
       }
+    }
+  }
+
+  @Test
+  fun allApplicationIds() {
+    prepareGradleProject(TestProjectToSnapshotPaths.MULTI_FLAVOR, "project")
+    openPreparedProject("project") { project ->
+      val appIds = AndroidModel.get(project.gradleModule(":app")!!)?.allApplicationIds.orEmpty()
+      expect.that(appIds).isEqualTo(
+        setOf(
+          "com.example.multiflavor.firstAbc.secondAbc.debug",
+          "com.example.multiflavor.firstAbc.secondXyz.debug",
+          "com.example.multiflavor.secondAbc.debug",
+          "com.example.multiflavor.secondXyz.debug",
+          "com.example.multiflavor.firstAbc.secondAbc.release",
+          "com.example.multiflavor.firstAbc.secondXyz.release",
+          "com.example.multiflavor.secondAbc.release",
+          "com.example.multiflavor.secondXyz.release"
+        )
+      )
     }
   }
 
