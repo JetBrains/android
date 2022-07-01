@@ -34,26 +34,24 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-@RunsInEdt
 class SummaryScreenViewModelTest {
 
   @get:Rule
   val rule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  private lateinit var facet: AndroidFacet
+  private lateinit var viewModel: SummaryScreenViewModel
 
-  private val facet: AndroidFacet
-    get() = rule.module.androidFacet!!
-  private val viewModel: SummaryScreenViewModel by lazy {
-    SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet, getSourceSetsResDirs(facet))
+  @Before
+  fun setUp() {
+    facet = rule.module.androidFacet!!
+    viewModel = SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet, getSourceSetsResDirs(facet))
   }
 
   @Test
@@ -124,20 +122,20 @@ class SummaryScreenViewModelTest {
   @Test
   fun sourceSetSelection() {
     val modulePath = ModuleUtil.getModuleDirPath(facet.module)
-    val viewModel2 = SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet,
-                                            arrayOf(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
+    viewModel = SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet,
+                                       arrayOf(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
                                                SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
                                                SourceSetResDir(File(modulePath, "src/demo/res2"), "demo")))
-    assertThat(viewModel2.selectedResDir).isEqualTo(SourceSetResDir(File(modulePath, "src/main/res"), "main"))
-    assertThat(viewModel2.availableResDirs).asList().containsExactly(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
-                                                                     SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
-                                                                     SourceSetResDir(File(modulePath, "src/demo/res2"), "demo"))
-    viewModel2.selectedResDir = viewModel2.availableResDirs[1]
-    assertThat(viewModel2.fileTreeModel.root.file).isEqualTo(File(modulePath, "src/full/res1"))
+    assertThat(viewModel.selectedResDir).isEqualTo(SourceSetResDir(File(modulePath, "src/main/res"), "main"))
+    assertThat(viewModel.availableResDirs).asList().containsExactly(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
+                                                                    SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
+                                                                    SourceSetResDir(File(modulePath, "src/demo/res2"), "demo"))
+    viewModel.selectedResDir = viewModel.availableResDirs[1]
+    assertThat(viewModel.fileTreeModel.root.file).isEqualTo(File(modulePath, "src/full/res1"))
     val trueFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
-    viewModel2.assetSetsToImport = setOf(ResourceAssetSet("testResource", listOf(DesignAsset(trueFile, listOf(), ResourceType.DRAWABLE))))
+    viewModel.assetSetsToImport = setOf(ResourceAssetSet("testResource", listOf(DesignAsset(trueFile, listOf(), ResourceType.DRAWABLE))))
 
-    viewModel2.doImport()
+    viewModel.doImport()
     assertThat(File(facet.module.project.basePath, "src/full/res1/drawable/testResource.png").exists()).isTrue()
   }
 

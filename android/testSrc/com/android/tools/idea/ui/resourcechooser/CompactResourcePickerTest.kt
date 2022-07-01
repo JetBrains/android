@@ -26,9 +26,7 @@ import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.UIUtil
@@ -38,7 +36,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.ClassRule
-import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComboBox
 import javax.swing.JList
@@ -56,11 +53,7 @@ private const val COLORS_RESOURCE_FILE_CONTENTS =
     <color name="colorForeground">#9067BCFF</color>
 </resources>"""
 
-@RunsInEdt
 class CompactResourcePickerTest {
-
-  @get:Rule
-  val edtRule = EdtRule()
 
   companion object {
     @ClassRule

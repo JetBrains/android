@@ -17,6 +17,9 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
+import com.android.testutils.ignore.IgnoreTestRule;
+import com.android.testutils.ignore.IgnoreWithCondition;
+import com.android.testutils.ignore.OnLinux;
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -33,8 +36,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Consumer
 import org.jetbrains.android.facet.AndroidFacet
@@ -47,14 +48,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@RunsInEdt
 class ResourceImportDialogViewModelTest {
 
   @get:Rule
   val rule = AndroidProjectRule.withAndroidModel()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val ignoreTests = IgnoreTestRule()
 
   @Test
   fun importMoreAssets() {
@@ -133,6 +133,7 @@ class ResourceImportDialogViewModelTest {
     assertNull(viewModel.getValidationInfo())
   }
 
+  @IgnoreWithCondition(reason = "b/235869541", condition = OnLinux::class)
   @Test
   fun fixNameWhenImporting() {
     var validFile: VirtualFile? = null

@@ -13,18 +13,18 @@
 // limitations under the License.
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.testutils.ignore.IgnoreTestRule;
+import com.android.testutils.ignore.IgnoreWithCondition;
+import com.android.testutils.ignore.OnLinux;
 import com.android.tools.idea.ui.resourcemanager.plugin.RasterResourceImporter
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@RunsInEdt
 class ImportersProviderTest {
 
   @Suppress("unused") // Needed to initialize extension points
@@ -32,7 +32,7 @@ class ImportersProviderTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val ignoreTests = IgnoreTestRule()
 
   @Test
   fun extensionPointExists() {
@@ -40,6 +40,7 @@ class ImportersProviderTest {
     assertTrue { ImportersProvider().importers.filterIsInstance<RasterResourceImporter>().any() }
   }
 
+  @IgnoreWithCondition(reason = "b/235869541", condition = OnLinux::class)
   @Test
   fun getSupportedFileTypes() {
     assertTrue(ImportersProvider().getImportersForExtension("png").any { it is RasterResourceImporter })

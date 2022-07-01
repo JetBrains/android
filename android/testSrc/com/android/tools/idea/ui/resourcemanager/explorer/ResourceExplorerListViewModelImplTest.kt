@@ -175,13 +175,13 @@ class ResourceExplorerListViewModelImplTest {
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
     Truth.assertThat(summary).containsEntry("Name", "png")
     Truth.assertThat(summary).containsEntry("Reference", "@drawable/png")
     Truth.assertThat(summary).containsEntry("Type", "PNG")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "png.png")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
   @Test
@@ -194,13 +194,13 @@ class ResourceExplorerListViewModelImplTest {
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.LAYOUT)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
     Truth.assertThat(summary).containsEntry("Name", "data_binding_layout")
     Truth.assertThat(summary).containsEntry("Reference", "@layout/data_binding_layout")
     Truth.assertThat(summary).containsEntry("Type", "Data Binding (TextView)")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "data_binding_layout.xml")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
   @Test
@@ -212,11 +212,11 @@ class ResourceExplorerListViewModelImplTest {
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
     Truth.assertThat(summary).containsEntry("Name", "avatars")
     Truth.assertThat(summary).containsEntry("Reference", "@tools:sample/avatars")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
   @Test
@@ -232,12 +232,12 @@ class ResourceExplorerListViewModelImplTest {
     whenever(resourceResolver.resolveResValue(colorResource.resourceValue)).thenReturn(colorResource.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
     Truth.assertThat(summary).containsEntry("Name", "my_attr")
     Truth.assertThat(summary).containsEntry("Reference", "?attr/my_attr")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "#3F51B5")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
   @Test
