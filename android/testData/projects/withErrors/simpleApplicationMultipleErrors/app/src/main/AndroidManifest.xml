@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="google" >
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".MyActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+      <permission
+          android:description="Insert boring description here"
+          android:icon="@drawable/robot"
+          android:label="Danger, Will Robinson!"
+          android:name="com.example.DangerWillRobinson"
+          android:protectionLevel="" />
+
+      <permission
+          android:name="com.example.WhatWereYouThinking"
+          android:protectionLevel="||" />
+    </application>
+</manifest>

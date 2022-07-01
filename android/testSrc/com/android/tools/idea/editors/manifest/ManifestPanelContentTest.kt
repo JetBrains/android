@@ -76,6 +76,11 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
     testProject(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT)
   }
 
+  @Test
+  fun testProject_withErrors_simpleApplicationMultipleErrors() {
+    testProject(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS)
+  }
+
   private fun testProject(projectPath : String) {
     snapshotDirectoryWorkspaceRelativePath = Paths
       .get(getTestDataDirectoryWorkspaceRelativePath())

@@ -118,6 +118,6 @@ public final class TestProjectPaths {
   public static final String UNUSED_RESOURCES_GROOVY = "projects/unusedResources";
   public static final String UNUSED_RESOURCES_KTS = "projects/unusedResourcesKotlin";
   public static final String UNUSED_RESOURCES_MULTI_MODULE = "projects/unusedResourcesMultiModule";
-
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT = "projects/withErrors/simpleApplicationMissingExport";
+  public static final String WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS = "projects/withErrors/simpleApplicationMultipleErrors";
 }
