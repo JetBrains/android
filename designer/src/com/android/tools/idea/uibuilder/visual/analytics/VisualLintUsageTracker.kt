@@ -15,55 +15,77 @@
  */
 package com.android.tools.idea.uibuilder.visual.analytics
 
-import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
+import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.VisualLintEvent
+import org.jetbrains.android.facet.AndroidFacet
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 interface VisualLintUsageTracker {
-  fun trackIssueCreation(issueType: VisualLintErrorType) {
-    track(issueType, VisualLintEvent.IssueEvent.CREATE_ISSUE)
+  fun trackIssueCreation(issueType: VisualLintErrorType, facet: AndroidFacet) {
+    track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet)
   }
 
-  fun trackIssueExpanded(issue: Issue) {
+  fun trackIssueExpanded(issue: Issue, facet: AndroidFacet) {
     val issueType = when (issue) {
       is VisualLintAtfIssue -> VisualLintErrorType.ATF
       is VisualLintRenderIssue -> issue.type
       else -> null
     }
     if (issueType != null) {
-      track(issueType, VisualLintEvent.IssueEvent.EXPAND_ISSUE)
+      track(VisualLintEvent.IssueEvent.EXPAND_ISSUE, issueType, facet)
     }
   }
 
-  fun trackIssueIgnored(issueType: VisualLintErrorType) {
-    track(issueType, VisualLintEvent.IssueEvent.IGNORE_ISSUE)
+  fun trackIssueIgnored(issueType: VisualLintErrorType, facet: AndroidFacet) {
+    track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet)
   }
 
-  fun track(issueType: VisualLintErrorType, issueEvent: VisualLintEvent.IssueEvent)
+  fun trackBackgroundRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
+    val event = if (enabled) VisualLintEvent.IssueEvent.ENABLE_BACKGROUND_RULE else VisualLintEvent.IssueEvent.DISABLE_BACKGROUND_RULE
+    track(event, issueType, null)
+  }
+
+  fun trackRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
+    val event = if (enabled) VisualLintEvent.IssueEvent.ENABLE_RULE else VisualLintEvent.IssueEvent.DISABLE_RULE
+    track(event, issueType, null)
+  }
+
+  fun trackCancelledBackgroundAnalysis() {
+    track(VisualLintEvent.IssueEvent.CANCEL_BACKGROUND_ANALYSIS, null, null)
+  }
+
+  fun trackClickHyperLink(issueType: VisualLintErrorType) {
+    track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null)
+  }
+
+  fun track(issueEvent: VisualLintEvent.IssueEvent, issueType: VisualLintErrorType?, facet: AndroidFacet?)
 
   companion object {
-    private val MANAGER = DesignerUsageTrackerManager<VisualLintUsageTracker, DesignSurface<*>>(
-      { _, surface, _ -> VisualLintUsageTrackerImpl(surface) }, VisualLintNoOpUsageTracker)
-
-    /**
-     * Gets a shared instance of the tracker.
-     * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker] will be used.
-     */
-    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
+    fun getInstance(): VisualLintUsageTracker {
+      return if (AnalyticsSettings.optedIn)
+        VisualLintUsageTrackerImpl
+      else
+        VisualLintNoOpUsageTracker
+    }
   }
 }
 
-private class VisualLintUsageTrackerImpl(val surface: DesignSurface<*>?) : VisualLintUsageTracker {
+private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
+  private val executorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
-  override fun track(issueType: VisualLintErrorType, issueEvent: VisualLintEvent.IssueEvent) {
+  override fun track(issueEvent: VisualLintEvent.IssueEvent, issueType: VisualLintErrorType?, facet: AndroidFacet?) {
     val metricsIssueType = when (issueType) {
-      // TODO(b/235356116): update after studio_stats.proto is updated
       VisualLintErrorType.BOUNDS -> VisualLintEvent.IssueType.BOUNDS
       VisualLintErrorType.BOTTOM_NAV -> VisualLintEvent.IssueType.BOTTOM_NAV
       VisualLintErrorType.BOTTOM_APP_BAR -> VisualLintEvent.IssueType.BOTTOM_APP_BAR
@@ -71,17 +93,32 @@ private class VisualLintUsageTrackerImpl(val surface: DesignSurface<*>?) : Visua
       VisualLintErrorType.LONG_TEXT -> VisualLintEvent.IssueType.LONG_TEXT
       VisualLintErrorType.ATF -> VisualLintEvent.IssueType.ATF
       VisualLintErrorType.LOCALE_TEXT -> VisualLintEvent.IssueType.LOCALE_TEXT
+      VisualLintErrorType.TEXT_FIELD_SIZE -> VisualLintEvent.IssueType.TEXT_FIELD_SIZE
+      VisualLintErrorType.BUTTON_SIZE -> VisualLintEvent.IssueType.BUTTON_SIZE
+      VisualLintErrorType.WEAR_MARGIN -> VisualLintEvent.IssueType.WEAR_MARGIN
       else ->  VisualLintEvent.IssueType.UNKNOWN_TYPE
     }
-    CommonUsageTracker.getInstance(surface).logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.VISUAL_LINT) {
-      val builder = VisualLintEvent.newBuilder()
-        .setIssueType(metricsIssueType)
-        .setIssueEvent(issueEvent)
-      it.visualLintEvent = builder.build()
+    try {
+      executorService.execute {
+        val visualLintEventBuilder = VisualLintEvent.newBuilder()
+          .setIssueType(metricsIssueType)
+          .setIssueEvent(issueEvent)
+        val layoutEditorEventBuilder = LayoutEditorEvent.newBuilder()
+          .setType(LayoutEditorEvent.LayoutEditorEventType.VISUAL_LINT)
+          .setVisualLintEvent(visualLintEventBuilder.build())
+        val studioEvent = AndroidStudioEvent.newBuilder()
+          .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+          .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+          .setLayoutEditorEvent(layoutEditorEventBuilder.build())
+
+        facet?.let { studioEvent.setApplicationId(it) }
+        UsageTracker.log(studioEvent)
+      }
     }
+    catch (ignore: RejectedExecutionException) { }
   }
 }
 
 private object VisualLintNoOpUsageTracker : VisualLintUsageTracker {
-  override fun track(issueType: VisualLintErrorType, issueEvent: VisualLintEvent.IssueEvent) {}
+  override fun track(issueEvent: VisualLintEvent.IssueEvent, issueType: VisualLintErrorType?, facet: AndroidFacet?) {}
 }

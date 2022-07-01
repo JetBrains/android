@@ -150,9 +150,9 @@ public interface RenderAsyncActionExecutor {
   }
 
   /**
-   * Cancels all pending actions with rendering prioriy lower or equal to minPriority
+   * Cancels all pending actions with rendering priority lower or equal to minPriority, and returns the number of cancelled actions
    */
-  void cancelLowerPriorityActions(@NotNull RenderingPriority minPriority);
+  int cancelLowerPriorityActions(@NotNull RenderingPriority minPriority);
 
   /**
    * Enum representing the priority that the RenderExecutor should apply to running the action.

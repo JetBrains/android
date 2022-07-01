@@ -24,7 +24,6 @@ import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
-import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
@@ -113,7 +112,6 @@ class VisualLintAnalysisTest {
             "Content of text_dashboard &lt;TextView> is partially covered by imageView &lt;ImageView> in 3 preview configurations." +
             "<BR/>This may affect text readability. Fix this issue by adjusting widget positioning.",
             it.description)
-          assertNull(it.hyperlinkListener)
         }
         VisualLintErrorType.BOTTOM_NAV -> {
           assertEquals(3, it.models.size)
@@ -144,7 +142,6 @@ class VisualLintAnalysisTest {
             "ImageView is partially hidden in layout because it is not contained within the bounds of its parent in 2 preview " +
             "configurations.<BR/>Fix this issue by adjusting the size or position of ImageView.",
             it.description)
-          assertNull(it.hyperlinkListener)
         }
         VisualLintErrorType.BUTTON_SIZE -> {
           assertEquals(4, it.models.size)
@@ -153,7 +150,6 @@ class VisualLintAnalysisTest {
             "The button Button is wider than 320dp in 4 preview configurations." +
             "<BR/>Material Design recommends buttons to be no wider than 320dp",
             it.description)
-          assertNull(it.hyperlinkListener)
         }
         VisualLintErrorType.TEXT_FIELD_SIZE -> {
           assertEquals(3, it.models.size)
@@ -162,7 +158,6 @@ class VisualLintAnalysisTest {
             "The text field EditText is wider than 488dp in 3 preview configurations." +
             "<BR/>Material Design recommends text fields to be no wider than 488dp",
             it.description)
-          assertNull(it.hyperlinkListener)
         }
         else -> fail("Unexpected visual lint error")
       }
@@ -204,7 +199,6 @@ class VisualLintAnalysisTest {
     wearIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
       assertEquals(HighlightSeverity.WARNING, it.severity)
-      assertNull(it.hyperlinkListener)
       when (it.components.first().id) {
         "image_view" -> {
           assertEquals(3, it.models.size)
@@ -263,8 +257,7 @@ class VisualLintAnalysisTest {
         task.setDecorations(false)
         try {
           val result = task.render().get()
-          VisualLintService.getInstance(projectRule.project)
-            .analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues(), VisualLintUsageTracker.getInstance(null))
+          VisualLintService.getInstance(projectRule.project).analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues())
         }
         catch (ex: Exception) {
           throw RuntimeException(ex)

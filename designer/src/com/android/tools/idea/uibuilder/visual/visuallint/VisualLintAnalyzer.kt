@@ -22,9 +22,11 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 /**
@@ -37,25 +39,30 @@ abstract class VisualLintAnalyzer {
   /**
    * Analyze the given [RenderResult] for visual lint issues and return found [VisualLintRenderIssue]s
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, tracker: VisualLintUsageTracker,
-              runningInBackground: Boolean): List<VisualLintRenderIssue> {
+  fun analyze(renderResult: RenderResult, model: NlModel, runningInBackground: Boolean): List<VisualLintRenderIssue> {
     if (runningInBackground && !backgroundEnabled) {
       return emptyList()
     }
     val issueContents = findIssues(renderResult, model)
-    return issueContents.map { createIssue(it, model, tracker) }.toList()
+    return issueContents.map { createIssue(it, model) }.toList()
   }
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
 
-  open fun getHyperlinkListener(): HyperlinkListener? = null
+  private fun getHyperlinkListener(): HyperlinkListener {
+    val listener = createDefaultHyperLinkListener()
+    return HyperlinkListener {
+      listener.hyperlinkUpdate(it)
+      if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+        VisualLintUsageTracker.getInstance().trackClickHyperLink(type)
+      }
+    }
+  }
 
   /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
-  private fun createIssue(content: VisualLintIssueContent,
-                          model: NlModel,
-                          tracker: VisualLintUsageTracker): VisualLintRenderIssue {
+  private fun createIssue(content: VisualLintIssueContent, model: NlModel): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
-    tracker.trackIssueCreation(type)
+    VisualLintUsageTracker.getInstance().trackIssueCreation(type, model.facet)
     return VisualLintRenderIssue.builder()
       .summary(content.message)
       .severity(HighlightSeverity.WARNING)

@@ -213,16 +213,19 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       }
   }
 
-  override fun cancelLowerPriorityActions(minPriority: RenderingPriority) {
+  override fun cancelLowerPriorityActions(minPriority: RenderingPriority): Int {
+    var numberOfCancelledActions: Int
     pendingActionsQueueLock.withLock {
       val tasksToCancel = mutableListOf<CompletableFuture<*>>()
       while (pendingActionsQueue.isNotEmpty() && pendingActionsQueue.peek().renderingPriority <= minPriority) {
         tasksToCancel.add(pendingActionsQueue.remove())
       }
+      numberOfCancelledActions = tasksToCancel.size
       tasksToCancel
     }.forEach {
       it.cancel(false)
     }
+    return numberOfCancelledActions
   }
 
   @TestOnly

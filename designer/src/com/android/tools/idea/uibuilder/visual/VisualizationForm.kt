@@ -211,7 +211,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
 
       override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
         if (isExpanded && issue != null) {
-          VisualLintUsageTracker.getInstance(surface).trackIssueExpanded(issue)
+          val facet = surface.models.first().facet
+          VisualLintUsageTracker.getInstance().trackIssueExpanded(issue, facet)
         }
       }
 
@@ -589,8 +590,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
             val result = manager.renderResult
             if (result != null) {
               ApplicationManager.getApplication().executeOnPooledThread {
-                VisualLintService.getInstance(project)
-                  .analyzeAfterModelUpdate(result, model, myBaseConfigIssues, VisualLintUsageTracker.getInstance(surface))
+                VisualLintService.getInstance(project).analyzeAfterModelUpdate(result, model, myBaseConfigIssues)
                 if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
                   updateVisualLintIssues(model.file, myLintIssueProvider)
                 }
