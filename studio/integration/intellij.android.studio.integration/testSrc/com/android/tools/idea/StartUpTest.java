@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea;
 
-import static org.junit.Assert.assertArrayEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.TestFileSystem;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.junit.Rule;
@@ -45,8 +44,7 @@ public class StartUpTest {
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
-      Arrays.sort(plugins);
-      assertArrayEquals(new String[]{
+      assertThat(plugins).asList().containsExactlyElementsIn(new String[]{
         "Android",
         "Android APK Support",
         "Android NDK Support",
@@ -111,7 +109,7 @@ public class StartUpTest {
         "Visual Studio Keymap",
         "WebP Support",
         "YAML",
-      }, plugins);
+      });
 
       install.verify();
     }
