@@ -16,6 +16,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
+import com.intellij.openapi.roots.DependencyScope
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
@@ -80,7 +81,8 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     androidCompilations
       .flatMap { (_, compilation) -> mppModel.findRootOrIntermediateAndroidSourceSets(compilation) }.toSet()
       .forEach { kotlinSourceSet ->
-        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(mppModel, kotlinSourceSet, gradleModule, resolverCtx) ?: return@forEach
+        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(mppModel, kotlinSourceSet, gradleModule, resolverCtx)
+        if (kotlinSourceSetInfo == null) return@forEach
         val gradleSourceSetData = createGradleSourceSetData(kotlinSourceSet, gradleModule, ideModule, resolverCtx)
         val dataNode = ideModule.createChild(GradleSourceSetData.KEY, gradleSourceSetData)
         dataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
@@ -132,16 +134,18 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
-      /* Add dependencies from the android source set to its dependsOn edges */
+      /*
+      Add dependencies for inter project 'dependsOn' edges and *Test -> *Main visibilities (additionalVisibleSourceSets)
+      e.g. androidMain -> jvmAndAndroidMain -> commonMain
+       */
       @Suppress("DEPRECATION")
-      for (dependsOn in kotlinSourceSet.allDependsOnSourceSets) {
+      for (dependsOn in kotlinSourceSet.allDependsOnSourceSets + kotlinSourceSet.additionalVisibleSourceSets) {
         val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
+        val moduleDependencyData = ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
+        moduleDependencyData.scope = if (sourceSetDesc == IdeModuleSourceSet.MAIN) DependencyScope.COMPILE else DependencyScope.TEST
+        moduleDependencyData.isExported = true
         androidGradleSourceSetDataNode.createChild(
-          ProjectKeys.MODULE_DEPENDENCY,
-          ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data).also {
-            // Set up dependencies as exported since when an Android module depends on MPP module it depends on its `main` module only.
-            it.isExported = true
-          }
+          ProjectKeys.MODULE_DEPENDENCY, ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
         )
       }
     }

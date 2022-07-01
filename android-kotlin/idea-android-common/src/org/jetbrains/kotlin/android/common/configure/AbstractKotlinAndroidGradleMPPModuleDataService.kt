@@ -1,40 +1,31 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
+@file:Suppress("DuplicatedCode")
+
 package org.jetbrains.kotlin.android.common.configure
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
-import com.intellij.openapi.externalSystem.service.project.manage.ContentRootDataService.CREATE_EMPTY_DIRECTORIES
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.roots.ModifiableRootModel
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.containers.stream
-import org.jetbrains.jps.model.java.JavaResourceRootType
-import org.jetbrains.jps.model.java.JavaSourceRootType
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetInfo
 import org.jetbrains.kotlin.idea.gradle.configuration.kotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.addModuleDependencyIfNeeded
 import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinSourceSetDataService
-import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
-import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import java.io.IOException
 import java.util.stream.Stream
 
 abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
@@ -42,135 +33,196 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
 
     protected class IndexedModules(val byId: Map<String, DataNode<ModuleData>>, val byIdeName: Map<String, DataNode<ModuleData>>)
 
-    private fun shouldCreateEmptySourceRoots(
-      moduleDataNode: DataNode<out ModuleData>,
-      module: Module
-    ): Boolean {
-        val projectDataNode = ExternalSystemApiUtil.findParent(moduleDataNode, ProjectKeys.PROJECT) ?: return false
-        if (projectDataNode.getUserData(CREATE_EMPTY_DIRECTORIES) == true) return true
-
-        val projectSystemId = projectDataNode.data.owner
-        val externalSystemSettings = ExternalSystemApiUtil.getSettings(module.project, projectSystemId)
-
-        val path = ExternalSystemModulePropertyManager.getInstance(module).getRootProjectPath() ?: return false
-        return externalSystemSettings.getLinkedProjectSettings(path)?.isCreateEmptyContentRootDirectories ?: false
-    }
-
     abstract fun getVariantName(node: DataNode<ModuleData>): String?
 
     override fun postProcess(
-      toImport: Collection<DataNode<ModuleData>>,
+      toImport: MutableCollection<out DataNode<ModuleData>>,
       projectData: ProjectData?,
+      project: Project,
+      modelsProvider: IdeModifiableModelsProvider) {
+        val indexedModulesCache = IndexedModulesCache(modelsProvider)
+        toImport.forEach { gradleModuleDataNode ->
+            val indexedModules = indexedModulesCache[gradleModuleDataNode] ?: return@forEach
+            ExternalSystemApiUtil.findAll(gradleModuleDataNode, GradleSourceSetData.KEY).forEach forEachSourceSet@{ sourceSetDataNode ->
+                val sourceSetModule = modelsProvider.findIdeModule(sourceSetDataNode.data) ?: return@forEachSourceSet
+
+                expandMultiplatformDependenciesToDependsOnSourceSets(
+                  gradleModuleDataNode, sourceSetDataNode, sourceSetModule, project, modelsProvider, indexedModules
+                )
+
+                configureKotlinFacet(
+                  gradleModuleDataNode, sourceSetDataNode, sourceSetModule, project, modelsProvider
+                )
+            }
+        }
+    }
+
+    /**
+     * Android source sets will only declare dependencies between its leaf modules.
+     * e.g. an 'app.main' source set will declare a module dependency to 'lib.main'.
+     * However, if 'lib.main' happens to be a multiplatform project, then all the 'dependsOn' source sets from 'lib.main'
+     * should also be dependencies of 'app.main'.
+     */
+    private fun expandMultiplatformDependenciesToDependsOnSourceSets(
+      gradleModuleDataNode: DataNode<ModuleData>,
+      sourceSetDataNode: DataNode<GradleSourceSetData>,
+      sourceSetModule: Module,
+      project: Project,
+      modelsProvider: IdeModifiableModelsProvider,
+      indexedModules: IndexedModules,
+    ) {
+        val kotlinSourceSetInfo = ExternalSystemApiUtil.find(sourceSetDataNode, KotlinSourceSetData.KEY)?.data?.sourceSetInfo
+
+        /* Do not expand for Kotlin source sets that are not managed by Android */
+        if (kotlinSourceSetInfo != null && kotlinSourceSetInfo.actualPlatforms.platforms.singleOrNull() != KotlinPlatform.ANDROID) {
+            return
+        }
+
+        if (kotlinSourceSetInfo != null) {
+            expandMultiplatformDependenciesToDependsOnSourceSetsWithKotlinSourceSetInfo(
+              gradleModuleDataNode, sourceSetDataNode, sourceSetModule, project, modelsProvider, kotlinSourceSetInfo
+            )
+        }
+        else {
+            expandMultiplatformDependenciesToDependsOnSourceSetsByPlatformHeuristic(
+              gradleModuleDataNode, sourceSetDataNode, sourceSetModule, modelsProvider, indexedModules
+            )
+        }
+    }
+
+    /**
+     * Goes through all module dependencies of the given [sourceSetDataNode].
+     * If a found module dependency happens to be a Kotlin source set with, then we will
+     * find all dependsOn edges, find the corresponding module and add the corresponding module dependency as well.
+     */
+    private fun expandMultiplatformDependenciesToDependsOnSourceSetsWithKotlinSourceSetInfo(
+      gradleModuleDataNode: DataNode<ModuleData>,
+      sourceSetDataNode: DataNode<GradleSourceSetData>,
+      sourceSetModule: Module,
+      project: Project,
+      modelsProvider: IdeModifiableModelsProvider,
+      kotlinSourceSetInfo: KotlinSourceSetInfo
+    ) {
+        val sourceSetRootModel = modelsProvider.getModifiableRootModel(sourceSetModule)
+
+        ExternalSystemApiUtil.findAll(sourceSetDataNode, ProjectKeys.MODULE_DEPENDENCY).forEach forEachDependencyNode@{ dependencyNode ->
+            val dependencyModuleNode = ExternalSystemApiUtil.findModuleNode(
+              project, GradleConstants.SYSTEM_ID, dependencyNode.data.target.linkedExternalProjectPath
+            ) ?: return@forEachDependencyNode
+
+            /* There is no need for expanding intra gradle project source set dependencies. This is handled by the resolver */
+            if (dependencyModuleNode.data == gradleModuleDataNode.data) {
+                return@forEachDependencyNode
+            }
+
+            /* Find the 'GradleSourceSetData' node representing the dependencyNode */
+            val dependencyModuleSourceSets = ExternalSystemApiUtil.findAll(dependencyModuleNode, GradleSourceSetData.KEY)
+            val dependencySourceSetNode = dependencyModuleSourceSets.find { it.data.id == dependencyNode.data.target.id }
+            val dependencyKotlinSourceSetInfo = dependencySourceSetNode?.kotlinSourceSetData?.sourceSetInfo
+            if (dependencyKotlinSourceSetInfo == null) return@forEachDependencyNode
+
+            /* Expand the dependency and also add all its dependsOn (and additionalVisible) source sets as dependencies as well */
+            (dependencyKotlinSourceSetInfo.dependsOn + dependencyKotlinSourceSetInfo.additionalVisible).toSet()
+              .forEach forEachSourceSet@{ dependsOnPath ->
+                  val dependsOnSourceSetNode = dependencyModuleSourceSets.find { it.data.id == dependsOnPath } ?: return@forEachSourceSet
+                  val dependsOnModule = modelsProvider.findIdeModule(dependsOnSourceSetNode.data) ?: return@forEachSourceSet
+                  addModuleDependencyIfNeeded(sourceSetRootModel, dependsOnModule, kotlinSourceSetInfo.isTestModule, false)
+              }
+        }
+    }
+
+    /**
+     * Goes through all module dependencies of the given [sourceSetDataNode], but using [getDependencyModuleNodes] instead
+     * of trying to find module dependencies in the data node tree.
+     *
+     * The [getDependencyModuleNodes] method however, will only return module nodes to the Gradle projects module
+     * (not individual source sets). We therefore cannot construct the dependsOn graph, since the leaf (starting point) is unknown.
+     *
+     * The following heuristic is performed:
+     * We assume, that all source sets with the platform 'common' or 'android' will be in the dependsOn graph.
+     * We also assume that source sets with 'jvm' platforms are okay, as long as the dependency module in question
+     * is not an Android module (then only Android is okay).
+     */
+    private fun expandMultiplatformDependenciesToDependsOnSourceSetsByPlatformHeuristic(
+      gradleModuleDataNode: DataNode<ModuleData>,
+      sourceSetDataNode: DataNode<GradleSourceSetData>,
+      sourceSetModule: Module,
+      modelsProvider: IdeModifiableModelsProvider,
+      indexedModules: IndexedModules,
+    ) {
+        val sourceSetRootModel = modelsProvider.getModifiableRootModel(sourceSetModule)
+
+        getDependencyModuleNodes(
+          gradleModuleDataNode, sourceSetDataNode, indexedModules, modelsProvider
+        ).flatMap { dependencyModuleNode ->
+            /* Find all source sets in this parent 'dependencyModuleNode'
+             */
+            ExternalSystemApiUtil.findAll(dependencyModuleNode, GradleSourceSetData.KEY)
+              .mapNotNull { sourceSetDataNode ->
+                  sourceSetDataNode to (sourceSetDataNode.kotlinSourceSetData?.sourceSetInfo ?: return@mapNotNull null)
+              }
+              /* Test modules are not relevant in this heuristic, since they are not published */
+              .filter { (_, sourceSetInfo) -> !sourceSetInfo.isTestModule }
+              .filter { (_, sourceSetInfo) ->
+                  val platforms = sourceSetInfo.actualPlatforms.platforms.toSet()
+                  platforms.contains(KotlinPlatform.COMMON) || platforms.contains(KotlinPlatform.ANDROID) ||
+                  (platforms.contains(KotlinPlatform.JVM) && !isAndroidModule(dependencyModuleNode))
+              }
+              .map { (node, _) -> node }
+        }.toSet()
+
+          /* Add dependencies to all source sets that pass the heuristic */
+          .forEach { dependencySourceSetNode ->
+              val dependencySourceSetModule = modelsProvider.findIdeModule(dependencySourceSetNode.data) ?: return@forEach
+              addModuleDependencyIfNeeded(
+                sourceSetRootModel, dependencySourceSetModule,
+                testScope = sourceSetDataNode.data.moduleName.contains("test", ignoreCase = true), false)
+          }
+    }
+
+    private fun configureKotlinFacet(
+      gradleModuleDataNode: DataNode<ModuleData>,
+      sourceSetDataNode: DataNode<GradleSourceSetData>,
+      sourceSetModule: Module,
       project: Project,
       modelsProvider: IdeModifiableModelsProvider
     ) {
-        val projectIndexedModules = mutableMapOf<DataNode<ProjectData>, IndexedModules>()
-        for (nodeToImport in toImport) {
-            val projectNode = ExternalSystemApiUtil.findParent(nodeToImport, ProjectKeys.PROJECT) ?: continue
-            val indexedModules = projectIndexedModules.getOrPut(projectNode) {
-                val moduleNodes = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE)
+        val kotlinSourceSetInfo = ExternalSystemApiUtil.find(sourceSetDataNode, KotlinSourceSetData.KEY)?.data?.sourceSetInfo ?: return
+
+        KotlinSourceSetDataService.configureFacet(
+          sourceSetDataNode.data, kotlinSourceSetInfo, gradleModuleDataNode, sourceSetModule, modelsProvider
+        )
+
+        val kotlinFacet = KotlinFacet.get(sourceSetModule)
+        if (kotlinFacet != null) {
+            GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, gradleModuleDataNode) }
+        }
+    }
+
+    private class IndexedModulesCache(
+      private val modelsProvider: IdeModifiableModelsProvider
+    ) {
+        private val indexByProject = mutableMapOf<ProjectData, IndexedModules>()
+
+        operator fun get(moduleNode: DataNode<out ModuleData>): IndexedModules? {
+            val projectDataNode = ExternalSystemApiUtil.findParent(moduleNode, ProjectKeys.PROJECT) ?: return null
+
+            return indexByProject.getOrPut(projectDataNode.data) {
+                val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
                 IndexedModules(
                   byId = moduleNodes.associateBy { it.data.id },
                   byIdeName = moduleNodes.mapNotNull { node -> modelsProvider.findIdeModule(node.data)?.let { it.name to node } }.toMap()
                 )
             }
-            val kotlinGradleSourceSetDataNodes = ExternalSystemApiUtil.findAll(nodeToImport, GradleSourceSetData.KEY)
-            val nodesWithKotlinSourceSetInfoNodes = kotlinGradleSourceSetDataNodes
-              .map { it to ExternalSystemApiUtil.find(it, KotlinSourceSetData.KEY) }
-
-            // Determine MPP modules with only Android target (leaf android source sets
-            // or common source set in case of HMPP and single Android target
-            val mppNodesWithKotlinSourceSetInfoNodes = nodesWithKotlinSourceSetInfoNodes.mapNotNull { (gradleSourceSet, kotlinSourceSet) ->
-                kotlinSourceSet?.data?.sourceSetInfo?.let { info -> gradleSourceSet to info }
-            }.filter { it.second.actualPlatforms.singleOrNull() == KotlinPlatform.ANDROID }
-              .toMap()
-
-            // Heuristic approach to determine Android GradleSourceSetData nodes,
-            // created by AndroidGradleProjectResolver.createAndAttachModelsToDataNode
-            val androidNodesWithKotlinSourceSetInfoNodes: Map<DataNode<GradleSourceSetData>, KotlinSourceSetInfo?> = nodesWithKotlinSourceSetInfoNodes
-              .mapNotNull { (gradleSourceSet, kotlinSourceSet) ->
-                  val isKotlinGradleSourceSet = ExternalSystemApiUtil.findAll(gradleSourceSet, KotlinGradleSourceSetData.KEY).isNotEmpty()
-                  if (kotlinSourceSet?.data?.sourceSetInfo == null && !isKotlinGradleSourceSet) gradleSourceSet to kotlinSourceSet?.data?.sourceSetInfo
-                  else null
-              }.toMap()
-            // Logic above could be replaced with more straightforward approach when necessary dependencies are added:
-            // ExternalSystemApiUtil.find(nodeToImport, AndroidProjectKeys.ANDROID_MODEL) - to find model with info about variant
-            // AndroidGradleProjectResolver.computeModuleIdForArtifact - to calculate moduleId for main, androidTest, unitTest
-            // Match modules from `ExternalSystemApiUtil.findAll(nodeToImport, GradleSourceSetData.KEY)` by ids from line above
-
-            for ((dataNode, sourceSetInfo) in mppNodesWithKotlinSourceSetInfoNodes + androidNodesWithKotlinSourceSetInfoNodes) {
-                val moduleData = dataNode.data
-                val module = modelsProvider.findIdeModule(moduleData) ?: continue
-                val shouldCreateEmptySourceRoots = shouldCreateEmptySourceRoots(dataNode, module)
-                val rootModel = modelsProvider.getModifiableRootModel(module)
-
-                val compilation = sourceSetInfo?.kotlinComponent as? KotlinCompilation
-                for (sourceSet in compilation?.allSourceSets.orEmpty()) {
-                    if (sourceSet.actualPlatforms.platforms.singleOrNull() == KotlinPlatform.ANDROID) {
-                        val sourceType = if (sourceSet.isTestComponent) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
-                        val resourceType = if (sourceSet.isTestComponent) JavaResourceRootType.TEST_RESOURCE else JavaResourceRootType.RESOURCE
-                        sourceSet.sourceDirs.forEach { addSourceRoot(it, sourceType, rootModel, shouldCreateEmptySourceRoots) }
-                        sourceSet.resourceDirs.forEach { addSourceRoot(it, resourceType, rootModel, shouldCreateEmptySourceRoots) }
-                    }
-                }
-                addExtraDependencyModules(nodeToImport, indexedModules, modelsProvider, rootModel, false)
-                addExtraDependencyModules(nodeToImport, indexedModules, modelsProvider, rootModel, true)
-
-                if (sourceSetInfo == null) {
-                    continue
-                }
-
-                KotlinSourceSetDataService.configureFacet(moduleData, sourceSetInfo, nodeToImport, module, modelsProvider)
-                val kotlinFacet = KotlinFacet.get(module)
-                if (kotlinFacet != null) {
-                    GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, nodeToImport) }
-                }
-            }
         }
-    }
-
-    private fun isRootOrIntermediateSourceSet(sourceSets: Iterable<KotlinSourceSet>, sourceSet: KotlinSourceSet): Boolean {
-        return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.allDependsOnSourceSets } ||
-               /**
-                * TODO Sebastian Sellmair
-                *  Currently default `dependsOn` edges are not correct for android source sets:
-                *  Android source sets are not declaring `dependsOn("commonMain")` by default
-                */
-               sourceSet.actualPlatforms.platforms.singleOrNull() != KotlinPlatform.ANDROID
     }
 
     protected abstract fun getDependencyModuleNodes(
       moduleNode: DataNode<ModuleData>,
+      sourceSetDataNode: DataNode<GradleSourceSetData>,
       indexedModules: IndexedModules,
       modelsProvider: IdeModifiableModelsProvider,
-      testScope: Boolean
     ): List<DataNode<out ModuleData>>
-
-    private fun addExtraDependencyModules(
-      moduleNode: DataNode<ModuleData>,
-      indexedModules: IndexedModules,
-      modelsProvider: IdeModifiableModelsProvider,
-      rootModel: ModifiableRootModel,
-      testScope: Boolean
-    ) {
-        if (!isAndroidModule(moduleNode)) return
-        val dependencyModuleNodes = getDependencyModuleNodes(moduleNode, indexedModules, modelsProvider, testScope)
-        for (dependencyModule in dependencyModuleNodes) {
-            val dependencySourceSets = ExternalSystemApiUtil.getChildren(dependencyModule, GradleSourceSetData.KEY)
-              .filter { sourceSet -> sourceSet.kotlinSourceSetData?.sourceSetInfo?.kotlinComponent?.isTestComponent == false }
-              .filter {
-                  it.kotlinSourceSetData?.sourceSetInfo?.actualPlatforms?.platforms?.let { platforms ->
-                      platforms.contains(KotlinPlatform.COMMON) || platforms.contains(KotlinPlatform.ANDROID) ||
-                      platforms.contains(KotlinPlatform.JVM) && !isAndroidModule(dependencyModule)
-                  } ?: false
-              }
-
-            for (dependencySourceSet in dependencySourceSets) {
-                val dependencyIdeModule = modelsProvider.findIdeModule(dependencySourceSet.data) ?: return
-                addModuleDependencyIfNeeded(rootModel, dependencyIdeModule, testScope, false)
-            }
-        }
-    }
 
     abstract fun isAndroidModule(node: DataNode<out ModuleData>): Boolean
 
@@ -178,28 +230,8 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
 
     abstract fun pathToIdeaUrl(path: File): String
 
-    private fun addSourceRoot(
-      sourceRoot: File,
-      type: JpsModuleSourceRootType<*>,
-      rootModel: ModifiableRootModel,
-      shouldCreateEmptySourceRoots: Boolean
-    ) {
-        val parent = findParentContentEntry(sourceRoot, rootModel.contentEntries.stream()) ?: return
-        val url = pathToIdeaUrl(sourceRoot)
-        parent.addSourceFolder(url, type)
-        if (shouldCreateEmptySourceRoots) {
-            ExternalSystemApiUtil.doWriteAction {
-                try {
-                    VfsUtil.createDirectoryIfMissing(sourceRoot.path)
-                }
-                catch (e: IOException) {
-                    LOG.warn(String.format("Unable to create directory for the path: %s", sourceRoot.path), e)
-                }
-            }
-        }
-    }
-
     companion object {
         private val LOG = Logger.getInstance(AbstractKotlinAndroidGradleMPPModuleDataService::class.java)
     }
 }
+
