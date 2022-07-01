@@ -60,6 +60,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValueProvider.Result;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.graph.Graph;
 import java.io.File;
@@ -333,7 +334,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         GradleAndroidModel model = (GradleAndroidModel)androidModel;
         String variantName = model.getSelectedVariantName();
 
-        LintModelModule lintModel = getLintModuleModel(facet, model, dir, shallowModel);
+        LintModelModule lintModel = getLintModuleModel(facet, shallowModel);
         LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);
@@ -356,14 +357,22 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   @NotNull
-  private static LintModelModule getLintModuleModel(AndroidFacet facet, @NotNull GradleAndroidModel model, File dir, boolean shallowModel) {
+  private static LintModelModule getLintModuleModel(AndroidFacet facet, boolean shallowModel) {
     final var project = facet.getModule().getProject();
     final var cacheValueManager = CachedValuesManager.getManager(project);
-    return cacheValueManager.getCachedValue(facet, () -> {
-      IdeAndroidProject builderModelProject = model.getAndroidProject();
-      LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
-      return CachedValueProvider.Result.create(module, ProjectSyncModificationTracker.getInstance(project));
-    });
+    return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, shallowModel));
+  }
+
+  @NotNull
+  private static Result<LintModelModule> buildModuleModel(AndroidFacet facet, boolean shallowModel) {
+    GradleAndroidModel model = GradleAndroidModel.get(facet);
+    if (model == null) throw new IllegalStateException("GradleAndroidModel not available for " + facet);
+    IdeAndroidProject builderModelProject = model.getAndroidProject();
+    String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(facet.getModule());
+    if (externalProjectPath == null) throw new IllegalStateException("No external project path for " + facet.getModule());
+    File dir = new File(externalProjectPath);
+    LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
+    return Result.create(module, ProjectSyncModificationTracker.getInstance(facet.getModule().getProject()));
   }
 
   /**
