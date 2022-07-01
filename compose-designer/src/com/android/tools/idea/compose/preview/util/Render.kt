@@ -17,14 +17,10 @@ package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.scene.render
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
-import com.android.tools.idea.uibuilder.scene.executeInRenderSession
-import com.intellij.openapi.diagnostic.Logger
-
 
 /**
  * Extension implementing some heuristics to detect Compose rendering errors. This allows to identify render
@@ -56,38 +52,5 @@ internal suspend fun LayoutlibSceneManager.requestComposeRender() {
   if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
     executeCallbacks()
     render()
-  }
-}
-
-/**
- * Uses the `androidx.compose.runtime.HotReloader` in the Compose runtime mechanism to force a recomposition.
- * This action will run in the render thread so this method returns immediately with a future that will complete when the
- * invalidation has completed.
- * If [forceLayout] is true, a `View#requestLayout` will be sent to the `ComposeViewAdapter` to force a relayout of the whole view.
- */
-internal suspend fun LayoutlibSceneManager.invalidateCompositions(forceLayout: Boolean) {
-  executeInRenderSession {
-    val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSession
-    try {
-      val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
-      val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
-        it.isAccessible = true
-        it.get(null)
-      }
-      val saveStateAndDisposeMethod = hotReloaderInstance.javaClass.getDeclaredMethod("saveStateAndDispose", Any::class.java).also {
-        it.isAccessible = true
-      }
-      val loadStateAndCompose = hotReloaderInstance.javaClass.getDeclaredMethod("loadStateAndCompose", Any::class.java).also {
-        it.isAccessible = true
-      }
-      val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
-      loadStateAndCompose.invoke(hotReloaderInstance, state)
-      if (forceLayout) {
-        composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
-      }
-    }
-    catch (t: Throwable) {
-      Logger.getInstance(RenderResult::class.java).warn(t)
-    }
   }
 }
