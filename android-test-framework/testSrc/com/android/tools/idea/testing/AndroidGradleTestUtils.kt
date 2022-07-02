@@ -1408,11 +1408,11 @@ private fun <T> openPreparedProject(
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       val project = ProjectUtil.openOrImport(
         projectPath.toPath(),
-        OpenProjectTask(
-          projectToClose = null,
-          forceOpenInNewFrame = true,
+        OpenProjectTask {
+          projectToClose = null
+          forceOpenInNewFrame = true
           beforeInit = { project -> injectBuildOutputDumpingBuildViewManager(project, project) }
-        )
+        }
       )!!
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)
