@@ -16,6 +16,7 @@
 package com.android.tools.idea.annotations
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.AccessToken
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.DumbService
@@ -86,7 +87,7 @@ class TestDumbService(
 
   override fun suspendIndexingAndRun(activityName: String, activity: Runnable) {}
 
-  override fun runWithWaitForSmartModeDisabled(runnable: Runnable) {}
+  override fun runWithWaitForSmartModeDisabled(): AccessToken = error("Not implemented")
 
   override fun unsafeRunWhenSmart(runnable: Runnable) {}
 }
