@@ -102,11 +102,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           runConversionBeforeOpen = true,
           projectWorkspaceId = null,
           isProjectCreatedWithWizard = false,
-          beforeInit = null,
-          // Note that `beforeOpen` does not work with already created projects (i.e. project = newProject) and thus it cannot be used
-          // to replace `beforeOpen(project)` inside `createProject` method.
-          beforeOpen = null,
-          preparedToOpen = null
         )
       )
     }
