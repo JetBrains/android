@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -95,7 +96,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
       return false // stop sync.
     }
 
-    @WorkerThread
+    @UiThread
     private fun sync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
       UIUtil.invokeAndWaitIfNeeded(Runnable { GradleSyncMessages.getInstance(project).removeAllMessages() })
       GradleSyncExecutor(project).sync(request, listener)

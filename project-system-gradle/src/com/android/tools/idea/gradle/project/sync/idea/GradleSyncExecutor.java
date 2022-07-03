@@ -32,6 +32,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
@@ -98,7 +99,7 @@ public class GradleSyncExecutor {
     myProject = project;
   }
 
-  @WorkerThread
+  @UiThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
       if (myProject.getUserData(SKIPPED_SYNC) != null) throw new IllegalStateException("Skipped sync request already present");
