@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.findParentOfType
 import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlFile
@@ -42,7 +43,6 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
 
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
   override fun deleteDslElement(element: GradleDslElement): Unit = Unit
-  override fun deleteDslLiteral(literal: GradleDslLiteral): Unit = Unit
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
@@ -114,6 +114,18 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     literal.setExpression(element)
     literal.reset()
     literal.commit()
+  }
+
+  override fun deleteDslLiteral(literal: GradleDslLiteral) {
+    val psiElement = literal.psiElement ?: return
+    val parent = literal.parent ?: return
+    val parentPsi = ensureParentPsi(literal)
+    when (parent) {
+      is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+      is GradleDslExpressionMap -> when (parentPsi) {
+        is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+      }
+    }
   }
 
   private fun ensureParentPsi(element: GradleDslElement) = element.parent?.create()
