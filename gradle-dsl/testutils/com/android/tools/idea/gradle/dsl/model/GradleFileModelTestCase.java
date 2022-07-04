@@ -463,6 +463,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, myTestDataExtension)));
   }
 
+  protected void verifyVersionCatalogFileContents(@NotNull VirtualFile file, @NotNull String expected) throws IOException {
+    verifyFileContents(file, expected);
+  }
+
   protected void verifyVersionCatalogFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
     verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, "")));
   }
