@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
+import android.widget.ScrollView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
@@ -22,6 +23,14 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
+
+private val scrollViewInterfaces = setOf(
+  "com.android.internal.widget.ScrollingView",
+  "androidx.core.view.ScrollingView",
+  "androidx.core.view.NestedScrollingParent",
+  "androidx.core.view.NestedScrollingParent2",
+  "androidx.core.view.NestedScrollingParent3",
+)
 
 /**
  * [VisualLintAnalyzer] for issues where a child view is not fully contained within
@@ -74,8 +83,11 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
   }
 
   private fun isScrollingView(view: ViewInfo): Boolean {
+    if (view.viewObject is ScrollView) {
+      return true
+    }
     return view.viewObject.javaClass.interfaces.any {
-      it.name == "androidx.core.view.ScrollingView" || it.name == "com.android.internal.widget.ScrollingView"
+      it.name in scrollViewInterfaces
     }
   }
 }
