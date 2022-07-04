@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
-import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
@@ -31,6 +30,8 @@ import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResult
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.sdk.IdeSdks
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.BuildProgressListener
@@ -99,6 +100,18 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncStateHolder = project.getService(GradleSyncStateHolder::class.java)
+
+    @VisibleForTesting
+    const val MESSAGE_MULTIPLE_GRADLE_DAEMONS = """
+       Multiple Gradle daemons might be spawned because the Gradle JDK and JAVA_HOME locations are different.
+       Project %s is using the following JDK location when running Gradle:
+       %s
+       The system environment variable JAVA_HOME is:
+       %s
+       If you don’t need to use different paths (or if JAVA_HOME is undefined), you
+       can avoid spawning multiple daemons by setting JAVA_HOME and the JDK location
+       to the same path.
+    """
   }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
@@ -285,22 +298,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     if (gradleInstallation.isUsingJavaHomeJdk(project)) {
       return
     }
-    val namePrefix = "Project ${project.name}"
-    val jdkPath: String? = gradleInstallation.getGradleJvmPath(project, project.basePath!!)
-
-
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
     if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
-    val message = """
-      $namePrefix is using the following JDK location when running Gradle:
-      $jdkPath
-      Using different JDK locations on different processes might cause Gradle to
-      spawn multiple daemons, for example, by executing Gradle tasks from a terminal
-      while using Android Studio.
-    """.trimIndent()
+    val message = String.format(MESSAGE_MULTIPLE_GRADLE_DAEMONS,
+      project.name,
+      gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()),
+      IdeSdks.getJdkFromJavaHome() ?: "Undefined"
+    ).trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
 

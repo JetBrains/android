@@ -48,7 +48,7 @@ public class SelectJdkFromFileSystemHyperlink extends SyncIssueNotificationHyper
   }
 
   private SelectJdkFromFileSystemHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-    super("select.jdk", "Select a JDK", AndroidStudioEvent.GradleSyncQuickFix.SELECT_JDK_FROM_FILE_SYSTEM_HYPERLINK);
+    super("select.jdk", "Select the Gradle JDK location", AndroidStudioEvent.GradleSyncQuickFix.SELECT_JDK_FROM_FILE_SYSTEM_HYPERLINK);
     mySettingsService = settingsService;
   }
 
