@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
@@ -118,6 +119,50 @@ class TomlDslChangerTest : PlatformTestCase() {
       foo = { one = "one", two = "two" }
     """.trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("three") }
+  }
+
+  @Test
+  fun testDeleteSingleLiteralInArray() {
+    val toml = """
+      foo = ["bar"]
+    """.trimIndent()
+    val expected = """
+      foo = []
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
+  }
+
+  @Test
+  fun testDeleteFirstLiteralInArray() {
+    val toml = """
+      foo = ["one", "two", "three"]
+    """.trimIndent()
+    val expected = """
+      foo = ["two", "three"]
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
+  }
+
+  @Test
+  fun testDeleteMiddleLiteralInArray() {
+    val toml = """
+      foo = ["one", "two", "three"]
+    """.trimIndent()
+    val expected = """
+      foo = ["one", "three"]
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(1)) } }
+  }
+
+  @Test
+  fun testDeleteLastLiteralInArray() {
+    val toml = """
+      foo = ["one", "two", "three"]
+    """.trimIndent()
+    val expected = """
+      foo = ["one", "two"]
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(2)) } }
   }
 
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {

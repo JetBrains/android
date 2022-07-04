@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -30,15 +29,16 @@ import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.siblings
 import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlElementTypes.COMMA
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlTable
 
@@ -128,27 +128,10 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
       is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
       is GradleDslExpressionMap -> when (parentPsi) {
         is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
-        is TomlInlineTable -> {
-          fun TomlKeyValue?.deleteToComma(forward: Boolean = true) {
-            this?.run {
-              var seenComma = false
-              siblings(forward = forward, withSelf = true)
-                .takeWhile { sib -> !seenComma.also { if (sib is LeafPsiElement && sib.elementType == COMMA) seenComma = true } }
-                .toList()
-                .forEach { if (it !is PsiWhiteSpace) it.delete() }
-            }
-          }
-          val tableElements = parent.originalElements
-          val position = tableElements.indexOf(literal).also { if(it < 0) return }
-          val size = tableElements.size
-          val keyValue = psiElement.findParentOfType<TomlKeyValue>()
-          when {
-            size == 0 -> return // should not happen
-            size == 1 -> keyValue?.delete()
-            position == size - 1 -> keyValue.deleteToComma(forward = false)
-            else -> keyValue.deleteToComma(forward = true)
-          }
-        }
+        is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(literal, psiElement, parent)
+      }
+      is GradleDslExpressionList -> when (parentPsi) {
+        is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(literal, psiElement, parent)
       }
     }
   }
@@ -163,5 +146,32 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
       anchor = anchor.parent
     }
     return anchor ?: parent
+  }
+
+  private inline fun <T : GradlePropertiesDslElement, reified P : TomlElement> deletePsiParentOfTypeFromDslParent(
+    literal: GradleDslLiteral,
+    psiElement: PsiElement,
+    parent: T
+  ) {
+    val parentElements = parent.originalElements
+    val position = parentElements.indexOf(literal).also { if(it < 0) return }
+    val size = parentElements.size
+    val tomlLiteral = psiElement.findParentOfType<P>(strict = false)
+    when {
+      size == 0 -> return // should not happen
+      size == 1 -> tomlLiteral?.delete()
+      position == size - 1 -> tomlLiteral.deleteToComma(forward = false)
+      else -> tomlLiteral.deleteToComma(forward = true)
+    }
+  }
+
+  private fun TomlElement?.deleteToComma(forward: Boolean = true) {
+    this?.run {
+      var seenComma = false
+      siblings(forward = forward, withSelf = true)
+        .takeWhile { sib -> !seenComma.also { if (sib is LeafPsiElement && sib.elementType == COMMA) seenComma = true } }
+        .toList()
+        .forEach { if (it !is PsiWhiteSpace) it.delete() }
+    }
   }
 }
