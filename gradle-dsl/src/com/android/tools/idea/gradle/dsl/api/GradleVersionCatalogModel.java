@@ -18,6 +18,10 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 
 public interface GradleVersionCatalogModel extends GradleFileModel {
-  // TODO(b/200280395): obviously this shouldn't be an ExtModel.  Extract the things that PsVariables needs as its own interface.
+  // TODO(b/200280395): these might not make sense as ExtModels, though that is the closest thing we currently have (an
+  //  arbitrary-sized collection of arbitrary named Dsl values).  The ExtModel for versions in particular might be doing double
+  //  duty in order to support exposing its contents as PsVariables.
+  ExtModel libraries();
+
   ExtModel versions();
 }

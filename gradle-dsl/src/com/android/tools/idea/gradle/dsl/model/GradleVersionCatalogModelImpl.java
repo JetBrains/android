@@ -30,6 +30,14 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   }
 
   @Override
+  public @NotNull ExtModel libraries() {
+    GradleDslExpressionMap librariesDslElement = myGradleDslFile.ensurePropertyElement(
+      new PropertiesElementDescription<>("libraries", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
+    );
+    return new ExtModelImpl(librariesDslElement);
+  }
+
+  @Override
   public @NotNull ExtModel versions() {
     GradleDslExpressionMap versionsDslElement = myGradleDslFile.ensurePropertyElementAt(
       new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new), 0);
