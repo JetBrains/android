@@ -63,7 +63,7 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
      * However, if 'lib.main' happens to be a multiplatform project, then all the 'dependsOn' source sets from 'lib.main'
      * should also be dependencies of 'app.main'.
      */
-    private fun expandMultiplatformDependenciesToDependsOnSourceSets(
+    protected open fun expandMultiplatformDependenciesToDependsOnSourceSets(
       gradleModuleDataNode: DataNode<ModuleData>,
       sourceSetDataNode: DataNode<GradleSourceSetData>,
       sourceSetModule: Module,
@@ -78,22 +78,26 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
             return
         }
 
-        if (kotlinSourceSetInfo != null) {
+        /* Fist step: Try to process expansion properly by looking into kotlin source set info's dependsOn */
+        val processedModulesWithKotlinSourceSetInfo = if (kotlinSourceSetInfo != null) {
             expandMultiplatformDependenciesToDependsOnSourceSetsWithKotlinSourceSetInfo(
               gradleModuleDataNode, sourceSetDataNode, sourceSetModule, project, modelsProvider, kotlinSourceSetInfo
             )
-        }
-        else {
-            expandMultiplatformDependenciesToDependsOnSourceSetsByPlatformHeuristic(
-              gradleModuleDataNode, sourceSetDataNode, sourceSetModule, modelsProvider, indexedModules
-            )
-        }
+        } else emptySet()
+
+
+        /* Second step: expand remaining module dependencies heuristically */
+        expandMultiplatformDependenciesToDependsOnSourceSetsByPlatformHeuristic(
+          gradleModuleDataNode, sourceSetDataNode, sourceSetModule, modelsProvider, indexedModules, processedModulesWithKotlinSourceSetInfo
+        )
     }
 
     /**
      * Goes through all module dependencies of the given [sourceSetDataNode].
      * If a found module dependency happens to be a Kotlin source set with, then we will
      * find all dependsOn edges, find the corresponding module and add the corresponding module dependency as well.
+     *
+     * @return All processed gradle modules
      */
     private fun expandMultiplatformDependenciesToDependsOnSourceSetsWithKotlinSourceSetInfo(
       gradleModuleDataNode: DataNode<ModuleData>,
@@ -102,24 +106,24 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
       project: Project,
       modelsProvider: IdeModifiableModelsProvider,
       kotlinSourceSetInfo: KotlinSourceSetInfo
-    ) {
+    ) : Set<ModuleData> {
         val sourceSetRootModel = modelsProvider.getModifiableRootModel(sourceSetModule)
 
-        ExternalSystemApiUtil.findAll(sourceSetDataNode, ProjectKeys.MODULE_DEPENDENCY).forEach forEachDependencyNode@{ dependencyNode ->
+        return ExternalSystemApiUtil.findAll(sourceSetDataNode, ProjectKeys.MODULE_DEPENDENCY).mapNotNull { dependencyNode ->
             val dependencyModuleNode = ExternalSystemApiUtil.findModuleNode(
               project, GradleConstants.SYSTEM_ID, dependencyNode.data.target.linkedExternalProjectPath
-            ) ?: return@forEachDependencyNode
+            ) ?: return@mapNotNull null
 
             /* There is no need for expanding intra gradle project source set dependencies. This is handled by the resolver */
             if (dependencyModuleNode.data == gradleModuleDataNode.data) {
-                return@forEachDependencyNode
+                return@mapNotNull null
             }
 
             /* Find the 'GradleSourceSetData' node representing the dependencyNode */
             val dependencyModuleSourceSets = ExternalSystemApiUtil.findAll(dependencyModuleNode, GradleSourceSetData.KEY)
             val dependencySourceSetNode = dependencyModuleSourceSets.find { it.data.id == dependencyNode.data.target.id }
             val dependencyKotlinSourceSetInfo = dependencySourceSetNode?.kotlinSourceSetData?.sourceSetInfo
-            if (dependencyKotlinSourceSetInfo == null) return@forEachDependencyNode
+            if (dependencyKotlinSourceSetInfo == null) return@mapNotNull dependencyModuleNode.data
 
             /* Expand the dependency and also add all its dependsOn (and additionalVisible) source sets as dependencies as well */
             (dependencyKotlinSourceSetInfo.dependsOn + dependencyKotlinSourceSetInfo.additionalVisible).toSet()
@@ -128,7 +132,9 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
                   val dependsOnModule = modelsProvider.findIdeModule(dependsOnSourceSetNode.data) ?: return@forEachSourceSet
                   addModuleDependencyIfNeeded(sourceSetRootModel, dependsOnModule, kotlinSourceSetInfo.isTestModule, false)
               }
-        }
+
+            dependencyModuleNode.data
+        }.toSet()
     }
 
     /**
@@ -149,12 +155,14 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
       sourceSetModule: Module,
       modelsProvider: IdeModifiableModelsProvider,
       indexedModules: IndexedModules,
+      alreadyProcessedModules: Set<ModuleData>
     ) {
         val sourceSetRootModel = modelsProvider.getModifiableRootModel(sourceSetModule)
 
         getDependencyModuleNodes(
           gradleModuleDataNode, sourceSetDataNode, indexedModules, modelsProvider
-        ).flatMap { dependencyModuleNode ->
+        ).filter { dependencyModuleNode -> dependencyModuleNode.data !in alreadyProcessedModules }
+          .flatMap { dependencyModuleNode ->
             /* Find all source sets in this parent 'dependencyModuleNode'
              */
             ExternalSystemApiUtil.findAll(dependencyModuleNode, GradleSourceSetData.KEY)
