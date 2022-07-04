@@ -76,6 +76,50 @@ class TomlDslChangerTest : PlatformTestCase() {
     doTest(toml, expected) { (getPropertyElement("table") as? GradleDslExpressionMap)?.removeProperty("foo") }
   }
 
+  @Test
+  fun testDeleteSingleLiteralInInlineTable() {
+    val toml = """
+      foo = { bar = "baz" }
+    """.trimIndent()
+    val expected = """
+      foo = { }
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
+  }
+
+  @Test
+  fun testDeleteFirstLiteralInInlineTable() {
+    val toml = """
+      foo = { one = "one", two = "two", three = "three" }
+    """.trimIndent()
+    val expected = """
+      foo = { two = "two", three = "three" }
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("one") }
+  }
+
+  @Test
+  fun testDeleteMiddleLiteralInInlineTable() {
+    val toml = """
+      foo = { one = "one", two = "two", three = "three" }
+    """.trimIndent()
+    val expected = """
+      foo = { one = "one", three = "three" }
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("two") }
+  }
+
+  @Test
+  fun testDeleteLastLiteralInInlineTable() {
+    val toml = """
+      foo = { one = "one", two = "two", three = "three" }
+    """.trimIndent()
+    val expected = """
+      foo = { one = "one", two = "two" }
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("three") }
+  }
+
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = writeLibsTomlFile(toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
