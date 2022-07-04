@@ -46,7 +46,6 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   override fun getContext(): BuildModelContext = context
 
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
-  override fun deleteDslElement(element: GradleDslElement): Unit = Unit
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
@@ -108,6 +107,22 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     return element.psiElement
   }
 
+  override fun deleteDslElement(element: GradleDslElement) {
+    val psiElement = element.psiElement ?: return
+    val parent = element.parent ?: return
+    val parentPsi = ensureParentPsi(element)
+    when (parent) {
+      is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+      is GradleDslExpressionMap -> when (parentPsi) {
+        is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+        is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(element, psiElement, parent)
+      }
+      is GradleDslExpressionList -> when (parentPsi) {
+        is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(element, psiElement, parent)
+      }
+    }
+  }
+
   override fun createDslLiteral(literal: GradleDslLiteral) = createDslElement(literal)
 
   override fun applyDslLiteral(literal: GradleDslLiteral) {
@@ -121,19 +136,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   }
 
   override fun deleteDslLiteral(literal: GradleDslLiteral) {
-    val psiElement = literal.psiElement ?: return
-    val parent = literal.parent ?: return
-    val parentPsi = ensureParentPsi(literal)
-    when (parent) {
-      is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
-      is GradleDslExpressionMap -> when (parentPsi) {
-        is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
-        is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(literal, psiElement, parent)
-      }
-      is GradleDslExpressionList -> when (parentPsi) {
-        is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(literal, psiElement, parent)
-      }
-    }
+    deleteDslElement(literal)
   }
 
   private fun ensureParentPsi(element: GradleDslElement) = element.parent?.create()
@@ -149,12 +152,12 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   }
 
   private inline fun <T : GradlePropertiesDslElement, reified P : TomlElement> deletePsiParentOfTypeFromDslParent(
-    literal: GradleDslLiteral,
+    element: GradleDslElement,
     psiElement: PsiElement,
     parent: T
   ) {
     val parentElements = parent.originalElements
-    val position = parentElements.indexOf(literal).also { if(it < 0) return }
+    val position = parentElements.indexOf(element).also { if(it < 0) return }
     val size = parentElements.size
     val tomlLiteral = psiElement.findParentOfType<P>(strict = false)
     when {

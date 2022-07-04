@@ -165,6 +165,24 @@ class TomlDslChangerTest : PlatformTestCase() {
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(2)) } }
   }
 
+  @Test
+  fun testDeleteInlineTable() {
+    val toml = """
+      foo = { one = "one", two = "two", three = "three" }
+    """.trimIndent()
+    val expected = ""
+    doTest(toml, expected) { removeProperty("foo") }
+  }
+
+  @Test
+  fun testDeleteArray() {
+    val toml = """
+      foo = [1, 2, 3]
+    """.trimIndent()
+    val expected = ""
+    doTest(toml, expected) { removeProperty("foo") }
+  }
+
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = writeLibsTomlFile(toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
