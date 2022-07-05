@@ -450,13 +450,14 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
         .map { container.getComponent(it) }
         .forEach {
           components.add(it)
-          numRows = numRows.coerceAtLeast(constraints[it]!!.row + 1)
+          val constraint = constraints[it] ?: return@forEach
+          numRows = numRows.coerceAtLeast(constraint.row + 1)
         }
 
       rowCalculator = SizeCalculator(rowSizes, numRows, vGap)
 
       components.filter { it.isVisible }.forEach {
-        val constraint = constraints[it]!!
+        val constraint = constraints[it] ?: return@forEach
         if (constraint.colSpan == 1) {
           val size = colCalculator.getComponentDimension(constraint.col, it)
           colCalculator.notifySize(constraint.col, size.width)

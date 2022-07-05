@@ -54,6 +54,18 @@ public final class TabularLayoutTest {
     }
   }
 
+  @Test
+  public void layoutDoesNotThrowsExceptionWithPreferredSizeCalledEarlier() {
+    final JPanel panel = new JPanel(new TabularLayout("*,*,*"));
+    final JPanel panel2 = new JPanel(new TabularLayout("*,*,*"));
+    final JPanel row1 = new JPanel();
+    final JPanel row2 = new JPanel();
+    panel2.add(row1, new TabularLayout.Constraint(0, 0));
+    panel2.add(row2, new TabularLayout.Constraint(0, 1));
+    ((TabularLayout)panel.getLayout()).preferredLayoutSize(panel2);
+    panel.add(row1, new TabularLayout.Constraint(0, 0));
+    panel.add(row2, new TabularLayout.Constraint(0, 0));
+  }
 
   @Test
   public void fitPreferredWidthUsesComponentPrefferedSizeNotMinimumSize() {
