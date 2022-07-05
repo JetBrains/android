@@ -128,10 +128,6 @@ class TomlDslParser(
     return when (literal) {
       is String -> TomlPsiFactory(context.dslFile.project, true).createLiteral("\"$literal\"")
       is Int, is Boolean, is BigDecimal -> TomlPsiFactory(context.dslFile.project, true).createLiteral(literal.toString())
-      // TODO(b/200280395): This is an abstraction violation, in that Toml itself has no references; the "references" for versions
-      //  in GradleVersionCatalogs is an interpretation at the Dsl layer, and should not be present here.  (To see why, imagine a
-      //  second user of Toml in Gradle, but with a different syntax for references).
-      is ReferenceTo -> TomlPsiFactory(context.dslFile.project, true).createLiteral("\"$literal\"")
       else -> null
     }
   }

@@ -34,7 +34,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 /**
  * Represents a literal element.
  */
-public final class GradleDslLiteral extends GradleDslSettableExpression {
+public class GradleDslLiteral extends GradleDslSettableExpression {
   public enum LiteralType {
     INTERPOLATION,
     LITERAL,

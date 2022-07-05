@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import static com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL;
 import static com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.REFERENCE;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -25,11 +28,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleVersionCatalogFile extends GradleDslFile {
   private final @NotNull String catalogName;
@@ -54,6 +59,73 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     mapAliasesToAccessors();
   }
 
+  class GradleDslVersionLiteral extends GradleDslLiteral {
+    GradleDslVersionLiteral(
+      @NotNull GradleDslElement parent,
+      @NotNull PsiElement psiElement,
+      @NotNull GradleNameElement name,
+      @NotNull PsiElement literal,
+      @NotNull LiteralType literalType
+    ) {
+      super(parent, psiElement, name, literal, literalType);
+      ref = literalType == REFERENCE;
+      initialRef = ref;
+    }
+
+    private boolean ref;
+    private boolean initialRef;
+
+    @Override
+    public void setValue(@NotNull Object value) {
+      if (value instanceof ReferenceTo) {
+        super.setValue(value.toString());
+        ref = true;
+        return;
+      }
+      super.setValue(value);
+      ref = false;
+    }
+
+    @Override
+    public @Nullable PsiElement create() {
+      GradleNameElement name = getNameElement();
+      if (ref && getPsiElement() == null) {
+        setNameElement(GradleNameElement.create("version.ref"));
+      }
+      PsiElement psiElement = super.create();
+      if (psiElement != null) {
+        // we need to set the final name up to be "version" from the Psi for deletion to work correctly.
+        setNameElement(GradleNameElement.from(psiElement.getParent().getFirstChild().getFirstChild(), getDslFile().getParser()));
+      }
+      else {
+        // creation failed, so re-use the original name element.
+        setNameElement(name);
+      }
+      return psiElement;
+    }
+
+    @Override
+    protected void apply() {
+      if (ref != initialRef) {
+        delete();
+        setPsiElement(null);
+        create();
+      }
+      super.apply();
+    }
+
+    @Override
+    public void delete() {
+      if (getPsiElement() != null && getNameElement().getNamedPsiElement() != null) {
+        // Note: this depends on the deletion routine in TomlDslWriter being implemented by finding the KeyValue parent of the given
+        // PsiElement.  Normally the PsiElement of a DslLiteral is the value; here, just prior to deletion, we set the psiElement to be the
+        // `version` key fragment so that deletion of both version.ref = ... and version = { ref = ... } forms works correctly.
+        setPsiElement(getNameElement().getNamedPsiElement());
+      }
+      super.delete();
+    }
+  }
+
   protected void replaceVersionRefsWithInjections() {
     GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
     GradleDslExpressionMap plugins = getPropertyElement("plugins", GradleDslExpressionMap.class);
@@ -70,9 +142,8 @@ public class GradleVersionCatalogFile extends GradleDslFile {
           if (targetName != null) {
             GradleDslElement targetProperty = versions.getPropertyElement(targetName);
             if (targetProperty != null) {
-              library.hideProperty(versionProperty);
               GradleDslLiteral reference =
-                new GradleDslLiteral(library, ref.getPsiElement(), versionProperty.getNameElement(), ref.getPsiElement(), REFERENCE);
+                new GradleDslVersionLiteral(library, ref.getPsiElement(), versionProperty.getNameElement(), ref.getPsiElement(), REFERENCE);
               // TODO(xof): this pre-resolution of the injection is (probably) fine if we are happy with the changes in property
               //  visibility that implies.  If we wanted to avoid the surgery below, to make sure that dependencies are properly
               //  registered in both directions, we should be able to use a proper targetName (I think it should be
@@ -81,10 +152,16 @@ public class GradleVersionCatalogFile extends GradleDslFile {
               GradleReferenceInjection injection = new GradleReferenceInjection(reference, targetProperty, ref.getPsiElement(), targetName);
               targetProperty.registerDependent(injection);
               reference.addDependency(injection);
-              library.addParsedElement(reference);
+              library.substituteElement(versionProperty, reference);
             }
           }
         }
+      }
+      else if (versionProperty instanceof GradleDslLiteral) {
+        GradleDslLiteral version = (GradleDslLiteral)versionProperty;
+        GradleDslLiteral literal =
+          new GradleDslVersionLiteral(library, version.getPsiElement(), version.getNameElement(), version.getPsiElement(), LITERAL);
+        library.substituteElement(versionProperty, literal);
       }
     };
     if (libraries != null) {

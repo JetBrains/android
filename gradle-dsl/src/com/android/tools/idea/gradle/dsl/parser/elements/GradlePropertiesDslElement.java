@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
@@ -61,7 +61,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @NotNull private final static Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
   @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = e -> true;
 
-  @NotNull private final ElementList myProperties = new ElementList();
+  @NotNull public final ElementList myProperties = new ElementList();
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent,
                                        @Nullable PsiElement psiElement,
@@ -675,6 +675,24 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return newElement;
   }
 
+  /**
+   * This method is for postprocessing purposes, in order to be able to alter the raw results of the parser, for example because
+   * of an interpretation imposed on top of the tree-like structure of the Dsl which forces a change of representation.  Implementing
+   * language semantics should generally use {@link PropertyTransform} and
+   * {@link GradlePropertiesDslElement#replaceElement(GradleDslElement, GradleDslElement)}; this is only used for implementing
+   * extra-language semantics.
+   *
+   * @param oldElement the original Dsl element as parsed by the parser
+   * @param newElement the element to replace it with, with its psiElement set up appropriately
+   * @return the new element
+   */
+  @NotNull
+  public GradleDslElement substituteElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert newElement.getParent() == this;
+    myProperties.substituteElement(oldElement, newElement);
+    return newElement;
+  }
+
   @Nullable
   public <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslSimpleExpression expression = getPropertyElement(property, GradleDslSimpleExpression.class);
@@ -1108,6 +1126,25 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           }
           myElements.add(i, new ElementItem(newElement, newState, false));
           return oldState;
+        }
+      }
+      return null;
+    }
+
+    @Nullable
+    private ElementState substituteElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+      for (int i = 0; i < myElements.size(); i++) {
+        ElementItem item = myElements.get(i);
+        if (oldElement == item.myElement) {
+          item.myElement = newElement;
+          if (newElement.getPsiElement() == null) {
+            item.myElementState = TO_BE_ADDED;
+            item.myExistsOnFile = false;
+          } else {
+            item.myElementState = EXISTING;
+            item.myExistsOnFile = true;
+          }
+          return item.myElementState;
         }
       }
       return null;
