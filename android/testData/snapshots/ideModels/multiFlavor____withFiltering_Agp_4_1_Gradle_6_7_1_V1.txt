@@ -332,7 +332,7 @@ MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :app
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -344,8 +344,9 @@ MODULE                        : MultiFlavor.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
     CurrentVariantReportedVersions

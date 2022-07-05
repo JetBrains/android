@@ -37,16 +37,6 @@ MODULE                        : MainActivity
                         type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
-                    _classStructurekaptLocalDebugAndroidTestKotlin    : <empty>
-                    _classStructurekaptLocalDebugKotlin     : <empty>
-                    _classStructurekaptLocalDebugUnitTestKotlin       : <empty>
-                    _classStructurekaptLocalReleaseKotlin   : <empty>
-                    _classStructurekaptLocalReleaseUnitTestKotlin     : <empty>
-                    _classStructurekaptRemoteDebugAndroidTestKotlin   : <empty>
-                    _classStructurekaptRemoteDebugKotlin    : <empty>
-                    _classStructurekaptRemoteDebugUnitTestKotlin      : <empty>
-                    _classStructurekaptRemoteReleaseKotlin  : <empty>
-                    _classStructurekaptRemoteReleaseUnitTestKotlin    : <empty>
                     _internal_aapt2_binary        : <empty>
                     androidApis                   : <empty>
                     androidTestAnnotationProcessor          : <empty>
@@ -668,8 +658,6 @@ MODULE                        : MainActivity
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                 artifactsByConfiguration
-                    _classStructurekaptKotlin     : <empty>
-                    _classStructurekaptTestKotlin : <empty>
                     annotationProcessor           : <empty>
                     api                           : <empty>
                     apiDependenciesMetadata       : <empty>
@@ -679,6 +667,7 @@ MODULE                        : MainActivity
                     compile                       : <empty>
                     compileClasspath              : <empty>
                     compileOnly                   : <empty>
+                    compileOnlyApi                : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -958,7 +947,7 @@ MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :app
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -970,8 +959,9 @@ MODULE                        : MainActivity.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
@@ -1963,9 +1953,9 @@ MODULE                        : MainActivity.app
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2024,9 +2014,9 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2074,9 +2064,9 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2145,7 +2135,7 @@ MODULE                        : MainActivity.app.unitTest
 MODULE                        : MainActivity.javaLib
     GradleModuleModel
         gradlePath                    : :javaLib
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/javaLib/build.gradle
         buildFilePath                 : <ROOT>/javaLib/build.gradle
         rootFolderPath                : <ROOT>
@@ -2155,8 +2145,9 @@ MODULE                        : MainActivity.javaLib
         - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
         - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
@@ -2181,8 +2172,8 @@ MODULE                        : MainActivity.javaLib
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : javaLib
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2221,8 +2212,8 @@ MODULE                        : MainActivity.javaLib
                     - friendPaths                 : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                     - friendPaths                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : javaLib
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2281,7 +2272,7 @@ MODULE                        : MainActivity.lib
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :lib
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>
@@ -2293,8 +2284,9 @@ MODULE                        : MainActivity.lib
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
@@ -3198,7 +3190,7 @@ MODULE                        : MainActivity.lib
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                                 projectPath                   : :lib
                                 sourceSet                     : MAIN
                                 variant                       : debug
@@ -3502,9 +3494,9 @@ MODULE                        : MainActivity.lib
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -3568,9 +3560,9 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -3634,9 +3626,9 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none

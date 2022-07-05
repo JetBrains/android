@@ -464,7 +464,7 @@ MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :app
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/firstapp/app/build.gradle
         buildFilePath                 : <ROOT>/firstapp/app/build.gradle
         rootFolderPath                : <ROOT>/firstapp
@@ -476,8 +476,9 @@ MODULE                        : My_First_App.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
@@ -1790,9 +1791,9 @@ MODULE                        : My_First_App.app
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -1857,9 +1858,9 @@ MODULE                        : My_First_App.app
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -1926,9 +1927,9 @@ MODULE                        : My_First_App.app
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -1970,7 +1971,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :app:mysharedlibrary
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
         buildFilePath                 : <ROOT>/shared/mysharedlibrary/build.gradle
         rootFolderPath                : <ROOT>/firstapp
@@ -1982,8 +1983,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
         - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
@@ -2775,9 +2777,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2840,9 +2842,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2907,9 +2909,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none

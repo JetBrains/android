@@ -1,9 +1,625 @@
 MODULE                        : project
+    externalProject               : project (DefaultExternalProject)
+        name                          : project
+        qName                         : project
+        version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build [-]
+                buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApk                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApk           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApk         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    apk                           : <empty>
+                    archives                      : <empty>
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    debugApk                      : <empty>
+                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    releaseApk                    : <empty>
+                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApk                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugApk                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseApk                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            javalib1                      : :javalib1 (DefaultExternalProject)
+                name                          : javalib1
+                qName                         : :javalib1
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/javalib1
+                buildDir                      : <ROOT>/javalib1/build [-]
+                buildFile                     : <ROOT>/javalib1/build.gradle
+                tasks
+                    test                          : test (DefaultExternalTask)
+                        qName                         : :javalib1:test
+                        description                   : Runs the unit tests.
+                        group                         : verification
+                        type                          : org.gradle.api.tasks.testing.Test
+                sourceSets
+                    main                          : main (DefaultExternalSourceSet)
+                        sources
+                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib1/src/main/resources [-]
+                                outputDir                     : <ROOT>/javalib1/out/production/resources [-]
+                                - gradleOutputDirs            : <ROOT>/javalib1/build/resources/main [-]
+                                patterns                      : FilePatternSetImpl
+                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib1/src/main/java
+                                outputDir                     : <ROOT>/javalib1/out/production/classes [-]
+                                - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/main [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
+                        - dependencies                : apiElements (DefaultExternalProjectDependency)
+                            projectPath                   : :javalib2
+                            - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                            - projectDependencyArtifactsSources     : <ROOT>/javalib2/src/main/java
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib1/build/classes/java/main [-]
+                            - files                       : <ROOT>/javalib1/build/resources/main [-]
+                        - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                    test                          : test (DefaultExternalSourceSet)
+                        sources
+                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib1/src/test/java [-]
+                                outputDir                     : <ROOT>/javalib1/out/test/classes [-]
+                                - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/test [-]
+                                patterns                      : FilePatternSetImpl
+                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib1/src/test/resources [-]
+                                outputDir                     : <ROOT>/javalib1/out/test/resources [-]
+                                - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib1/build/classes/java/main [-]
+                            - files                       : <ROOT>/javalib1/build/resources/main [-]
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
+                        - dependencies                : apiElements (DefaultExternalProjectDependency)
+                            projectPath                   : :javalib2
+                            - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib1/build/classes/java/test [-]
+                            - files                       : <ROOT>/javalib1/build/resources/test [-]
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                externalSystemId              : GRADLE
+                - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                artifactsByConfiguration
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - apiElements                 : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                    - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                    compile                       : <empty>
+                    compileClasspath              : <empty>
+                    compileOnly                   : <empty>
+                    compileOnlyApi                : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    - runtime                     : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                    runtimeClasspath              : <empty>
+                    - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testCompile                   : <empty>
+                    testCompileClasspath          : <empty>
+                    testCompileOnly               : <empty>
+                    testImplementation            : <empty>
+                    testRuntime                   : <empty>
+                    testRuntimeClasspath          : <empty>
+                    testRuntimeOnly               : <empty>
+            javalib2                      : :javalib2 (DefaultExternalProject)
+                name                          : javalib2
+                qName                         : :javalib2
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/javalib2
+                buildDir                      : <ROOT>/javalib2/build [-]
+                buildFile                     : <ROOT>/javalib2/build.gradle
+                tasks
+                    test                          : test (DefaultExternalTask)
+                        qName                         : :javalib2:test
+                        description                   : Runs the unit tests.
+                        group                         : verification
+                        type                          : org.gradle.api.tasks.testing.Test
+                sourceSets
+                    main                          : main (DefaultExternalSourceSet)
+                        sources
+                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib2/src/main/resources [-]
+                                outputDir                     : <ROOT>/javalib2/out/production/resources [-]
+                                - gradleOutputDirs            : <ROOT>/javalib2/build/resources/main [-]
+                                patterns                      : FilePatternSetImpl
+                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib2/src/main/java
+                                outputDir                     : <ROOT>/javalib2/out/production/classes [-]
+                                - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/main [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib2/build/classes/java/main [-]
+                            - files                       : <ROOT>/javalib2/build/resources/main [-]
+                        - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                    test                          : test (DefaultExternalSourceSet)
+                        sources
+                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib2/src/test/java [-]
+                                outputDir                     : <ROOT>/javalib2/out/test/classes [-]
+                                - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/test [-]
+                                patterns                      : FilePatternSetImpl
+                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/javalib2/src/test/resources [-]
+                                outputDir                     : <ROOT>/javalib2/out/test/resources [-]
+                                - gradleOutputDirs            : <ROOT>/javalib2/build/resources/test [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib2/build/classes/java/main [-]
+                            - files                       : <ROOT>/javalib2/build/resources/main [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javalib2/build/classes/java/test [-]
+                            - files                       : <ROOT>/javalib2/build/resources/test [-]
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                externalSystemId              : GRADLE
+                - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                artifactsByConfiguration
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - apiElements                 : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                    - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                    compile                       : <empty>
+                    compileClasspath              : <empty>
+                    compileOnly                   : <empty>
+                    compileOnlyApi                : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    - runtime                     : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                    runtimeClasspath              : <empty>
+                    - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testCompile                   : <empty>
+                    testCompileClasspath          : <empty>
+                    testCompileOnly               : <empty>
+                    testImplementation            : <empty>
+                    testRuntime                   : <empty>
+                    testRuntimeClasspath          : <empty>
+                    testRuntimeOnly               : <empty>
+            library1                      : :library1 (DefaultExternalProject)
+                name                          : library1
+                qName                         : :library1
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/library1
+                buildDir                      : <ROOT>/library1/build [-]
+                buildFile                     : <ROOT>/library1/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :library1:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :library1:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugPublish       : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestPublish            : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleasePublish     : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - archives                    : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAllApiPublication      : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                    - debugAllRuntimePublication  : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    - debugApiPublication         : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugPublish                  : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    - debugRuntimePublication     : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    - default                     : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    publish                       : <empty>
+                    - releaseAllApiPublication    : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    - releaseAllRuntimePublication          : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApiPublication       : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releasePublish                : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    - releaseRuntimePublication   : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugPublish              : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testPublish                   : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleasePublish            : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            library2                      : :library2 (DefaultExternalProject)
+                name                          : library2
+                qName                         : :library2
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/library2
+                buildDir                      : <ROOT>/library2/build [-]
+                buildFile                     : <ROOT>/library2/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :library2:testDebugUnitTest
+                        description                   : Run unit tests for the debug build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :library2:testReleaseUnitTest
+                        description                   : Run unit tests for the release build.
+                        group                         : verification
+                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugPublish       : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestPublish            : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleasePublish     : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - archives                    : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAllApiPublication      : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                    - debugAllRuntimePublication  : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    - debugApiPublication         : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugPublish                  : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    - debugRuntimePublication     : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    - default                     : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    publish                       : <empty>
+                    - releaseAllApiPublication    : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    - releaseAllRuntimePublication          : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApiPublication       : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releasePublish                : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    - releaseRuntimePublication   : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugPublish              : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testPublish                   : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleasePublish            : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 4.0.0
+        agpVersion                    : 4.1.0
         gradlePath                    : :app
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -15,8 +631,9 @@ MODULE                        : project.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
     CurrentVariantReportedVersions
@@ -30,7 +647,7 @@ MODULE                        : project.app
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
     ProjectPath                   : :app
-    ModelVersion                  : 4.0.0
+    ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -78,6 +695,9 @@ MODULE                        : project.app
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
             Name                          : main
@@ -200,6 +820,20 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -219,6 +853,24 @@ MODULE                        : project.app
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -265,6 +917,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
                         - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -283,6 +936,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/R.txt
                         - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -301,6 +955,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/R.txt
                         - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -319,6 +974,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
                         - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -337,6 +993,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/R.txt
                         - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -355,6 +1012,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/R.txt
                         - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -373,6 +1031,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/public.txt
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/R.txt
                         - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -391,6 +1050,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/R.txt
                         - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -409,6 +1069,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/public.txt
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/R.txt
                         - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -427,6 +1088,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/R.txt
                         - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -445,6 +1107,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/R.txt
                         - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -463,6 +1126,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/R.txt
                         - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -481,6 +1145,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/R.txt
                         - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -499,6 +1164,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/R.txt
                         - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -517,6 +1183,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/R.txt
                         - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -535,6 +1202,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/R.txt
                         - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -553,6 +1221,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/R.txt
                         - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -571,6 +1240,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/R.txt
                         - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -589,6 +1259,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/public.txt
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/R.txt
                         - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -607,6 +1278,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/R.txt
                         - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -625,6 +1297,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/R.txt
                         - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -643,6 +1316,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/R.txt
                         - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -661,6 +1335,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/R.txt
                         - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -679,6 +1354,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/R.txt
                         - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -697,6 +1373,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/R.txt
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -715,6 +1392,7 @@ MODULE                        : project.app
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/R.txt
                         - javaLibraries               : ./library2/libs/fakelib.jar (IdeJavaLibraryDependencyImpl)
@@ -778,14 +1456,14 @@ MODULE                        : project.app
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library1/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                lintJar                       : <ROOT>/library1/build/intermediates/lint_publish_jar/global/lint.jar [-]
                                 projectPath                   : :library1
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library2/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                lintJar                       : <ROOT>/library2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                                 projectPath                   : :library2
                                 sourceSet                     : MAIN
                                 variant                       : debug
@@ -880,12 +1558,13 @@ MODULE                        : project.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
                     BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output.json [-]
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
                     ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output.json [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -976,91 +1655,33 @@ MODULE                        : project.app
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryDependencyImpl)
                             target                        : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :app
+                                sourceSet                     : MAIN
+                                variant                       : debug
                         - moduleDependencies          : <ROOT>::javalib1 (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javalib1 (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib2 (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javalib2 (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/library1/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                projectPath                   : :library1
+                                sourceSet                     : MAIN
+                                variant                       : debug
                         - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/library2/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                projectPath                   : :library2
+                                sourceSet                     : MAIN
+                                variant                       : debug
                     runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : ./library2/libs/fakelib.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : ./library2/libs/fakelib.jar (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.code.findbugs:jsr305:1.3.9 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.code.findbugs:jsr305:1.3.9 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.code.gson:gson:2.2.4 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.code.gson:gson:2.2.4 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.errorprone:error_prone_annotations:2.0.18 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.errorprone:error_prone_annotations:2.0.18 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.guava:guava:23.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.guava:guava:23.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.j2objc:j2objc-annotations:1.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.j2objc:j2objc-annotations:1.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : commons-io:commons-io:2.4 (IdeJavaLibraryDependencyImpl)
-                            target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib1 (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javalib1 (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib2 (IdeModuleDependencyImpl)
@@ -1069,14 +1690,54 @@ MODULE                        : project.app
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
+                ProvidedDependencies
+                    - provided                    : ./library2/libs/fakelib.jar
+                    - provided                    : android.arch.core:common:1.1.1
+                    - provided                    : android.arch.core:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:common:1.1.1
+                    - provided                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
+                    - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
+                    - provided                    : com.android.support:appcompat-v7:28.0.0@aar
+                    - provided                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                    - provided                    : com.android.support:collections:28.0.0
+                    - provided                    : com.android.support:coordinatorlayout:28.0.0@aar
+                    - provided                    : com.android.support:cursoradapter:28.0.0@aar
+                    - provided                    : com.android.support:customview:28.0.0@aar
+                    - provided                    : com.android.support:documentfile:28.0.0@aar
+                    - provided                    : com.android.support:drawerlayout:28.0.0@aar
+                    - provided                    : com.android.support:interpolator:28.0.0@aar
+                    - provided                    : com.android.support:loader:28.0.0@aar
+                    - provided                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                    - provided                    : com.android.support:print:28.0.0@aar
+                    - provided                    : com.android.support:slidingpanelayout:28.0.0@aar
+                    - provided                    : com.android.support:support-annotations:28.0.0
+                    - provided                    : com.android.support:support-compat:28.0.0@aar
+                    - provided                    : com.android.support:support-core-ui:28.0.0@aar
+                    - provided                    : com.android.support:support-core-utils:28.0.0@aar
+                    - provided                    : com.android.support:support-fragment:28.0.0@aar
+                    - provided                    : com.android.support:support-vector-drawable:28.0.0@aar
+                    - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                    - provided                    : com.android.support:versionedparcelable:28.0.0@aar
+                    - provided                    : com.android.support:viewpager:28.0.0@aar
+                    - provided                    : com.google.code.findbugs:jsr305:1.3.9
+                    - provided                    : com.google.code.gson:gson:2.2.4
+                    - provided                    : com.google.errorprone:error_prone_annotations:2.0.18
+                    - provided                    : com.google.guava:guava:23.0
+                    - provided                    : com.google.j2objc:j2objc-annotations:1.1
+                    - provided                    : commons-io:commons-io:2.4
+                    - provided                    : org.codehaus.mojo:animal-sniffer-annotations:1.14
                 ApplicationId                 : com.example.alruiz.transitive_dependencies.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1167,6 +1828,8 @@ MODULE                        : project.app
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryDependencyImpl)
                             target                        : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib1 (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javalib1 (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib2 (IdeModuleDependencyImpl)
@@ -1252,6 +1915,8 @@ MODULE                        : project.app
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryDependencyImpl)
                             target                        : org.codehaus.mojo:animal-sniffer-annotations:1.14 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib1 (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javalib1 (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javalib2 (IdeModuleDependencyImpl)
@@ -1261,13 +1926,14 @@ MODULE                        : project.app
                         - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+    externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.javalib1
     GradleModuleModel
         gradlePath                    : :javalib1
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/javalib1/build.gradle
         buildFilePath                 : <ROOT>/javalib1/build.gradle
         rootFolderPath                : <ROOT>
@@ -1277,16 +1943,18 @@ MODULE                        : project.javalib1
         - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
         - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
+    externalProject               : :javalib1 (DefaultExternalProject) (*seen*)
 MODULE                        : project.javalib1.main
 MODULE                        : project.javalib1.test
 MODULE                        : project.javalib2
     GradleModuleModel
         gradlePath                    : :javalib2
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/javalib2/build.gradle
         buildFilePath                 : <ROOT>/javalib2/build.gradle
         rootFolderPath                : <ROOT>
@@ -1296,17 +1964,19 @@ MODULE                        : project.javalib2
         - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
         - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
+    externalProject               : :javalib2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
 MODULE                        : project.library1
     GradleModuleModel
-        agpVersion                    : 4.0.0
+        agpVersion                    : 4.1.0
         gradlePath                    : :library1
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/library1/build.gradle
         buildFilePath                 : <ROOT>/library1/build.gradle
         rootFolderPath                : <ROOT>
@@ -1318,8 +1988,9 @@ MODULE                        : project.library1
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -1333,7 +2004,7 @@ MODULE                        : project.library1
             ApiLevel                      : 26
             ApiString                     : 26
     ProjectPath                   : :library1
-    ModelVersion                  : 4.0.0
+    ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library1/build [-]
@@ -1497,6 +2168,20 @@ MODULE                        : project.library1
             ShadersDirectories            : <ROOT>/library1/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/library1/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/library1/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/library1/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/library1/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/library1/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/library1/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/library1/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/library1/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/library1/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -1516,6 +2201,14 @@ MODULE                        : project.library1
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -1527,6 +2220,7 @@ MODULE                        : project.library1
                 ApiString                     : 16
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.library1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -1538,7 +2232,7 @@ MODULE                        : project.library1
                 GeneratedSourceFolders        : <ROOT>/library1/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library1/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library1/build/generated/source/buildConfig/debug [-]
-                ClassesFolder                 : <ROOT>/library1/build/intermediates/compile_only_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/library1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library1/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
@@ -1673,6 +2367,7 @@ MODULE                        : project.library1
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/library1/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/library1/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1713,6 +2408,7 @@ MODULE                        : project.library1
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/R.txt
                         - androidLibraries            : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
@@ -1731,6 +2427,7 @@ MODULE                        : project.library1
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/R.txt
                         - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
@@ -1749,6 +2446,7 @@ MODULE                        : project.library1
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/R.txt
                         - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
@@ -1767,6 +2465,7 @@ MODULE                        : project.library1
                                 publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/public.txt [-]
                                 renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/rs [-]
                                 resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/R.txt
                         - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -1853,6 +2552,8 @@ MODULE                        : project.library1
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                                 artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+                        - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -1940,14 +2641,17 @@ MODULE                        : project.library1
                             target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.library1.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/library1/build/outputs/apk/androidTest/debug/output.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/library1/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/library1/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/library1/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2028,6 +2732,8 @@ MODULE                        : project.library1
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -2095,15 +2801,18 @@ MODULE                        : project.library1
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+    externalProject               : :library1 (DefaultExternalProject) (*seen*)
 MODULE                        : project.library1.androidTest
 MODULE                        : project.library1.main
 MODULE                        : project.library1.unitTest
 MODULE                        : project.library2
     GradleModuleModel
-        agpVersion                    : 4.0.0
+        agpVersion                    : 4.1.0
         gradlePath                    : :library2
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/library2/build.gradle
         buildFilePath                 : <ROOT>/library2/build.gradle
         rootFolderPath                : <ROOT>
@@ -2115,8 +2824,9 @@ MODULE                        : project.library2
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -2130,7 +2840,7 @@ MODULE                        : project.library2
             ApiLevel                      : 1
             ApiString                     : 1
     ProjectPath                   : :library2
-    ModelVersion                  : 4.0.0
+    ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library2/build [-]
@@ -2294,6 +3004,20 @@ MODULE                        : project.library2
             ShadersDirectories            : <ROOT>/library2/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/library2/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/library2/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/library2/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/library2/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/library2/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/library2/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/library2/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/library2/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/library2/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -2313,6 +3037,14 @@ MODULE                        : project.library2
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2324,6 +3056,7 @@ MODULE                        : project.library2
                 ApiString                     : 16
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
+            DeprecatedPreMergedApplicationId        : com.example.library2
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -2335,7 +3068,7 @@ MODULE                        : project.library2
                 GeneratedSourceFolders        : <ROOT>/library2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library2/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library2/build/generated/source/buildConfig/debug [-]
-                ClassesFolder                 : <ROOT>/library2/build/intermediates/compile_only_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/library2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library2/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
@@ -2482,6 +3215,7 @@ MODULE                        : project.library2
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/library2/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/library2/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2564,6 +3298,8 @@ MODULE                        : project.library2
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -2633,14 +3369,17 @@ MODULE                        : project.library2
                             target                        : commons-io:commons-io:2.4 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.library2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/library2/build/outputs/apk/androidTest/debug/output.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/library2/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/library2/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/library2/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2727,6 +3466,8 @@ MODULE                        : project.library2
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -2800,7 +3541,10 @@ MODULE                        : project.library2
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::library1@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library1@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::library2@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library2@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+    externalProject               : :library2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.library2.androidTest
 MODULE                        : project.library2.main
 MODULE                        : project.library2.unitTest

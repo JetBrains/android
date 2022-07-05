@@ -1017,6 +1017,7 @@ MODULE                        : project
                     compile                       : <empty>
                     compileClasspath              : <empty>
                     compileOnly                   : <empty>
+                    compileOnlyApi                : <empty>
                     default                       : <empty>
                     implementation                : <empty>
                     - runtime                     : <ROOT>/jav/build/libs/jav.jar [-]
@@ -2072,7 +2073,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :app
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -2084,8 +2085,9 @@ MODULE                        : project.app
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
         - gradlePlugins               : com.android.build.gradle.AppPlugin
     CurrentVariantReportedVersions
@@ -3918,7 +3920,7 @@ MODULE                        : project.dyn_feature
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :dyn_feature
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/dyn_feature/build.gradle
         buildFilePath                 : <ROOT>/dyn_feature/build.gradle
         rootFolderPath                : <ROOT>
@@ -3930,8 +3932,9 @@ MODULE                        : project.dyn_feature
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.DynamicFeaturePlugin
         - gradlePlugins               : com.android.build.gradle.DynamicFeaturePlugin
     CurrentVariantReportedVersions
@@ -4237,7 +4240,7 @@ MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
     GradleModuleModel
         gradlePath                    : :jav
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/jav/build.gradle
         buildFilePath                 : <ROOT>/jav/build.gradle
         rootFolderPath                : <ROOT>
@@ -4247,8 +4250,9 @@ MODULE                        : project.jav
         - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
         - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
     externalProject               : :jav (DefaultExternalProject) (*seen*)
@@ -4258,7 +4262,7 @@ MODULE                        : project.lib
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :lib
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>
@@ -4270,8 +4274,9 @@ MODULE                        : project.lib
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -4960,7 +4965,7 @@ MODULE                        : project.nested1
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :nested1
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested1/build.gradle
         buildFilePath                 : <ROOT>/nested1/build.gradle
         rootFolderPath                : <ROOT>
@@ -4972,8 +4977,9 @@ MODULE                        : project.nested1
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -5277,7 +5283,7 @@ MODULE                        : project.nested1.deep
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :nested1:deep
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested1/deep/build.gradle
         buildFilePath                 : <ROOT>/nested1/deep/build.gradle
         rootFolderPath                : <ROOT>
@@ -5289,8 +5295,9 @@ MODULE                        : project.nested1.deep
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -5604,7 +5611,7 @@ MODULE                        : project.nested2
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :nested2
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/build.gradle
         buildFilePath                 : <ROOT>/nested2/build.gradle
         rootFolderPath                : <ROOT>
@@ -5616,8 +5623,9 @@ MODULE                        : project.nested2
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -6053,7 +6061,7 @@ MODULE                        : project.nested2.deep
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :nested2:deep
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/deep/build.gradle
         buildFilePath                 : <ROOT>/nested2/deep/build.gradle
         rootFolderPath                : <ROOT>
@@ -6065,8 +6073,9 @@ MODULE                        : project.nested2.deep
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
@@ -6372,7 +6381,7 @@ MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
     GradleModuleModel
         gradlePath                    : :nested2:trans
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFilePath                 : <ROOT>/nested2/trans/build.gradle [-]
         rootFolderPath                : <ROOT>
         - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
@@ -6384,7 +6393,7 @@ MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
         agpVersion                    : 4.1.0
         gradlePath                    : :nested2:trans:deep2
-        gradleVersion                 : 6.5
+        gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
         buildFilePath                 : <ROOT>/nested2/trans/deep2/build.gradle
         rootFolderPath                : <ROOT>
@@ -6396,8 +6405,9 @@ MODULE                        : project.nested2.trans.deep2
         - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
         - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
         - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
         - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
         - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
