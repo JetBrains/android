@@ -49,6 +49,7 @@ import org.mockito.MockitoAnnotations
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.test.assertFalse
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
@@ -609,6 +610,8 @@ class MultiRepresentationPreviewTest {
     job.join()
 
     assertEquals(1, representations.count { !Disposer.isDisposed(it) })
+    assertNotNull(multiPreview.currentRepresentation)
+    assertFalse(Disposer.isDisposed(multiPreview.currentRepresentation!!))
   }
 }
 

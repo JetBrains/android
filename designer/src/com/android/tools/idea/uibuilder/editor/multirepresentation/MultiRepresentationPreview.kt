@@ -255,20 +255,26 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
     val providerNames = providers.map { it.displayName }.toSet()
     val hadAnyRepresentationsInitialized: Boolean
+    val toDispose = mutableListOf<PreviewRepresentation>()
     synchronized(representations) {
       // Remove unaccepted
       (representations.keys - (providerNames - newRepresentations.keys)).forEach { name ->
         representations.remove(name)?.let {
-          Disposer.dispose(it)
+          toDispose.add(it)
         }
       }
       hadAnyRepresentationsInitialized = representations.isNotEmpty()
       representations.putAll(newRepresentations)
     }
+    toDispose.forEach { representation ->
+      invokeAndWaitIfNeeded {
+        Disposer.dispose(representation)
+      }
+    }
 
     if (!hadAnyRepresentationsInitialized) {
       // The first time we load one representation, we try to set it to the one we had saved on disk when saving the state.
-      stateFromDisk?.selectedRepresentationName?.let { currentRepresentationName = it }
+      stateFromDisk?.let { currentRepresentationName = it.selectedRepresentationName }
     }
 
     withContext(uiThread) {
@@ -331,6 +337,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       }
     }
 
+    // TODO(b/238060362): It should not be allowed to execute it in parallel to other invocations from [updateRepresentations]
     updateRepresentationsImpl()
 
     // If the representation is available, restore
