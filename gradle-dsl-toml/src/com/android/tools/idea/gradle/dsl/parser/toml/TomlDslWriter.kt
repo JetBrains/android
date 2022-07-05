@@ -89,11 +89,13 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
       when (parentPsiElement) {
         is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
         is TomlInlineTable -> when {
-          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> Unit
-          else -> addedElement.addAfter(comma, null)
+          parentPsiElement.entries.size == 1 -> Unit
+          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> parentPsiElement.addAfter(comma, addedElement)
+          else -> parentPsiElement.addBefore(comma, addedElement)
         }
         is TomlArray -> when {
-          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_BRACKET -> Unit
+          parentPsiElement.elements.size == 1 -> Unit
+          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_BRACKET -> parentPsiElement.addAfter(comma, addedElement)
           else -> parentPsiElement.addBefore(comma, addedElement)
         }
       }

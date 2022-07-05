@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -181,6 +183,70 @@ class TomlDslChangerTest : PlatformTestCase() {
     """.trimIndent()
     val expected = ""
     doTest(toml, expected) { removeProperty("foo") }
+  }
+
+  @Test
+  fun testInsertLiteralFirstInInlineTable() {
+    val toml = """
+      foo = { two = "two" }
+    """.trimIndent()
+    val expected = """
+      foo = { one = "one", two = "two" }
+    """.trimIndent()
+    doTest (toml, expected) {
+      val foo = getPropertyElement("foo") as GradleDslExpressionMap
+      val one = GradleDslLiteral(foo, GradleNameElement.create("one"))
+      one.setValue("one")
+      foo.addNewElementAt(0, one)
+    }
+  }
+
+  @Test
+  fun testInsertLiteralLastInInlineTable() {
+    val toml = """
+      foo = { two = "two" }
+    """.trimIndent()
+    val expected = """
+      foo = { two = "two", three = "three" }
+    """.trimIndent()
+    doTest (toml, expected) {
+      val foo = getPropertyElement("foo") as GradleDslExpressionMap
+      val three = GradleDslLiteral(foo, GradleNameElement.create("three"))
+      three.setValue("three")
+      foo.addNewElementAt(1, three)
+    }
+  }
+
+  @Test
+  fun testInsertLiteralFirstInArray() {
+    val toml = """
+      foo = [2]
+    """.trimIndent()
+    val expected = """
+      foo = [1, 2]
+    """.trimIndent()
+    doTest (toml, expected) {
+      val foo = getPropertyElement("foo") as GradleDslExpressionList
+      val one = GradleDslLiteral(foo, GradleNameElement.empty())
+      one.setValue(1)
+      foo.addNewElementAt(0, one)
+    }
+  }
+
+  @Test
+  fun testInsertLiteralLastInArray() {
+    val toml = """
+      foo = [2]
+    """.trimIndent()
+    val expected = """
+      foo = [2, 3]
+    """.trimIndent()
+    doTest (toml, expected) {
+      val foo = getPropertyElement("foo") as GradleDslExpressionList
+      val three = GradleDslLiteral(foo, GradleNameElement.empty())
+      three.setValue(3)
+      foo.addNewElementAt(1, three)
+    }
   }
 
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
