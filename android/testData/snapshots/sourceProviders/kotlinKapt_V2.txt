@@ -136,8 +136,8 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/kotlin
                     ./app/src/localDebug/java
+                    ./app/src/localDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
                 RenderscriptDirectories:
@@ -226,8 +226,8 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/kotlin
                     ./app/src/localDebug/java
+                    ./app/src/localDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
                 RenderscriptDirectories:
@@ -508,8 +508,8 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                     file://./app/src/debug/kotlin
                     file://./app/src/debug/java
-                    file://./app/src/localDebug/kotlin
                     file://./app/src/localDebug/java
+                    file://./app/src/localDebug/kotlin
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -816,8 +816,8 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/kotlin
                     file://./app/src/localDebug/java
+                    file://./app/src/localDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -978,8 +978,8 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/kotlin
                     file://./app/src/localDebug/java
+                    file://./app/src/localDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
                 RenderscriptDirectoryUrls:
