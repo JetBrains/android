@@ -128,8 +128,6 @@ MODULE: MainActivity.app
             localDebug
                 Manifest:
                     ./app/src/localDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/localDebug/aidl
                 AssetsDirectories:
                     ./app/src/localDebug/assets
                 JavaDirectories:
@@ -218,8 +216,6 @@ MODULE: MainActivity.app
             localDebug
                 Manifest:
                     ./app/src/localDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/localDebug/aidl
                 AssetsDirectories:
                     ./app/src/localDebug/assets
                 JavaDirectories:
@@ -442,8 +438,6 @@ MODULE: MainActivity.app
             androidTestLocalDebug
                 Manifest:
                     ./app/src/androidTestLocalDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestLocalDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestLocalDebug/assets
                 JavaDirectories:
@@ -487,7 +481,6 @@ MODULE: MainActivity.app
                     file://./app/src/main/aidl
                     file://./app/src/local/aidl
                     file://./app/src/debug/aidl
-                    file://./app/src/localDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/local/assets
@@ -627,7 +620,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTest/aidl
                     file://./app/src/androidTestLocal/aidl
                     file://./app/src/androidTestDebug/aidl
-                    file://./app/src/androidTestLocalDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestLocal/assets
@@ -808,8 +800,6 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/localDebug
-                AidlDirectoryUrls:
-                    file://./app/src/localDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/localDebug/assets
                 JavaDirectoryUrls:
@@ -970,8 +960,6 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/localDebug
-                AidlDirectoryUrls:
-                    file://./app/src/localDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/localDebug/assets
                 JavaDirectoryUrls:
@@ -1186,8 +1174,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestLocalDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestLocalDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/assets
                 JavaDirectoryUrls:

@@ -47,16 +47,6 @@ MODULE                        : MainActivity
                     _agp_internal_javaPreCompileRemoteDebug_kaptClasspath       : <empty>
                     _agp_internal_javaPreCompileRemoteReleaseUnitTest_kaptClasspath       : <empty>
                     _agp_internal_javaPreCompileRemoteRelease_kaptClasspath     : <empty>
-                    _classStructurekaptLocalDebugAndroidTestKotlin    : <empty>
-                    _classStructurekaptLocalDebugKotlin     : <empty>
-                    _classStructurekaptLocalDebugUnitTestKotlin       : <empty>
-                    _classStructurekaptLocalReleaseKotlin   : <empty>
-                    _classStructurekaptLocalReleaseUnitTestKotlin     : <empty>
-                    _classStructurekaptRemoteDebugAndroidTestKotlin   : <empty>
-                    _classStructurekaptRemoteDebugKotlin    : <empty>
-                    _classStructurekaptRemoteDebugUnitTestKotlin      : <empty>
-                    _classStructurekaptRemoteReleaseKotlin  : <empty>
-                    _classStructurekaptRemoteReleaseUnitTestKotlin    : <empty>
                     androidApis                   : <empty>
                     androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
@@ -663,8 +653,6 @@ MODULE                        : MainActivity
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                 artifactsByConfiguration
-                    _classStructurekaptKotlin     : <empty>
-                    _classStructurekaptTestKotlin : <empty>
                     annotationProcessor           : <empty>
                     api                           : <empty>
                     apiDependenciesMetadata       : <empty>
@@ -2001,9 +1989,9 @@ MODULE                        : MainActivity.app
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2063,9 +2051,9 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2114,9 +2102,9 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_localDebug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2222,8 +2210,8 @@ MODULE                        : MainActivity.javaLib
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : javaLib
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2262,8 +2250,8 @@ MODULE                        : MainActivity.javaLib
                     - friendPaths                 : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                     - friendPaths                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : javaLib
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -3564,9 +3552,9 @@ MODULE                        : MainActivity.lib
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -3631,9 +3619,9 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -3698,9 +3686,9 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : lib_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none

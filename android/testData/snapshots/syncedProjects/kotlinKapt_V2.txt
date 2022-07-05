@@ -141,10 +141,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -164,10 +164,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -236,7 +236,6 @@ PROJECT                       : MainActivity
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestLocal/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestLocal/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestLocal/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestLocalDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestLocalDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestLocalDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestLocalDebug/kotlin [-]
@@ -374,10 +373,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -397,10 +396,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -463,7 +462,6 @@ PROJECT                       : MainActivity
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/local/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/local/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/local/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/localDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/localDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/localDebug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/localDebug/kotlin [-]
@@ -563,10 +561,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -586,10 +584,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -794,10 +792,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -815,10 +813,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -895,10 +893,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -916,10 +914,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1081,10 +1079,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1104,10 +1102,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1286,10 +1284,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1309,10 +1307,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1455,10 +1453,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
@@ -1478,10 +1476,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
                 - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar

@@ -222,7 +222,6 @@ MODULE                        : kotlinMultiPlatform
                         type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-                - artifacts                   : <ROOT>/module2/build/libs/module2-commonMain.jar [-]
                 artifactsByConfiguration
                     allSourceSetsCompileDependenciesMetadata          : <empty>
                     allSourceSetsRuntimeDependenciesMetadata          : <empty>
@@ -1904,9 +1903,9 @@ MODULE                        : kotlinMultiPlatform.app
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -1978,9 +1977,9 @@ MODULE                        : kotlinMultiPlatform.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2049,9 +2048,9 @@ MODULE                        : kotlinMultiPlatform.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
+                    noReflect                     : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
                     serializeIr                   : none
@@ -2789,9 +2788,9 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
-                        jvmTarget                     : 1.8
                         moduleName                    : module2_debug
                         noJdk                         : true
+                        noReflect                     : true
                         noStdlib                      : true
                         parallelBackendThreads        : 1
                         serializeIr                   : none
@@ -2967,9 +2966,9 @@ MODULE                        : kotlinMultiPlatform.module2
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
-                        jvmTarget                     : 1.8
                         moduleName                    : module2_debug
                         noJdk                         : true
+                        noReflect                     : true
                         noStdlib                      : true
                         parallelBackendThreads        : 1
                         serializeIr                   : none
@@ -3146,9 +3145,9 @@ MODULE                        : kotlinMultiPlatform.module2
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
-                        jvmTarget                     : 1.8
                         moduleName                    : module2_debug
                         noJdk                         : true
+                        noReflect                     : true
                         noStdlib                      : true
                         parallelBackendThreads        : 1
                         serializeIr                   : none

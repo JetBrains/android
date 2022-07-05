@@ -137,20 +137,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -324,20 +324,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -477,20 +477,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -732,20 +732,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -845,20 +845,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -957,20 +957,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.6
+            ApiLevel                      : 1.7
             CompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.6
+            LanguageLevel                 : 1.7
             MergedCompilerArguments
-                apiVersion                    : 1.6
-                languageVersion               : 1.6
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
