@@ -754,14 +754,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Flow handling file changes.
       launch(workerThread) {
         val psiFile = psiFilePointer.element ?: return@launch
-        val lookupManager = LookupManager.getInstance(project)
         documentChangeFlow(psiFile, this@ComposePreviewRepresentation, LOG)
           .debounce {
             // The debounce timer is smaller when running with Fast Preview so the changes are more responsive to typing.
             if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
           }
           .conflate()
-          .filter { lookupManager.activeLookup == null } // Ignore changes while completion is active.
           .collectLatest {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
