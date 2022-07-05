@@ -174,4 +174,64 @@ class ComposeRenderErrorContributorTest {
                  " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
                  stripImages(issues[0].htmlContent))
   }
+
+  @Test
+  fun `compose parameter provider mismatch`() {
+    val throwable = createExceptionFromDesc("""
+      java.lang.IllegalArgumentException: argument type mismatch
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+      	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:189)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:588)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:586)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:623)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:581)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:530)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:529)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.kt:524)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.kt:123)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.kt:581)
+      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
+      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
+      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
+      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1085)
+      	at android.view.View.dispatchAttachedToWindow(View.java:21291)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3491)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3498)
+      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:58)
+      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:367)
+      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:443)
+      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:721)
+      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}9(RenderTask.java:878)
+      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}3.run(RenderExecutor.kt:194)
+      	at com.android.tools.idea.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:285)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+      	at java.base/java.lang.Thread.run(Thread.java:829)
+
+      """.trimIndent())
+    val logger = RenderLogger("test", androidProjectRule.module).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.ERROR, issues[0].severity)
+    assertEquals("PreviewParameterProvider/@Preview type mismatch.", issues[0].summary)
+    assertEquals("The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it." +
+                 "<BR/><BR/><A HREF=\"action:build\">Build</A> the project.<BR/>",
+                 stripImages(issues[0].htmlContent))
+  }
 }

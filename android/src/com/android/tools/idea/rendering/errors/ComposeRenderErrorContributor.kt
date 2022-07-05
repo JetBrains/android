@@ -47,11 +47,23 @@ object ComposeRenderErrorContributor {
     return throwable is NoSuchMethodException && throwable.getStackTrace()[1].methodName.startsWith("invokeComposableViaReflection")
   }
 
+  /**
+   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with `PreviewParameterProvider`. This will
+   * detect the case where the parameter type dose not match the `PreviewParameterProvider`.
+   */
+  private fun isPreviewParameterMismatchThrowable(throwable: Throwable?): Boolean {
+    return throwable is IllegalArgumentException &&
+           throwable.message == "argument type mismatch" &&
+           (throwable.stackTrace.drop(5)
+             .firstOrNull()?.methodName?.startsWith("invokeComposableViaReflection") ?: false)
+  }
+
   @JvmStatic
   fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
     isViewModelStackTrace(throwable) ||
     isComposeNotFoundThrowable(throwable) ||
-    isCompositionLocalStackTrace(throwable)
+    isCompositionLocalStackTrace(throwable) ||
+    isPreviewParameterMismatchThrowable(throwable)
 
   @JvmStatic
   fun reportComposeErrors(logger: RenderLogger,
@@ -95,6 +107,16 @@ object ComposeRenderErrorContributor {
               .setHtmlContent(
                 HtmlBuilder()
                   .add("The preview will display after rebuilding the project.")
+                  .addBuildAction(linkManager)
+              )
+          }
+          isPreviewParameterMismatchThrowable(it.throwable) -> {
+            RenderErrorModel.Issue.builder()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("PreviewParameterProvider/@Preview type mismatch.")
+              .setHtmlContent(
+                HtmlBuilder()
+                  .add("The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.")
                   .addBuildAction(linkManager)
               )
           }
