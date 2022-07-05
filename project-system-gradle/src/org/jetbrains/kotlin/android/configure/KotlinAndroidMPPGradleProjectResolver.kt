@@ -21,6 +21,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.createContentRootData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.createExternalSourceSet
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.createGradleSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.resourceType
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver.Companion.sourceType
@@ -35,6 +36,8 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
+import com.intellij.openapi.util.Pair as IJPair
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
@@ -59,10 +62,11 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
   ) {
     val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
-    val selectedVariantName = androidModels.selectedVariantName
     val sourceSetByName = ideModule.sourceSetsByName()
+    val projectDataNode = ExternalSystemApiUtil.findParent(ideModule, ProjectKeys.PROJECT) ?: return
+    val sourceSetMap = projectDataNode.getUserData(GradleProjectResolver.RESOLVED_SOURCE_SETS) ?: return
 
-    val androidCompilations = mppModel.androidCompilationsForVariant(selectedVariantName)
+    val androidCompilations = mppModel.androidCompilationsForVariant(androidModels.selectedVariantName)
 
     /*
     Create 'KotlinSourceSetData' for each compilation (main, unitTest, androidTest)
@@ -86,6 +90,10 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         val gradleSourceSetData = createGradleSourceSetData(kotlinSourceSet, gradleModule, ideModule, resolverCtx)
         val dataNode = ideModule.createChild(GradleSourceSetData.KEY, gradleSourceSetData)
         dataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
+
+        sourceSetMap[kotlinSourceSetInfo.moduleId ?: return@forEach] = IJPair(
+          dataNode, createExternalSourceSet(kotlinSourceSet, gradleSourceSetData, mppModel)
+        )
       }
   }
 
