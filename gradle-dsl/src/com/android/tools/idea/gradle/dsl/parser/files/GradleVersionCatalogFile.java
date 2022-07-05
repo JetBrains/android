@@ -72,7 +72,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
             if (targetProperty != null) {
               library.hideProperty(versionProperty);
               GradleDslLiteral reference =
-                new GradleDslLiteral(library, version.getPsiElement(), versionProperty.getNameElement(), ref.getPsiElement(), REFERENCE);
+                new GradleDslLiteral(library, ref.getPsiElement(), versionProperty.getNameElement(), ref.getPsiElement(), REFERENCE);
               // TODO(xof): this pre-resolution of the injection is (probably) fine if we are happy with the changes in property
               //  visibility that implies.  If we wanted to avoid the surgery below, to make sure that dependencies are properly
               //  registered in both directions, we should be able to use a proper targetName (I think it should be

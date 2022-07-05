@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.I
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
@@ -813,6 +814,109 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       verifyVersionCatalogFileContents(myVersionCatalogFile, """
         [libraries]
         foo = { version = "1.2.3", group = "com.example" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testLibraryMapVersionToVersion() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [libraries]
+        foo = { version = "1.2.3", group = "com.example", name = "foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val libraries = vcModel.libraries();
+      val foo = libraries.findProperty("foo")
+      assertEquals("1.2.3", foo.getMapValue("version").toString())
+      foo.getMapValue("version").setValue("2.3.4")
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [libraries]
+        foo = { version = "2.3.4", group = "com.example", name = "foo" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testLibraryMapVersionRefToVersionRef() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        otherFooVersion = "2.3.4"
+        
+        [libraries]
+        foo = { version.ref = "fooVersion", group = "com.example", name = "foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val libraries = vcModel.libraries();
+      val foo = libraries.findProperty("foo")
+      assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
+      foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("otherFooVersion")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        otherFooVersion = "2.3.4"
+
+        [libraries]
+        foo = { version.ref = "otherFooVersion", group = "com.example", name = "foo" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testLibraryMapVersionMapRefToVersionRef() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        otherFooVersion = "2.3.4"
+        
+        [libraries]
+        foo = { version = { ref = "fooVersion" }, group = "com.example", name = "foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val libraries = vcModel.libraries();
+      val foo = libraries.findProperty("foo")
+      assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
+      foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("otherFooVersion")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        otherFooVersion = "2.3.4"
+
+        [libraries]
+        foo = { version = { ref = "otherFooVersion" }, group = "com.example", name = "foo" }
       """.trimIndent())
     }
     finally {
