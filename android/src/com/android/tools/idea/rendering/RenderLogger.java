@@ -325,11 +325,11 @@ public class RenderLogger implements IRenderLogger {
    * @return true if there were errors during the render
    */
   public boolean hasErrors() {
-    boolean hasMessage;
+    boolean hasErrorMessage;
     synchronized (myMessages) {
-      hasMessage = !myMessages.isEmpty();
+      hasErrorMessage = myMessages.stream().anyMatch(message -> message.getSeverity().compareTo(ERROR) >= 0);
     }
-    return myHaveExceptions || hasMessage ||
+    return myHaveExceptions || hasErrorMessage ||
            myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }

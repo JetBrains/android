@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import static com.android.tools.idea.rendering.RenderLogger.RENDER_PROBLEMS_LIMIT;
 import static com.android.tools.idea.rendering.RenderLogger.STACK_OVERFLOW_TRACE_LIMIT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Iterables;
@@ -166,5 +167,16 @@ public class RenderLoggerTest {
     RenderProblem tooManyProblemsElement = problems.get(problems.size() - 1);
     assertEquals(HighlightSeverity.WARNING, tooManyProblemsElement.getSeverity());
     assertEquals("Too many errors (150 more errors not displayed)", tooManyProblemsElement.getHtml());
+  }
+
+  @Test
+  public void testHasErrors() {
+    RenderLogger logger = new RenderLogger(null, null, null);
+
+    logger.warning("TAG_WARNING", "This is a warning", null, null);
+    assertFalse(logger.hasErrors());
+
+    logger.error("TAG_ERROR", "This is an error", null, null);
+    assertTrue(logger.hasErrors());
   }
 }
