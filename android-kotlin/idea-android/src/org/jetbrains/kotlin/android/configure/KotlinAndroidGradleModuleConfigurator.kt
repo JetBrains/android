@@ -24,8 +24,7 @@ import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.buildSystemType
 import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
-import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
-import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl
+import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptSupport
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
 import org.jetbrains.kotlin.idea.util.projectStructure.version
@@ -49,7 +48,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: IdeKotlinVersion): Boolean {
-        val manipulator = KotlinGradleFacadeImpl.getManipulator(file, false)
+        val manipulator = GradleBuildScriptSupport.getManipulator(file, false)
         val module = ModuleUtil.findModuleForPsiElement(file)?: return false
         val sdk = ModuleRootManager.getInstance(module).sdk
         val jvmTarget = getJvmTarget(sdk, version)
