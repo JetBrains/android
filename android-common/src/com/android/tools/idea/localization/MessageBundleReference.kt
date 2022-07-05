@@ -41,7 +41,7 @@ import java.util.function.Supplier
  * private const val BUNDLE_NAME = "messages.CustomBundle"
  * object CustomBundle {
  *   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
- *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
+ *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
  * }
  * ```
  *
@@ -53,7 +53,7 @@ class MessageBundleReference(private val name: String) {
   fun getBundle(): ResourceBundle =
     SoftReference.dereference(bundleRef) ?: ResourceBundle.getBundle(name).also { bundleRef = SoftReference(it) }
 
-  fun message(key: String, vararg params: String) = AbstractBundle.message(getBundle(), key, *params)
+  fun message(key: String, vararg params: Any) = AbstractBundle.message(getBundle(), key, *params)
 
-  fun lazyMessage(key: String, vararg params: String) = Supplier { message(key, *params) }
+  fun lazyMessage(key: String, vararg params: Any) = Supplier { message(key, *params) }
 }
