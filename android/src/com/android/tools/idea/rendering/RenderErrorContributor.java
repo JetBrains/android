@@ -780,7 +780,7 @@ public class RenderErrorContributor {
 
       addRefreshAction(builder);
       addIssue()
-        .setSeverity(HighlightSeverity.ERROR)
+        .setSeverity(message.getSeverity())
         .setSummary(summary)
         .setHtmlContent(builder)
         .build();

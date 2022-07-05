@@ -694,6 +694,23 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       assertSize(2, issues);
   }
 
+  /**
+   * Tests that the RenderErrorContributor builds issues using the correct severity
+   */
+  public void testIssueSeverity() {
+    LogOperation operation = (logger, render) -> {
+      // MANUALLY register errors
+      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error"));
+      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning"));
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(2, issues);
+    assertEquals(HighlightSeverity.ERROR, issues.get(0).getSeverity());
+    assertEquals(HighlightSeverity.WARNING, issues.get(1).getSeverity());
+  }
+
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
