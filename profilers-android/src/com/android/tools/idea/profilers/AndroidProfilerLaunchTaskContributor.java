@@ -68,7 +68,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -29,8 +29,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import io.grpc.ManagedChannel
-import io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers

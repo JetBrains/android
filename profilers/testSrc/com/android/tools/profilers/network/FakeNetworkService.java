@@ -36,7 +36,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.network.httpdata.HttpData;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

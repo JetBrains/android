@@ -16,13 +16,13 @@
 package com.android.tools.datastore;
 
 import com.android.testutils.TestUtils;
-import io.grpc.BindableService;
-import io.grpc.Channel;
-import io.grpc.ClientInterceptors;
-import io.grpc.Server;
-import io.grpc.ServerInterceptors;
-import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.inprocess.InProcessServerBuilder;
+import com.android.tools.idea.io.grpc.BindableService;
+import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.ClientInterceptors;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.ServerInterceptors;
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;

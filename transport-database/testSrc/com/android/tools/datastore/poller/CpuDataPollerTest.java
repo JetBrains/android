@@ -49,7 +49,7 @@ import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

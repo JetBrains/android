@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore;
 
-import io.grpc.ServerServiceDefinition;
+import com.android.tools.idea.io.grpc.ServerServiceDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.transport;
 
-import io.grpc.MethodDescriptor;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.ServiceDescriptor;
-import io.grpc.stub.AbstractStub;
-import io.grpc.stub.ClientCalls;
-import io.grpc.stub.ServerCalls;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.MethodDescriptor;
+import com.android.tools.idea.io.grpc.ServerCallHandler;
+import com.android.tools.idea.io.grpc.ServerServiceDefinition;
+import com.android.tools.idea.io.grpc.ServiceDescriptor;
+import com.android.tools.idea.io.grpc.stub.AbstractStub;
+import com.android.tools.idea.io.grpc.stub.ClientCalls;
+import com.android.tools.idea.io.grpc.stub.ServerCalls;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

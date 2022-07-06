@@ -24,10 +24,10 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.GetEventsRequest
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import io.grpc.Server
-import io.grpc.inprocess.InProcessChannelBuilder
-import io.grpc.inprocess.InProcessServerBuilder
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.Server
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

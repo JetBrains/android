@@ -21,7 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
-import io.grpc.netty.NettyChannelBuilder
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import java.util.concurrent.LinkedBlockingDeque
 
 

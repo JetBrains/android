@@ -40,7 +40,7 @@ import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.collect.ImmutableMap;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Before;

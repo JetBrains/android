@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore;
 
-import io.grpc.*;
+import com.android.tools.idea.io.grpc.*;
 
 public class TestClientInterceptor implements ClientInterceptor {
 

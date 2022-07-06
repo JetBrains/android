@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -23,7 +23,7 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

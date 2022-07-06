@@ -49,7 +49,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;

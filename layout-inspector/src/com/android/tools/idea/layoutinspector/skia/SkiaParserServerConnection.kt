@@ -31,11 +31,11 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.util.net.NetUtils
-import io.grpc.ManagedChannel
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
-import io.grpc.netty.NettyChannelBuilder
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.Status
+import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch

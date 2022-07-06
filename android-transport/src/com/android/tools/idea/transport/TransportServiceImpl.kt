@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import java.io.File
 import java.nio.file.Paths
 import java.util.HashMap

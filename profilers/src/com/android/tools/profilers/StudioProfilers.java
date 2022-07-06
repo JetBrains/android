@@ -64,7 +64,7 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

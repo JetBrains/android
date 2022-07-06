@@ -43,7 +43,7 @@ import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
-import io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream

@@ -19,7 +19,7 @@ import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 /**

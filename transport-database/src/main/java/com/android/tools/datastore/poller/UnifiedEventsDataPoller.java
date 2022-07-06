@@ -21,7 +21,7 @@ import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Transport.GetEventsRequest;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;

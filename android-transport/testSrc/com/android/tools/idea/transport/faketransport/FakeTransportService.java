@@ -39,7 +39,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.intellij.util.containers.MultiMap;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;

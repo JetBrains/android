@@ -66,9 +66,9 @@ import com.intellij.xdebugger.XDebuggerManagerListener
 import com.intellij.xdebugger.frame.XExecutionStack
 import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
-import io.grpc.stub.ClientCallStreamObserver
-import io.grpc.stub.ClientResponseObserver
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
+import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException

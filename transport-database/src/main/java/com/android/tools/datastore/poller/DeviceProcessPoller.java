@@ -25,7 +25,7 @@ import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
 import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.collect.Sets;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

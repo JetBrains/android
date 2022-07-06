@@ -41,7 +41,7 @@ import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;

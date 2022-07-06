@@ -31,7 +31,7 @@ import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;

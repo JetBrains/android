@@ -17,7 +17,7 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
 import java.util.Map;

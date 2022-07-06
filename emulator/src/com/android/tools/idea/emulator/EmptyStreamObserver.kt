@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 
 /**
  * A [StreamObserver] that ignores outcome of the gRPC call.

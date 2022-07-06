@@ -28,7 +28,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;

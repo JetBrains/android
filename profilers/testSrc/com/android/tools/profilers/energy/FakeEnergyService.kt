@@ -25,7 +25,7 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartResponse
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopRequest
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopResponse
 import com.android.tools.profiler.proto.EnergyServiceGrpc
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import java.util.stream.Collectors
 
 class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val eventList: List<Common.Event> = ArrayList())

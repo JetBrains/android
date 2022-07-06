@@ -17,7 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;

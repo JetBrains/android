@@ -36,7 +36,7 @@ import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.android.tools.profiler.proto.Profiler.ImportSessionRequest;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
