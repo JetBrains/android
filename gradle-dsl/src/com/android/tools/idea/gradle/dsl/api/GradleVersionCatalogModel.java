@@ -23,5 +23,7 @@ public interface GradleVersionCatalogModel extends GradleFileModel {
   //  duty in order to support exposing its contents as PsVariables.
   ExtModel libraries();
 
+  ExtModel plugins();
+
   ExtModel versions();
 }

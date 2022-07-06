@@ -1167,6 +1167,142 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testPluginCreateVersion() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        
+        [plugins]
+        foo = { id = "com.example.foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val plugins = vcModel.plugins()
+      val foo = plugins.findProperty("foo")
+      foo.getMapValue("version").setValue("2.3.4")
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+
+        [plugins]
+        foo = { id = "com.example.foo", version = "2.3.4" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testPluginCreateVersionRef() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        
+        [plugins]
+        foo = { id = "com.example.foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val plugins = vcModel.plugins()
+      val foo = plugins.findProperty("foo")
+      foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("fooVersion")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+
+        [plugins]
+        foo = { id = "com.example.foo", version.ref = "fooVersion" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testPluginCreateMapWithVersion() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        
+        [plugins]
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val plugins = vcModel.plugins()
+      val foo = plugins.findProperty("foo")
+      foo.getMapValue("version").setValue("2.3.4")
+      foo.getMapValue("id").setValue("com.example.foo")
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+
+        [plugins]
+        foo = { version = "2.3.4", id = "com.example.foo" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testPluginCreateMapWithVersionRef() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        
+        [plugins]
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val plugins = vcModel.plugins()
+      val foo = plugins.findProperty("foo")
+      foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("fooVersion")))
+      foo.getMapValue("id").setValue("com.example.foo")
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+
+        [plugins]
+        foo = { version.ref = "fooVersion", id = "com.example.foo" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testPluginAliasInvalidSyntax() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
