@@ -293,7 +293,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             .setImportant(true).notify(myProject);
 
           // Show the tool window when we have an error.
-          RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
+          ApplicationManager.getApplication().invokeLater(() -> RunContentManager.getInstance(myProject).toFrontRunContent(
+                                                              myLaunchInfo.executor, myProcessHandler));
 
           if (result == Result.ERROR) {
             myStats.setErrorId(launchResult.getErrorId());
