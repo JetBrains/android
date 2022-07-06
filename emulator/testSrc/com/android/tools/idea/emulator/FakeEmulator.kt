@@ -424,7 +424,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val displayId = request.display
     val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
     val image = drawDisplayImage(size, displayId)
-    val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
+    val rotatedImage = rotateByQuadrants(image, displayRotation.number)
     val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
     var i = 0
     for (y in 0 until rotatedImage.height) {
@@ -467,7 +467,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val aspectRatio = displayHeight.toDouble() / displayWidth
     val w = if (width == 0) displayWidth else width
     val h = if (height == 0) displayHeight else height
-    return if (displayRotation.ordinal % 2 == 0) {
+    return if (displayRotation.number % 2 == 0) {
       Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
     }
     else {
