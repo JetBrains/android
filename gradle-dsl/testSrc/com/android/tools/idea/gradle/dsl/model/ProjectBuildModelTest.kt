@@ -713,7 +713,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("abc", foo.getMapValue("arbitrary").toString())
       foo.getMapValue("arbitrary").delete()
@@ -742,7 +742,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
       assertEquals("com.example", foo.getMapValue("group").toString())
@@ -773,7 +773,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
       assertEquals("com.example", foo.getMapValue("group").toString())
@@ -804,7 +804,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
       assertEquals("com.example", foo.getMapValue("group").toString())
@@ -835,7 +835,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue("2.3.4")
@@ -861,14 +861,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
         [versions]
         fooVersion = "1.2.3"
         otherFooVersion = "2.3.4"
-        
+
         [libraries]
         foo = { version.ref = "fooVersion", group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("otherFooVersion")))
@@ -898,14 +898,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
         [versions]
         fooVersion = "1.2.3"
         otherFooVersion = "2.3.4"
-        
+
         [libraries]
         foo = { version = { ref = "fooVersion" }, group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("otherFooVersion")))
@@ -934,14 +934,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "2.3.4"
-        
+
         [libraries]
         foo = { version = "1.2.3", group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("fooVersion")))
@@ -949,7 +949,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       verifyVersionCatalogFileContents(myVersionCatalogFile, """
         [versions]
         fooVersion = "2.3.4"
-        
+
         [libraries]
         foo = { version.ref = "fooVersion", group = "com.example", name = "foo" }
       """.trimIndent())
@@ -969,14 +969,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
         foo = { version.ref = "fooVersion", group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue("2.3.4")
@@ -1004,14 +1004,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
         foo = { version = { ref = "fooVersion" }, group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
       foo.getMapValue("version").setValue("2.3.4")
@@ -1039,14 +1039,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
         foo = { group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
       applyChanges(pbm)
@@ -1073,14 +1073,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
         foo = { group = "com.example", name = "foo" }
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("fooVersion")))
       applyChanges(pbm)
@@ -1107,13 +1107,13 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
       foo.getMapValue("module").setValue("com.example:foo")
@@ -1141,13 +1141,13 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [libraries]
       """.trimIndent())
 
       val pbm = projectBuildModel
       val vcModel = pbm.versionCatalogModel!!
-      val libraries = vcModel.libraries();
+      val libraries = vcModel.libraries()
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions().findProperty("fooVersion")))
       foo.getMapValue("module").setValue("com.example:foo")
@@ -1175,7 +1175,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [plugins]
         foo = { id = "com.example.foo" }
       """.trimIndent())
@@ -1209,7 +1209,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [plugins]
         foo = { id = "com.example.foo" }
       """.trimIndent())
@@ -1243,7 +1243,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [plugins]
       """.trimIndent())
 
@@ -1277,7 +1277,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("""
         [versions]
         fooVersion = "1.2.3"
-        
+
         [plugins]
       """.trimIndent())
 

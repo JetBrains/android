@@ -74,7 +74,7 @@ class TomlDslChangerTest : PlatformTestCase() {
     """.trimIndent()
     val expected = """
       [table]
-      
+
     """.trimIndent()
     doTest(toml, expected) { (getPropertyElement("table") as? GradleDslExpressionMap)?.removeProperty("foo") }
   }
