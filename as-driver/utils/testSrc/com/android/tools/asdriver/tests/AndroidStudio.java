@@ -183,25 +183,26 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void invokeByIcon(String icon) {
-    InvokeComponentRequestBuilder updateButtonBuilder = new InvokeComponentRequestBuilder();
+    ComponentMatchersBuilder updateButtonBuilder = new ComponentMatchersBuilder();
     updateButtonBuilder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
     invokeComponent(updateButtonBuilder);
   }
 
   public void invokeComponent(String componentText) {
-    InvokeComponentRequestBuilder builder = new InvokeComponentRequestBuilder();
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
     builder.addComponentTextMatch(componentText);
     invokeComponent(builder);
   }
 
-  public void invokeComponent(InvokeComponentRequestBuilder requestBuilder) {
-    ASDriver.InvokeComponentResponse response = androidStudio.invokeComponent(requestBuilder.build());
+  public void invokeComponent(ComponentMatchersBuilder matchers) {
+    ASDriver.InvokeComponentRequest request = ASDriver.InvokeComponentRequest.newBuilder().addAllMatchers(matchers.build()).build();
+    ASDriver.InvokeComponentResponse response = androidStudio.invokeComponent(request);
     switch (response.getResult()) {
       case OK:
         return;
       case ERROR:
         throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. Check the Android Studio " +
-                                                       "stderr log for the cause.", requestBuilder));
+                                                      "stderr log for the cause.", matchers));
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
@@ -210,5 +211,47 @@ public class AndroidStudio implements AutoCloseable {
   public void waitForIndex() {
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
+  }
+
+  public void openFile(String project, String file) {
+    ASDriver.OpenFileRequest rq = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file).build();
+    ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\". Check the Android Studio " +
+                                                      "stderr log for the cause.", file, project));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
+  public void waitForComponent(String componentText) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addComponentTextMatch(componentText);
+    waitForComponent(builder);
+  }
+
+  public void waitForComponentByClass(String... classNames) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    for (String className : classNames) {
+      builder.addSwingClassRegexMatch(String.format(".*%s.*", className));
+    }
+    waitForComponent(builder);
+  }
+
+  public void waitForComponent(ComponentMatchersBuilder requestBuilder) {
+    ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).build();
+    ASDriver.WaitForComponentResponse response = androidStudio.waitForComponent(request);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not wait for component with these matchers: %s. Check the Android Studio " +
+                                                      "stderr log for the cause.", requestBuilder));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
   }
 }

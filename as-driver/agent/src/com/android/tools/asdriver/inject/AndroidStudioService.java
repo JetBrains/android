@@ -17,6 +17,7 @@ package com.android.tools.asdriver.inject;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.google.common.base.Objects;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -26,18 +27,23 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import java.lang.reflect.InvocationTargetException;
+import java.io.File;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -122,7 +128,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       studioInteractionService.findAndInvokeComponent(request.getMatchersList());
       builder.setResult(ASDriver.InvokeComponentResponse.Result.OK);
     }
-    catch (InterruptedException | TimeoutException | InvocationTargetException e) {
+    catch (Exception e) {
       e.printStackTrace();
       builder.setResult(ASDriver.InvokeComponentResponse.Result.ERROR);
     }
@@ -145,7 +151,61 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onNext(ASDriver.WaitForIndexResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void openFile(ASDriver.OpenFileRequest request, StreamObserver<ASDriver.OpenFileResponse> responseObserver) {
+    ASDriver.OpenFileResponse.Builder builder = ASDriver.OpenFileResponse.newBuilder();
+    builder.setResult(ASDriver.OpenFileResponse.Result.ERROR);
+    String projectName = request.getProject();
+    String fileName = request.getFile();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        Project[] projects = ProjectManager.getInstance().getOpenProjects();
+        Optional<Project> foundProject = Arrays.stream(projects).filter((p) -> Objects.equal(p.getName(), projectName)).findFirst();
+        if (foundProject.isEmpty()) {
+          System.err.println("No project found by this name: " + projectName);
+          return;
+        }
+
+        Project project = foundProject.get();
+        String basePath = project.getBasePath();
+        if (basePath == null) {
+          System.err.println("Project has a null base path: " + project);
+          return;
+        }
+
+        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(fileName));
+        if (virtualFile == null) {
+          System.err.println("File does not exist on filesystem with path: " + fileName);
+          return;
+        }
+
+        FileEditorManager manager = FileEditorManager.getInstance(project);
+        manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
+        builder.setResult(ASDriver.OpenFileResponse.Result.OK);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void waitForComponent(ASDriver.WaitForComponentRequest request, StreamObserver<ASDriver.WaitForComponentResponse> responseObserver) {
+    ASDriver.WaitForComponentResponse.Builder builder = ASDriver.WaitForComponentResponse.newBuilder();
+    try {
+      StudioInteractionService studioInteractionService = new StudioInteractionService();
+      studioInteractionService.waitForComponent(request.getMatchersList());
+      builder.setResult(ASDriver.WaitForComponentResponse.Result.OK);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      builder.setResult(ASDriver.WaitForComponentResponse.Result.ERROR);
+    }
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
 }
-
-
-

@@ -16,48 +16,49 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.tools.asdriver.proto.ASDriver;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Provides a nicer API than the underlying proto's builders. The proto's generated classes
- * aren't accessible to test classes anyway.
+ * Provides a nicer API than the underlying proto's builders. The proto's generated classes aren't
+ * accessible to test classes anyway.
  */
-public class InvokeComponentRequestBuilder {
-  ASDriver.InvokeComponentRequest.Builder internalBuilder = ASDriver.InvokeComponentRequest.newBuilder();
+public class ComponentMatchersBuilder {
+  List<ASDriver.ComponentMatcher.Builder> builders = new ArrayList<>();
 
-  public InvokeComponentRequestBuilder() { }
+  public ComponentMatchersBuilder() { }
 
-  public InvokeComponentRequestBuilder addComponentTextMatch(String text) {
+  public ComponentMatchersBuilder addComponentTextMatch(String text) {
     ASDriver.ComponentTextMatch textBuilder = ASDriver.ComponentTextMatch.newBuilder().setText(text).build();
     ASDriver.ComponentMatcher.Builder componentMatcher = ASDriver.ComponentMatcher.newBuilder().setComponentTextMatch(textBuilder);
 
-    internalBuilder.addMatchers(componentMatcher);
+    builders.add(componentMatcher);
     return this;
   }
 
-  public InvokeComponentRequestBuilder addSvgIconMatch(List<String> icons) {
+  public ComponentMatchersBuilder addSvgIconMatch(List<String> icons) {
     ASDriver.SvgIconMatch svgBuilder = ASDriver.SvgIconMatch.newBuilder().addAllIcon(icons).build();
     ASDriver.ComponentMatcher.Builder componentMatcher = ASDriver.ComponentMatcher.newBuilder().setSvgIconMatch(svgBuilder);
 
-    internalBuilder.addMatchers(componentMatcher);
+    builders.add(componentMatcher);
     return this;
   }
 
-  public InvokeComponentRequestBuilder addSwingClassRegexMatch(String regex) {
+  public ComponentMatchersBuilder addSwingClassRegexMatch(String regex) {
     ASDriver.SwingClassRegexMatch regexBuilder = ASDriver.SwingClassRegexMatch.newBuilder().setRegex(regex).build();
     ASDriver.ComponentMatcher.Builder componentMatcher = ASDriver.ComponentMatcher.newBuilder().setSwingClassRegexMatch(regexBuilder);
 
-    internalBuilder.addMatchers(componentMatcher);
+    builders.add(componentMatcher);
     return this;
   }
 
-  public ASDriver.InvokeComponentRequest build() {
-    return internalBuilder.build();
+  public List<ASDriver.ComponentMatcher> build() {
+    return builders.stream().map(ASDriver.ComponentMatcher.Builder::build).collect(Collectors.toList());
   }
 
   @Override
   public String toString() {
-    return internalBuilder.toString();
+    return builders.toString();
   }
 }
-

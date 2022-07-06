@@ -16,6 +16,10 @@ service AndroidStudio {
   rpc InvokeComponent(InvokeComponentRequest) returns (InvokeComponentResponse) {}
 
   rpc WaitForIndex(WaitForIndexRequest) returns (WaitForIndexResponse) {}
+
+  rpc OpenFile(OpenFileRequest) returns (OpenFileResponse) {}
+
+  rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
 }
 
 message GetVersionRequest {}
@@ -56,7 +60,6 @@ message ShowToolWindowResponse {
 }
 
 message InvokeComponentRequest {
-  // The invoked component must match all of the matchers in order.
   repeated ComponentMatcher matchers = 1;
 }
 
@@ -91,3 +94,28 @@ message InvokeComponentResponse {
 message WaitForIndexRequest {}
 
 message WaitForIndexResponse {}
+
+message OpenFileRequest {
+  string project = 1;
+  string file = 2;
+}
+
+message OpenFileResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  OpenFileResponse.Result result = 1;
+}
+
+message WaitForComponentRequest {
+  repeated ComponentMatcher matchers = 1;
+}
+
+message WaitForComponentResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  WaitForComponentResponse.Result result = 1;
+}

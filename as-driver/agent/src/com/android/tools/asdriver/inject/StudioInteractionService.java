@@ -152,6 +152,29 @@ public class StudioInteractionService {
     }
   }
 
+  public void waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
+    log("Attempting to wait for a component with matchers: " + matchers);
+    // TODO(b/234067246): consider this timeout when addressing b/234067246. This particular
+    // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >3m
+    // sometimes.
+    int timeoutMillis = 240000;
+    long msBetweenRetries = 300;
+    long startTime = System.currentTimeMillis();
+    long elapsedTime = 0;
+
+    while (elapsedTime < timeoutMillis) {
+      Optional<Component> component = findComponentFromMatchers(matchers);
+      if (component.isPresent()) {
+        return;
+      }
+      Thread.sleep(msBetweenRetries);
+      elapsedTime = System.currentTimeMillis() - startTime;
+    }
+
+    throw new TimeoutException(
+      String.format("Timed out after %dms waiting for a component with these matchers: %s", elapsedTime, matchers));
+  }
+
   private void log(String text) {
     System.out.printf("%s %s%n", LOG_PREFIX, text);
   }
