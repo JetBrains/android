@@ -17,12 +17,14 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
+import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Objects;
 import javax.swing.Icon;
@@ -113,19 +115,56 @@ public final class VirtualDevice extends Device {
   }
 
   enum State {
-    STOPPED(false),
-    LAUNCHING(false),
-    LAUNCHED(true),
-    STOPPING(true);
+    STOPPED(false, StudioIcons.Avd.RUN, "Launch this AVD in the emulator") {
+      @Override
+      boolean isEnabled(@NotNull VirtualDevice device) {
+        return device.myAvdInfo.getStatus().equals(AvdStatus.OK);
+      }
+    },
+
+    LAUNCHING(false, StudioIcons.Avd.RUN, "Launch this AVD in the emulator") {
+      @Override
+      boolean isEnabled(@NotNull VirtualDevice device) {
+        return false;
+      }
+    },
+
+    LAUNCHED(true, StudioIcons.Avd.STOP, "Stop the emulator running this AVD") {
+      @Override
+      boolean isEnabled(@NotNull VirtualDevice device) {
+        return true;
+      }
+    },
+
+    STOPPING(true, StudioIcons.Avd.STOP, "Stop the emulator running this AVD") {
+      @Override
+      boolean isEnabled(@NotNull VirtualDevice device) {
+        return false;
+      }
+    };
 
     private final boolean myOnline;
+    private final @NotNull Icon myIcon;
+    private final @NotNull String myTooltipText;
 
-    State(boolean online) {
+    State(boolean online, @NotNull Icon icon, @NotNull String tooltipText) {
       myOnline = online;
+      myIcon = icon;
+      myTooltipText = tooltipText;
     }
 
     static @NotNull State valueOf(boolean online) {
       return online ? LAUNCHED : STOPPED;
+    }
+
+    final @NotNull Icon getIcon() {
+      return myIcon;
+    }
+
+    abstract boolean isEnabled(@NotNull VirtualDevice device);
+
+    final @NotNull String getTooltipText() {
+      return myTooltipText;
     }
   }
 
