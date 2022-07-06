@@ -167,8 +167,6 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       }
   }
 
-  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
-
   private fun previewFromMethodName(fqName: String): SingleComposePreviewElementInstance {
     val scheme = EditorColorsManager.getInstance().globalScheme
     val background = scheme.getColor(EditorColors.DOCUMENTATION_COLOR) ?: scheme.defaultBackground
@@ -182,7 +180,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
         backgroundColor = ColorUtil.toHtmlColor(background)),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
-      configuration = nullConfiguration)
+      configuration = PreviewConfiguration.cleanAndGet())
   }
 
   /**

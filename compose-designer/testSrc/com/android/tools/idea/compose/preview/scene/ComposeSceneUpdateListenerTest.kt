@@ -47,7 +47,7 @@ internal class ComposeSceneUpdateListenerTest {
 
   val composable = SingleComposePreviewElementInstance("composableMethodName",
                                                        PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                                       PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+                                                       PreviewConfiguration.cleanAndGet()
   )
 
   @Test

@@ -21,7 +21,9 @@ import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.preview.util.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
@@ -33,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -114,6 +117,23 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get()?.renderResult?.isSuccess ?: false)
+      }
+    }
+
+    // Test handling provider that throws an exception
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestFailingProvider" }))
+        .previewElements()
+      assertEquals(1, elements.count())
+
+      elements.forEach {
+        // Check that we create a SingleComposePreviewElementInstance that fails to render because we'll try to render a composable
+        // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
+        assertEquals("google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD", it.composableMethodFqn)
+        assertTrue(it is SingleComposePreviewElementInstance)
+        assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
       }
     }
   }

@@ -32,6 +32,18 @@ class TestProvider(defaultPrefix: String = "prefix"): PreviewParameterProvider<S
     "${defaultPrefix}C")
 }
 
+/**
+ * Provider that throws an Exception in the constructor
+ */
+class FailingProvider : PreviewParameterProvider<String> {
+
+  init {
+    throw Exception("Make it fail")
+  }
+
+  override val values: Sequence<String> = sequenceOf("hey")
+}
+
 @Preview
 @Composable
 fun TestWithProvider(@PreviewParameter(provider = TestProvider::class) name: String) {
@@ -44,4 +56,9 @@ fun TestWithProviderInExpression(@PreviewParameter(provider = TestProvider::clas
 @Preview
 @Composable
 fun TestLorem(@PreviewParameter(provider = LoremIpsum::class) lorem: String) {
+}
+
+@Preview
+@Composable
+fun TestFailingProvider(@PreviewParameter(provider = FailingProvider::class) name: String) {
 }

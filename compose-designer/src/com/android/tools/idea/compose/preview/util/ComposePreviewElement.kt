@@ -22,29 +22,28 @@ import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.ide.common.resources.Locale
 import com.android.resources.Density
 import com.android.resources.ScreenRound
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.projectsystem.isTestFile
-import com.android.tools.idea.projectsystem.isUnitTestFile
-import com.android.ide.common.resources.Locale
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
-import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -81,6 +80,14 @@ const val MAX_HEIGHT = 2000
  * Default background to be used by the rendered elements when showBackground is set to true.
  */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
+
+/**
+ * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should create a fake [PreviewElement] and pass
+ * this fake method + the PreviewParameterProvider as the composable FQN. `ComposeRenderErrorContributor` should handle the resulting
+ * [NoSuchMethodException] that will be thrown.
+ */
+@VisibleForTesting
+const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
 /**
  * [FakeLightVirtualFile] for composable functions.
@@ -310,15 +317,15 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
      * reasonable values before the PreviewConfiguration is created
      */
     @JvmStatic
-    fun cleanAndGet(apiLevel: Int?,
-                    theme: String?,
-                    width: Int?,
-                    height: Int?,
-                    locale: String?,
-                    fontScale: Float?,
-                    uiMode: Int?,
-                    device: String?): PreviewConfiguration =
-    // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
+    fun cleanAndGet(apiLevel: Int? = null,
+                    theme: String? = null,
+                    width: Int? = null,
+                    height: Int? = null,
+                    locale: String? = null,
+                    fontScale: Float? = null,
+                    uiMode: Int? = null,
+                    device: String? = null): PreviewConfiguration =
+      // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
                            theme = theme,
@@ -330,9 +337,6 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                            deviceSpec = device ?: NO_DEVICE_SPEC)
   }
 }
-
-/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
 
 /**
  * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
@@ -435,7 +439,7 @@ class SingleComposePreviewElementInstance(override val composableMethodFqn: Stri
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
                    displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-                   configuration: PreviewConfiguration = nullConfiguration) =
+                   configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet()) =
       SingleComposePreviewElementInstance(
         composableMethodFqn,
         PreviewDisplaySettings(
@@ -524,12 +528,23 @@ class ParametrizedComposePreviewElementTemplate(private val basePreviewElement: 
         }
         catch (e: Throwable) {
           Logger.getInstance(
-            ParametrizedComposePreviewElementTemplate::class.java).debug {
-            "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider"
-          }
+            ParametrizedComposePreviewElementTemplate::class.java
+          ).warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
         }
-
-        return sequenceOf()
+        // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor should handle the exception that will be
+        // thrown for this method not being found.
+        // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
+        val fakeElementFqn = "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+        return sequenceOf(
+          SingleComposePreviewElementInstance(fakeElementFqn,
+                                              PreviewDisplaySettings(
+                                                basePreviewElement.displaySettings.name, null, false, false, null
+                                              ),
+                                              null,
+                                              null,
+                                              PreviewConfiguration.cleanAndGet()
+          )
+        )
       }.first()
     }
     finally {

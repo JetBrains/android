@@ -234,4 +234,48 @@ class ComposeRenderErrorContributorTest {
                  "<BR/><BR/><A HREF=\"action:build\">Build</A> the project.<BR/>",
                  stripImages(issues[0].htmlContent))
   }
+
+  @Test
+  fun `compose preview parameter provider fails to load`() {
+    val throwable = createExceptionFromDesc("""
+      java.lang.NoSuchMethodException: com.example.demo.DownloadPreviewParameterProvider.${'$'}FailToLoadPreviewParameterProvider
+      	at androidx.compose.ui.tooling.ComposableInvoker.findComposableMethod(ComposableInvoker.kt:83)
+      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:190)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1$${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:590)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:588)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:625)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:583)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:531)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:530)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.kt:525)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.kt:124)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.kt:583)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.kt:580)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+      	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:402)
+
+      """.trimIndent())
+    val logger = RenderLogger("test", androidProjectRule.module).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.ERROR, issues[0].severity)
+    assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
+    assertEquals(
+      "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
+      "implementation. The IDE logs should contain the full exception stack trace.",
+      stripImages(issues[0].htmlContent)
+    )
+  }
 }

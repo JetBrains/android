@@ -129,7 +129,7 @@ class ComposePreviewElementConfigurationTest() {
 
     SingleComposePreviewElementInstance("NoSize",
                                         PreviewDisplaySettings("Name", null, false, false, null), null, null,
-                                        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+                                        PreviewConfiguration.cleanAndGet()
     ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
