@@ -50,7 +50,7 @@ internal class CompilerLiveLiteralsManagerTest {
     Files.createFile(srcDir.resolve("LiteralsTestKt.class"))
     Files.createFile(srcDir.resolve("LiveLiterals${'$'}LiteralsTestKt.class"))
 
-    ModuleClassLoaderOverlays.getInstance(projectRule.fixture.module).overlayPath = outputDir
+    ModuleClassLoaderOverlays.getInstance(projectRule.fixture.module).pushOverlayPath(outputDir)
     runBlocking {
       // This should not throw even though the classes are invalid
       CompilerLiveLiteralsManager.getInstance().find(file)

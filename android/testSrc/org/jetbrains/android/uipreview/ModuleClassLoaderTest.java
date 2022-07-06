@@ -278,7 +278,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Files.createDirectories(overlayDir1.resolve("com/google/example"));
-    ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir1);
+    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
       (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule,
@@ -294,7 +294,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     assertTrue(loader.isUserCodeUpToDateNonCached());
     // New overlay will make the code out-of-date
-    ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir2);
+    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir2);
     assertFalse(loader.isUserCodeUpToDateNonCached());
     ModuleClassLoaderManager.get().release(loader, this);
   }

@@ -17,11 +17,14 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.utils.FileUtils.toSystemIndependentPath
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
+import java.nio.file.Paths
 
 private class TestClass
 private val testClassName = TestClass::class.java.canonicalName
@@ -41,7 +44,7 @@ internal class ModuleClassLoaderOverlaysTest {
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
     val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
 
-    ModuleClassLoaderOverlays.getInstance(projectRule.module).overlayPath = tempOverlayPath
+    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
     assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
 
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
@@ -51,5 +54,34 @@ internal class ModuleClassLoaderOverlaysTest {
     // If deleted, the class should disappear
     Files.delete(classFilePath)
     assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+  }
+
+  @Test
+  fun `state loading`() {
+    fun List<String>.asPlatformIndependent(): List<String> =
+      map { toSystemIndependentPath(it) }
+
+    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(projectRule.module)
+
+    moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay2"))
+    moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay1"))
+    val state = moduleClassLoaderOverlays.state
+    assertEquals(
+      """
+        /tmp/overlay1
+        /tmp/overlay2
+      """.trimIndent(),
+      state.paths.asPlatformIndependent().joinToString("\n")
+    )
+    moduleClassLoaderOverlays.loadState(state)
+
+    val state2 = moduleClassLoaderOverlays.state
+    assertEquals(
+      """
+        /tmp/overlay1
+        /tmp/overlay2
+      """.trimIndent(),
+      state2.paths.asPlatformIndependent().joinToString("\n")
+    )
   }
 }

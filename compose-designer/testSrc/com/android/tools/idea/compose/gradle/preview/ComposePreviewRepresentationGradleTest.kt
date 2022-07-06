@@ -90,6 +90,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   @get:Rule val resetFastPreviewFlag = RestoreFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
+
   private val project: Project
     get() = projectRule.project
   private val fixture: CodeInsightTestFixture

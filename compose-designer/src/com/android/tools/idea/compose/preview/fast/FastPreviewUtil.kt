@@ -72,8 +72,8 @@ suspend fun fastCompile(
       }
     val isSuccess = result == CompilationResult.Success
     if (isSuccess) {
-      ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath =
-        File(outputAbsolutePath).toPath()
+      ModuleClassLoaderOverlays.getInstance(contextModule)
+        .pushOverlayPath(File(outputAbsolutePath).toPath())
     }
 
     return@coroutineScope result

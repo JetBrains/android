@@ -674,7 +674,7 @@ class ComposePreviewRepresentation(
           module?.let {
             // When the build completes successfully, we do not need the overlay until a
             // modifications has happened.
-            ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
+            ModuleClassLoaderOverlays.getInstance(it).invalidateOverlayPaths()
           }
 
           val file = psiFilePointer.element
@@ -863,8 +863,6 @@ class ComposePreviewRepresentation(
 
   private fun CoroutineScope.activate(resume: Boolean) {
     LOG.debug("onActivate")
-    // Reset overlay every time we come back to the preview
-    module?.let { ModuleClassLoaderOverlays.getInstance(it).overlayPath = null }
 
     initializeFlows()
 

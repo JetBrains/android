@@ -18,21 +18,39 @@ package org.jetbrains.android.uipreview
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.StoragePathMacros
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.openapi.util.NotNullLazyKey
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.io.delete
 import com.intellij.util.lang.UrlClassLoader
+import com.intellij.util.xmlb.annotations.Tag
+import com.intellij.util.xmlb.annotations.XCollection
 import java.nio.file.Path
+import java.nio.file.Paths
 
-private fun buildClassLoaderForOverlayPath(overlay: Path) = UrlClassLoader.build()
-  .files(listOf(overlay))
+private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoader.build()
+  .files(overlays)
   .get()
 
 /**
  * Component that keeps a list of current paths that have class overlays.
  */
-class ModuleClassLoaderOverlays private constructor() : ModificationTracker {
+@State(
+  name = "ModuleClassLoaderOverlays",
+  storages = [(Storage(StoragePathMacros.MODULE_FILE))],
+)
+class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: Int = 10) :
+  PersistentStateComponent<ModuleClassLoaderOverlays.State>, ModificationTracker {
+
+  @Tag("module-class-overlay-paths")
+  class State(@XCollection(propertyElementName = "paths", style = XCollection.Style.v2) val paths: List<String> = listOf())
+
   private val modificationTracker = SimpleModificationTracker()
   private var overlayClassLoader: DelegatingClassLoader.Loader? = null
 
@@ -43,30 +61,63 @@ class ModuleClassLoaderOverlays private constructor() : ModificationTracker {
     override fun loadClass(fqcn: String): ByteArray? = overlayClassLoader?.loadClass(fqcn)
   }
 
-  /**
-   * Path for the current overlay. The overlay will contain the last classes compiled.
-   */
-  var overlayPath: Path? = null
-    @Synchronized set(newValue) {
-      if (newValue == field) return
-      // TODO(b/199367756): Remove the previous overlay from disk?
-      field = newValue
+  private val overlayPaths = ArrayDeque<Path>(10)
 
-      overlayClassLoader = newValue?.let { ClassLoaderLoader(buildClassLoaderForOverlayPath(it)) }
+  constructor(module: Module): this()
 
-      modificationTracker.incModificationCount()
+  @Synchronized
+  fun invalidateOverlayPaths() {
+    logger.debug("invalidateOverlayPaths")
+    overlayPaths.clear()
+    overlayClassLoader = null
+  }
+
+  @Synchronized
+  private fun reloadClassLoader() {
+    overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlayPaths))
+    modificationTracker.incModificationCount()
+  }
+
+  @Synchronized
+  fun pushOverlayPath(path: Path) {
+    if (overlayPaths.size == maxNumOverlays) {
+      AppExecutorUtil.getAppExecutorService().submit {
+        overlayPaths.removeLast().apply {
+          logger.debug("Removing overlay $path")
+          delete(true)
+        }
+      }
     }
-    @Synchronized get
 
-  companion object {
-    private val OVERLAY_KEY: NotNullLazyKey<ModuleClassLoaderOverlays, Module> = NotNullLazyKey.create(
-      ModuleClassLoaderOverlays::class.qualifiedName!!) {
-      ModuleClassLoaderOverlays()
-    }
+    logger.debug("Added new overlay $path")
+    overlayPaths.addFirst(path)
 
-    @JvmStatic
-    fun getInstance(module: Module): ModuleClassLoaderOverlays = OVERLAY_KEY.getValue(module.getHolderModule())
+    reloadClassLoader()
   }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
+
+  override fun getState(): State = State(paths = synchronized(this) { overlayPaths.map { it.toString() } })
+
+  override fun loadState(state: State) {
+    logger.debug("loadState (${state.paths.size} paths)")
+    try {
+      synchronized(this) {
+        overlayPaths.clear()
+        overlayPaths.addAll(state.paths.map { Paths.get(it) })
+
+        reloadClassLoader()
+      }
+    } catch (e: Throwable) {
+      logger.warn(e)
+    }
+  }
+
+  companion object {
+    private val logger = Logger.getInstance(ModuleClassLoaderOverlays::class.java)
+
+    @JvmStatic
+    fun getInstance(module: Module): ModuleClassLoaderOverlays =
+      module.getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
+  }
 }

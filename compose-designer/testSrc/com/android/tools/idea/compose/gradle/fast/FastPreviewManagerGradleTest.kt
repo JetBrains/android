@@ -175,7 +175,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      ModuleClassLoaderOverlays.getInstance(module).overlayPath = File(outputPath).toPath()
+      ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
     }
     val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
     assertTrue(
