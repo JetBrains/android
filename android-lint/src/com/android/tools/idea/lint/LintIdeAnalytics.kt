@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint
 
 import com.android.builder.model.LintOptions
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
@@ -66,6 +67,10 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     warnings2: Map<Issue, Map<File, List<LintProblemData>>>?
   ) {
     if (project.isDisposed) return
+
+    if (!AnalyticsSettings.optedIn) {
+      return
+    }
 
     val session = LintSession.newBuilder().apply {
       analysisType = type

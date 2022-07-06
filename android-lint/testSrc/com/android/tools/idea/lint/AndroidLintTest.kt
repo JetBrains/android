@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.LoggedUsage
@@ -297,6 +298,10 @@ class AndroidLintTest : AndroidTestCase() {
       val loggedLintSessions = usageTracker.usages.stream()
         .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
         .collect(Collectors.toList())
+      if (!AnalyticsSettings.optedIn) {
+        assertThat(loggedLintSessions).isEmpty()
+        return
+      }
       assertThat(loggedLintSessions).hasSize(2)
       val session = loggedLintSessions[0]!!.studioEvent.lintSession
       assertThat(session.analysisType).isEqualTo(AnalysisType.IDE_FILE)
@@ -347,7 +352,8 @@ class AndroidLintTest : AndroidTestCase() {
       // Make sure we're submitting around 1% of reports.
       // This test is not flaky because we're using a fixed seed to the random generator!
       val percentage = loggedLintSessions.size * 100.0 / rolls
-      assertEquals("Unexpected percentage of reports submitted", 1.047, percentage, 0.001)
+      val expectedPercentage = if (AnalyticsSettings.optedIn) 1.047 else 0.0
+      assertEquals("Unexpected percentage of reports submitted", expectedPercentage, percentage, 0.001)
     } finally {
       usageTracker.close()
       cleanAfterTesting()
