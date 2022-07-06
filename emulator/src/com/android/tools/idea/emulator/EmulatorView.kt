@@ -335,7 +335,7 @@ class EmulatorView(
       skin.getRotatedFrameSize(rotation.number, currentDisplaySize)
     }
     else {
-      currentDisplaySize.rotated(rotation)
+      currentDisplaySize.rotatedByQuadrants(rotation.number)
     }
   }
 
@@ -1153,13 +1153,6 @@ class EmulatorView(
       }
     }
   }
-}
-
-/**
- * Returns this [Dimension] rotated according to [rotation].
- */
-private fun Dimension.rotated(rotation: SkinRotation): Dimension {
-  return rotatedByQuadrants(rotation.number)
 }
 
 internal const val DISPLAY_MODE_PROPERTY = "displayMode"
