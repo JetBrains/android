@@ -1,3 +1,4 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -153,4 +154,81 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.compose-designer.integration",
+    enable_tests = False,
+    iml_files = ["intellij.android.compose-designer.integration.iml"],
+    test_srcs = ["integrationTestSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+    ],
+)
+
+compose_preview_data = select({
+    "@platforms//os:linux": [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+    ],
+}) + [
+    ":compose_preview_deps",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//tools/adt/idea/compose-designer/testData:composepreview",
+    "//tools/base/build-system:gradle-distrib-7.3.3",
+]
+
+maven_repository(
+    name = "compose_preview_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.3.1",
+        "@maven//:androidx.compose.compiler.compiler_1.2.0-beta01",
+        "@maven//:androidx.compose.material.material_1.2.0-beta01",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.2.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.2.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling_1.2.0-beta01",
+        "@maven//:androidx.compose.ui.ui_1.2.0-beta01",
+        "@maven//:androidx.core.core-ktx_1.7.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
+        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
+        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
+    ],
+)
+
+iml_test(
+    name = "ComposePreviewKotlinTest",
+    timeout = "long",
+    data = compose_preview_data,
+    module = ":intellij.android.compose-designer.integration",
+    tags = [
+        "block-network",
+        "no_mac",  # Untested.
+        "no_windows",  # Untested.
+    ],
+    test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
+)
+
+iml_test(
+    name = "ComposePreviewXmlTest",
+    timeout = "long",
+    data = compose_preview_data,
+    module = ":intellij.android.compose-designer.integration",
+    tags = [
+        "block-network",
+        "no_mac",  # Untested.
+        "no_windows",  # Untested.
+    ],
+    test_class = "com.android.tools.idea.compose.ComposePreviewXml",
 )

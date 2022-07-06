@@ -22,8 +22,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class AndroidProject {
+  // The path to the existing project to be opened.
   private final String path;
   private Path distribution;
+  private Path targetProject;
 
   public AndroidProject(String path) {
     this.path = path;
@@ -33,9 +35,13 @@ public class AndroidProject {
     this.distribution = TestUtils.resolveWorkspacePathUnchecked(path);
   }
 
+  public Path getTargetProject() {
+    return targetProject;
+  }
+
   public Path install(Path tempDir) throws IOException {
     Path project = TestUtils.resolveWorkspacePath(this.path);
-    Path targetProject = Files.createTempDirectory(tempDir, "project");
+    targetProject = Files.createTempDirectory(tempDir, "project");
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
     Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
     String content = Files.readString(wrapper);
