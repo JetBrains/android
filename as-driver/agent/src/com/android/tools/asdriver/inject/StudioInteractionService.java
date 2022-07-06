@@ -198,7 +198,17 @@ public class StudioInteractionService {
       } else if (matcher.hasSwingClassRegexMatch()) {
         ASDriver.SwingClassRegexMatch match = matcher.getSwingClassRegexMatch();
         String regex = match.getRegex();
-        componentsFound = findComponentsMatchingRegex(componentsFound, regex);
+
+        // Regex matchers have two uses:
+        // 1. Narrowing down the search scope for subsequent matchers, e.g. "fetch me all JPanels
+        //    and all of their descendants".
+        // 2. Finding a single component, e.g. "now that we've found all of those, fetch me the
+        //    single JPopupMenu without finding its descendants".
+        //
+        // Case #2 is only done when the matcher is the final matcher in the list, and it means we
+        // don't want to return the subtree of whichever components we find.
+        boolean isFinalMatcher = matchers.get(matchers.size() - 1) == matcher;
+        componentsFound = findComponentsMatchingRegex(componentsFound, regex, !isFinalMatcher);
       } else {
         throw new IllegalArgumentException("ComponentMatcher doesn't have a recognized matcher");
       }
@@ -214,18 +224,22 @@ public class StudioInteractionService {
   }
 
   /**
-   * Finds all components whose class names match the given regex and returns their entire Swing
-   * subtrees (including the matching components themselves).
+   * Finds all components whose class names match the given regex.
+   *
+   * @param includeSubtrees When true, return not only the matching components but also their
+   *                        entire Swing subtrees.
    */
-  private Set<Component> findComponentsMatchingRegex(Set<Component> componentsToLookUnder, String regex) {
+  private Set<Component> findComponentsMatchingRegex(Set<Component> componentsToLookUnder, String regex, boolean includeSubtrees) {
     Predicate<? super Component> classMatchesRegex = (c) -> c.getClass().toString().matches(regex);
     Set<Component> componentsFound = componentsToLookUnder.stream().filter(classMatchesRegex).collect(Collectors.toSet());
 
-    List<Component> componentsUnderFoundComponents = new ArrayList<>();
-    for (Component component : componentsFound) {
-      componentsUnderFoundComponents.addAll(getAllComponentsUnder(component));
+    if (includeSubtrees) {
+      List<Component> componentsUnderFoundComponents = new ArrayList<>();
+      for (Component component : componentsFound) {
+        componentsUnderFoundComponents.addAll(getAllComponentsUnder(component));
+      }
+      componentsFound.addAll(componentsUnderFoundComponents);
     }
-    componentsFound.addAll(componentsUnderFoundComponents);
 
     return componentsFound;
   }
