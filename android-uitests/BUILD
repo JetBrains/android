@@ -603,7 +603,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
-        "qa_smoke",
         "qa_unreliable",  # b/139761045
         "qa_smoke_unreliable",  # b/139761045
     ],
@@ -1739,7 +1738,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
         "qa_unreliable",  # b/115685973
         "qa_fast_unreliable",  # b/115685973
     ],
