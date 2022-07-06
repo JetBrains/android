@@ -52,7 +52,11 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ ->
-      ApplicationManager.getApplication().invokeLater { ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor) }
+      ApplicationManager.getApplication().invokeLater {
+        if (!project.isDisposed) {
+          ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor)
+        }
+      }
     })
   }
 
