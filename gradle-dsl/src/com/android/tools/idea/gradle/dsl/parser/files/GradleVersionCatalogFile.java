@@ -59,7 +59,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     mapAliasesToAccessors();
   }
 
-  class GradleDslVersionLiteral extends GradleDslLiteral {
+  public static class GradleDslVersionLiteral extends GradleDslLiteral {
     GradleDslVersionLiteral(
       @NotNull GradleDslElement parent,
       @NotNull PsiElement psiElement,
@@ -72,8 +72,18 @@ public class GradleVersionCatalogFile extends GradleDslFile {
       initialRef = ref;
     }
 
+    public GradleDslVersionLiteral(
+      @NotNull GradleDslElement parent,
+      @NotNull GradleNameElement name,
+      @NotNull Object value
+    ) {
+      super(parent, name);
+      ref = value instanceof ReferenceTo;
+      initialRef = ref;
+    }
+
     private boolean ref;
-    private boolean initialRef;
+    final private boolean initialRef;
 
     @Override
     public void setValue(@NotNull Object value) {

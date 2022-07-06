@@ -17,11 +17,20 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
 
@@ -34,7 +43,7 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
     GradleDslExpressionMap librariesDslElement = myGradleDslFile.ensurePropertyElement(
       new PropertiesElementDescription<>("libraries", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
     );
-    return new ExtModelImpl(librariesDslElement);
+    return new ExtModelImpl(librariesDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
   }
 
   @Override
@@ -42,5 +51,40 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
     GradleDslExpressionMap versionsDslElement = myGradleDslFile.ensurePropertyElementAt(
       new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new), 0);
     return new ExtModelImpl(versionsDslElement);
+  }
+
+  class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
+    public GradleVersionCatalogPropertyModel(@NotNull GradleDslElement element) {
+      super(element);
+    }
+
+    public GradleVersionCatalogPropertyModel(@NotNull GradleDslElement holder, @NotNull PropertyType type, @NotNull String name) {
+      super(holder, type, name);
+    }
+
+    @Override
+    public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
+      if (!"version".equals(key)) {
+        return super.getMapValue(key);
+      }
+      GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.getMapValue(key);
+      model.addTransform(new VersionTransform());
+      return model;
+    }
+  }
+
+  static class VersionTransform extends DefaultTransform {
+    @Override
+    public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                             @Nullable GradleDslElement oldElement,
+                                             @NotNull Object value,
+                                             @NotNull String name) {
+      if (oldElement == null) {
+        GradleDslVersionLiteral literal = new GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
+        literal.setValue(value);
+        return literal;
+      }
+      return super.bind(holder, oldElement, value, name);
+    }
   }
 }
